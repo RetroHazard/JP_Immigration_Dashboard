@@ -1,5 +1,5 @@
 // components/Dashboard.jsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useImmigrationData } from '../hooks/useImmigrationData';
 
 export const Dashboard = () => {

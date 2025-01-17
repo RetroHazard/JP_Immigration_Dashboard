@@ -1,18 +1,9 @@
 // components/StatsSummary.jsx
 import { useMemo } from 'react';
-import {bureauOptions} from "../constants/bureauOptions";
 import {getBureauLabel} from "../utils/getBureauData";
 import {Icon} from "@iconify/react";
 
 export const StatsSummary = ({ data, filters }) => {
-    const calculateApprovalRate = (data) => {
-        const approved = data.reduce((sum, entry) =>
-            entry.status === '301000' ? sum + entry.value : sum, 0);
-        const total = data.reduce((sum, entry) =>
-            entry.status === '300000' ? sum + entry.value : sum, 0);
-        return total ? (approved / total * 100).toFixed(1) : 0;
-    };
-
     const stats = useMemo(() => {
         if (!data) return null;
 
@@ -44,7 +35,6 @@ export const StatsSummary = ({ data, filters }) => {
                 entry.status === '302000' ? sum + entry.value : sum, 0);
         const other = filteredData.reduce((sum, entry) =>
                 entry.status === '305000' ? sum + entry.value : sum, 0);
-
         const pending = totalApplications - processed;
 
         return {
@@ -125,23 +115,3 @@ export const StatsSummary = ({ data, filters }) => {
         </div>
     );
 };
-
-const StatCard = ({ title, value, color }) => (
-    <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center">
-            <div className={`${color} w-12 h-12 rounded-full flex items-center justify-center`}>
-        <span className="text-white text-xl">
-          {title.charAt(0)}
-        </span>
-            </div>
-            <div className="ml-4">
-                <h3 className="text-gray-500 text-sm font-medium">
-                    {title}
-                </h3>
-                <p className="text-gray-900 text-2xl font-semibold">
-                    {value}
-                </p>
-            </div>
-        </div>
-    </div>
-);
