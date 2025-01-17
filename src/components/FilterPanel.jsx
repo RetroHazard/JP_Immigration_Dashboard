@@ -88,7 +88,7 @@ export const FilterPanel = ({ data, filters, onChange }) => {
                     <input
                         type="month"
                         className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        value={filters.month}
+                        value={dateRange.max}
                         onChange={(e) => onChange({ ...filters, month: e.target.value })}
                         min={dateRange.min}
                         max={dateRange.max}
