@@ -11,8 +11,20 @@ const App = () => {
     const [filters, setFilters] = useState({
         bureau: 'all',
         type: 'all',
-        month: new Date().toISOString().slice(0, 7)
+        month: '' // Initialize Empty
     });
+
+    // Set the initial month to the most recent available data
+    useEffect(() => {
+        if (data && data.length > 0) {
+            const months = [...new Set(data.map(entry => entry.month))];
+            const latestMonth = months.sort().reverse()[0];
+            setFilters(prev => ({
+                ...prev,
+                month: latestMonth
+            }));
+        }
+    }, [data]);
 
     if (loading) {
         return <div>Loading...</div>;
