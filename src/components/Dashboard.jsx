@@ -42,7 +42,10 @@ export const Dashboard = () => {
                     data={data}
                 />
             </div>
-            <StatsSummary data={data} filters={filters} />
+            <StatsSummary
+                data={data}
+                filters={filters}
+            />
         </div>
     );
 };

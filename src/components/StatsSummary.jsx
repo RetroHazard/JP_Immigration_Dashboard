@@ -2,6 +2,7 @@
 import { useMemo } from 'react';
 import {bureauOptions} from "../constants/bureauOptions";
 import {getBureauLabel} from "../utils/getBureauData";
+import {Icon} from "@iconify/react";
 
 export const StatsSummary = ({ data, filters }) => {
     const calculateApprovalRate = (data) => {
@@ -59,12 +60,12 @@ export const StatsSummary = ({ data, filters }) => {
 
     if (!stats) return null;
 
-    const StatCard = ({ title, subtitle, value, color }) => (
+    const StatCard = ({ title, subtitle, value, color, icon }) => (
         <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
                 <div className={`${color} w-12 h-12 rounded-full flex items-center justify-center`}>
                 <span className="text-white text-xl">
-                    {title.charAt(0)}
+                    <Icon icon={icon} fontSize={30} />
                 </span>
                 </div>
                 <div className="ml-4">
@@ -91,30 +92,35 @@ export const StatsSummary = ({ data, filters }) => {
                 subtitle={getBureauLabel(filters.bureau)}
                 value={stats.totalApplications.toLocaleString()}
                 color="bg-blue-500"
+                icon='material-symbols:file-copy-outline-rounded'
             />
             <StatCard
                 title="Granted"
                 subtitle={getBureauLabel(filters.bureau)}
                 value={stats.granted.toLocaleString()}
                 color="bg-green-500"
+                icon='material-symbols:order-approve-rounded'
             />
             <StatCard
                 title="Denied"
                 subtitle={getBureauLabel(filters.bureau)}
                 value={stats.denied.toLocaleString()}
                 color="bg-red-500"
+                icon='material-symbols:cancel-outline-rounded'
             />
             <StatCard
                 title="Pending"
                 subtitle={getBureauLabel(filters.bureau)}
                 value={stats.pending.toLocaleString()}
                 color="bg-yellow-500"
+                icon='material-symbols:pending-actions-rounded'
             />
             <StatCard
                 title="Approval Rate"
                 subtitle={getBureauLabel(filters.bureau)}
                 value={`${stats.approvalRate}%`}
                 color="bg-gray-500"
+                icon='material-symbols:percent-rounded'
             />
         </div>
     );
