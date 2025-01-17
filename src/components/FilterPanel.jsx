@@ -1,35 +1,46 @@
-// components/FilterPanel.jsx
 import { useMemo } from 'react';
 import { bureauOptions } from '../constants/bureauOptions';
 
-const formatDateString = (dateStr) => {
-    if (!dateStr) return '';
-
-    // Extract year and month from the special format YYYYMM[MM]
-    const year = dateStr.substring(0, 4);
-    const month = dateStr.substring(6, 8); // Get the last two digits for month
-
-    // Create date from parts (month - 1 because JS months are 0-based)
-    const date = new Date(parseInt(year), parseInt(month) - 1);
-
-    // Format the date
-    return date.toLocaleDateString('en-US', {
-        month: 'long',
-        year: 'numeric'
-    });
-};
-
-
 export const FilterPanel = ({ data, filters, onChange }) => {
+    // components/FilterPanel.jsx
     const dateRange = useMemo(() => {
-        if (!data || data.length === 0) return { min: '', max: '' };
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            console.log('No valid data provided');
+            return { min: '', max: '' };
+        }
 
-        const months = [...new Set(data.map(entry => entry.month))];
+        // Extract unique dates from the transformed data format (YYYY-MM)
+        const months = [...new Set(data.map(entry => entry.month))].filter(Boolean);
+
+        if (months.length === 0) {
+            console.log('No valid months found in data');
+            return { min: '', max: '' };
+        }
+
+        // Sort months to get min and max (YYYY-MM format will sort correctly as strings)
+        const sortedMonths = months.sort();
+
         return {
-            min: months.sort()[0],
-            max: months.sort().reverse()[0]
+            min: sortedMonths[0],
+            max: sortedMonths[sortedMonths.length - 1]
         };
     }, [data]);
+
+    const formatDateString = (dateStr) => {
+        if (!dateStr) return '';
+
+        const [year, month] = dateStr.split('-');
+        const date = new Date(parseInt(year), parseInt(month) - 1);
+
+        return date.toLocaleDateString('en-US', {
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+
+    // Add console log to debug
+    console.log('FilterPanel received data:', data);
+    console.log('Calculated date range:', dateRange);
 
     return (
         <div className="bg-white rounded-lg shadow p-6">

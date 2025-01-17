@@ -7,13 +7,16 @@ import { StatsSummary } from './components/StatsSummary';
 import { useImmigrationData } from './hooks/useImmigrationData';
 
 const App = () => {
+    const { data, loading } = useImmigrationData();
     const [filters, setFilters] = useState({
         bureau: 'all',
         type: 'all',
         month: new Date().toISOString().slice(0, 7)
     });
 
-    const { data, loading } = useImmigrationData();
+    if (loading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -45,12 +48,7 @@ const App = () => {
                     </div>
                 ) : (
                     <>
-                        <FilterPanel
-                            data={data}
-                            filters={filters}
-                            onChange={setFilters}
-                        />
-
+                        <FilterPanel data={data} filters={filters} onChange={setFilters} />
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                             <div className="lg:col-span-2">

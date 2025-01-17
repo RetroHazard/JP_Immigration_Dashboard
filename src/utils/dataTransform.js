@@ -1,15 +1,40 @@
 // utils/dataTransform.js
 export const transformData = (rawData) => {
+    if (!rawData?.GET_STATS_DATA?.STATISTICAL_DATA?.DATA_INF?.VALUE) {
+        return [];
+    }
+
     const values = rawData.GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE;
 
     return values.map(entry => ({
-        month: entry['@time'].slice(0, 7), // Format: YYYY-MM
+        month: entry['@time'].substring(0, 4) + '-' + entry['@time'].substring(8, 10),
         bureau: entry['@cat03'],
         type: entry['@cat02'],
         value: parseInt(entry['$']),
         status: entry['@cat01']
     }));
 };
+
+export const getDateRange = (data) => {
+    if (!data || !Array.isArray(data) || data.length === 0) {
+        console.log('No valid data provided');
+        return { min: '', max: '' };
+    }
+
+    const months = [...new Set(data.map(entry => entry.month))].filter(Boolean);
+
+    if (months.length === 0) {
+        console.log('No valid months found in data');
+        return { min: '', max: '' };
+    }
+
+    const sortedMonths = months.sort();
+    return {
+        min: sortedMonths[0],
+        max: sortedMonths[sortedMonths.length - 1]
+    };
+};
+
 
 export const matchesFilters = (entry, filters) => {
     const matchesBureau = filters.bureau === 'all' || entry.bureau === filters.bureau;
