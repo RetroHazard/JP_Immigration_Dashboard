@@ -51,7 +51,7 @@ export const StatsSummary = ({ data, filters }) => {
     const StatCard = ({ title, subtitle, date, value, color, icon }) => (
         <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-                <div className={`${color} w-12 h-12 rounded-full flex items-center justify-center`}>
+                <div className={`${color} w-12 h-24 min-h-12 rounded-2xl flex items-center justify-center`}>
                 <span className="text-white text-xl">
                     <Icon icon={icon} fontSize={30} />
                 </span>
