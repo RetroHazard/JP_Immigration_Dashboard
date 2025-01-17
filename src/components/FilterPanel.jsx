@@ -93,8 +93,8 @@ export const FilterPanel = ({ data, filters, onChange }) => {
                         min={dateRange.min}
                         max={dateRange.max}
                     />
-                    <span className="text-xs text-gray-500">
-                        Data available from {formatDateString(dateRange.min)} to {formatDateString(dateRange.max)}
+                    <span className="text-xs italic text-gray-500">
+                        * Data available from {formatDateString(dateRange.min)} to {formatDateString(dateRange.max)}
                     </span>
                 </div>
             </div>
