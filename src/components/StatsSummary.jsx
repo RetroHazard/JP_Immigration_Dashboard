@@ -7,34 +7,32 @@ export const StatsSummary = ({ data, filters }) => {
     const stats = useMemo(() => {
         if (!data) return null;
 
-        // Get the most recent month
-        const months = [...new Set(data.map(entry => entry.month))];
-        const currentMonth = months.sort().reverse()[0];
+        // Use the selected month from filters, or get the most recent month if none selected
+        const selectedMonth = filters.month || [...new Set(data.map(entry => entry.month))].sort().reverse()[0];
 
-        // If a specific bureau is selected, use that bureau's data
-        // Otherwise use the total (総数) data where cat03 === '100000'
+        // Filter data based on all filters including month
         const filteredData = data.filter(entry => {
-            const isCurrentMonth = entry.month === currentMonth;
+            const matchesMonth = entry.month === selectedMonth;
             const matchesType = filters.type === 'all' || entry.type === filters.type;
 
             if (filters.bureau === 'all') {
-                return entry.bureau === '100000' && isCurrentMonth && matchesType;
+                return entry.bureau === '100000' && matchesMonth && matchesType;
             }
 
-            return entry.bureau === filters.bureau && isCurrentMonth && matchesType;
+            return entry.bureau === filters.bureau && matchesMonth && matchesType;
         });
 
-
+        // Rest of the calculations remain the same
         const totalApplications = filteredData.reduce((sum, entry) =>
-                entry.status === '100000' ? sum + entry.value : sum, 0);
+            entry.status === '100000' ? sum + entry.value : sum, 0);
         const processed = filteredData.reduce((sum, entry) =>
-                entry.status === '300000' ? sum + entry.value : sum, 0);
+            entry.status === '300000' ? sum + entry.value : sum, 0);
         const granted = filteredData.reduce((sum, entry) =>
-                entry.status === '301000' ? sum + entry.value : sum, 0);
+            entry.status === '301000' ? sum + entry.value : sum, 0);
         const denied = filteredData.reduce((sum, entry) =>
-                entry.status === '302000' ? sum + entry.value : sum, 0);
+            entry.status === '302000' ? sum + entry.value : sum, 0);
         const other = filteredData.reduce((sum, entry) =>
-                entry.status === '305000' ? sum + entry.value : sum, 0);
+            entry.status === '305000' ? sum + entry.value : sum, 0);
         const pending = totalApplications - processed;
 
         return {
@@ -46,11 +44,11 @@ export const StatsSummary = ({ data, filters }) => {
             pending,
             approvalRate: processed ? (granted / processed * 100).toFixed(1) : 0,
         };
-    }, [data, filters]);
+    }, [data, filters]); // filters includes month changes
 
     if (!stats) return null;
 
-    const StatCard = ({ title, subtitle, value, color, icon }) => (
+    const StatCard = ({ title, subtitle, date, value, color, icon }) => (
         <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
                 <div className={`${color} w-12 h-12 rounded-full flex items-center justify-center`}>
@@ -65,7 +63,10 @@ export const StatsSummary = ({ data, filters }) => {
                         </h3>
                         <span className="text-gray-400 text-xs">
                         {subtitle}
-                    </span>
+                        </span>
+                        <span className="text-gray-400 text-xs italic">
+                        {date}
+                        </span>
                     </div>
                     <p className="text-gray-900 text-2xl font-semibold mt-1">
                         {value}
@@ -80,6 +81,7 @@ export const StatsSummary = ({ data, filters }) => {
             <StatCard
                 title="Total Applications"
                 subtitle={getBureauLabel(filters.bureau)}
+                date={filters.month}
                 value={stats.totalApplications.toLocaleString()}
                 color="bg-blue-500"
                 icon='material-symbols:file-copy-outline-rounded'
@@ -87,6 +89,7 @@ export const StatsSummary = ({ data, filters }) => {
             <StatCard
                 title="Granted"
                 subtitle={getBureauLabel(filters.bureau)}
+                date={filters.month}
                 value={stats.granted.toLocaleString()}
                 color="bg-green-500"
                 icon='material-symbols:order-approve-rounded'
@@ -94,6 +97,7 @@ export const StatsSummary = ({ data, filters }) => {
             <StatCard
                 title="Denied"
                 subtitle={getBureauLabel(filters.bureau)}
+                date={filters.month}
                 value={stats.denied.toLocaleString()}
                 color="bg-red-500"
                 icon='material-symbols:cancel-outline-rounded'
@@ -101,6 +105,7 @@ export const StatsSummary = ({ data, filters }) => {
             <StatCard
                 title="Pending"
                 subtitle={getBureauLabel(filters.bureau)}
+                date={filters.month}
                 value={stats.pending.toLocaleString()}
                 color="bg-yellow-500"
                 icon='material-symbols:pending-actions-rounded'
@@ -108,6 +113,7 @@ export const StatsSummary = ({ data, filters }) => {
             <StatCard
                 title="Approval Rate"
                 subtitle={getBureauLabel(filters.bureau)}
+                date={filters.month}
                 value={`${stats.approvalRate}%`}
                 color="bg-gray-500"
                 icon='material-symbols:percent-rounded'

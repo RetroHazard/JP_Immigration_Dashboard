@@ -1,5 +1,5 @@
 // App.jsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FilterPanel } from './components/FilterPanel';
 import { StackedBarChart } from './components/StackedBarChart';
 import { EstimationCard } from './components/EstimationCard';
@@ -13,18 +13,6 @@ const App = () => {
         type: 'all',
         month: '' // Initialize Empty
     });
-
-    // Set the initial month to the most recent available data
-    useEffect(() => {
-        if (data && data.length > 0) {
-            const months = [...new Set(data.map(entry => entry.month))];
-            const latestMonth = months.sort().reverse()[0];
-            setFilters(prev => ({
-                ...prev,
-                month: latestMonth
-            }));
-        }
-    }, [data]);
 
     if (loading) {
         return <div>Loading...</div>;
