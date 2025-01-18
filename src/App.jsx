@@ -48,7 +48,9 @@ const App = () => {
                     </div>
                 ) : (
                     <>
-                        <FilterPanel data={data} filters={filters} onChange={setFilters} />
+                        <div className="grid grid-cols-1 gap-8 mb-8">
+                            <FilterPanel data={data} filters={filters} onChange={setFilters} />
+                        </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                             <div className="lg:col-span-2">
