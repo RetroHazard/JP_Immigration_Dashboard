@@ -51,52 +51,62 @@ export const StackedBarChart = ({ data, filters }) => {
     useEffect(() => {
         if (!data) return;
 
-        // Get last 12 months of data
-        const months = [...new Set(data.map(entry => entry.month))]
-            .sort()
-            .slice(-12);
+        // Get selected month or latest month if none selected
+        const endMonth = filters.month || [...new Set(data.map(entry => entry.month))].sort().reverse()[0];
 
-        const filteredData = data.filter(entry => {
-            const matchesBureau = filters.bureau === 'all' || entry.bureau === filters.bureau;
-            const matchesType = filters.type === 'all' || entry.type === filters.type;
-            return matchesBureau && matchesType && months.includes(entry.month);
+        // Get all months from data
+        const allMonths = [...new Set(data.map(entry => entry.month))].sort();
+
+        // Find index of selected/end month
+        const endIndex = allMonths.indexOf(endMonth);
+        if (endIndex === -1) return;
+
+        // Get 12 months up to and including the selected month
+        const startIndex = Math.max(0, endIndex - 11);
+        const months = allMonths.slice(startIndex, endIndex + 1);
+
+        const monthlyStats = months.map(month => {
+            const monthData = data.filter(entry => {
+                const matchesMonth = entry.month === month;
+                const matchesType = filters.type === 'all' || entry.type === filters.type;
+
+                if (filters.bureau === 'all') {
+                    return entry.bureau === '100000' && matchesMonth && matchesType;
+                }
+                return entry.bureau === filters.bureau && matchesMonth && matchesType;
+            });
+
+            return {
+                month,
+                totalApplications: monthData.reduce((sum, entry) =>
+                    entry.status === '100000' ? sum + entry.value : sum, 0),
+                processed: monthData.reduce((sum, entry) =>
+                    entry.status === '300000' ? sum + entry.value : sum, 0),
+                newApplications: monthData.reduce((sum, entry) =>
+                    entry.status === '103000' ? sum + entry.value : sum, 0)
+            };
         });
 
         const processedData = {
-            labels: months.map(month => {
-                const [year, monthNum] = month.split('-');
-                return `${year}-${monthNum.padStart(2, '0')}`;
-            }),
+            labels: months,
             datasets: [
                 {
                     label: 'Total Applications',
-                    data: months.map(month => {
-                        return filteredData
-                            .filter(entry => entry.month === month && entry.status === '100000')
-                            .reduce((sum, entry) => sum + entry.value, 0);
-                    }),
+                    data: monthlyStats.map(stat => stat.totalApplications),
                     backgroundColor: 'rgba(54, 162, 235, 0.6)',
                     borderColor: 'rgb(54, 162, 235)',
                     borderWidth: 1
                 },
                 {
                     label: 'Processed',
-                    data: months.map(month => {
-                        return filteredData
-                            .filter(entry => entry.month === month && entry.status === '300000')
-                            .reduce((sum, entry) => sum + entry.value, 0);
-                    }),
+                    data: monthlyStats.map(stat => stat.processed),
                     backgroundColor: 'rgba(34, 197, 94, 0.6)',
                     borderColor: 'rgb(34, 197, 94)',
                     borderWidth: 1
                 },
                 {
                     label: 'New Applications',
-                    data: months.map(month => {
-                        return filteredData
-                            .filter(entry => entry.month === month && entry.status === '103000')
-                            .reduce((sum, entry) => sum + entry.value, 0);
-                    }),
+                    data: monthlyStats.map(stat => stat.newApplications),
                     backgroundColor: 'rgba(234, 179, 8, 0.6)',
                     borderColor: 'rgb(234, 179, 8)',
                     borderWidth: 1
@@ -106,7 +116,7 @@ export const StackedBarChart = ({ data, filters }) => {
 
         setChartData(processedData);
     }, [data, filters]);
-
+    
     const options = {
         responsive: true,
         maintainAspectRatio: false,
@@ -171,3 +181,4 @@ export const StackedBarChart = ({ data, filters }) => {
         </div>
     );
 };
+
