@@ -1,5 +1,67 @@
 // components/EstimationCard.jsx
 import { useState, useMemo } from 'react';
+import { bureauOptions } from '../constants/bureauOptions';
+
+const calculateEstimatedDate = (data, details) => {
+    if (!data || !details.bureau || !details.type || !details.applicationDate) {
+        return null;
+    }
+
+    const { bureau, type, applicationDate } = details;
+
+    // Get the last 3 months of data for calculating average processing rate
+    const months = [...new Set(data.map(entry => entry.month))]
+        .sort()
+        .slice(-3);
+
+    // Calculate monthly processing rate based on last 3 months
+    const processedApplications = months.reduce((total, month) => {
+        const monthData = data.filter(entry =>
+            entry.month === month &&
+            entry.bureau === bureau &&
+            entry.type === type &&
+            entry.status === '300000'
+        );
+
+        return total + monthData.reduce((sum, entry) => sum + entry.value, 0);
+    }, 0);
+
+    const monthlyAverage = processedApplications / 3;
+
+    // Get current pending applications for the selected bureau and type
+    const currentPending = data.filter(entry =>
+        entry.month === months[months.length - 1] &&
+        entry.bureau === bureau &&
+        entry.type === type
+    ).reduce((sum, entry) => {
+        if (entry.status === '100000') return sum + entry.value;
+        if (entry.status === '300000') return sum - entry.value;
+        return sum;
+    }, 0);
+
+    // Calculate applications submitted before the selected date
+    const applicationMonth = applicationDate;
+    const applicationsAhead = data.filter(entry =>
+        entry.month <= applicationMonth &&
+        entry.month > months[0] &&
+        entry.bureau === bureau &&
+        entry.type === type &&
+        entry.status === '100000'
+    ).reduce((sum, entry) => sum + entry.value, 0);
+
+    // If no monthly average, return null
+    if (monthlyAverage <= 0) return null;
+
+    // Calculate estimated processing time
+    const totalToProcess = applicationsAhead + currentPending;
+    const estimatedDays = Math.ceil((totalToProcess / monthlyAverage) * 30);
+
+    // Calculate estimated completion date
+    const estimatedDate = new Date();
+    estimatedDate.setDate(estimatedDate.getDate() + estimatedDays);
+
+    return estimatedDate;
+};
 
 export const EstimationCard = ({ data }) => {
     const [applicationDetails, setApplicationDetails] = useState({
@@ -9,43 +71,19 @@ export const EstimationCard = ({ data }) => {
     });
 
     const estimatedDate = useMemo(() => {
-        if (!applicationDetails.bureau || !applicationDetails.type || !applicationDetails.applicationDate) {
-            return null;
-        }
-
         return calculateEstimatedDate(data, applicationDetails);
     }, [data, applicationDetails]);
 
-    const calculateEstimatedDate = (data, details) => {
-        const { bureau, type, applicationDate } = details;
-        const applicationMonth = applicationDate.slice(0, 7);
+    // Get valid date range for the application date input
+    const dateRange = useMemo(() => {
+        if (!data || data.length === 0) return { min: '', max: '' };
 
-        // Filter relevant data
-        const bureauData = data.filter(entry =>
-            entry['@cat03'] === bureau &&
-            entry['@cat02'] === type &&
-            entry['@time'].startsWith('2024')
-        );
-
-        // Calculate monthly processing rate
-        const processedApplications = bureauData.reduce((sum, entry) =>
-            entry['@cat01'] === '300000' ? sum + parseInt(entry['$']) : sum, 0);
-        const monthlyAverage = processedApplications / 3; // Using last 3 months average
-
-        // Get pending applications
-        const pendingApplications = bureauData.find(entry =>
-            entry['@cat01'] === '400000' &&
-            entry['@time'] === applicationMonth
-        );
-        const pendingCount = pendingApplications ? parseInt(pendingApplications['$']) : 0;
-
-        // Calculate estimated processing time
-        const daysToProcess = Math.ceil((pendingCount / monthlyAverage) * 30);
-        const estimatedDate = new Date();
-        estimatedDate.setDate(estimatedDate.getDate() + daysToProcess);
-
-        return estimatedDate;
-    };
+        const months = [...new Set(data.map(entry => entry.month))].sort();
+        return {
+            min: months[0],
+            max: months[months.length - 1]
+        };
+    }, [data]);
 
     return (
         <div className="bg-white rounded-lg shadow-lg p-6">
@@ -67,16 +105,11 @@ export const EstimationCard = ({ data }) => {
                         })}
                     >
                         <option value="">Select Bureau</option>
-                        <option value="101010">Sapporo</option>
-                        <option value="101090">Sendai</option>
-                        <option value="101170">Tokyo</option>
-                        <option value="101350">Nagoya</option>
-                        <option value="101460">Osaka</option>
-                        <option value="101580">Hiroshima</option>
-                        <option value="101720">Fukuoka</option>
-                        <option value="101830">Yokohama</option>
-                        <option value="101860">Takamatsu</option>
-                        <option value="101870">Naha</option>
+                        {bureauOptions.filter(option => option.value !== 'all').map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
@@ -114,7 +147,8 @@ export const EstimationCard = ({ data }) => {
                             ...applicationDetails,
                             applicationDate: e.target.value
                         })}
-                        max={new Date().toISOString().slice(0, 7)}
+                        min={dateRange.min}
+                        max={dateRange.max}
                     />
                 </div>
 
