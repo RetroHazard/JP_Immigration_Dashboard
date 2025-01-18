@@ -2,6 +2,11 @@
 import { useState, useMemo } from 'react';
 import { bureauOptions } from '../constants/bureauOptions';
 
+const nonAirportBureaus = bureauOptions.filter(option => {
+    return option.value !== 'all' &&
+        !option.label.toLowerCase().includes('airport');
+});
+
 const calculateEstimatedDate = (data, details) => {
     if (!data || !details.bureau || !details.type || !details.applicationDate) {
         return null;
@@ -138,7 +143,7 @@ export const EstimationCard = ({ data }) => {
                         })}
                     >
                         <option value="">Select Bureau</option>
-                        {bureauOptions.filter(option => option.value !== 'all').map(option => (
+                        {nonAirportBureaus.map(option => (
                             <option key={option.value} value={option.value}>
                                 {option.label}
                             </option>
