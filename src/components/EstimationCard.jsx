@@ -1,6 +1,7 @@
 // components/EstimationCard.jsx
 import { useState, useMemo } from 'react';
 import { bureauOptions } from '../constants/bureauOptions';
+import { applicationOptions } from '../constants/applicationOptions';
 
 const nonAirportBureaus = bureauOptions.filter(option => {
     return option.value !== 'all' &&
@@ -164,12 +165,13 @@ export const EstimationCard = ({ data }) => {
                         })}
                     >
                         <option value="">Select Type</option>
-                        <option value="10">Status Acquisition</option>
-                        <option value="20">Extension</option>
-                        <option value="30">Change of Status</option>
-                        <option value="40">Permission for Activity</option>
-                        <option value="50">Re-entry</option>
-                        <option value="60">Permanent Residence</option>
+                        {applicationOptions
+                            .filter(option => option.value !== 'all')
+                            .map(option => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
                     </select>
                 </div>
 
