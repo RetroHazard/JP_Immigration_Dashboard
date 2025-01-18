@@ -7,10 +7,13 @@ const calculateEstimatedDate = (data, details) => {
         return null;
     }
 
-    const monthsToUse = 6;
+    const minMonths = 3;
+    const maxMonths = 12;
+    const maxBackwardMonths = 3;
+
     const { bureau, type, applicationDate } = details;
 
-    // Filter data first to only include relevant bureau and type
+    // Filter data for specific bureau and type
     const filteredData = data.filter(entry =>
         entry.bureau === bureau &&
         entry.type === type
@@ -20,48 +23,76 @@ const calculateEstimatedDate = (data, details) => {
 
     // Get unique months from filtered data
     const months = [...new Set(filteredData.map(entry => entry.month))].sort();
+    const lastAvailableMonth = months[months.length - 1];
+
+    // If application date is after last available data, use last available month's data
+    const effectiveApplicationDate = applicationDate > lastAvailableMonth
+        ? lastAvailableMonth
+        : applicationDate;
 
     // Split months into before and after application date
-    const beforeMonths = months.filter(month => month < applicationDate);
-    const afterMonths = months.filter(month => month >= applicationDate);
+    const beforeMonths = months.filter(month => month < effectiveApplicationDate);
+    const afterMonths = months.filter(month => month >= effectiveApplicationDate);
 
-    // Select months for trend calculation
-    const selectedMonths = [
-        ...afterMonths.slice(0, monthsToUse),
-        ...beforeMonths.slice(-(monthsToUse - afterMonths.length))
-    ].slice(0, monthsToUse);
+    // Start with forward-looking months
+    let selectedMonths = afterMonths.slice(0, maxMonths);
+
+    // If we don't have minimum months, add backward data (up to 3 months)
+    if (selectedMonths.length < minMonths) {
+        const needed = Math.min(minMonths - selectedMonths.length, maxBackwardMonths);
+        selectedMonths = [
+            ...beforeMonths.slice(-needed),
+            ...selectedMonths
+        ];
+    }
 
     if (selectedMonths.length === 0) return null;
 
-    // Calculate processing rate using only filtered data
-    const processedApplications = selectedMonths.reduce((total, month) => {
-        const monthProcessed = filteredData.filter(entry =>
-            entry.month === month &&
-            entry.status === '300000'
-        ).reduce((sum, entry) => sum + entry.value, 0);
+    // Find the first month after application date or use last available month
+    let applicationMonth;
+    if (applicationDate > lastAvailableMonth) {
+        // For future dates, use the last available month's data
+        applicationMonth = lastAvailableMonth;
+    } else {
+        // For past dates, find the first month after application
+        applicationMonth = months.find(month => month > applicationDate) || lastAvailableMonth;
+    }
+
+    if (!applicationMonth) return null;
+
+    // Get total applications in queue at application month
+    const totalInQueue = filteredData
+        .filter(entry =>
+            entry.month === applicationMonth &&
+            entry.status === '100000'
+        )
+        .reduce((sum, entry) => sum + entry.value, 0);
+
+    // Calculate processing rate using selected months for trend
+    const totalProcessed = selectedMonths.reduce((total, month) => {
+        const monthProcessed = filteredData
+            .filter(entry =>
+                entry.month === month &&
+                entry.status === '300000'
+            )
+            .reduce((sum, entry) => sum + entry.value, 0);
         return total + monthProcessed;
     }, 0);
 
-    const monthlyAverage = processedApplications / selectedMonths.length;
+    const monthlyProcessingRate = totalProcessed / selectedMonths.length;
 
-    // Get current pending for specific bureau and type
-    const latestMonth = months[months.length - 1];
-    const currentPending = filteredData
-        .filter(entry => entry.month === latestMonth)
-        .reduce((sum, entry) => {
-            if (entry.status === '100000') return sum + entry.value;
-            if (entry.status === '300000') return sum - entry.value;
-            return sum;
-        }, 0);
+    if (monthlyProcessingRate <= 0 || totalInQueue <= 0) return null;
 
-    if (monthlyAverage <= 0 || currentPending <= 0) return null;
+    // Calculate estimated months until processing
+    const estimatedMonths = Math.ceil(totalInQueue / monthlyProcessingRate);
 
-    const estimatedDays = Math.ceil((currentPending / monthlyAverage) * 30);
-    const estimatedDate = new Date();
-    estimatedDate.setDate(estimatedDate.getDate() + estimatedDays);
+    // Calculate estimated completion date
+    const estimatedDate = new Date(applicationMonth);
+    estimatedDate.setMonth(estimatedDate.getMonth() + estimatedMonths);
 
     return estimatedDate;
 };
+
 
 export const EstimationCard = ({ data }) => {
     const [applicationDetails, setApplicationDetails] = useState({
@@ -79,9 +110,11 @@ export const EstimationCard = ({ data }) => {
         if (!data || data.length === 0) return { min: '', max: '' };
 
         const months = [...new Set(data.map(entry => entry.month))].sort();
+        const currentDate = new Date().toISOString().slice(0, 7); // YYYY-MM format
+
         return {
             min: months[0],
-            max: months[months.length - 1]
+            max: currentDate // Allow selection up to current month
         };
     }, [data]);
 
