@@ -64,7 +64,7 @@ const calculateEstimatedDate = (data, details) => {
     const totalInQueue = filteredData
         .filter(entry =>
             entry.month === applicationMonth &&
-            entry.status === '100000'
+            entry.status === '102000'
         )
         .reduce((sum, entry) => sum + entry.value, 0);
 
