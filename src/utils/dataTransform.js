@@ -15,27 +15,6 @@ export const transformData = (rawData) => {
     }));
 };
 
-export const getDateRange = (data) => {
-    if (!data || !Array.isArray(data) || data.length === 0) {
-        console.log('No valid data provided');
-        return { min: '', max: '' };
-    }
-
-    const months = [...new Set(data.map(entry => entry.month))].filter(Boolean);
-
-    if (months.length === 0) {
-        console.log('No valid months found in data');
-        return { min: '', max: '' };
-    }
-
-    const sortedMonths = months.sort();
-    return {
-        min: sortedMonths[0],
-        max: sortedMonths[sortedMonths.length - 1]
-    };
-};
-
-
 export const matchesFilters = (entry, filters) => {
     const matchesBureau = filters.bureau === 'all' || entry.bureau === filters.bureau;
     const matchesType = filters.type === 'all' || entry.type === filters.type;
@@ -73,24 +52,4 @@ const sumByStatus = (data, statusCode) => {
     return data
         .filter(entry => entry.status === statusCode)
         .reduce((sum, entry) => sum + entry.value, 0);
-};
-
-export const aggregateByBureau = (data, filters) => {
-    const currentStats = getCurrentStats(data, filters);
-    if (!currentStats) return {};
-
-    return data.reduce((acc, entry) => {
-        if (matchesFilters(entry, filters) && entry.status === '100000') {
-            const key = `${entry.bureau}-${entry.type}`;
-            acc[key] = (acc[key] || 0) + entry.value;
-        }
-        return acc;
-    }, {});
-};
-
-export const calculateApprovalRate = (data, filters) => {
-    const stats = getCurrentStats(data, filters);
-    if (!stats || !stats.processed) return 0;
-
-    return (stats.approved / stats.processed * 100).toFixed(1);
 };

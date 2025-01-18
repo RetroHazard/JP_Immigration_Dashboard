@@ -2,14 +2,12 @@ import { useMemo } from 'react';
 import { bureauOptions } from '../constants/bureauOptions';
 
 export const FilterPanel = ({ data, filters, onChange }) => {
-    // components/FilterPanel.jsx
     const dateRange = useMemo(() => {
         if (!data || !Array.isArray(data) || data.length === 0) {
             console.log('No valid data provided');
             return { min: '', max: '' };
         }
-
-        // Extract unique dates from the transformed data format (YYYY-MM)
+        
         const months = [...new Set(data.map(entry => entry.month))].filter(Boolean);
 
         if (months.length === 0) {
@@ -17,9 +15,7 @@ export const FilterPanel = ({ data, filters, onChange }) => {
             return { min: '', max: '' };
         }
 
-        // Sort months to get min and max (YYYY-MM format will sort correctly as strings)
         const sortedMonths = months.sort();
-
         return {
             min: sortedMonths[0],
             max: sortedMonths[sortedMonths.length - 1]
@@ -37,10 +33,6 @@ export const FilterPanel = ({ data, filters, onChange }) => {
             year: 'numeric'
         });
     };
-
-    // Add console log to debug
-    console.log('FilterPanel received data:', data);
-    console.log('Calculated date range:', dateRange);
 
     return (
         <div className="bg-white rounded-lg shadow p-6">
