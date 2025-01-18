@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { bureauOptions } from '../constants/bureauOptions';
+import { applicationOptions } from '../constants/applicationOptions';
 
 export const FilterPanel = ({ data, filters, onChange }) => {
     const dateRange = useMemo(() => {
@@ -7,7 +8,7 @@ export const FilterPanel = ({ data, filters, onChange }) => {
             console.log('No valid data provided');
             return { min: '', max: '' };
         }
-        
+
         const months = [...new Set(data.map(entry => entry.month))].filter(Boolean);
 
         if (months.length === 0) {
@@ -63,16 +64,13 @@ export const FilterPanel = ({ data, filters, onChange }) => {
                         value={filters.type}
                         onChange={(e) => onChange({ ...filters, type: e.target.value })}
                     >
-                        <option value="all">All Types</option>
-                        <option value="10">Status Acquisition</option>
-                        <option value="20">Extension</option>
-                        <option value="30">Change of Status</option>
-                        <option value="40">Permission for Activity</option>
-                        <option value="50">Re-entry</option>
-                        <option value="60">Permanent Residence</option>
+                        {applicationOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
                     </select>
                 </div>
-
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                         Month
@@ -93,3 +91,4 @@ export const FilterPanel = ({ data, filters, onChange }) => {
         </div>
     );
 };
+    
