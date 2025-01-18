@@ -21,10 +21,11 @@ export const StatsSummary = ({ data, filters }) => {
 
             return entry.bureau === filters.bureau && matchesMonth && matchesType;
         });
-
-        // Rest of the calculations remain the same
-        const totalApplications = filteredData.reduce((sum, entry) =>
-            entry.status === '100000' ? sum + entry.value : sum, 0);
+        
+        const oldApplications = filteredData.reduce((sum, entry) =>
+            entry.status === '102000' ? sum + entry.value : sum, 0);
+        const newApplications = filteredData.reduce((sum, entry) =>
+            entry.status === '103000' ? sum + entry.value : sum, 0);
         const processed = filteredData.reduce((sum, entry) =>
             entry.status === '300000' ? sum + entry.value : sum, 0);
         const granted = filteredData.reduce((sum, entry) =>
@@ -33,6 +34,8 @@ export const StatsSummary = ({ data, filters }) => {
             entry.status === '302000' ? sum + entry.value : sum, 0);
         const other = filteredData.reduce((sum, entry) =>
             entry.status === '305000' ? sum + entry.value : sum, 0);
+
+        const totalApplications = oldApplications + newApplications;
         const pending = totalApplications - processed;
 
         return {
@@ -44,7 +47,7 @@ export const StatsSummary = ({ data, filters }) => {
             pending,
             approvalRate: processed ? (granted / processed * 100).toFixed(1) : 0,
         };
-    }, [data, filters]); // filters includes month changes
+    }, [data, filters]);
 
     if (!stats) return null;
 
