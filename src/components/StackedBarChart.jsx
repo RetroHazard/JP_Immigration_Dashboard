@@ -162,7 +162,7 @@ export const StackedBarChart = ({ data, filters }) => {
                 text: 'Immigration Applications by Period',
                 padding: {
                     top: 10,
-                    bottom: 30
+                    bottom: 10
                 }
             },
             tooltip: {
