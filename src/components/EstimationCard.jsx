@@ -7,56 +7,56 @@ const calculateEstimatedDate = (data, details) => {
         return null;
     }
 
+    const monthsToUse = 6;
     const { bureau, type, applicationDate } = details;
 
-    // Get the last 3 months of data for calculating average processing rate
-    const months = [...new Set(data.map(entry => entry.month))]
-        .sort()
-        .slice(-3);
-
-    // Calculate monthly processing rate based on last 3 months
-    const processedApplications = months.reduce((total, month) => {
-        const monthData = data.filter(entry =>
-            entry.month === month &&
-            entry.bureau === bureau &&
-            entry.type === type &&
-            entry.status === '300000'
-        );
-
-        return total + monthData.reduce((sum, entry) => sum + entry.value, 0);
-    }, 0);
-
-    const monthlyAverage = processedApplications / 3;
-
-    // Get current pending applications for the selected bureau and type
-    const currentPending = data.filter(entry =>
-        entry.month === months[months.length - 1] &&
+    // Filter data first to only include relevant bureau and type
+    const filteredData = data.filter(entry =>
         entry.bureau === bureau &&
         entry.type === type
-    ).reduce((sum, entry) => {
-        if (entry.status === '100000') return sum + entry.value;
-        if (entry.status === '300000') return sum - entry.value;
-        return sum;
+    );
+
+    if (filteredData.length === 0) return null;
+
+    // Get unique months from filtered data
+    const months = [...new Set(filteredData.map(entry => entry.month))].sort();
+
+    // Split months into before and after application date
+    const beforeMonths = months.filter(month => month < applicationDate);
+    const afterMonths = months.filter(month => month >= applicationDate);
+
+    // Select months for trend calculation
+    const selectedMonths = [
+        ...afterMonths.slice(0, monthsToUse),
+        ...beforeMonths.slice(-(monthsToUse - afterMonths.length))
+    ].slice(0, monthsToUse);
+
+    if (selectedMonths.length === 0) return null;
+
+    // Calculate processing rate using only filtered data
+    const processedApplications = selectedMonths.reduce((total, month) => {
+        const monthProcessed = filteredData.filter(entry =>
+            entry.month === month &&
+            entry.status === '300000'
+        ).reduce((sum, entry) => sum + entry.value, 0);
+        return total + monthProcessed;
     }, 0);
 
-    // Calculate applications submitted before the selected date
-    const applicationMonth = applicationDate;
-    const applicationsAhead = data.filter(entry =>
-        entry.month <= applicationMonth &&
-        entry.month > months[0] &&
-        entry.bureau === bureau &&
-        entry.type === type &&
-        entry.status === '100000'
-    ).reduce((sum, entry) => sum + entry.value, 0);
+    const monthlyAverage = processedApplications / selectedMonths.length;
 
-    // If no monthly average, return null
-    if (monthlyAverage <= 0) return null;
+    // Get current pending for specific bureau and type
+    const latestMonth = months[months.length - 1];
+    const currentPending = filteredData
+        .filter(entry => entry.month === latestMonth)
+        .reduce((sum, entry) => {
+            if (entry.status === '100000') return sum + entry.value;
+            if (entry.status === '300000') return sum - entry.value;
+            return sum;
+        }, 0);
 
-    // Calculate estimated processing time
-    const totalToProcess = applicationsAhead + currentPending;
-    const estimatedDays = Math.ceil((totalToProcess / monthlyAverage) * 30);
+    if (monthlyAverage <= 0 || currentPending <= 0) return null;
 
-    // Calculate estimated completion date
+    const estimatedDays = Math.ceil((currentPending / monthlyAverage) * 30);
     const estimatedDate = new Date();
     estimatedDate.setDate(estimatedDate.getDate() + estimatedDays);
 
@@ -153,19 +153,18 @@ export const EstimationCard = ({ data }) => {
                 </div>
 
                 {estimatedDate && (
-                    <div className="mt-6 p-4 bg-gray-50 rounded-md">
+                    <div className="h-full mt-6 p-4 bg-gray-50 rounded-md">
                         <h3 className="text-lg font-medium text-gray-900">
                             Estimated Completion Date
                         </h3>
                         <p className="mt-2 text-2xl font-bold text-indigo-600">
                             {estimatedDate.toLocaleDateString('en-US', {
                                 year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
+                                month: 'long'
                             })}
                         </p>
-                        <p className="mt-1 text-sm text-gray-500">
-                            *This is an estimate based on current processing rates and pending applications
+                        <p className="mt-1 text-xs text-gray-500 italic">
+                            *This is an estimate based on current processing rates and pending applications. The actual completion date may vary.
                         </p>
                     </div>
                 )}
