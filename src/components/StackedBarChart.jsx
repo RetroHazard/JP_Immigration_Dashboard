@@ -25,10 +25,17 @@ export const StackedBarChart = ({ data, filters }) => {
         labels: [],
         datasets: [
             {
-                label: 'Total Applications',
+                label: 'Old Applications',
                 data: [],
                 backgroundColor: 'rgba(54, 162, 235, 0.6)',
                 borderColor: 'rgb(54, 162, 235)',
+                borderWidth: 1
+            },
+            {
+                label: 'New Applications',
+                data: [],
+                backgroundColor: 'rgba(234, 179, 8, 0.6)',
+                borderColor: 'rgb(234, 179, 8)',
                 borderWidth: 1
             },
             {
@@ -38,13 +45,6 @@ export const StackedBarChart = ({ data, filters }) => {
                 borderColor: 'rgb(34, 197, 94)',
                 borderWidth: 1
             },
-            {
-                label: 'New Applications',
-                data: [],
-                backgroundColor: 'rgba(234, 179, 8, 0.6)',
-                borderColor: 'rgb(234, 179, 8)',
-                borderWidth: 1
-            }
         ]
     });
 
@@ -79,11 +79,11 @@ export const StackedBarChart = ({ data, filters }) => {
             return {
                 month,
                 totalApplications: monthData.reduce((sum, entry) =>
-                    entry.status === '100000' ? sum + entry.value : sum, 0),
+                    entry.status === '102000' ? sum + entry.value : sum, 0), // 受理_旧受 (Previously Received)
                 processed: monthData.reduce((sum, entry) =>
-                    entry.status === '300000' ? sum + entry.value : sum, 0),
+                    entry.status === '300000' ? sum + entry.value : sum, 0), // 処理済み (Processed)
                 newApplications: monthData.reduce((sum, entry) =>
-                    entry.status === '103000' ? sum + entry.value : sum, 0)
+                    entry.status === '103000' ? sum + entry.value : sum, 0) // 受理_新受 (Newly Received)
             };
         });
 
@@ -91,10 +91,17 @@ export const StackedBarChart = ({ data, filters }) => {
             labels: months,
             datasets: [
                 {
-                    label: 'Total Applications',
+                    label: 'Old Applications',
                     data: monthlyStats.map(stat => stat.totalApplications),
                     backgroundColor: 'rgba(54, 162, 235, 0.6)',
                     borderColor: 'rgb(54, 162, 235)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'New Applications',
+                    data: monthlyStats.map(stat => stat.newApplications),
+                    backgroundColor: 'rgba(234, 179, 8, 0.6)',
+                    borderColor: 'rgb(234, 179, 8)',
                     borderWidth: 1
                 },
                 {
@@ -104,13 +111,6 @@ export const StackedBarChart = ({ data, filters }) => {
                     borderColor: 'rgb(34, 197, 94)',
                     borderWidth: 1
                 },
-                {
-                    label: 'New Applications',
-                    data: monthlyStats.map(stat => stat.newApplications),
-                    backgroundColor: 'rgba(234, 179, 8, 0.6)',
-                    borderColor: 'rgb(234, 179, 8)',
-                    borderWidth: 1
-                }
             ]
         };
 
