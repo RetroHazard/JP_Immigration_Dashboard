@@ -79,11 +79,11 @@ const App = () => {
                         Official Statistics provided by Immigration Services Agency of Japan<br></br>
                         Data acquisition provided by e-Stat
                         <a href="https://www.e-stat.go.jp/dbview?sid=0003449073">
-                            <Icon icon="ri:link" className="text-indigo-600 hover:text-indigo-500 inline-block align-middle" style={{ verticalAlign: '-0.125em' }}
-                    /></a>
+                            <Icon icon="ri:link" className="text-indigo-600 hover:text-indigo-500 inline-block align-middle" style={{ verticalAlign: '-0.125em' }}/>
+                        </a>
                     </div>
                     <div className="mt-1 text-center text-xs text-gray-500">
-                        Built in 2025 by <a href="https://github.com/RetroHazard" className="text-indigo-600 hover:text-indigo-500">RetroHazard</a>
+                        Built using <a href="https://react.dev" className="text-indigo-600 hover:text-indigo-500">React</a> in 2025 by <a href="https://github.com/RetroHazard" className="text-indigo-600 hover:text-indigo-500"><Icon icon="openmoji:github" className="inline-block align-middle" style={{ verticalAlign: '-0.125em' }}/>RetroHazard</a>
                     </div>
                 </div>
             </footer>
