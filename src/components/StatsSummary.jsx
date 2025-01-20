@@ -1,7 +1,7 @@
 // components/StatsSummary.jsx
 import { useMemo } from 'react';
-import {getBureauLabel} from "../utils/getBureauData";
-import {Icon} from "@iconify/react";
+import { getBureauLabel } from '../utils/getBureauData';
+import { Icon } from '@iconify/react';
 
 export const StatsSummary = ({ data, filters }) => {
     const stats = useMemo(() => {
@@ -21,7 +21,7 @@ export const StatsSummary = ({ data, filters }) => {
 
             return entry.bureau === filters.bureau && matchesMonth && matchesType;
         });
-        
+
         const oldApplications = filteredData.reduce((sum, entry) =>
             entry.status === '102000' ? sum + entry.value : sum, 0);
         const newApplications = filteredData.reduce((sum, entry) =>
@@ -45,7 +45,7 @@ export const StatsSummary = ({ data, filters }) => {
             denied,
             other,
             pending,
-            approvalRate: processed ? (granted / processed * 100).toFixed(1) : 0,
+            approvalRate: processed ? (granted / processed * 100).toFixed(1) : 0
         };
     }, [data, filters]);
 
@@ -87,7 +87,7 @@ export const StatsSummary = ({ data, filters }) => {
                 date={filters.month}
                 value={stats.totalApplications.toLocaleString()}
                 color="bg-blue-500"
-                icon='material-symbols:file-copy-outline-rounded'
+                icon="material-symbols:file-copy-outline-rounded"
             />
             <StatCard
                 title="Granted"
@@ -95,7 +95,7 @@ export const StatsSummary = ({ data, filters }) => {
                 date={filters.month}
                 value={stats.granted.toLocaleString()}
                 color="bg-green-500"
-                icon='material-symbols:order-approve-rounded'
+                icon="material-symbols:order-approve-rounded"
             />
             <StatCard
                 title="Denied"
@@ -103,7 +103,7 @@ export const StatsSummary = ({ data, filters }) => {
                 date={filters.month}
                 value={stats.denied.toLocaleString()}
                 color="bg-red-500"
-                icon='material-symbols:cancel-outline-rounded'
+                icon="material-symbols:cancel-outline-rounded"
             />
             <StatCard
                 title="Pending"
@@ -111,7 +111,7 @@ export const StatsSummary = ({ data, filters }) => {
                 date={filters.month}
                 value={stats.pending.toLocaleString()}
                 color="bg-yellow-500"
-                icon='material-symbols:pending-actions-rounded'
+                icon="material-symbols:pending-actions-rounded"
             />
             <StatCard
                 title="Approval Rate"
@@ -119,7 +119,7 @@ export const StatsSummary = ({ data, filters }) => {
                 date={filters.month}
                 value={`${stats.approvalRate}%`}
                 color="bg-gray-500"
-                icon='material-symbols:percent-rounded'
+                icon="material-symbols:percent-rounded"
             />
         </div>
     );

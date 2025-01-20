@@ -1,15 +1,7 @@
 // components/StackedBarChart.jsx
 import React, { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend
-} from 'chart.js';
+import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 
 ChartJS.register(
     CategoryScale,
@@ -47,7 +39,7 @@ export const StackedBarChart = ({ data, filters }) => {
                 backgroundColor: 'rgba(34, 197, 94, 0.6)',
                 borderColor: 'rgb(34, 197, 94)',
                 borderWidth: 1
-            },
+            }
         ]
     });
 
@@ -118,7 +110,7 @@ export const StackedBarChart = ({ data, filters }) => {
                     backgroundColor: 'rgba(34, 197, 94, 0.6)',
                     borderColor: 'rgb(34, 197, 94)',
                     borderWidth: 1
-                },
+                }
             ]
         };
 
