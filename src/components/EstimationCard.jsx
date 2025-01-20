@@ -66,6 +66,15 @@ const calculateEstimatedDate = (data, details) => {
 
     if (!applicationMonth) return null;
 
+    // Calculate applications processed since user's application date
+    const processedSinceApplication = filteredData
+        .filter(entry =>
+            entry.month > applicationDate &&
+            entry.month <= lastAvailableMonth &&
+            entry.status === '300000'
+        )
+        .reduce((sum, entry) => sum + entry.value, 0);
+
     // Get total applications in queue at application month
     const totalInQueue = filteredData
         .filter(entry =>
@@ -74,7 +83,10 @@ const calculateEstimatedDate = (data, details) => {
         )
         .reduce((sum, entry) => sum + entry.value, 0);
 
-    // Calculate processing rate using selected months for trend
+    // Calculate remaining applications ahead in queue
+    const remainingAhead = Math.max(0, totalInQueue - processedSinceApplication);
+
+    // Calculate processing rate using trend data
     const totalProcessed = selectedMonths.reduce((total, month) => {
         const monthProcessed = filteredData
             .filter(entry =>
@@ -87,13 +99,13 @@ const calculateEstimatedDate = (data, details) => {
 
     const monthlyProcessingRate = totalProcessed / selectedMonths.length;
 
-    if (monthlyProcessingRate <= 0 || totalInQueue <= 0) return null;
+    if (monthlyProcessingRate <= 0 || remainingAhead <= 0) return null;
 
-    // Calculate estimated months until processing
-    const estimatedMonths = Math.ceil(totalInQueue / monthlyProcessingRate);
+    // Calculate estimated months based on remaining queue position
+    const estimatedMonths = Math.ceil(remainingAhead / monthlyProcessingRate);
 
-    // Calculate estimated completion date
-    const estimatedDate = new Date(applicationMonth);
+    // Calculate estimated completion date from current date
+    const estimatedDate = new Date();
     estimatedDate.setMonth(estimatedDate.getMonth() + estimatedMonths);
 
     return estimatedDate;
