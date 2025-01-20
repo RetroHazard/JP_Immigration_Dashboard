@@ -126,14 +126,14 @@ const calculateEstimatedDate = (data, details) => {
         : predictedProcessed;
 
     // Total processed applications since application date
-    const totalProcessedSinceApplication = Math.max(0,Math.round(confirmedProcessed + applicablePredictedProcessed));
+    const totalProcessedSinceApplication = Math.max(0, Math.round(confirmedProcessed + applicablePredictedProcessed));
 
     // Calculate adjusted queue total
     const predictedChange = netChangePerMonth * predictionMonths;
     const adjustedQueueTotal = Math.round(totalInQueue + predictedChange);
 
     // Calculate remaining applications ahead in queue
-    const remainingAhead = Math.max(0,Math.round(adjustedQueueTotal - totalProcessedSinceApplication));
+    const remainingAhead = Math.max(0, Math.round(adjustedQueueTotal - totalProcessedSinceApplication));
 
     // Calculate processing rate using trend data
     const totalProcessed = selectedMonths.reduce((total, month) => {
@@ -334,7 +334,8 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
                         icon="ci:chevron-left-duo"
                         className="text-gray-500 text-3xl animate-pulse"
                     />
-                    <div className="whitespace-nowrap" style={{ writingMode: 'vertical-rl' }}>
+                    <div className="whitespace-nowrap text-gray-500 hover:text-gray-700"
+                         style={{ writingMode: 'vertical-rl' }}>
                         <h2>Processing Time Estimator</h2>
                     </div>
                     <Icon
