@@ -246,12 +246,12 @@ export const EstimationCard = ({ data }) => {
                     {showDetails && (
                         <div className="mt-2.5 text-xs text-gray-600 space-y-2 border-t pt-3">
                             <p><strong>Applications in Queue:</strong> {estimatedDate.details.totalInQueue.toLocaleString()}</p>
-                            <p><strong>Application Processing Rate:</strong> {estimatedDate.details.monthlyRate.toLocaleString()} /month</p>
                             <p><strong>Processed Since Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}</p>
-                            <p><strong>Estimated Queue Position:</strong> {estimatedDate.details.queuePosition.toLocaleString()}</p>
-                            <div className="mt-4 p-4 bg-gray-100 rounded text-xs">
+                            <p><strong>Estimated Queue Position <i>(QP)</i>:</strong> {estimatedDate.details.queuePosition.toLocaleString()}</p>
+                            <p><strong>Application Processing Rate <i>(APR)</i>:</strong> {estimatedDate.details.monthlyRate.toLocaleString()} /month</p>
+                            <div className="p-5 bg-gray-100 rounded text-xs">
                                 <p className="font-medium">Calculation Formula:</p>
-                                <p>Estimated Months = Queue Position ÷ Monthly Processing Rate</p>
+                                <p>Estimated Months = QP ÷ APR</p>
                                 <p>= {estimatedDate.details.queuePosition.toLocaleString()} ÷ {estimatedDate.details.monthlyRate.toLocaleString()}</p>
                                 <p>= {estimatedDate.details.estimatedMonths.toFixed(1)} months</p>
                             </div>
