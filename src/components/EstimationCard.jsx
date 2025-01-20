@@ -2,6 +2,7 @@
 import { useState, useMemo } from 'react';
 import { bureauOptions } from '../constants/bureauOptions';
 import { applicationOptions } from '../constants/applicationOptions';
+import { Icon } from '@iconify/react';
 
 const nonAirportBureaus = bureauOptions.filter(option => {
     return option.value !== 'all' &&
@@ -97,7 +98,7 @@ const calculateEstimatedDate = (data, details) => {
         return total + monthProcessed;
     }, 0);
 
-    const monthlyProcessingRate = totalProcessed / selectedMonths.length;
+    const monthlyProcessingRate = Math.round(totalProcessed / selectedMonths.length);
 
     if (monthlyProcessingRate <= 0 || remainingAhead <= 0) return null;
 
@@ -108,7 +109,18 @@ const calculateEstimatedDate = (data, details) => {
     const estimatedDate = new Date();
     estimatedDate.setMonth(estimatedDate.getMonth() + estimatedMonths);
 
-    return estimatedDate;
+    const calculationDetails = {
+        totalInQueue,
+        monthlyRate: monthlyProcessingRate,
+        processedSince: processedSinceApplication,
+        queuePosition: remainingAhead,
+        estimatedMonths: estimatedMonths
+    };
+
+    return {
+        estimatedDate,
+        details: calculationDetails
+    };
 };
 
 
@@ -118,6 +130,7 @@ export const EstimationCard = ({ data }) => {
         type: '',
         applicationDate: ''
     });
+    const [showDetails, setShowDetails] = useState(false);
 
     const estimatedDate = useMemo(() => {
         return calculateEstimatedDate(data, applicationDetails);
@@ -142,85 +155,114 @@ export const EstimationCard = ({ data }) => {
                 Processing Time Estimator
             </h2>
 
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Immigration Bureau
-                    </label>
-                    <select
-                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        value={applicationDetails.bureau}
-                        onChange={(e) => setApplicationDetails({
-                            ...applicationDetails,
-                            bureau: e.target.value
-                        })}
-                    >
-                        <option value="">Select Bureau</option>
-                        {nonAirportBureaus.map(option => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Application Type
-                    </label>
-                    <select
-                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        value={applicationDetails.type}
-                        onChange={(e) => setApplicationDetails({
-                            ...applicationDetails,
-                            type: e.target.value
-                        })}
-                    >
-                        <option value="">Select Type</option>
-                        {applicationOptions
-                            .filter(option => option.value !== 'all')
-                            .map(option => (
+            {!showDetails ? (
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Immigration Bureau
+                        </label>
+                        <select
+                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            value={applicationDetails.bureau}
+                            onChange={(e) => setApplicationDetails({
+                                ...applicationDetails,
+                                bureau: e.target.value
+                            })}
+                        >
+                            <option value="">Select Bureau</option>
+                            {nonAirportBureaus.map(option => (
                                 <option key={option.value} value={option.value}>
                                     {option.label}
                                 </option>
                             ))}
-                    </select>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Application Date
-                    </label>
-                    <input
-                        type="month"
-                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        value={applicationDetails.applicationDate}
-                        onChange={(e) => setApplicationDetails({
-                            ...applicationDetails,
-                            applicationDate: e.target.value
-                        })}
-                        min={dateRange.min}
-                        max={dateRange.max}
-                    />
-                </div>
-
-                {estimatedDate && (
-                    <div className="h-full mt-6 p-4 bg-gray-50 rounded-md">
-                        <h3 className="text-lg font-medium text-gray-900">
-                            Estimated Completion Date
-                        </h3>
-                        <p className="mt-2 text-2xl font-bold text-indigo-600">
-                            {estimatedDate.toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long'
-                            })}
-                        </p>
-                        <p className="mt-1 text-xs text-gray-500 italic">
-                            *This is an estimate based on current processing rates and pending applications. The actual completion date may vary.
-                        </p>
+                        </select>
                     </div>
-                )}
-            </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Application Type
+                        </label>
+                        <select
+                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            value={applicationDetails.type}
+                            onChange={(e) => setApplicationDetails({
+                                ...applicationDetails,
+                                type: e.target.value
+                            })}
+                        >
+                            <option value="">Select Type</option>
+                            {applicationOptions
+                                .filter(option => option.value !== 'all')
+                                .map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Application Date
+                        </label>
+                        <input
+                            type="month"
+                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            value={applicationDetails.applicationDate}
+                            onChange={(e) => setApplicationDetails({
+                                ...applicationDetails,
+                                applicationDate: e.target.value
+                            })}
+                            min={dateRange.min}
+                            max={dateRange.max}
+                        />
+                    </div>
+                </div>
+            ) : null}
+
+            {estimatedDate && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-md">
+                    <h3 className="text-lg font-medium text-gray-900">
+                        Estimated Completion Date
+                    </h3>
+                    <p className="mt-2 text-2xl font-bold text-indigo-600">
+                        {estimatedDate.estimatedDate.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long'
+                        })}
+                    </p>
+
+                    <button
+                        onClick={() => setShowDetails(!showDetails)}
+                        className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 flex items-center"
+                    >
+                        <Icon
+                            icon={showDetails ? 'material-symbols:settings' : 'material-symbols:info-outline'}
+                            className="mr-1"
+                        />
+                        {showDetails ? 'Show Filters' : 'Show Details'}
+                    </button>
+
+                    {showDetails && (
+                        <div className="mt-3 text-xs text-gray-600 space-y-2 border-t pt-3">
+                            <p><strong>Applications in Queue:</strong> {estimatedDate.details.totalInQueue.toLocaleString()}</p>
+                            <p><strong>Application Processing Rate:</strong> {estimatedDate.details.monthlyRate.toLocaleString()} /month</p>
+                            <p><strong>Processed Since Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}</p>
+                            <p><strong>Estimated Queue Position:</strong> {estimatedDate.details.queuePosition.toLocaleString()}</p>
+                            <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
+                                <p className="font-medium">Calculation Formula:</p>
+                                <p>Estimated Months = Queue Position ÷ Monthly Processing Rate</p>
+                                <p>= {estimatedDate.details.queuePosition.toLocaleString()} ÷ {estimatedDate.details.monthlyRate.toLocaleString()}</p>
+                                <p>= {estimatedDate.details.estimatedMonths.toFixed(1)} months</p>
+                            </div>
+                        </div>
+                    )}
+
+                    <p className="mt-4 text-xs text-gray-500 italic">
+                        *This is an estimate based on current processing rates and pending applications. The actual completion date may vary.
+                    </p>
+                </div>
+            )}
         </div>
     );
 };
