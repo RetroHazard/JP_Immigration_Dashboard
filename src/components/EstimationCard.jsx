@@ -68,7 +68,7 @@ const calculateEstimatedDate = (data, details) => {
     if (!applicationMonth) return null;
 
     // Calculate applications processed since user's application date
-    const processedSinceApplication = filteredData
+    const confirmedProcessed = filteredData
         .filter(entry =>
             entry.month > applicationDate &&
             entry.month <= lastAvailableMonth &&
@@ -84,8 +84,56 @@ const calculateEstimatedDate = (data, details) => {
         )
         .reduce((sum, entry) => sum + entry.value, 0);
 
+    // Calculate averages from last 3 months
+    const lastThreeMonths = months.slice(-3);
+    const averages = lastThreeMonths.reduce((acc, month) => {
+        const monthData = filteredData.filter(entry => entry.month === month);
+        return {
+            newApplications: acc.newApplications + monthData
+                .filter(entry => entry.status === '103000')
+                .reduce((sum, entry) => sum + entry.value, 0),
+            processed: acc.processed + monthData
+                .filter(entry => entry.status === '300000')
+                .reduce((sum, entry) => sum + entry.value, 0)
+        };
+    }, { newApplications: 0, processed: 0 });
+
+    const monthlyNewAverage = averages.newApplications / 3;
+    const monthlyProcessedAverage = averages.processed / 3;
+    const netChangePerMonth = monthlyNewAverage - monthlyProcessedAverage;
+
+// Calculate prediction period
+    const lastDataDate = new Date(lastAvailableMonth);
+    const today = new Date('2025-01-20');
+    const daysInCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const fullMonths = (today.getFullYear() - lastDataDate.getFullYear()) * 12 +
+        (today.getMonth() - lastDataDate.getMonth() - 1);
+    const partialMonth = today.getDate() / daysInCurrentMonth;
+    const predictionMonths = fullMonths + partialMonth;
+
+    // Calculate predicted processed applications for missing months
+    const predictedProcessed = predictionMonths * monthlyProcessedAverage;
+
+    // Calculate months between application date and current date
+    const applicationDateTime = new Date(applicationDate);
+    const monthsSinceApplication = (today.getFullYear() - applicationDateTime.getFullYear()) * 12 +
+        (today.getMonth() - applicationDateTime.getMonth() - 1) +
+        (today.getDate() / daysInCurrentMonth);
+
+    // Adjust predicted processing based on application date
+    const applicablePredictedProcessed = applicationDate > lastAvailableMonth
+        ? monthlyProcessedAverage * monthsSinceApplication
+        : predictedProcessed;
+
+    // Total processed applications since application date
+    const totalProcessedSinceApplication = Math.max(0,Math.round(confirmedProcessed + applicablePredictedProcessed));
+
+    // Calculate adjusted queue total
+    const predictedChange = netChangePerMonth * predictionMonths;
+    const adjustedQueueTotal = Math.round(totalInQueue + predictedChange);
+
     // Calculate remaining applications ahead in queue
-    const remainingAhead = Math.max(0, totalInQueue - processedSinceApplication);
+    const remainingAhead = Math.max(0,Math.round(adjustedQueueTotal - totalProcessedSinceApplication));
 
     // Calculate processing rate using trend data
     const totalProcessed = selectedMonths.reduce((total, month) => {
@@ -110,9 +158,9 @@ const calculateEstimatedDate = (data, details) => {
     estimatedDate.setMonth(estimatedDate.getMonth() + estimatedMonths);
 
     const calculationDetails = {
-        totalInQueue,
+        adjustedQueueTotal,
         monthlyRate: monthlyProcessingRate,
-        processedSince: processedSinceApplication,
+        processedSince: totalProcessedSinceApplication,
         queuePosition: remainingAhead,
         estimatedMonths: estimatedMonths
     };
@@ -255,7 +303,7 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
                             {showDetails && (
                                 <div className="mt-2.5 text-xs text-gray-600 space-y-2 border-t pt-3">
                                     <p><strong>Applications in
-                                        Queue:</strong> {estimatedDate.details.totalInQueue.toLocaleString()}</p>
+                                        Queue:</strong> {estimatedDate.details.adjustedQueueTotal.toLocaleString()}</p>
                                     <p><strong>Processed Since
                                         Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}</p>
                                     <p><strong>Estimated Queue
@@ -268,7 +316,7 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
                                         <p className="font-medium">Calculation Formula:</p>
                                         <p>Estimated Months = QP ÷ APR</p>
                                         <p>= {estimatedDate.details.queuePosition.toLocaleString()} ÷ {estimatedDate.details.monthlyRate.toLocaleString()}</p>
-                                        <p>= {estimatedDate.details.estimatedMonths.toFixed(1)} months</p>
+                                        <p>= {estimatedDate.details.estimatedMonths.toFixed(1)} months remaining</p>
                                     </div>
                                 </div>
                             )}
