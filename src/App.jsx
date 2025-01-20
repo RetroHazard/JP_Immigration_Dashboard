@@ -15,6 +15,8 @@ const App = () => {
         month: '' // Initialize Empty
     });
 
+    const [isEstimationExpanded, setIsEstimationExpanded] = useState(false);
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -53,17 +55,28 @@ const App = () => {
                             <FilterPanel data={data} filters={filters} onChange={setFilters} />
                         </div>
 
-                        <div>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 h-full">
-                                <div className="lg:col-span-2 h-full">
-                                    <div className="bg-white rounded-lg shadow-lg p-5 h-full">
+                        <div className="min-h-[600px] max-h-[800px]">
+                            <div className="grid grid-cols-12 gap-8 mb-8 h-full">
+                                <div className={`transition-all duration-300 ease-in-out ${
+                                    isEstimationExpanded ? 'col-span-8' : 'col-span-11'
+                                }`}>
+                                    <div className="bg-white rounded-lg shadow-lg p-6 h-full">
                                         <StackedBarChart data={data} filters={filters} />
                                     </div>
                                 </div>
 
-                                <div className="lg:col-span-1 h-full">
-                                    <div className="h-full">
-                                        <EstimationCard data={data} />
+                                <div className={`transition-all duration-300 ease-in-out ${
+                                    isEstimationExpanded ? 'col-span-4' : 'col-span-1'
+                                }`}>
+                                    <div
+                                        className="h-full cursor-pointer"
+                                        onClick={() => !isEstimationExpanded && setIsEstimationExpanded(true)}
+                                    >
+                                        <EstimationCard
+                                            data={data}
+                                            isExpanded={isEstimationExpanded}
+                                            onCollapse={() => setIsEstimationExpanded(false)}
+                                        />
                                     </div>
                                 </div>
                             </div>

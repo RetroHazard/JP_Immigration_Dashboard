@@ -1,5 +1,5 @@
 // components/EstimationCard.jsx
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { bureauOptions } from '../constants/bureauOptions';
 import { applicationOptions } from '../constants/applicationOptions';
 import { Icon } from '@iconify/react';
@@ -124,7 +124,7 @@ const calculateEstimatedDate = (data, details) => {
 };
 
 
-export const EstimationCard = ({ data }) => {
+export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
     const [applicationDetails, setApplicationDetails] = useState({
         bureau: '',
         type: '',
@@ -150,117 +150,149 @@ export const EstimationCard = ({ data }) => {
     }, [data]);
 
     return (
-        <div className="bg-white rounded-lg shadow-lg p-5 space-y-4 h-full">
-            <h2 className="text-lg font-semibold">
-                Processing Time Estimator
-            </h2>
-
-            {!showDetails ? (
-                <div className="space-y-2">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Immigration Bureau
-                        </label>
-                        <select
-                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            value={applicationDetails.bureau}
-                            onChange={(e) => setApplicationDetails({
-                                ...applicationDetails,
-                                bureau: e.target.value
-                            })}
+        <div className="bg-white rounded-lg shadow-lg h-full">
+            {isExpanded ? (
+                <div className="p-5">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-semibold">
+                            Processing Time Estimator
+                        </h2>
+                        <button
+                            onClick={onCollapse}
+                            className="text-gray-500 hover:text-gray-700"
                         >
-                            <option value="">Select Bureau</option>
-                            {nonAirportBureaus.map(option => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
+                            <Icon icon="ci:chevron-right-duo" className="text-3xl animate-pulse" />
+                        </button>
                     </div>
+                    {!showDetails ? (
+                        <div className="space-y-2">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Immigration Bureau
+                                </label>
+                                <select
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    value={applicationDetails.bureau}
+                                    onChange={(e) => setApplicationDetails({
+                                        ...applicationDetails,
+                                        bureau: e.target.value
+                                    })}
+                                >
+                                    <option value="">Select Bureau</option>
+                                    {nonAirportBureaus.map(option => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Application Type
-                        </label>
-                        <select
-                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            value={applicationDetails.type}
-                            onChange={(e) => setApplicationDetails({
-                                ...applicationDetails,
-                                type: e.target.value
-                            })}
-                        >
-                            <option value="">Select Type</option>
-                            {applicationOptions
-                                .filter(option => option.value !== 'all')
-                                .map(option => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                        </select>
-                    </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Application Type
+                                </label>
+                                <select
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    value={applicationDetails.type}
+                                    onChange={(e) => setApplicationDetails({
+                                        ...applicationDetails,
+                                        type: e.target.value
+                                    })}
+                                >
+                                    <option value="">Select Type</option>
+                                    {applicationOptions
+                                        .filter(option => option.value !== 'all')
+                                        .map(option => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                </select>
+                            </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Application Date
-                        </label>
-                        <input
-                            type="month"
-                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            value={applicationDetails.applicationDate}
-                            onChange={(e) => setApplicationDetails({
-                                ...applicationDetails,
-                                applicationDate: e.target.value
-                            })}
-                            min={dateRange.min}
-                            max={dateRange.max}
-                        />
-                    </div>
-                </div>
-            ) : null}
-
-            {estimatedDate && (
-                <div className="p-2 bg-gray-100 rounded-lg shadow-lg">
-                    <h3 className="text-lg font-medium text-gray-900">
-                        Estimated Completion Date
-                    </h3>
-                    <p className="mt-2 text-2xl font-bold text-indigo-600">
-                        {estimatedDate.estimatedDate.toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long'
-                        })}
-                    </p>
-
-                    <button
-                        onClick={() => setShowDetails(!showDetails)}
-                        className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 flex items-center"
-                    >
-                        <Icon
-                            icon={showDetails ? 'material-symbols:settings' : 'material-symbols:info-outline'}
-                            className="mr-1"
-                        />
-                        {showDetails ? 'Show Filters' : 'Show Details'}
-                    </button>
-
-                    {showDetails && (
-                        <div className="mt-2.5 text-xs text-gray-600 space-y-2 border-t pt-3">
-                            <p><strong>Applications in Queue:</strong> {estimatedDate.details.totalInQueue.toLocaleString()}</p>
-                            <p><strong>Processed Since Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}</p>
-                            <p><strong>Estimated Queue Position <i>(QP)</i>:</strong> {estimatedDate.details.queuePosition.toLocaleString()}</p>
-                            <p><strong>Application Processing Rate <i>(APR)</i>:</strong> {estimatedDate.details.monthlyRate.toLocaleString()} /month</p>
-                            <div className="p-5 bg-gray-100 rounded text-xs">
-                                <p className="font-medium">Calculation Formula:</p>
-                                <p>Estimated Months = QP ÷ APR</p>
-                                <p>= {estimatedDate.details.queuePosition.toLocaleString()} ÷ {estimatedDate.details.monthlyRate.toLocaleString()}</p>
-                                <p>= {estimatedDate.details.estimatedMonths.toFixed(1)} months</p>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Application Date
+                                </label>
+                                <input
+                                    type="month"
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    value={applicationDetails.applicationDate}
+                                    onChange={(e) => setApplicationDetails({
+                                        ...applicationDetails,
+                                        applicationDate: e.target.value
+                                    })}
+                                    min={dateRange.min}
+                                    max={dateRange.max}
+                                />
                             </div>
                         </div>
-                    )}
+                    ) : null}
 
-                    <p className="mt-4 text-xs text-gray-500 italic">
-                        *This is an estimate based on current processing rates and pending applications. The actual completion date may vary.
-                    </p>
+                    {estimatedDate && (
+                        <div className="mt-5 p-2 bg-gray-100 rounded-lg shadow-lg">
+                            <h3 className="text-lg font-medium text-gray-900">
+                                Estimated Completion Date
+                            </h3>
+                            <p className="mt-2 text-2xl font-bold text-indigo-600">
+                                {estimatedDate.estimatedDate.toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long'
+                                })}
+                            </p>
+
+                            <button
+                                onClick={() => setShowDetails(!showDetails)}
+                                className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 flex items-center"
+                            >
+                                <Icon
+                                    icon={showDetails ? 'material-symbols:settings' : 'material-symbols:info-outline'}
+                                    className="mr-1"
+                                />
+                                {showDetails ? 'Show Filters' : 'Show Details'}
+                            </button>
+
+                            {showDetails && (
+                                <div className="mt-2.5 text-xs text-gray-600 space-y-2 border-t pt-3">
+                                    <p><strong>Applications in
+                                        Queue:</strong> {estimatedDate.details.totalInQueue.toLocaleString()}</p>
+                                    <p><strong>Processed Since
+                                        Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}</p>
+                                    <p><strong>Estimated Queue
+                                        Position <i>(QP)</i>:</strong> {estimatedDate.details.queuePosition.toLocaleString()}
+                                    </p>
+                                    <p><strong>Application Processing
+                                        Rate <i>(APR)</i>:</strong> {estimatedDate.details.monthlyRate.toLocaleString()} /month
+                                    </p>
+                                    <div className="p-5 bg-gray-100 rounded text-xs">
+                                        <p className="font-medium">Calculation Formula:</p>
+                                        <p>Estimated Months = QP ÷ APR</p>
+                                        <p>= {estimatedDate.details.queuePosition.toLocaleString()} ÷ {estimatedDate.details.monthlyRate.toLocaleString()}</p>
+                                        <p>= {estimatedDate.details.estimatedMonths.toFixed(1)} months</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <p className="mt-4 text-xs text-gray-500 italic">
+                                *This is an estimate based on current processing rates and pending applications. The
+                                actual completion date may vary.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="h-full flex flex-col items-center justify-between p-5">
+                    <Icon
+                        icon="ci:chevron-left-duo"
+                        className="text-gray-500 text-3xl animate-pulse"
+                    />
+                    <div className="whitespace-nowrap" style={{ writingMode: 'vertical-rl' }}>
+                        <h2>Processing Time Estimator</h2>
+                    </div>
+                    <Icon
+                        icon="ci:chevron-left-duo"
+                        className="text-gray-500 text-3xl animate-pulse"
+                    />
                 </div>
             )}
         </div>
