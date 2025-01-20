@@ -14,5 +14,5 @@ export const bureauOptions = [
     { value: '101190', label: 'Narita Airport' },
     { value: '101200', label: 'Haneda Airport' },
     { value: '101480', label: 'Kansai Airport' },
-    { value: '101370', label: 'Chubu Airport' },
+    { value: '101370', label: 'Chubu Airport' }
 ];

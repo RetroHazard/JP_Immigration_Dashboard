@@ -6,5 +6,5 @@ export const applicationOptions = [
     { value: '30', label: 'Change of Status', short: 'CHG' },
     { value: '40', label: 'Permission for Activities', short: 'PFA' },
     { value: '50', label: 'Re-entry', short: 'RET' },
-    { value: '60', label: 'Permanent Residence', short: 'PR' },
+    { value: '60', label: 'Permanent Residence', short: 'PR' }
 ];

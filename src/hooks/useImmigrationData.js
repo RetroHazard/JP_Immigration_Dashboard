@@ -1,7 +1,7 @@
 // src/hooks/useImmigrationData.js
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { loadLocalData } from '../utils/loadLocalData';
-import { transformData } from "../utils/dataTransform";
+import { transformData } from '../utils/dataTransform';
 
 export const useImmigrationData = () => {
     const [data, setData] = useState(null);

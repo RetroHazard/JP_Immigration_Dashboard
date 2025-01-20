@@ -44,7 +44,7 @@ export const getCurrentStats = (data, filters) => {
         totalApplications,
         processed,
         approved,
-        pending,
+        pending
     };
 };
 
