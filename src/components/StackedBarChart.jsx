@@ -21,24 +21,15 @@ export const StackedBarChart = ({ data, filters }) => {
         datasets: [
             {
                 label: 'Old Applications',
-                data: [],
-                backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                borderColor: 'rgb(54, 162, 235)',
-                borderWidth: 1
+                data: []
             },
             {
                 label: 'New Applications',
-                data: [],
-                backgroundColor: 'rgba(234, 179, 8, 0.6)',
-                borderColor: 'rgb(234, 179, 8)',
-                borderWidth: 1
+                data: []
             },
             {
-                label: 'Processed',
-                data: [],
-                backgroundColor: 'rgba(34, 197, 94, 0.6)',
-                borderColor: 'rgb(34, 197, 94)',
-                borderWidth: 1
+                label: 'Processed Applications',
+                data: []
             }
         ]
     });
@@ -95,21 +86,28 @@ export const StackedBarChart = ({ data, filters }) => {
                     data: monthlyStats.map(stat => stat.totalApplications),
                     backgroundColor: 'rgba(54, 162, 235, 0.6)',
                     borderColor: 'rgb(54, 162, 235)',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    yAxisID: 'y',
+                    order: 1
                 },
                 {
                     label: 'New Applications',
                     data: monthlyStats.map(stat => stat.newApplications),
                     backgroundColor: 'rgba(234, 179, 8, 0.6)',
                     borderColor: 'rgb(234, 179, 8)',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    yAxisID: 'y',
+                    order: 2
                 },
                 {
-                    label: 'Processed',
+                    label: 'Processed Applications',
                     data: monthlyStats.map(stat => stat.processed),
-                    backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
                     borderColor: 'rgb(34, 197, 94)',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    yAxisID: 'y2',
+                    barPercentage: 0.6,
+                    order: 0
                 }
             ]
         };
@@ -139,18 +137,25 @@ export const StackedBarChart = ({ data, filters }) => {
                     text: 'Application Count'
                 },
                 ticks: {
-                    stepSize: 5000,
-                    callback: value => value.toLocaleString()
+                    suggestedMin: Math.min(...chartData.datasets.map(dataset => Math.min(...dataset.data))),
+                    suggestedMax: Math.max(...chartData.datasets.map(dataset => Math.max(...dataset.data)))
+                },
+                afterBuildTicks: (axis) => {
+                    axis.chart.scales.y2.options.min = axis.min;
+                    axis.chart.scales.y2.options.max = axis.max;
                 },
                 grid: {
                     drawOnChartArea: true,
                     drawTicks: true,
                     color: (context) => {
-                        return context.tick.value % 10000 === 0
-                            ? 'rgba(0,0,0,0.1)'
-                            : 'rgba(0,0,0,0.05)';
+                        return Math.abs(context.tick.value) % 10000 === 0 ?
+                            'rgba(0,0,0,0.1)' :
+                            'rgba(0,0,0,0.05)';
                     }
                 }
+            },
+            y2: {
+                display: false
             }
         },
         plugins: {
