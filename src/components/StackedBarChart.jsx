@@ -21,6 +21,9 @@ ChartJS.register(
 );
 
 export const StackedBarChart = ({ data, filters }) => {
+    const [monthRange, setMonthRange] = useState(12);
+    const [showAllMonths, setShowAllMonths] = useState(false);
+
     const [chartData, setChartData] = useState({
         labels: [],
         datasets: [
@@ -61,9 +64,14 @@ export const StackedBarChart = ({ data, filters }) => {
         const endIndex = allMonths.indexOf(endMonth);
         if (endIndex === -1) return;
 
-        // Get 12 months up to and including the selected month
-        const startIndex = Math.max(0, endIndex - 11);
-        const months = allMonths.slice(startIndex, endIndex + 1);
+        // Get months based on range selection
+        let months;
+        if (showAllMonths) {
+            months = allMonths;
+        } else {
+            const startIndex = Math.max(0, endIndex - (monthRange - 1));
+            months = allMonths.slice(startIndex, endIndex + 1);
+        }
 
         const monthlyStats = months.map(month => {
             const monthData = data.filter(entry => {
@@ -115,8 +123,8 @@ export const StackedBarChart = ({ data, filters }) => {
         };
 
         setChartData(processedData);
-    }, [data, filters]);
-    
+    }, [data, filters, monthRange, showAllMonths]);
+
     const options = {
         responsive: true,
         maintainAspectRatio: false,
@@ -126,6 +134,10 @@ export const StackedBarChart = ({ data, filters }) => {
                 title: {
                     display: true,
                     text: 'Month'
+                },
+                ticks: {
+                    minRotation: 45,
+                    maxRotation: 45
                 }
             },
             y: {
@@ -176,9 +188,35 @@ export const StackedBarChart = ({ data, filters }) => {
     };
 
     return (
-        <div className="h-[400px] w-full">
-            <Bar data={chartData} options={options} />
+        <div className="space-y-4">
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">
+                    Application Processing Trends
+                </h2>
+                <select
+                    className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    value={showAllMonths ? 'all' : monthRange}
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === 'all') {
+                            setShowAllMonths(true);
+                        } else {
+                            setShowAllMonths(false);
+                            setMonthRange(parseInt(value));
+                        }
+                    }}
+                >
+                    <option value="6">6 Months</option>
+                    <option value="12">12 Months</option>
+                    <option value="24">24 Months</option>
+                    <option value="36">36 Months</option>
+                    <option value="all">All Data</option>
+                </select>
+            </div>
+
+            <div className="h-[400px] w-full">
+                <Bar data={chartData} options={options} />
+            </div>
         </div>
     );
 };
-
