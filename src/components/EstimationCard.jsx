@@ -150,13 +150,13 @@ export const EstimationCard = ({ data }) => {
     }, [data]);
 
     return (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">
+        <div className="bg-white rounded-lg shadow-lg p-5 space-y-4 h-full">
+            <h2 className="text-lg font-semibold">
                 Processing Time Estimator
             </h2>
 
             {!showDetails ? (
-                <div className="space-y-4">
+                <div className="space-y-2">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Immigration Bureau
@@ -221,7 +221,7 @@ export const EstimationCard = ({ data }) => {
             ) : null}
 
             {estimatedDate && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-md">
+                <div className="p-2 bg-gray-100 rounded-lg shadow-lg">
                     <h3 className="text-lg font-medium text-gray-900">
                         Estimated Completion Date
                     </h3>
@@ -244,12 +244,12 @@ export const EstimationCard = ({ data }) => {
                     </button>
 
                     {showDetails && (
-                        <div className="mt-3 text-xs text-gray-600 space-y-2 border-t pt-3">
+                        <div className="mt-2.5 text-xs text-gray-600 space-y-2 border-t pt-3">
                             <p><strong>Applications in Queue:</strong> {estimatedDate.details.totalInQueue.toLocaleString()}</p>
                             <p><strong>Application Processing Rate:</strong> {estimatedDate.details.monthlyRate.toLocaleString()} /month</p>
                             <p><strong>Processed Since Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}</p>
                             <p><strong>Estimated Queue Position:</strong> {estimatedDate.details.queuePosition.toLocaleString()}</p>
-                            <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
+                            <div className="mt-4 p-4 bg-gray-100 rounded text-xs">
                                 <p className="font-medium">Calculation Formula:</p>
                                 <p>Estimated Months = Queue Position ÷ Monthly Processing Rate</p>
                                 <p>= {estimatedDate.details.queuePosition.toLocaleString()} ÷ {estimatedDate.details.monthlyRate.toLocaleString()}</p>

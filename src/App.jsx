@@ -53,15 +53,19 @@ const App = () => {
                             <FilterPanel data={data} filters={filters} onChange={setFilters} />
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                            <div className="lg:col-span-2">
-                                <div className="bg-white rounded-lg shadow-lg p-6">
-                                    <StackedBarChart data={data} filters={filters} />
+                        <div>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 h-full">
+                                <div className="lg:col-span-2 h-full">
+                                    <div className="bg-white rounded-lg shadow-lg p-5 h-full">
+                                        <StackedBarChart data={data} filters={filters} />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="lg:col-span-1">
-                                <EstimationCard data={data} />
+                                <div className="lg:col-span-1 h-full">
+                                    <div className="h-full">
+                                        <EstimationCard data={data} />
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
