@@ -1,0 +1,74 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Create CNAME file
+        run: echo "dashboard.retrohazard.jp" > public/CNAME
+
+      - name: Create datastore directory
+        run: mkdir -p public/datastore/
+
+      - name: Download JSON Data
+        working-directory: public/datastore/
+        run: |
+          curl -L \
+          "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId="${{ secrets.ESTAT_APP_ID }}"&lang=J&statsDataId=0003449073&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0" \
+          -o statData.json
+
+      - name: Verify JSON Data
+        working-directory: public/datastore/
+        run: |
+          if [ -s statData.json ]; then
+            jq empty statData.json
+          else
+            echo "Error: Downloaded File is Empty"
+            exit 1
+          fi
+
+      - name: Build Project
+        run: npm run build
+        env:
+          CI: false
+
+      - name: Upload Build Output
+        uses: actions/upload-pages-artifact@v3
+        with:
+          name: 'jpimm-react-build'
+          path: build
+
+      - name: Deploy to GH Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifact_name: 'jpimm-react-build'
