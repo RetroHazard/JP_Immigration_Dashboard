@@ -1,7 +1,7 @@
 // src/utils/loadLocalData.js
 export const loadLocalData = async () => {
     try {
-        const response = await fetch('/temp/statData.json');
+        const response = await fetch('/datastore/statData.json');
         if (!response.ok) {
             throw new Error('Failed to load data');
         }
