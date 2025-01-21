@@ -1,4 +1,6 @@
 // constants/bureauOptions.js
+// noinspection SpellCheckingInspection
+
 export const bureauOptions = [
     { value: 'all', label: 'Nationwide' },
     { value: '101720', label: 'Fukuoka' },

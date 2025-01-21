@@ -188,7 +188,7 @@ export const StackedBarChart = ({ data, filters }) => {
         <div className="space-y-4">
             <div className="flex items-center justify-between mb-4 h-full">
                 <h2 className="text-lg font-semibold">
-                    Application Processing Trends
+                    Application Processing and Reception by Month
                 </h2>
                 <select
                     className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
