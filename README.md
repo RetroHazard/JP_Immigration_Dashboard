@@ -1,5 +1,5 @@
 # Japan Immigration Statistics Dashboard
-
+ 
 ## Overview
 
 A React-based dashboard for visualizing and analyzing Japanese immigration application processing statistics. The
