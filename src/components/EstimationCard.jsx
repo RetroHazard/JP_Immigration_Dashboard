@@ -104,7 +104,7 @@ const calculateEstimatedDate = (data, details) => {
 
 // Calculate prediction period
     const lastDataDate = new Date(lastAvailableMonth);
-    const today = new Date('2025-01-20');
+    const today = new Date();
     const daysInCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
     const fullMonths = (today.getFullYear() - lastDataDate.getFullYear()) * 12 +
         (today.getMonth() - lastDataDate.getMonth() - 1);
@@ -148,21 +148,31 @@ const calculateEstimatedDate = (data, details) => {
 
     const monthlyProcessingRate = Math.round(totalProcessed / selectedMonths.length);
 
-    if (monthlyProcessingRate <= 0 || remainingAhead <= 0) return null;
+    if (monthlyProcessingRate <= 0) return null;
 
     // Calculate estimated months based on remaining queue position
     const estimatedMonths = Math.ceil(remainingAhead / monthlyProcessingRate);
 
-    // Calculate estimated completion date from current date
-    const estimatedDate = new Date();
-    estimatedDate.setMonth(estimatedDate.getMonth() + estimatedMonths);
+    // Calculate estimated completion date from application date
+    const estimatedDate = new Date(applicationDateTime);
+    if (remainingAhead <= 0) {
+        // For past-due applications, calculate historical completion date
+        const processingTime = Math.ceil(totalInQueue / monthlyProcessingRate);
+        estimatedDate.setMonth(estimatedDate.getMonth() + processingTime);
+    } else {
+        // For active applications, calculate forward from current date
+        const estimatedMonths = Math.ceil(remainingAhead / monthlyProcessingRate);
+        estimatedDate.setTime(today.getTime());
+        estimatedDate.setMonth(estimatedDate.getMonth() + estimatedMonths);
+    }
 
     const calculationDetails = {
         adjustedQueueTotal,
         monthlyRate: monthlyProcessingRate,
         processedSince: totalProcessedSinceApplication,
         queuePosition: remainingAhead,
-        estimatedMonths: estimatedMonths
+        estimatedMonths: estimatedMonths,
+        isPastDue: remainingAhead <= 0
     };
 
     return {
@@ -283,7 +293,9 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
                             <h3 className="text-lg font-medium text-gray-900">
                                 Estimated Completion Date
                             </h3>
-                            <p className="mt-2 text-2xl font-bold text-indigo-600">
+                            <p className={`mt-2 text-2xl font-bold ${
+                                estimatedDate.details.isPastDue ? 'text-amber-600' : 'text-indigo-600'
+                            }`}>
                                 {estimatedDate.estimatedDate.toLocaleDateString('en-US', {
                                     year: 'numeric',
                                     month: 'long'
@@ -303,24 +315,33 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
 
                             {showDetails && (
                                 <div className="mt-2.5 text-xs text-gray-600 space-y-2 border-t pt-3">
-                                    <p><strong>Applications in
-                                        Queue:</strong> {estimatedDate.details.adjustedQueueTotal.toLocaleString()}</p>
-                                    <p><strong>Processed Since
-                                        Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}</p>
-                                    <p><strong>Estimated Queue
-                                        Position <i>(QP)</i>:</strong> {estimatedDate.details.queuePosition.toLocaleString()}
-                                    </p>
-                                    <p><strong>Application Processing
-                                        Rate <i>(APR)</i>:</strong> {estimatedDate.details.monthlyRate.toLocaleString()} /month
-                                    </p>
-                                    <div className="p-5 bg-gray-100 rounded text-xs">
-                                        <p className="font-medium">Calculation Formula:</p>
-                                        <p>Estimated Months = QP ÷ APR</p>
-                                        <p>= {estimatedDate.details.queuePosition.toLocaleString()} ÷ {estimatedDate.details.monthlyRate.toLocaleString()}</p>
-                                        <p>= {estimatedDate.details.estimatedMonths.toFixed(1)} months remaining</p>
-                                    </div>
+                                    {estimatedDate.details.isPastDue ? (
+                                        <>
+                                        <p className="text-amber-600"><strong>Applications at Submission:</strong> {estimatedDate.details.adjustedQueueTotal.toLocaleString()}</p>
+                                        <p className="text-amber-600"><strong>Processed Since Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}</p>
+                                        <p className="mt-2 text-xs text-amber-600 italic">
+                                            Based on our expected processing rates, it appears that completion of this
+                                            application is past due. If you have not yet received a decision on this
+                                            application, please contact the bureau for more information.
+                                        </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p><strong>Applications at Submission:</strong> {estimatedDate.details.adjustedQueueTotal.toLocaleString()}</p>
+                                            <p><strong>Processed Since Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}</p>
+                                            <p><strong>Estimated Queue Position <i>(QP)</i>:</strong> {estimatedDate.details.queuePosition.toLocaleString()}</p>
+                                            <p><strong>Application Processing Rate <i>(APR)</i>:</strong> {estimatedDate.details.monthlyRate.toLocaleString()} /month</p>
+                                            <div className="p-5 bg-gray-100 rounded text-xs">
+                                                <p className="font-medium">Calculation Formula:</p>
+                                                <p>Estimated Months = QP ÷ APR</p>
+                                                <p>= {estimatedDate.details.queuePosition.toLocaleString()} ÷ {estimatedDate.details.monthlyRate.toLocaleString()}</p>
+                                                <p>= {estimatedDate.details.estimatedMonths.toFixed(1)} months remaining</p>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             )}
+
 
                             <p className="mt-4 text-xs text-gray-500 italic">
                                 *This is an estimate based on current processing rates and pending applications. The
