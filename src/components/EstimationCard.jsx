@@ -102,7 +102,7 @@ const calculateEstimatedDate = (data, details) => {
     const monthlyProcessedAverage = averages.processed / 3;
     const netChangePerMonth = monthlyNewAverage - monthlyProcessedAverage;
 
-// Calculate prediction period
+    // Calculate prediction period
     const lastDataDate = new Date(lastAvailableMonth);
     const today = new Date();
     const daysInCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -317,31 +317,44 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
                                 <div className="mt-2.5 text-xs text-gray-600 space-y-2 border-t pt-3">
                                     {estimatedDate.details.isPastDue ? (
                                         <>
-                                        <p className="text-amber-600"><strong>Applications at Submission:</strong> {estimatedDate.details.adjustedQueueTotal.toLocaleString()}</p>
-                                        <p className="text-amber-600"><strong>Processed Since Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}</p>
-                                        <p className="mt-2 text-xs text-amber-600 italic">
-                                            Based on our expected processing rates, it appears that completion of this
-                                            application is past due. If you have not yet received a decision on this
-                                            application, please contact the bureau for more information.
-                                        </p>
+                                            <p className="text-amber-600"><strong>Applications at
+                                                Submission:</strong> {estimatedDate.details.adjustedQueueTotal.toLocaleString()}
+                                            </p>
+                                            <p className="text-amber-600"><strong>Processed Since
+                                                Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}
+                                            </p>
+                                            <p className="mt-2 text-xs text-amber-600 italic">
+                                                Based on our expected processing rates, it appears that completion of
+                                                this
+                                                application is past due. If you have not yet received a decision on this
+                                                application, please contact the bureau for more information.
+                                            </p>
                                         </>
                                     ) : (
                                         <>
-                                            <p><strong>Applications at Submission:</strong> {estimatedDate.details.adjustedQueueTotal.toLocaleString()}</p>
-                                            <p><strong>Processed Since Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}</p>
-                                            <p><strong>Estimated Queue Position <i>(QP)</i>:</strong> {estimatedDate.details.queuePosition.toLocaleString()}</p>
-                                            <p><strong>Application Processing Rate <i>(APR)</i>:</strong> {estimatedDate.details.monthlyRate.toLocaleString()} /month</p>
+                                            <p><strong>Applications at
+                                                Submission:</strong> {estimatedDate.details.adjustedQueueTotal.toLocaleString()}
+                                            </p>
+                                            <p><strong>Processed Since
+                                                Submission:</strong> {estimatedDate.details.processedSince.toLocaleString()}
+                                            </p>
+                                            <p><strong>Estimated Queue
+                                                Position <i>(QP)</i>:</strong> {estimatedDate.details.queuePosition.toLocaleString()}
+                                            </p>
+                                            <p><strong>Application Processing
+                                                Rate <i>(APR)</i>:</strong> {estimatedDate.details.monthlyRate.toLocaleString()} /month
+                                            </p>
                                             <div className="p-5 bg-gray-100 rounded text-xs">
                                                 <p className="font-medium">Calculation Formula:</p>
                                                 <p>Estimated Months = QP ÷ APR</p>
                                                 <p>= {estimatedDate.details.queuePosition.toLocaleString()} ÷ {estimatedDate.details.monthlyRate.toLocaleString()}</p>
-                                                <p>= {estimatedDate.details.estimatedMonths.toFixed(1)} months remaining</p>
+                                                <p>= {estimatedDate.details.estimatedMonths.toFixed(1)} months
+                                                    remaining</p>
                                             </div>
                                         </>
                                     )}
                                 </div>
                             )}
-
 
                             <p className="mt-4 text-xs text-gray-500 italic">
                                 *This is an estimate based on current processing rates and pending applications. The
