@@ -6,6 +6,7 @@ import { EstimationCard } from './components/EstimationCard';
 import { StatsSummary } from './components/StatsSummary';
 import { useImmigrationData } from './hooks/useImmigrationData';
 import { Icon } from '@iconify/react';
+import { BUILD_DATE } from './utils/buildInfo';
 
 const App = () => {
     const { data, loading } = useImmigrationData();
@@ -33,7 +34,7 @@ const App = () => {
                         </div>
                         <div className="flex items-center">
               <span className="text-sm text-gray-500">
-                Last Updated: {new Date().toLocaleDateString('en-US', {
+                Last Updated: {new Date(BUILD_DATE).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric'
