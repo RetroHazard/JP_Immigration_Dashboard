@@ -264,6 +264,7 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
                                 </label>
                                 <input
                                     type="month"
+                                    placeholder="YYYY-MM"
                                     className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                     value={applicationDetails.applicationDate}
                                     onChange={(e) => setApplicationDetails({

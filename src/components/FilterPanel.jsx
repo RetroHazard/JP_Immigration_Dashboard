@@ -77,6 +77,7 @@ export const FilterPanel = ({ data, filters, onChange }) => {
                     </label>
                     <input
                         type="month"
+                        placeholder="YYYY-MM"
                         className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         value={filters.month}
                         onChange={(e) => onChange({ ...filters, month: e.target.value })}
