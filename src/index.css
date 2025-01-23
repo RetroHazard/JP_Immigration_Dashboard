@@ -17,42 +17,88 @@
     h2 {
         @apply text-xl font-semibold;
     }
+
+    title {
+        @apply text-lg font-semibold;
+    }
 }
 
 @layer components {
+    .base-container {
+        @apply bg-white rounded-lg shadow p-6;
+    }
+}
+
+/* Stats Summary */
+@layer stat-summary {
+    .stat-container {
+        @apply grid grid-cols-5 gap-4 mt-8;
+    }
+
     .card {
         @apply bg-white rounded-lg shadow-lg p-6;
     }
 
     .stat-card {
-        @apply flex items-center space-x-4 bg-white rounded-lg shadow p-4;
+        @apply flex items-center space-x-4 bg-white rounded-lg shadow p-6;
     }
 
     .stat-icon {
-        @apply w-12 h-12 rounded-full flex items-center justify-center text-white;
+        @apply min-w-10 h-24 min-h-12 rounded-2xl flex items-center justify-center;
+    }
+
+    .stat-icon-text {
+        @apply text-white text-xl;
     }
 
     .stat-value {
-        @apply text-2xl font-bold text-gray-900;
+        @apply text-2xl font-semibold text-gray-900 mt-1;
     }
 
-    .stat-label {
+    .stat-title {
         @apply text-sm font-medium text-gray-500;
     }
 
+    .stat-subtitle {
+        @apply text-gray-400 text-xs;
+    }
+
+    .stat-date {
+        @apply text-gray-400 text-xs italic;
+    }
+
+}
+
+/* Filters Block */
+@layer filters {
+    .filter-block {
+        @apply grid grid-cols-3 gap-6;
+    }
+
     .filter-select {
-        @apply w-full rounded-md border-gray-300 shadow-sm
-        focus:border-indigo-500 focus:ring-indigo-500;
+        @apply w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500;
     }
 
     .filter-label {
-        @apply block text-sm font-medium text-gray-700 mb-1;
+        @apply block text-sm font-medium text-gray-700;
+    }
+
+    .filter-note {
+        @apply text-xs italic text-gray-500;
     }
 }
 
-/* Chart customization */
-.chart-container {
-    @apply h-[400px] w-full;
+/* Chart Customization */
+@layer chart {
+    .chart-container {
+        @apply h-[400px] w-full;
+    }
+    .chart-legend {
+        @apply flex items-center space-x-4;
+    }
+    .chart-filter-select {
+        @apply rounded-md max-w-fit border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500;
+    }
 }
 
 /* Loading animation */
@@ -84,27 +130,68 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
-    .card {
-        @apply p-4;
+@media (max-width: 470px) {
+    .title {
+        @apply text-sm font-semibold;
     }
 
-    .stat-card {
-        @apply flex-col items-start space-y-2 space-x-0;
+    .chart-filter-select {
+        @apply text-xs max-w-fit rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500;
     }
 
     .chart-container {
-        @apply h-[300px];
-    }
-}
-
-/* Print styles */
-@media print {
-    .no-print {
-        @apply hidden;
+        @apply h-[300px] w-full;
     }
 
     .card {
-        @apply shadow-none border border-gray-200;
+        @apply bg-white rounded-lg shadow-lg p-2;
+    }
+
+    .stat-card {
+        @apply flex items-center bg-white rounded-lg shadow-lg p-2 w-48;
+    }
+
+    .stat-icon {
+        @apply w-5 h-5 rounded-l flex items-center justify-center;
+    }
+
+    .stat-icon-text {
+        @apply text-white text-base;
+    }
+
+    .stat-value {
+        @apply text-sm font-semibold text-gray-900;
+    }
+
+    .stat-title {
+        @apply text-xs font-medium text-gray-500;
+    }
+
+    .stat-subtitle {
+        @apply text-gray-400 text-xs;
+    }
+
+    .stat-date {
+        @apply hidden;
+    }
+
+    .stat-container {
+        @apply grid grid-cols-2 mt-4;
+    }
+
+    .base-container {
+        @apply bg-white rounded-lg shadow p-3 w-full;
+    }
+
+    .filter-block {
+        @apply grid grid-cols-2 gap-4;
+    }
+
+    .filter-select {
+        @apply w-full text-xs rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500;
+    }
+
+    .filter-label {
+        @apply block text-sm font-medium text-gray-700;
     }
 }

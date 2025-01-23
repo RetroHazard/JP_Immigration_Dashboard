@@ -187,11 +187,11 @@ export const StackedBarChart = ({ data, filters }) => {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between mb-4 h-full">
-                <h2 className="text-lg font-semibold">
+                <h2 className="title">
                     Application Processing and Reception by Month
                 </h2>
                 <select
-                    className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="chart-filter-select"
                     value={showAllMonths ? 'all' : monthRange}
                     onChange={(e) => {
                         const value = e.target.value;
@@ -211,7 +211,7 @@ export const StackedBarChart = ({ data, filters }) => {
                 </select>
             </div>
 
-            <div className="h-[400px] w-full">
+            <div className="chart-container">
                 <Bar data={chartData} options={options} />
             </div>
         </div>

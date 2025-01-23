@@ -36,7 +36,7 @@ export const StatsSummary = ({ data, filters }) => {
             entry.status === '305000' ? sum + entry.value : sum, 0);
 
         const totalApplications = oldApplications + newApplications;
-        const pending = totalApplications - processed;
+        const pending = totalApplications - processed + other;
 
         return {
             totalApplications,
@@ -52,26 +52,26 @@ export const StatsSummary = ({ data, filters }) => {
     if (!stats) return null;
 
     const StatCard = ({ title, subtitle, date, value, color, icon }) => (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="stat-card">
             <div className="flex items-center">
-                <div className={`${color} min-w-10 h-24 min-h-12 rounded-2xl flex items-center justify-center`}>
-                <span className="text-white text-xl">
+                <div className={`${color} stat-icon`}>
+                <span className="stat-icon-text">
                     <Icon icon={icon} fontSize={30} />
                 </span>
                 </div>
                 <div className="ml-4">
                     <div className="flex flex-col">
-                        <h3 className="text-gray-500 text-sm font-medium">
+                        <h3 className="stat-title">
                             {title}
                         </h3>
-                        <span className="text-gray-400 text-xs">
-                        {subtitle}
+                        <span className="stat-subtitle">
+                            {subtitle}
                         </span>
-                        <span className="text-gray-400 text-xs italic">
-                        {date}
+                        <span className="stat-date">
+                            {date}
                         </span>
                     </div>
-                    <p className="text-gray-900 text-2xl font-semibold mt-1">
+                    <p className="stat-value">
                         {value}
                     </p>
                 </div>
@@ -80,7 +80,7 @@ export const StatsSummary = ({ data, filters }) => {
     );
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-8">
+        <div className="stat-container">
             <StatCard
                 title="Total Applications"
                 subtitle={getBureauLabel(filters.bureau)}

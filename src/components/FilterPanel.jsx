@@ -36,14 +36,14 @@ export const FilterPanel = ({ data, filters, onChange }) => {
     };
 
     return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="base-container">
+            <div className="filter-block">
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="filter-label">
                         Immigration Bureau
                     </label>
                     <select
-                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="filter-select"
                         value={filters.bureau}
                         onChange={(e) => onChange({ ...filters, bureau: e.target.value })}
                     >
@@ -56,11 +56,11 @@ export const FilterPanel = ({ data, filters, onChange }) => {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="filter-label">
                         Application Type
                     </label>
                     <select
-                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="filter-select"
                         value={filters.type}
                         onChange={(e) => onChange({ ...filters, type: e.target.value })}
                     >
@@ -72,19 +72,19 @@ export const FilterPanel = ({ data, filters, onChange }) => {
                     </select>
                 </div>
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="filter-label">
                         Month
                     </label>
                     <input
                         type="month"
                         placeholder="YYYY-MM"
-                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="filter-select"
                         value={filters.month}
                         onChange={(e) => onChange({ ...filters, month: e.target.value })}
                         min={dateRange.min}
                         max={dateRange.max}
                     />
-                    <span className="text-xs italic text-gray-500">
+                    <span className="filter-note">
                         * Data available from {formatDateString(dateRange.min)} to {formatDateString(dateRange.max)}
                     </span>
                 </div>
