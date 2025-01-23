@@ -1,5 +1,6 @@
 # Japan Immigration Statistics Dashboard
- 
+[![Build and Deploy to GitHub Pages](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/build.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/build.yaml)
+
 ## Overview
 
 A React-based dashboard for visualizing and analyzing Japanese immigration application processing statistics. The
