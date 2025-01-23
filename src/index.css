@@ -168,7 +168,7 @@
     }
 
     .stat-subtitle {
-        @apply text-gray-400 text-xs;
+        @apply hidden;
     }
 
     .stat-date {

@@ -90,6 +90,14 @@ export const StatsSummary = ({ data, filters }) => {
                 icon="material-symbols:file-copy-outline-rounded"
             />
             <StatCard
+                title="Pending"
+                subtitle={getBureauLabel(filters.bureau)}
+                date={filters.month}
+                value={stats.pending.toLocaleString()}
+                color="bg-yellow-500"
+                icon="material-symbols:pending-actions-rounded"
+            />
+            <StatCard
                 title="Granted"
                 subtitle={getBureauLabel(filters.bureau)}
                 date={filters.month}
@@ -104,14 +112,6 @@ export const StatsSummary = ({ data, filters }) => {
                 value={stats.denied.toLocaleString()}
                 color="bg-red-500"
                 icon="material-symbols:cancel-outline-rounded"
-            />
-            <StatCard
-                title="Pending"
-                subtitle={getBureauLabel(filters.bureau)}
-                date={filters.month}
-                value={stats.pending.toLocaleString()}
-                color="bg-yellow-500"
-                icon="material-symbols:pending-actions-rounded"
             />
             <StatCard
                 title="Approval Rate"
