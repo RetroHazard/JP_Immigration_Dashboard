@@ -27,6 +27,14 @@
     .base-container {
         @apply bg-white rounded-lg shadow p-6;
     }
+
+    .build-info {
+        @apply text-sm text-gray-500;
+    }
+
+    .footer_text {
+        @apply text-center text-sm text-gray-500;
+    }
 }
 
 /* Stats Summary */
@@ -135,6 +143,18 @@
         @apply text-sm font-semibold;
     }
 
+    .footer_text {
+        @apply text-center text-xs text-gray-500;
+    }
+
+    .footer_text_small {
+        @apply text-center text-xxs text-gray-500;
+    }
+
+    .build-info {
+        @apply text-xxs text-gray-500 text-nowrap;
+    }
+
     .chart-filter-select {
         @apply text-xs max-w-fit rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500;
     }
@@ -148,11 +168,11 @@
     }
 
     .stat-card {
-        @apply flex items-center bg-white rounded-lg shadow-lg p-2 w-48;
+        @apply flex items-center bg-white rounded-lg shadow-lg p-2 w-full;
     }
 
     .stat-icon {
-        @apply w-5 h-5 rounded-l flex items-center justify-center;
+        @apply w-5 h-5 rounded-lg flex items-center justify-center;
     }
 
     .stat-icon-text {
@@ -160,11 +180,11 @@
     }
 
     .stat-value {
-        @apply text-sm font-semibold text-gray-900;
+        @apply hidden;
     }
 
     .stat-title {
-        @apply text-xs font-medium text-gray-500;
+        @apply hidden;
     }
 
     .stat-subtitle {
@@ -176,7 +196,7 @@
     }
 
     .stat-container {
-        @apply grid grid-cols-2 mt-4;
+        @apply grid grid-cols-5 mt-4;
     }
 
     .base-container {
