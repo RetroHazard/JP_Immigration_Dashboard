@@ -51,38 +51,49 @@ export const StatsSummary = ({ data, filters }) => {
 
     if (!stats) return null;
 
-    const StatCard = ({ title, subtitle, date, value, color, icon }) => (
-        <div className="stat-card">
-            <div className="flex items-center">
-                <div className={`${color} stat-icon`}>
-                <span className="stat-icon-text">
-                    <Icon icon={icon} fontSize={30} />
-                </span>
+
+    const StatCard = ({ title, subtitle, date, value, color, icon }) => {
+        return (
+            <div className="stat-card">
+                <div className="group relative">
+                    <div className={`${color} stat-icon`}>
+                        <span className="stat-icon-text">
+                            <Icon icon={icon} fontSize={30} />
+                        </span>
+                    </div>
+
+                    {/* Mobile Tooltip */}
+                    <div className="stat-tooltip">
+                        <div className="flex flex-col gap-1">
+                            <span className="font-semibold">{title}</span>
+                            <span className="font-bold mt-1">{value}</span>
+                        </div>
+
+                        {/* Tooltip Arrow */}
+                        <div className="stat-tooltip-arrow"></div>
+                    </div>
                 </div>
+
+                {/* Desktop View */}
                 <div className="ml-4">
                     <div className="flex flex-col">
-                        <h3 className="stat-title">
-                            {title}
-                        </h3>
-                        <span className="stat-subtitle">
-                            {subtitle}
-                        </span>
-                        <span className="stat-date">
-                            {date}
-                        </span>
+                        <h3 className="stat-title">{title}</h3>
+                        <span className="stat-subtitle">{subtitle}</span>
+                        <span className="stat-date">{date}</span>
                     </div>
                     <p className="stat-value">
                         {value}
                     </p>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
+
 
     return (
         <div className="stat-container">
             <StatCard
-                title="Total Applications"
+                title="Total"
                 subtitle={getBureauLabel(filters.bureau)}
                 date={filters.month}
                 value={stats.totalApplications.toLocaleString()}

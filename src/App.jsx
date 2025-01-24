@@ -28,18 +28,23 @@ const App = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16">
                         <div className="flex items-center">
-                            <h1 className="title">
-                                Immigration Application Statistics Dashboard
-                            </h1>
+                            <div className="flex flex-col items-start">
+                                <h1 className="title">
+                                    Japan <Icon icon="ph:line-vertical-light" className="inline-block align-middle" style={{ verticalAlign: '-0.125em' }} /> Immigration Applications
+                                </h1>
+                                <h1 className="title">
+                                    Statistics Dashboard
+                                </h1>
+                            </div>
                         </div>
                         <div className="flex items-center">
                             <div className="flex flex-col items-end">
                                 <span className="build-info">
-                        Version: {buildInfo.buildVersion}
-                    </span>
-                    <span className="build-info">
-                        Last Updated:
-                    </span>
+                                    Version: {buildInfo.buildVersion}
+                                </span>
+                                <span className="build-info">
+                                    Last Updated:
+                                </span>
                                 <span className="build-info">
                                     {new Date(buildInfo.buildDate).toLocaleDateString('en-US', {
                                         year: 'numeric',
@@ -98,7 +103,7 @@ const App = () => {
 
             <footer className="bg-white border-t">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="footer_text text-pretty">
+                    <div className="footer-text text-pretty">
                         Official Statistics provided by Immigration Services Agency of Japan<br></br>
                         Data acquisition provided by e-Stat
                         <a href="https://www.e-stat.go.jp/dbview?sid=0003449073">
@@ -107,7 +112,7 @@ const App = () => {
                                   style={{ verticalAlign: '-0.125em' }} />
                         </a>
                     </div>
-                    <div className="mt-1 footer_text_small">
+                    <div className="mt-1 footer-text-small">
                         Built using <a href="https://react.dev"
                                        className="text-indigo-600 hover:text-indigo-500">React</a> in 2025 by <a
                         href="https://github.com/RetroHazard" className="text-indigo-600 hover:text-indigo-500"><Icon

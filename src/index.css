@@ -11,7 +11,7 @@
     }
 
     h1 {
-        @apply text-2xl font-bold;
+        @apply text-xl font-bold;
     }
 
     h2 {
@@ -32,8 +32,35 @@
         @apply text-sm text-gray-500;
     }
 
-    .footer_text {
+    .footer-text {
         @apply text-center text-sm text-gray-500;
+    }
+
+    .footer-text-small {
+        @apply text-center text-xs text-gray-500;
+    }
+
+    .stat-tooltip {
+        @apply sm:hidden md:hidden
+        absolute bottom-full left-1/2 -translate-x-1/2
+        mb-2 p-2 z-50
+        text-xs font-medium text-white bg-gray-900 rounded-lg
+        opacity-0 invisible
+        group-hover:opacity-100 group-hover:visible
+        transition-opacity duration-300
+        max-w-[calc(100vw-1rem)]
+        whitespace-normal
+        text-center;
+
+        /* Prevent tooltip from going off-screen */
+        @apply left-[clamp(1rem,50%,calc(100vw-1rem))]
+        transform-gpu;
+        /* For better performance */
+    }
+
+    .stat-tooltip-arrow {
+        @apply absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2
+        bg-gray-900 rotate-45;
     }
 }
 
@@ -101,9 +128,11 @@
     .chart-container {
         @apply h-[400px] w-full;
     }
+
     .chart-legend {
         @apply flex items-center space-x-4;
     }
+
     .chart-filter-select {
         @apply rounded-md max-w-fit border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500;
     }
@@ -143,11 +172,11 @@
         @apply text-sm font-semibold;
     }
 
-    .footer_text {
+    .footer-text {
         @apply text-center text-xs text-gray-500;
     }
 
-    .footer_text_small {
+    .footer-text-small {
         @apply text-center text-xxs text-gray-500;
     }
 
@@ -168,7 +197,7 @@
     }
 
     .stat-card {
-        @apply flex items-center bg-white rounded-lg shadow-lg p-2 w-full;
+        @apply flex-col items-center justify-center bg-white rounded-lg shadow-lg p-2 w-full;
     }
 
     .stat-icon {
@@ -176,7 +205,7 @@
     }
 
     .stat-icon-text {
-        @apply text-white text-base;
+        @apply text-white text-base flex justify-center items-center;
     }
 
     .stat-value {
@@ -196,7 +225,7 @@
     }
 
     .stat-container {
-        @apply grid grid-cols-5 mt-4;
+        @apply grid grid-cols-5 mt-2;
     }
 
     .base-container {
@@ -213,5 +242,81 @@
 
     .filter-label {
         @apply block text-sm font-medium text-gray-700;
+    }
+}
+
+@media (max-width: 820px) {
+    .stat-value {
+        @apply text-sm font-semibold text-gray-900 mt-1;
+    }
+
+    .stat-title {
+        @apply text-xs font-normal text-gray-500;
+    }
+
+    .stat-subtitle {
+        @apply hidden;
+    }
+
+    .stat-date {
+        @apply hidden;
+    }
+
+    .stat-card {
+        @apply flex items-center bg-white rounded-lg shadow-lg p-3 w-full;
+    }
+
+    .card {
+        @apply bg-white rounded-lg shadow-lg p-2;
+    }
+
+    .stat-icon {
+        @apply w-5 h-5 rounded-lg flex items-center;
+    }
+
+    .stat-icon-text {
+        @apply text-white text-base;
+    }
+
+    .stat-container {
+        @apply grid grid-cols-5 mt-2;
+    }
+}
+
+@media (max-width: 1024px) {
+    .stat-value {
+        @apply text-base font-semibold text-gray-900 mt-1;
+    }
+
+    .stat-title {
+        @apply text-sm text-nowrap font-normal text-gray-500;
+    }
+
+    .stat-subtitle {
+        @apply hidden;
+    }
+
+    .stat-date {
+        @apply hidden;
+    }
+
+    .stat-card {
+        @apply flex items-center bg-white rounded-lg shadow-lg p-4 w-full;
+    }
+
+    .card {
+        @apply bg-white rounded-lg shadow-lg p-1;
+    }
+
+    .stat-icon {
+        @apply w-5 h-5 rounded-lg flex items-center justify-center;
+    }
+
+    .stat-icon-text {
+        @apply text-white text-base;
+    }
+
+    .stat-container {
+        @apply grid grid-cols-5 mt-2;
     }
 }
