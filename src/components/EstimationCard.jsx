@@ -208,7 +208,7 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
     }, [data]);
 
     return (
-        <div className="bg-white rounded-lg shadow-lg h-full">
+        <div className="estimator-container">
             {isExpanded ? (
                 <div className="p-5">
                     <div className="flex justify-between items-center mb-4">

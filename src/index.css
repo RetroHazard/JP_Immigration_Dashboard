@@ -11,7 +11,7 @@
 
 @layer components {
     .base-container {
-        @apply bg-white rounded-lg shadow p-3 w-full
+        @apply bg-white rounded-lg shadow-lg p-3 w-full
     }
     
     .build-info {
@@ -47,7 +47,6 @@
         max-w-[calc(100vw-1rem)]
         whitespace-normal
         text-center
-        left-[clamp(1rem,50%,calc(100vw-1rem))]
         transform-gpu
         sm:hidden;
     }
@@ -138,6 +137,10 @@
     }
     
     /* Estimation */
+    .estimator-container {
+        @apply bg-white rounded-lg shadow-lg h-full;
+    }
+    
     .estimator-collapsed {
         @apply col-span-1
     }
