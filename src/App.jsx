@@ -29,10 +29,10 @@ const App = () => {
                     <div className="flex justify-between h-16">
                         <div className="flex items-center">
                             <div className="flex flex-col items-start">
-                                <h1 className="title">
+                                <h1 className="section-title">
                                     Japan <Icon icon="ph:line-vertical-light" className="inline-block align-middle" style={{ verticalAlign: '-0.125em' }} /> Immigration Applications
                                 </h1>
-                                <h1 className="title">
+                                <h1 className="section-title">
                                     Statistics Dashboard
                                 </h1>
                             </div>
@@ -70,9 +70,9 @@ const App = () => {
                         </div>
 
                         <div>
-                            <div className="grid grid-cols-12 gap-8 mb-8 h-full">
+                            <div className="grid grid-cols-12 gap-3 mb-8 h-full">
                                 <div className={`transition-all duration-300 ease-in-out ${
-                                    isEstimationExpanded ? 'col-span-8' : 'col-span-11'
+                                    isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'
                                 }`}>
                                     <div className="bg-white rounded-lg shadow-lg p-6 h-full">
                                         <StackedBarChart data={data} filters={filters} />
@@ -80,7 +80,7 @@ const App = () => {
                                 </div>
 
                                 <div className={`transition-all duration-300 ease-in-out ${
-                                    isEstimationExpanded ? 'col-span-4' : 'col-span-1'
+                                    isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'
                                 }`}>
                                     <div
                                         className="h-full cursor-pointer"

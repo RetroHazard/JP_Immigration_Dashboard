@@ -7,18 +7,6 @@
     body {
         @apply bg-gray-50 text-gray-900 antialiased;
     }
-
-    h1 {
-        @apply text-sm font-bold;
-    }
-
-    h2 {
-        @apply text-base font-semibold;
-    }
-
-    title {
-        @apply text-base font-semibold
-    }
 }
 
 @layer components {
@@ -37,6 +25,11 @@
 
     .footer-text-small {
         @apply text-center text-xxs text-gray-500;
+    }
+
+    .section-title {
+        @apply text-sm font-semibold
+        sm:text-base
     }
 
     /* Stats Summary */
@@ -133,6 +126,27 @@
         @apply rounded-lg text-xs border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500
         sm:rounded-md sm:text-sm;
     }
+    
+    .chart-collapsed {
+        @apply col-span-6
+        lg:col-span-9
+    }
+    
+    .chart-expanded {
+        @apply col-span-11
+        lg:col-span-11
+    }
+    
+    /* Estimation */
+    .estimator-collapsed {
+        @apply col-span-1
+    }
+
+    .estimator-expanded {
+        @apply col-span-6
+        lg:col-span-3
+    }
+    
 }
 
 /* Loading animation */

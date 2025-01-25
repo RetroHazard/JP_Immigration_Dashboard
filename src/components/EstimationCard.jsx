@@ -212,7 +212,7 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
             {isExpanded ? (
                 <div className="p-5">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-semibold">
+                        <h2 className="section-title">
                             Processing Time Estimator
                         </h2>
                         <button
