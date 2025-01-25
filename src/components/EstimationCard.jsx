@@ -182,7 +182,7 @@ const calculateEstimatedDate = (data, details) => {
 };
 
 
-export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
+export const EstimationCard = ({ data, onClose }) => {
     const [applicationDetails, setApplicationDetails] = useState({
         bureau: '',
         type: '',
@@ -208,28 +208,29 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
     }, [data]);
 
     return (
-        <div className="estimator-container">
-            {isExpanded ? (
-                <div className="p-5">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="section-title">
-                            Processing Time Estimator
-                        </h2>
-                        <button
-                            onClick={onCollapse}
-                            className="text-gray-500 hover:text-gray-700"
-                        >
-                            <Icon icon="ci:chevron-right-duo" className="text-3xl animate-pulse" />
-                        </button>
-                    </div>
-                    {!showDetails ? (
-                        <div className="space-y-2">
+        <div className="h-full flex flex-col">
+            <div className="p-5 flex justify-between items-center border-b">
+                <h2 className="text-lg font-semibold">
+                    Processing Time Estimator
+                </h2>
+                <button
+                    onClick={onClose}
+                    className="text-gray-500 hover:text-gray-700 p-2"
+                >
+                    <Icon icon="ci:close-md" className="text-xl" />
+                </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5">
+                <div className="space-y-4">
+                    {!showDetails && (
+                        <>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Immigration Bureau
                                 </label>
                                 <select
-                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                     value={applicationDetails.bureau}
                                     onChange={(e) => setApplicationDetails({
                                         ...applicationDetails,
@@ -250,7 +251,7 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
                                     Application Type
                                 </label>
                                 <select
-                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                     value={applicationDetails.type}
                                     onChange={(e) => setApplicationDetails({
                                         ...applicationDetails,
@@ -275,7 +276,7 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
                                 <input
                                     type="month"
                                     placeholder="YYYY-MM"
-                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                     value={applicationDetails.applicationDate}
                                     onChange={(e) => setApplicationDetails({
                                         ...applicationDetails,
@@ -285,11 +286,11 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
                                     max={dateRange.max}
                                 />
                             </div>
-                        </div>
-                    ) : null}
+                        </>
+                    )}
 
                     {estimatedDate && (
-                        <div className="mt-5 p-2 bg-gray-100 rounded-lg shadow-lg">
+                        <div className="p-4 bg-gray-50 rounded-lg drop-shadow-xl">
                             <h3 className="text-lg font-medium text-gray-900">
                                 Estimated Completion Date
                             </h3>
@@ -304,7 +305,7 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
 
                             <button
                                 onClick={() => setShowDetails(!showDetails)}
-                                className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 flex items-center"
+                                className="mt-3 text-sm text-indigo-600 hover:text-indigo-800 flex items-center"
                             >
                                 <Icon
                                     icon={showDetails ? 'material-symbols:settings' : 'material-symbols:info-outline'}
@@ -363,22 +364,7 @@ export const EstimationCard = ({ data, isExpanded, onCollapse }) => {
                         </div>
                     )}
                 </div>
-            ) : (
-                <div className="h-full flex flex-col items-center justify-between p-5">
-                    <Icon
-                        icon="ci:chevron-left-duo"
-                        className="text-gray-500 text-3xl animate-pulse"
-                    />
-                    <div className="whitespace-nowrap text-gray-500 hover:text-gray-700"
-                         style={{ writingMode: 'vertical-rl' }}>
-                        <h2>Processing Time Estimator</h2>
-                    </div>
-                    <Icon
-                        icon="ci:chevron-left-duo"
-                        className="text-gray-500 text-3xl animate-pulse"
-                    />
-                </div>
-            )}
+            </div>
         </div>
     );
 };

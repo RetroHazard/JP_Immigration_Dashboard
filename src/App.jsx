@@ -16,7 +16,7 @@ const App = () => {
         month: '' // Initialize Empty
     });
 
-    const [isEstimationExpanded, setIsEstimationExpanded] = useState(false);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     if (loading) {
         return <div>Loading...</div>;
@@ -69,30 +69,54 @@ const App = () => {
                             <FilterPanel data={data} filters={filters} onChange={setFilters} />
                         </div>
 
-                        <div>
-                            <div className="grid grid-cols-12 gap-3 mb-8 h-full">
-                                <div className={`transition-all duration-300 ease-in-out ${
-                                    isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'
-                                }`}>
-                                    <div className="bg-white rounded-lg shadow-lg p-6 h-full">
-                                        <StackedBarChart data={data} filters={filters} />
-                                    </div>
+                        <div className="relative">
+                            <div className="mb-8 h-full">
+                                <div className="bg-white rounded-lg shadow-lg p-6 h-full">
+                                    <StackedBarChart data={data} filters={filters} />
                                 </div>
-
-                                <div className={`transition-all duration-300 ease-in-out ${
-                                    isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'
-                                }`}>
-                                    <div
-                                        className="h-full cursor-pointer"
-                                        onClick={() => !isEstimationExpanded && setIsEstimationExpanded(true)}
-                                    >
-                                        <EstimationCard
-                                            data={data}
-                                            isExpanded={isEstimationExpanded}
-                                            onCollapse={() => setIsEstimationExpanded(false)}
+                            </div>
+                            
+                            <div
+                                className={`drawer-trigger ${
+                                    isDrawerOpen ? 'translate-x-[300px]' : ''
+                                }`}
+                            >
+                                <button
+                                    onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+                                    className="animate-pulse  bg-gray-500 text-white px-1.5 py-4 rounded-l-lg shadow-lg hover:bg-gray-300 flex justify-center items-center relative overflow-visible clip-tapered-btn w-[28px] h-[130px]"
+                                >
+                                    <div className="flex flex-col items-center gap-2 origin-center">
+                                        <Icon
+                                            icon="ci:chevron-left-duo"
+                                            className="text-lg animate-pulse"
+                                        />
+                                        <span className="whitespace-nowrap text-sm rotate-90 my-2.5">
+                                            Estimator
+                                        </span>
+                                        <Icon
+                                            icon="ci:chevron-left-duo"
+                                            className="text-lg animate-pulse"
                                         />
                                     </div>
-                                </div>
+                                </button>
+                            </div>
+                            
+                            {isDrawerOpen && (
+                                <div
+                                    className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+                                    onClick={() => setIsDrawerOpen(false)}
+                                />
+                            )}
+                            
+                            <div
+                                className={`fixed top-0 right-0 h-full w-full max-w-[300px] bg-white shadow-xl z-50 transform transition-transform duration-300 ${
+                                    isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+                                }`}
+                            >
+                                <EstimationCard
+                                    data={data}
+                                    onClose={() => setIsDrawerOpen(false)}
+                                />
                             </div>
                         </div>
 

@@ -149,6 +149,54 @@
         @apply col-span-6
         lg:col-span-3
     }
+
+    [style*="writing-mode: vertical-rl"] {
+        text-orientation: mixed;
+    }
+    
+    .drawer-overlay {
+        @apply fixed inset-0 bg-black/50 z-40 transition-opacity;
+    }
+
+    .drawer-content {
+        @apply fixed top-0 right-0 h-full w-full max-w-[300px] bg-white shadow-xl z-50 transform transition-transform duration-300;
+    }
+
+    .drawer-trigger {
+        @apply fixed right-0 top-[25%] z-30 transition-transform duration-300;
+    }
+
+    .clip-tapered-btn {
+        clip-path: polygon(
+                0 20%,
+                100% 0,
+                100% 100%,
+                0 80%
+        );
+    }
+
+    @screen sm {
+        .clip-tapered-btn {
+            clip-path: polygon(
+                    0 15%,
+                    100% 0,
+                    100% 100%,
+                    0 85%
+            );
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+    }
+    
+    @screen md {
+        .drawer-content {
+            @apply max-w-[400px];
+        }
+
+        .drawer-trigger {
+            @apply translate-x-0;
+        }
+    }
     
 }
 
