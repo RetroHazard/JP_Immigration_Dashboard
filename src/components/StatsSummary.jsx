@@ -52,7 +52,7 @@ export const StatsSummary = ({ data, filters }) => {
     if (!stats) return null;
 
 
-    const StatCard = ({ title, subtitle, date, value, color, icon }) => {
+    const StatCard = ({ title, shortTitle, subtitle, date, value, color, icon }) => {
         return (
             <div className="stat-card">
                 <div className="group relative">
@@ -78,6 +78,7 @@ export const StatsSummary = ({ data, filters }) => {
                 <div className="ml-4">
                     <div className="flex flex-col">
                         <h3 className="stat-title">{title}</h3>
+                        <h3 className="stat-short-title">{shortTitle}</h3>
                         <span className="stat-subtitle">{subtitle}</span>
                         <span className="stat-date">{date}</span>
                     </div>
@@ -93,7 +94,8 @@ export const StatsSummary = ({ data, filters }) => {
     return (
         <div className="stat-container">
             <StatCard
-                title="Total"
+                title="Total Applications"
+                shortTitle="Total"
                 subtitle={getBureauLabel(filters.bureau)}
                 date={filters.month}
                 value={stats.totalApplications.toLocaleString()}
@@ -102,6 +104,7 @@ export const StatsSummary = ({ data, filters }) => {
             />
             <StatCard
                 title="Pending"
+                shortTitle="Pending"
                 subtitle={getBureauLabel(filters.bureau)}
                 date={filters.month}
                 value={stats.pending.toLocaleString()}
@@ -110,6 +113,7 @@ export const StatsSummary = ({ data, filters }) => {
             />
             <StatCard
                 title="Granted"
+                shortTitle="Granted"
                 subtitle={getBureauLabel(filters.bureau)}
                 date={filters.month}
                 value={stats.granted.toLocaleString()}
@@ -118,6 +122,7 @@ export const StatsSummary = ({ data, filters }) => {
             />
             <StatCard
                 title="Denied"
+                shortTitle="Denied"
                 subtitle={getBureauLabel(filters.bureau)}
                 date={filters.month}
                 value={stats.denied.toLocaleString()}
@@ -126,6 +131,7 @@ export const StatsSummary = ({ data, filters }) => {
             />
             <StatCard
                 title="Approval Rate"
+                shortTitle="APV. Rate"
                 subtitle={getBureauLabel(filters.bureau)}
                 date={filters.month}
                 value={`${stats.approvalRate}%`}
