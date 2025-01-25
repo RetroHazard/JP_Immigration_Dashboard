@@ -1,10 +1,8 @@
 /* index.css */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles */
 @layer base {
     body {
         @apply bg-gray-50 text-gray-900 antialiased;
@@ -19,30 +17,29 @@
     }
 
     title {
-        @apply text-lg font-semibold;
+        @apply text-sm font-semibold lg:text-lg;
     }
 }
 
 @layer components {
     .base-container {
-        @apply bg-white rounded-lg shadow p-6;
+        @apply bg-white rounded-lg shadow p-3 w-full lg:p-6;
     }
-
+    
     .build-info {
-        @apply text-sm text-gray-500;
+        @apply text-xxs text-gray-500 text-nowrap lg:text-sm;
     }
 
     .footer-text {
-        @apply text-center text-sm text-gray-500;
+        @apply text-center text-xs text-gray-500 lg:text-sm;
     }
 
     .footer-text-small {
-        @apply text-center text-xs text-gray-500;
+        @apply text-center text-xxs text-gray-500;
     }
-
+    
     .stat-tooltip {
-        @apply sm:hidden md:hidden
-        absolute bottom-full left-1/2 -translate-x-1/2
+        @apply absolute bottom-full left-1/2 -translate-x-1/2
         mb-2 p-2 z-50
         text-xs font-medium text-white bg-gray-900 rounded-lg
         opacity-0 invisible
@@ -50,72 +47,83 @@
         transition-opacity duration-300
         max-w-[calc(100vw-1rem)]
         whitespace-normal
-        text-center;
-
-        /* Prevent tooltip from going off-screen */
-        @apply left-[clamp(1rem,50%,calc(100vw-1rem))]
+        text-center
+        left-[clamp(1rem,50%,calc(100vw-1rem))]
         transform-gpu;
-        /* For better performance */
     }
 
     .stat-tooltip-arrow {
         @apply absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2
         bg-gray-900 rotate-45;
     }
-}
 
-/* Stats Summary */
-@layer stat-summary {
+    /* Stats Summary */
     .stat-container {
-        @apply grid grid-cols-5 gap-4 mt-8;
+        @apply grid grid-cols-5 mt-2 lg:gap-4 lg:mt-8;
     }
 
     .card {
-        @apply bg-white rounded-lg shadow-lg p-6;
+        @apply bg-white rounded-lg shadow-lg p-2 lg:p-6;
     }
 
     .stat-card {
-        @apply flex items-center space-x-4 bg-white rounded-lg shadow p-6;
+        @apply flex-col items-center justify-center bg-white rounded-lg shadow-lg p-2 w-full
+        sm:flex sm:items-center sm:p-3
+        md:p-2
+        lg:flex lg:items-center lg:space-x-4 lg:p-6;
     }
 
     .stat-icon {
-        @apply min-w-10 h-24 min-h-12 rounded-2xl flex items-center justify-center;
+        @apply w-5 h-5 rounded-lg flex items-center justify-center
+        sm:w-5 sm:h-5
+        md:min-w-10 md:h-24 md:min-h-12 md:rounded-2xl
+        lg:min-w-10 lg:h-24 lg:min-h-12 lg:rounded-2xl;
     }
 
     .stat-icon-text {
-        @apply text-white text-xl;
+        @apply text-white text-base flex justify-center items-center
+        lg:text-xl;
     }
 
     .stat-value {
-        @apply text-2xl font-semibold text-gray-900 mt-1;
+        @apply hidden
+        sm:text-xxs sm:font-semibold sm:text-gray-900 sm:mt-1
+        md:text-xs
+        lg:text-2xl lg:block;
     }
 
     .stat-title {
-        @apply text-sm font-medium text-gray-500;
+        @apply hidden
+        sm:hidden
+        md:text-xs md:font-normal md:text-gray-500
+        lg:text-sm lg:font-medium lg:block;
     }
 
     .stat-short-title {
-        @apply hidden;
+        @apply block text-xs text-nowrap font-semibold text-gray-500
+        sm:block
+        md:block
+        lg:hidden;
     }
 
     .stat-subtitle {
-        @apply text-gray-400 text-xs;
+        @apply hidden
+        lg:text-gray-400 lg:text-xs lg:block;
     }
 
     .stat-date {
-        @apply text-gray-400 text-xs italic;
+        @apply hidden
+        lg:text-gray-400 lg:text-xs lg:italic lg:block;
     }
 
-}
-
-/* Filters Block */
-@layer filters {
+    /* Filters */
     .filter-block {
-        @apply grid grid-cols-3 gap-6;
+        @apply grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6;
     }
 
     .filter-select {
-        @apply w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500;
+        @apply w-full text-xs rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500
+        sm:text-sm;
     }
 
     .filter-label {
@@ -125,20 +133,15 @@
     .filter-note {
         @apply text-xs italic text-gray-500;
     }
-}
 
-/* Chart Customization */
-@layer chart {
+    /* Charts */
     .chart-container {
-        @apply h-[400px] w-full;
-    }
-
-    .chart-legend {
-        @apply flex items-center space-x-4;
+        @apply h-[300px] w-full lg:h-[400px];
     }
 
     .chart-filter-select {
-        @apply rounded-md max-w-fit border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500;
+        @apply rounded-lg text-xs border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500
+        sm:rounded-md sm:text-sm;
     }
 }
 
@@ -168,171 +171,4 @@
 /* Transitions */
 .transition-fade {
     @apply transition-opacity duration-200;
-}
-
-/* Responsive adjustments */
-@media screen and (max-width: 470px) {
-    .title {
-        @apply text-sm font-semibold;
-    }
-
-    .footer-text {
-        @apply text-center text-xs text-gray-500;
-    }
-
-    .footer-text-small {
-        @apply text-center text-xxs text-gray-500;
-    }
-
-    .build-info {
-        @apply text-xxs text-gray-500 text-nowrap;
-    }
-
-    .chart-filter-select {
-        @apply text-xs max-w-fit rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500;
-    }
-
-    .chart-container {
-        @apply h-[300px] w-full;
-    }
-
-    .card {
-        @apply bg-white rounded-lg shadow-lg p-2;
-    }
-
-    .stat-card {
-        @apply flex-col items-center justify-center bg-white rounded-lg shadow-lg p-2 w-full;
-    }
-
-    .stat-icon {
-        @apply w-5 h-5 rounded-lg flex items-center justify-center;
-    }
-
-    .stat-icon-text {
-        @apply text-white text-base flex justify-center items-center;
-    }
-
-    .stat-value {
-        @apply hidden;
-    }
-
-    .stat-title {
-        @apply hidden;
-    }
-    
-    .stat-short-title {
-        @apply hidden;
-    }
-
-    .stat-subtitle {
-        @apply hidden;
-    }
-
-    .stat-date {
-        @apply hidden;
-    }
-
-    .stat-container {
-        @apply grid grid-cols-5 mt-2;
-    }
-
-    .base-container {
-        @apply bg-white rounded-lg shadow p-3 w-full;
-    }
-
-    .filter-block {
-        @apply grid grid-cols-2 gap-4;
-    }
-
-    .filter-select {
-        @apply w-full text-xs rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500;
-    }
-
-    .filter-label {
-        @apply block text-sm font-medium text-gray-700;
-    }
-}
-
-@media screen and (max-width: 820px) {
-    .stat-value {
-        @apply text-xxs font-semibold text-gray-900 mt-1;
-    }
-
-    .stat-title {
-        @apply text-xs font-normal text-gray-500;
-    }
-
-    .stat-short-title {
-        @apply text-xs text-nowrap font-semibold text-gray-500;
-    }
-
-    .stat-subtitle {
-        @apply hidden;
-    }
-
-    .stat-date {
-        @apply hidden;
-    }
-
-    .stat-card {
-        @apply flex items-center bg-white rounded-lg shadow-lg p-3 w-full;
-    }
-
-    .card {
-        @apply bg-white rounded-lg shadow-lg p-2;
-    }
-
-    .stat-icon {
-        @apply w-5 h-5 rounded-lg flex items-center;
-    }
-
-    .stat-icon-text {
-        @apply text-white text-base;
-    }
-
-    .stat-container {
-        @apply grid grid-cols-5 mt-2;
-    }
-}
-
-@media screen and (max-width: 1024px) {
-    .stat-value {
-        @apply text-xs font-semibold text-gray-900 mt-1;
-    }
-
-    .stat-title {
-        @apply hidden;
-    }
-
-    .stat-short-title {
-        @apply text-xs text-nowrap font-semibold text-gray-500;
-    }
-
-    .stat-subtitle {
-        @apply hidden;
-    }
-
-    .stat-date {
-        @apply hidden;
-    }
-
-    .stat-card {
-        @apply flex items-center bg-white rounded-lg shadow-lg p-2 w-full;
-    }
-
-    .card {
-        @apply bg-white rounded-lg shadow-lg p-1;
-    }
-
-    .stat-icon {
-        @apply w-5 h-5 rounded-lg flex items-center justify-center;
-    }
-
-    .stat-icon-text {
-        @apply text-white text-base;
-    }
-
-    .stat-container {
-        @apply grid grid-cols-5;
-    }
 }
