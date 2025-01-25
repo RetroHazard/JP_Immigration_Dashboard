@@ -15,7 +15,7 @@ using a combination of predictive averages and confirmed statistics reported by 
     + Previously received applications
     + Newly received applications
     + Processed applications per month
-    + Configurable time range display (6/12/24/36 months or all data)
+    + Configurable time range display (6/12/24/36/all months)
 
 :clock2: Processing Time Estimator
 
@@ -33,12 +33,20 @@ using a combination of predictive averages and confirmed statistics reported by 
 - Time period adjustment
 - Statistics summary
 
+:iphone: Responsive Design
+
+- Adaptive Breakpoints
+- Fluid Layout
+- Responsive Interface
+- Light/Dark Mode Support
+
 ## Tech Stack
 
 **Frontend**
 
-- `react` - Core framework
-- `Chart.js` - Data visualization
+- `Node.js` - Runtime & Build
+- `React` - Core Framework
+- `Chart.js` - Data Visualization
 - `Tailwind CSS` - Styling
 - `Iconify` - UI icons
 
@@ -46,12 +54,10 @@ using a combination of predictive averages and confirmed statistics reported by 
 
 **Prediction Model**
 
-```
 - 3-month rolling averages
 - Dynamic queue position calculation
 - Real-time processing rate analysis
 - Missing month predictions
-```
 
 **Calculations**
 
@@ -68,11 +74,3 @@ using a combination of predictive averages and confirmed statistics reported by 
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss proposed changes.
-
-## Support
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/L3L51987AN)
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)
