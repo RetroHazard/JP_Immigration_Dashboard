@@ -13,7 +13,7 @@
     .base-container {
         @apply bg-white rounded-lg shadow-lg p-3 w-full
     }
-    
+
     .build-info {
         @apply text-xxs text-gray-500 text-nowrap
         sm:text-xs
@@ -71,7 +71,7 @@
     .stat-icon-text {
         @apply text-white text-base flex justify-center items-center
     }
-    
+
     .stat-details {
         @apply hidden
         sm:block sm:ml-1
@@ -125,22 +125,22 @@
         @apply rounded-lg text-xs border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500
         sm:rounded-md sm:text-sm;
     }
-    
+
     .chart-collapsed {
         @apply col-span-6
         lg:col-span-9
     }
-    
+
     .chart-expanded {
         @apply col-span-11
         lg:col-span-11
     }
-    
+
     /* Estimation */
     .estimator-container {
         @apply bg-white rounded-lg shadow-lg h-full;
     }
-    
+
     .estimator-collapsed {
         @apply col-span-1
     }
@@ -153,7 +153,7 @@
     [style*="writing-mode: vertical-rl"] {
         text-orientation: mixed;
     }
-    
+
     .drawer-overlay {
         @apply fixed inset-0 bg-black/50 z-40 transition-opacity;
     }
@@ -187,7 +187,7 @@
             padding-bottom: 1.5rem;
         }
     }
-    
+
     @screen md {
         .drawer-content {
             @apply max-w-[400px];
@@ -197,7 +197,7 @@
             @apply translate-x-0;
         }
     }
-    
+
 }
 
 /* Loading animation */

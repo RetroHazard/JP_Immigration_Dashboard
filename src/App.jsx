@@ -83,7 +83,7 @@ const App = () => {
                             >
                                 <button
                                     onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-                                    className="animate-pulse  bg-gray-500 text-white px-1.5 py-4 rounded-l-lg shadow-lg hover:bg-gray-300 flex justify-center items-center relative overflow-visible clip-tapered-btn w-[28px] h-[130px]"
+                                    className="animate-pulse bg-gray-700 text-white shadow-lg hover:bg-gray-500 flex justify-center items-center relative overflow-visible clip-tapered-btn w-[28px] h-[130px]"
                                 >
                                     <div className="flex flex-col items-center gap-2 origin-center">
                                         <Icon
