@@ -17,6 +17,7 @@ const App = () => {
     });
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isEstimationExpanded, setIsEstimationExpanded] = useState(false);
 
     if (loading) {
         return <div>Loading...</div>;
@@ -59,70 +60,89 @@ const App = () => {
             </nav>
 
             <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {loading ? (
-                    <div className="flex justify-center items-center h-64">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500" />
-                    </div>
-                ) : (
-                    <>
-                        <div className="grid grid-cols-1 gap-8 mb-8">
-                            <FilterPanel data={data} filters={filters} onChange={setFilters} />
+                {!loading && <>
+                <div className="grid grid-cols-1 gap-8 mb-8">
+                    <FilterPanel data={data} filters={filters} onChange={setFilters} />
+                </div>
+
+                    {/* Mobile Layout */}
+                    <div className="sm:hidden relative">
+                        <div className="mb-8 h-full">
+                            <div className="bg-white rounded-lg shadow-lg p-6 h-full">
+                                <StackedBarChart data={data} filters={filters} />
+                            </div>
                         </div>
 
-                        <div className="relative">
-                            <div className="mb-8 h-full">
-                                <div className="bg-white rounded-lg shadow-lg p-6 h-full">
-                                    <StackedBarChart data={data} filters={filters} />
-                                </div>
-                            </div>
-                            
-                            <div
-                                className={`drawer-trigger ${
-                                    isDrawerOpen ? 'translate-x-[300px]' : ''
-                                }`}
+                        <div
+                            className={`drawer-trigger ${
+                                isDrawerOpen ? 'translate-x-[300px]' : ''
+                            }`}
+                        >
+                            <button
+                                onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+                                className="animate-pulse bg-gray-700 text-white shadow-lg hover:bg-gray-500 flex justify-center items-center relative overflow-visible clip-tapered-btn w-[28px] h-[130px]"
                             >
-                                <button
-                                    onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-                                    className="animate-pulse bg-gray-700 text-white shadow-lg hover:bg-gray-500 flex justify-center items-center relative overflow-visible clip-tapered-btn w-[28px] h-[130px]"
-                                >
-                                    <div className="flex flex-col items-center gap-2 origin-center">
-                                        <Icon
-                                            icon="ci:chevron-left-duo"
-                                            className="text-lg animate-pulse"
-                                        />
-                                        <span className="whitespace-nowrap text-sm rotate-90 my-2.5">
+                                <div className="flex flex-col items-center gap-2 origin-center">
+                                    <Icon
+                                        icon="ci:chevron-left-duo"
+                                        className="text-lg animate-pulse"
+                                    />
+                                    <span className="whitespace-nowrap text-sm rotate-90 my-2.5">
                                             Estimator
                                         </span>
-                                        <Icon
-                                            icon="ci:chevron-left-duo"
-                                            className="text-lg animate-pulse"
-                                        />
-                                    </div>
-                                </button>
-                            </div>
-                            
-                            {isDrawerOpen && (
-                                <div
-                                    className="fixed inset-0 bg-black/50 z-40 transition-opacity"
-                                    onClick={() => setIsDrawerOpen(false)}
-                                />
-                            )}
-                            
-                            <div
-                                className={`fixed top-0 right-0 h-full w-full max-w-[300px] bg-white shadow-xl z-50 transform transition-transform duration-300 ${
-                                    isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
-                                }`}
-                            >
-                                <EstimationCard
-                                    data={data}
-                                    onClose={() => setIsDrawerOpen(false)}
-                                />
-                            </div>
+                                    <Icon
+                                        icon="ci:chevron-left-duo"
+                                        className="text-lg animate-pulse"
+                                    />
+                                </div>
+                            </button>
                         </div>
 
-                        <StatsSummary data={data} filters={filters} />
-                    </>
-                )}
+                        {isDrawerOpen && (
+                            <>
+                                <div className="drawer-overlay"
+                                     onClick={() => setIsDrawerOpen(false)}
+                                />
+                                <div className="drawer-content">
+                                    <EstimationCard
+                                        variant="drawer"
+                                        data={data}
+                                        onClose={() => setIsDrawerOpen(false)}
+                                    />
+                                </div>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Desktop Layout */}
+                    <div className="hidden sm:grid grid-cols-12 gap-6 sm:gap-2 md:gap-3 lg:gap-4 mb-8 h-full">
+                        <div className={`transition-all duration-300 ease-in-out ${
+                            isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'
+                        }`}>
+                            <div className="bg-white rounded-lg shadow-lg p-6 h-full">
+                                <StackedBarChart data={data} filters={filters} />
+                            </div>
+                        </div>
+                        <div className={`transition-all duration-300 ease-in-out ${
+                            isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'
+                        }`}>
+                            <div
+                                className="h-full cursor-pointer bg-white rounded-lg shadow-lg"
+                                onClick={() => !isEstimationExpanded && setIsEstimationExpanded(true)}
+                                >
+                            <EstimationCard
+                                variant="expandable"
+                                data={data}
+                                isExpanded={isEstimationExpanded}
+                                onCollapse={() => setIsEstimationExpanded(false)}
+                            />
+                            </div>
+                        </div>
+                    </div>
+
+                    <StatsSummary data={data} filters={filters} />
+                </>
+                }
             </main>
 
             <footer className="bg-white border-t">

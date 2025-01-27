@@ -182,7 +182,13 @@ const calculateEstimatedDate = (data, details) => {
 };
 
 
-export const EstimationCard = ({ data, onClose }) => {
+export const EstimationCard = ({
+                                   data,
+                                   variant = 'drawer',
+                                   isExpanded,
+                                   onCollapse,
+                                   onClose
+                               }) => {
     const [applicationDetails, setApplicationDetails] = useState({
         bureau: '',
         type: '',
@@ -190,9 +196,10 @@ export const EstimationCard = ({ data, onClose }) => {
     });
     const [showDetails, setShowDetails] = useState(false);
 
-    const estimatedDate = useMemo(() => {
-        return calculateEstimatedDate(data, applicationDetails);
-    }, [data, applicationDetails]);
+    const estimatedDate = useMemo(() =>
+            calculateEstimatedDate(data, applicationDetails),
+        [data, applicationDetails]
+    );
 
     // Get valid date range for the application date input
     const dateRange = useMemo(() => {
@@ -207,20 +214,31 @@ export const EstimationCard = ({ data, onClose }) => {
         };
     }, [data]);
 
+if (variant === 'expandable' && !isExpanded) {
     return (
-        <div className="h-full flex flex-col">
-            <div className="p-5 flex justify-between items-center border-b">
-                <h2 className="text-lg font-semibold">
-                    Processing Time Estimator
-                </h2>
-                <button
-                    onClick={onClose}
-                    className="text-gray-500 hover:text-gray-700 p-2"
-                >
-                    <Icon icon="ci:close-md" className="text-xl" />
-                </button>
+        <div className="h-full flex flex-col items-center justify-between p-5 cursor-pointer"
+             onClick={onCollapse}>
+            <Icon icon="ci:chevron-left-duo" className="text-gray-500 text-3xl animate-pulse" />
+            <div className="whitespace-nowrap text-gray-500 hover:text-gray-700"
+                 style={{ writingMode: 'vertical-rl' }}>
+                <h2>Processing Time Estimator</h2>
             </div>
-
+            <Icon icon="ci:chevron-left-duo" className="text-gray-500 text-3xl animate-pulse" />
+        </div>
+    );
+}
+return (
+    <div className="h-full flex flex-col estimator-container">
+        <div className="p-5 flex justify-between items-center border-b">
+            <h2 className="text-lg font-semibold">Processing Time Estimator</h2>
+            <button
+                onClick={variant === 'drawer' ? onClose : onCollapse}
+                className="text-gray-500 hover:text-gray-700 p-2"
+            >
+                <Icon icon={variant === 'drawer' ? 'ci:close-md' : 'ci:chevron-right-duo'}
+                      className="text-xl" />
+            </button>
+        </div>
             <div className="flex-1 overflow-y-auto p-5">
                 <div className="space-y-4">
                     {!showDetails && (

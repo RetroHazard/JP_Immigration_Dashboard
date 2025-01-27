@@ -37,7 +37,7 @@
 
     /* Stats Summary */
     .stat-container {
-        @apply grid grid-cols-5 gap-4 mt-4
+        @apply grid grid-cols-5 gap-1 mt-4
     }
 
     .stat-tooltip {
@@ -142,7 +142,7 @@
     /* Charts */
     .chart-container {
         @apply h-[300px] w-full
-        lg:h-[400px]
+        sm:h-[400px]
     }
 
     .chart-filter-select {
@@ -154,13 +154,13 @@
 
     .chart-collapsed {
         @apply hidden
-        sm:col-span-6
-        md:col-span-9
+        sm:col-span-6 sm:block
+        lg:col-span-8
     }
 
     .chart-expanded {
         @apply hidden
-        sm:col-span-11
+        sm:col-span-11 sm:block
         md:col-span-11
     }
 
@@ -171,13 +171,13 @@
 
     .estimator-collapsed {
         @apply hidden
-        sm:col-span-1
+        sm:col-span-1 sm:block
     }
 
     .estimator-expanded {
         @apply hidden
-        sm:col-span-6
-        md:col-span-3
+        sm:col-span-6 sm:block
+        lg:col-span-4
     }
 
     [style*="writing-mode: vertical-rl"] {
