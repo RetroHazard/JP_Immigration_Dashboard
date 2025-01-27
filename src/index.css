@@ -17,6 +17,7 @@
     .build-info {
         @apply text-xxs text-gray-500 text-nowrap
         sm:text-xs
+        lg:text-sm
     }
 
     .footer-text {
@@ -30,11 +31,13 @@
     .section-title {
         @apply text-sm font-semibold
         sm:text-base
+        md:text-lg
+        lg:text-xl
     }
 
     /* Stats Summary */
     .stat-container {
-        @apply grid grid-cols-5 mt-2
+        @apply grid grid-cols-5 gap-4 mt-4
     }
 
     .stat-tooltip {
@@ -61,11 +64,13 @@
 
     .stat-card {
         @apply items-center justify-center bg-white rounded-lg shadow-lg p-2 w-fit mx-auto
-        sm:flex sm:items-start sm:justify-start sm:p-3 sm:w-fit sm:h-fit
+        sm:flex sm:items-start sm:justify-start sm:p-3 sm:w-full sm:h-full sm:scale-95
+        md:items-center md:p-4
     }
 
     .stat-icon {
         @apply w-10 h-10 rounded-lg flex items-center justify-center
+        md:min-w-10 md:h-28 md:min-h-12 md:rounded-2xl
     }
 
     .stat-icon-text {
@@ -75,65 +80,88 @@
     .stat-details {
         @apply hidden
         sm:block sm:ml-1
+        md:ml-2
+        lg:ml-4
     }
 
     .stat-value {
         @apply hidden
         sm:block sm:text-xs sm:font-semibold sm:text-gray-900
+        md:text-base md:mt-1
+        lg:text-2xl
     }
 
     .stat-title {
         @apply hidden
+        lg:block lg:text-base lg:font-semibold lg:text-gray-500
     }
 
     .stat-short-title {
         @apply hidden
         sm:block sm:text-xs sm:text-nowrap sm:font-semibold sm:text-gray-500
+        md:text-sm
+        lg:hidden
     }
 
     .stat-subtitle {
         @apply hidden
+        md:block md:text-xs md:text-gray-400
+        lg:text-sm
     }
 
     .stat-date {
         @apply hidden
+        md:block md:text-xs md:text-gray-400 md:italic
     }
 
     /* Filters */
     .filter-block {
         @apply grid grid-cols-2 gap-4
+        sm:grid-cols-3 sm:gap-5
+        md:gap-6 md:p-4
     }
 
     .filter-select {
         @apply w-full text-xs rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500
+        sm:rounded-md sm:text-sm
+        md:text-base;
     }
 
     .filter-label {
-        @apply text-sm font-medium text-gray-700;
+        @apply text-sm font-medium text-gray-700
+        sm:rounded-md sm:text-sm
+        md:text-base md:font-semibold
+        lg:text-lg;
     }
 
     .filter-note {
-        @apply text-xs italic text-gray-500;
+        @apply text-xs italic text-gray-500
+        md:text-sm md:text-pretty;
     }
 
     /* Charts */
     .chart-container {
-        @apply h-[300px] w-full lg:h-[400px];
+        @apply h-[300px] w-full
+        lg:h-[400px];
     }
 
     .chart-filter-select {
         @apply rounded-lg text-xs border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500
-        sm:rounded-md sm:text-sm;
+        sm:rounded-md sm:text-sm
+        md:text-base md:font-semibold
+        lg:text-xl;
     }
 
     .chart-collapsed {
-        @apply col-span-6
-        lg:col-span-9
+        @apply hidden
+        sm:col-span-6
+        md:col-span-9
     }
 
     .chart-expanded {
-        @apply col-span-11
-        lg:col-span-11
+        @apply hidden
+        sm:col-span-11
+        md:col-span-11
     }
 
     /* Estimation */
@@ -142,12 +170,14 @@
     }
 
     .estimator-collapsed {
-        @apply col-span-1
+        @apply hidden
+        sm:col-span-1
     }
 
     .estimator-expanded {
-        @apply col-span-6
-        lg:col-span-3
+        @apply hidden
+        sm:col-span-6
+        md:col-span-3
     }
 
     [style*="writing-mode: vertical-rl"] {
@@ -155,15 +185,18 @@
     }
 
     .drawer-overlay {
-        @apply fixed inset-0 bg-black/50 z-40 transition-opacity;
+        @apply fixed inset-0 bg-black/50 z-40 transition-opacity
+        sm:hidden;
     }
 
     .drawer-content {
-        @apply fixed top-0 right-0 h-full w-full max-w-[300px] bg-white shadow-xl z-50 transform transition-transform duration-300;
+        @apply fixed top-0 right-0 h-full w-full max-w-[300px] bg-white shadow-xl z-50 transform transition-transform duration-300
+        sm:hidden;
     }
 
     .drawer-trigger {
-        @apply fixed right-0 top-[25%] z-30 transition-transform duration-300;
+        @apply fixed right-0 top-[25%] z-30 transition-transform duration-300
+        sm:hidden;
     }
 
     .clip-tapered-btn {

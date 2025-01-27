@@ -67,7 +67,6 @@ export const StatsSummary = ({ data, filters }) => {
                             <span className="font-semibold">{title}</span>
                             <span className="font-bold mt-1">{value}</span>
                         </div>
-                        {/* Tooltip Arrow */}
                         <div className="stat-tooltip-arrow"></div>
                     </div>
                 </div>
