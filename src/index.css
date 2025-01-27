@@ -3,10 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@theme {
-    --breakpoint-xl: 75rem;
-}
-
 @layer base {
     body {
         @apply bg-gray-50 text-gray-900 antialiased
@@ -62,30 +58,28 @@
         @apply absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45
     }
 
-    .card {
-        @apply bg-white rounded-lg shadow-lg p-2
-    }
-
     .stat-card {
         @apply items-center justify-center bg-white rounded-lg shadow-lg p-2 w-fit mx-auto
         sm:flex sm:items-start sm:justify-start sm:p-3 sm:w-full sm:h-full sm:scale-95
-        md:items-center md:p-4
+        md:items-center md:p-4 md:text-nowrap
     }
 
     .stat-icon {
         @apply w-10 h-10 rounded-lg flex items-center justify-center
         md:min-w-10 md:h-28 md:min-h-12 md:rounded-2xl
+        xl:min-w-16 xl:rounded-3xl
     }
 
     .stat-icon-text {
-        @apply text-white text-base flex justify-center items-center
+        @apply text-white text-2xl flex justify-center items-center
+        md:text-3xl
+        xl:text-5xl
     }
 
     .stat-details {
         @apply hidden
-        sm:block sm:ml-1
-        md:ml-2
-        lg:ml-4
+        sm:block sm:ml-3
+        xl:ml-5
     }
 
     .stat-value {
@@ -97,7 +91,7 @@
 
     .stat-title {
         @apply hidden
-        lg:block lg:text-base lg:font-semibold lg:text-gray-500
+        lg:block lg:text-sm lg:font-semibold lg:text-gray-500
     }
 
     .stat-short-title {
@@ -172,6 +166,10 @@
     .estimator-container {
         @apply bg-white rounded-lg shadow-lg h-full
     }
+    
+    .flashing-chevron {
+        @apply animate-pulse text-3xl text-gray-500
+    }
 
     .estimator-collapsed {
         @apply hidden
@@ -189,12 +187,12 @@
     }
 
     .drawer-overlay {
-        @apply fixed inset-0 bg-black/50 z-40 transition-opacity
+        @apply fixed inset-0 bg-black/50 z-40 transition-opacity duration-500 ease-in-out
         sm:hidden
     }
 
     .drawer-content {
-        @apply fixed top-0 right-0 h-full w-full max-w-[300px] bg-white shadow-xl z-50 transform transition-transform duration-300
+        @apply fixed top-0 right-0 h-full w-full max-w-[300px] bg-white shadow-xl z-50 transform transition-transform duration-500 ease-in-out
         sm:hidden
     }
 
