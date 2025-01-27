@@ -5,7 +5,7 @@
 
 @layer base {
     body {
-        @apply bg-gray-50 text-gray-900 antialiased;
+        @apply bg-gray-50 text-gray-900 antialiased
     }
 }
 
@@ -25,7 +25,7 @@
     }
 
     .footer-text-small {
-        @apply text-center text-xxs text-gray-500;
+        @apply text-center text-xxs text-gray-500
     }
 
     .section-title {
@@ -51,11 +51,11 @@
         whitespace-normal
         text-center
         transform-gpu
-        sm:hidden;
+        sm:hidden
     }
 
     .stat-tooltip-arrow {
-        @apply absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45;
+        @apply absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45
     }
 
     .card {
@@ -124,32 +124,32 @@
     .filter-select {
         @apply w-full text-xs rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500
         sm:rounded-md sm:text-sm
-        md:text-base;
+        md:text-base
     }
 
     .filter-label {
         @apply text-sm font-medium text-gray-700
         sm:rounded-md sm:text-sm
         md:text-base md:font-semibold
-        lg:text-lg;
+        lg:text-lg
     }
 
     .filter-note {
         @apply text-xs italic text-gray-500
-        md:text-sm md:text-pretty;
+        md:text-sm md:text-pretty
     }
 
     /* Charts */
     .chart-container {
         @apply h-[300px] w-full
-        lg:h-[400px];
+        lg:h-[400px]
     }
 
     .chart-filter-select {
         @apply rounded-lg text-xs border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500
         sm:rounded-md sm:text-sm
         md:text-base md:font-semibold
-        lg:text-xl;
+        lg:text-xl
     }
 
     .chart-collapsed {
@@ -166,7 +166,7 @@
 
     /* Estimation */
     .estimator-container {
-        @apply bg-white rounded-lg shadow-lg h-full;
+        @apply bg-white rounded-lg shadow-lg h-full
     }
 
     .estimator-collapsed {
@@ -186,17 +186,17 @@
 
     .drawer-overlay {
         @apply fixed inset-0 bg-black/50 z-40 transition-opacity
-        sm:hidden;
+        sm:hidden
     }
 
     .drawer-content {
         @apply fixed top-0 right-0 h-full w-full max-w-[300px] bg-white shadow-xl z-50 transform transition-transform duration-300
-        sm:hidden;
+        sm:hidden
     }
 
     .drawer-trigger {
         @apply fixed right-0 top-[25%] z-30 transition-transform duration-300
-        sm:hidden;
+        sm:hidden
     }
 
     .clip-tapered-btn {
@@ -223,11 +223,11 @@
 
     @screen md {
         .drawer-content {
-            @apply max-w-[400px];
+            @apply max-w-[400px]
         }
 
         .drawer-trigger {
-            @apply translate-x-0;
+            @apply translate-x-0
         }
     }
 
@@ -241,22 +241,22 @@
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-    @apply w-2;
+    @apply w-2
 }
 
 ::-webkit-scrollbar-track {
-    @apply bg-gray-100;
+    @apply bg-gray-100
 }
 
 ::-webkit-scrollbar-thumb {
-    @apply bg-gray-400 rounded-full;
+    @apply bg-gray-400 rounded-full
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-500;
+    @apply bg-gray-500
 }
 
 /* Transitions */
 .transition-fade {
-    @apply transition-opacity duration-200;
+    @apply transition-opacity duration-200
 }
