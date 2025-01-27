@@ -219,7 +219,7 @@ if (variant === 'expandable' && !isExpanded) {
         <div className="h-full flex flex-col items-center justify-between p-5 cursor-pointer"
              onClick={onCollapse}>
             <Icon icon="ci:chevron-left-duo" className="text-gray-500 text-3xl animate-pulse" />
-            <div className="whitespace-nowrap text-gray-500 hover:text-gray-700"
+            <div className="section-title whitespace-nowrap text-gray-500 hover:text-gray-700"
                  style={{ writingMode: 'vertical-rl' }}>
                 <h2>Processing Time Estimator</h2>
             </div>
@@ -230,7 +230,7 @@ if (variant === 'expandable' && !isExpanded) {
 return (
     <div className="h-full flex flex-col estimator-container">
         <div className="p-5 flex justify-between items-center border-b">
-            <h2 className="text-lg font-semibold">Processing Time Estimator</h2>
+            <h2 className="section-title">Processing Time Estimator</h2>
             <button
                 onClick={variant === 'drawer' ? onClose : onCollapse}
                 className="text-gray-500 hover:text-gray-700 p-2"
