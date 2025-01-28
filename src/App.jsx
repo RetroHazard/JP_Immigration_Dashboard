@@ -87,7 +87,7 @@ const App = () => {
         </div>
       </nav>
 
-      <main className="marginals py-8">
+      <main className="marginals flex-1 py-8">
         {!loading && (
           <>
             <div className="section-block grid grid-cols-1">
@@ -149,7 +149,7 @@ const App = () => {
         )}
       </main>
 
-      <footer className="footer-block">
+      <footer className="footer-block mt-auto">
         <div className="marginals">
           <div className="footer-text">
             Official Statistics provided by Immigration Services Agency of Japan
