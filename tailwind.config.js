@@ -1,21 +1,23 @@
 // tailwind.config.js
 module.exports = {
-    content: [
-        "./src/**/*.{js,jsx,ts,tsx}",
-    ],
-    theme: {
-        extend: {
-            colors: {
-                'immigration': {
-                    50: '#f8fafc',
-                    100: '#f1f5f9',
-                    500: '#3b82f6',
-                    600: '#2563eb',
-                }
-            }
-        }
+  content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {},
+      fontSize: {
+        xxs: '.625rem',
+        xs: '.75rem',
+        sm: '.875rem',
+        tiny: '.875rem',
+        base: '1rem',
+        lg: '1.125rem',
+        xl: '1.25rem',
+        '2xl': '1.5rem',
+        '3xl': '1.875rem',
+        '4xl': '2.25rem',
+      },
     },
-    plugins: [
-        require('@tailwindcss/forms'),
-    ],
-}
+  },
+  plugins: [require('@tailwindcss/forms')],
+};
