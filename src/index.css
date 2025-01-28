@@ -12,6 +12,13 @@
 @layer components {
     .base-container {
         @apply bg-white rounded-lg shadow-lg p-3 w-full
+        sm:p-4
+        md:p-5
+        lg:p-6
+    }
+
+    .section-block {
+        @apply mb-8 h-full
     }
 
     .build-info {
@@ -20,12 +27,30 @@
         lg:text-sm
     }
 
+    .hyperlink {
+        @apply text-indigo-600 hover:text-indigo-500
+    }
+
+    .header-block {
+        @apply border-b bg-white shadow-md
+    }
+
+    .footer-block {
+        @apply border-t bg-white
+    }
+
+    .marginals {
+        @apply mx-auto max-w-7xl px-3
+        sm:px-6 sm:py-1
+        lg:px-8
+    }
+
     .footer-text {
-        @apply text-center text-xs text-gray-500
+        @apply text-center text-xs text-gray-500 text-pretty
     }
 
     .footer-text-small {
-        @apply text-center text-xxs text-gray-500
+        @apply text-center text-xxs text-gray-500 mt-2 text-pretty
     }
 
     .section-title {
@@ -116,7 +141,7 @@
     .filter-block {
         @apply grid grid-cols-2 gap-4
         sm:grid-cols-3 sm:gap-5
-        md:gap-6 md:p-4
+        md:gap-6
     }
 
     .filter-select {
@@ -168,7 +193,8 @@
     }
     
     .flashing-chevron {
-        @apply animate-pulse text-3xl text-gray-500
+        @apply animate-pulse text-lg text-gray-500
+        sm:text-3xl
     }
 
     .estimator-collapsed {
@@ -186,6 +212,9 @@
         text-orientation: mixed;
     }
 
+    .drawer-label {
+        @apply my-3 rotate-90 whitespace-nowrap text-sm p-2
+    }
     .drawer-overlay {
         @apply fixed inset-0 bg-black/50 z-40 transition-opacity duration-500 ease-in-out
         sm:hidden
@@ -202,6 +231,7 @@
     }
 
     .clip-tapered-btn {
+        @apply relative flex h-[130px] w-[25px] animate-pulse items-center justify-center overflow-visible bg-gray-700 text-white shadow-lg hover:bg-gray-500;
         clip-path: polygon(
                 0 20%,
                 100% 0,
@@ -222,17 +252,6 @@
             padding-bottom: 1.5rem;
         }
     }
-
-    @screen md {
-        .drawer-content {
-            @apply max-w-[400px]
-        }
-
-        .drawer-trigger {
-            @apply translate-x-0
-        }
-    }
-
 }
 
 /* Loading animation */

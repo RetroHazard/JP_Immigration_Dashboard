@@ -25,8 +25,8 @@ const App = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <nav className="header-block">
+        <div className="marginals">
           <div className="flex h-16 justify-between">
             <div className="flex items-center">
               <div className="flex flex-col items-start">
@@ -62,27 +62,24 @@ const App = () => {
       <main className="mx-auto max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8">
         {!loading && (
           <>
-            <div className="mb-8 grid grid-cols-1 gap-8">
+            <div className="section-block grid grid-cols-1">
               <FilterPanel data={data} filters={filters} onChange={setFilters} />
             </div>
 
             {/* Mobile Layout */}
             <div className="relative sm:hidden">
-              <div className="mb-8 h-full">
-                <div className="h-full rounded-lg bg-white p-6 shadow-lg">
+              <div className="section-block">
+                <div className="base-container">
                   <StackedBarChart data={data} filters={filters} />
                 </div>
               </div>
 
               <div className={`drawer-trigger ${isDrawerOpen ? 'translate-x-[300px]' : ''}`}>
-                <button
-                  onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-                  className="clip-tapered-btn relative flex h-[130px] w-[28px] animate-pulse items-center justify-center overflow-visible bg-gray-700 text-white shadow-lg hover:bg-gray-500"
-                >
-                  <div className="flex origin-center flex-col items-center gap-2">
-                    <Icon icon="ci:chevron-left-duo" className="animate-pulse text-lg" />
-                    <span className="my-2.5 rotate-90 whitespace-nowrap text-sm">Estimator</span>
-                    <Icon icon="ci:chevron-left-duo" className="animate-pulse text-lg" />
+                <button onClick={() => setIsDrawerOpen(!isDrawerOpen)} className="clip-tapered-btn">
+                  <div className="flex origin-center flex-col items-center">
+                    <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300" />
+                    <span className="drawer-label">estimator</span>
+                    <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300" />
                   </div>
                 </button>
               </div>
@@ -98,13 +95,13 @@ const App = () => {
             </div>
 
             {/* Desktop Layout */}
-            <div className="mb-8 hidden h-full grid-cols-12 gap-6 sm:grid sm:gap-2 md:gap-3 lg:gap-4">
+            <div className="section-block hidden grid-cols-12 gap-6 sm:grid sm:gap-2 md:gap-3 lg:gap-4">
               <div
                 className={`transition-all duration-300 ease-in-out ${
                   isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'
                 }`}
               >
-                <div className="h-full rounded-lg bg-white p-6 shadow-lg">
+                <div className="base-container">
                   <StackedBarChart data={data} filters={filters} />
                 </div>
               </div>
@@ -132,30 +129,30 @@ const App = () => {
         )}
       </main>
 
-      <footer className="border-t bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="footer-text text-pretty">
+      <footer className="footer-block">
+        <div className="marginals">
+          <div className="footer-text">
             Official Statistics provided by Immigration Services Agency of Japan<br></br>
             Data acquisition provided by e-Stat
             <a href="https://www.e-stat.go.jp/dbview?sid=0003449073">
               <Icon
                 icon="ri:link"
-                className="inline-block align-middle text-indigo-600 hover:text-indigo-500"
+                className="hyperlink inline-block align-middle"
                 style={{ verticalAlign: '-0.125em' }}
               />
             </a>
           </div>
-          <div className="footer-text-small mt-1">
+          <div className="footer-text-small">
             Built using{' '}
-            <a href="https://react.dev" className="text-indigo-600 hover:text-indigo-500">
+            <a href="https://react.dev" className="hyperlink">
               React
             </a>{' '}
             in 2025 by{' '}
-            <a href="https://github.com/RetroHazard" className="text-indigo-600 hover:text-indigo-500">
+            <a href="https://github.com/RetroHazard" className="hyperlink">
               <Icon
                 icon="openmoji:github"
-                className="inline-block align-middle"
-                style={{ verticalAlign: '-0.125em' }}
+                className="inline-block align-middle text-sm"
+                style={{ verticalAlign: '-0.225em' }}
               />
               RetroHazard
             </a>
