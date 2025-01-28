@@ -1,5 +1,5 @@
 // App.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FilterPanel } from './components/FilterPanel';
 import { StackedBarChart } from './components/StackedBarChart';
 import { EstimationCard } from './components/EstimationCard';
@@ -19,31 +19,49 @@ const App = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEstimationExpanded, setIsEstimationExpanded] = useState(false);
 
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const systemIsDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme) {
+      setIsDarkMode(savedTheme === 'dark');
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    } else {
+      setIsDarkMode(systemIsDark);
+      document.documentElement.classList.toggle('dark', systemIsDark);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode ? 'dark' : 'light';
+    setIsDarkMode(!isDarkMode);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark');
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
+      <nav className="header-block">
+        <div className="marginals">
           <div className="flex h-16 justify-between">
             <div className="flex items-center">
               <div className="flex flex-col items-start">
                 <h1 className="section-title">
                   Japan
-                  <Icon
-                    icon="ph:line-vertical-light"
-                    className="inline-block align-middle"
-                    style={{ verticalAlign: '-0.125em' }}
-                  />
+                  <Icon icon="ph:line-vertical-light" className="vertical-align-sub inline-block align-middle" />
                   Immigration Applications
                 </h1>
                 <h1 className="section-title">Statistics Dashboard</h1>
               </div>
             </div>
-            <div className="flex items-center">
-              <div className="flex flex-col items-end">
+            <div className="flex items-center gap-1 lg:gap-5">
+              <div className="flex-col-end">
                 <span className="build-info">Version: {buildInfo.buildVersion}</span>
                 <span className="build-info">Last Updated:</span>
                 <span className="build-info">
@@ -54,43 +72,50 @@ const App = () => {
                   })}
                 </span>
               </div>
+              <button onClick={toggleTheme} className="theme-toggle">
+                <Icon
+                  icon={
+                    isDarkMode
+                      ? 'line-md:sunny-filled-loop-to-moon-filled-alt-loop-transition'
+                      : 'line-md:sunny-outline-loop'
+                  }
+                  className="theme-toggle-icon"
+                />
+              </button>
             </div>
           </div>
         </div>
       </nav>
 
-      <main className="mx-auto max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8">
+      <main className="marginals flex-1 py-8">
         {!loading && (
           <>
-            <div className="mb-8 grid grid-cols-1 gap-8">
+            <div className="section-block grid grid-cols-1">
               <FilterPanel data={data} filters={filters} onChange={setFilters} />
             </div>
 
             {/* Mobile Layout */}
             <div className="relative sm:hidden">
-              <div className="mb-8 h-full">
-                <div className="h-full rounded-lg bg-white p-6 shadow-lg">
-                  <StackedBarChart data={data} filters={filters} />
+              <div className="section-block">
+                <div className="base-container">
+                  <StackedBarChart data={data} filters={filters} isDarkMode={isDarkMode} />
                 </div>
               </div>
 
-              <div className={`drawer-trigger ${isDrawerOpen ? 'translate-x-[300px]' : ''}`}>
-                <button
-                  onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-                  className="clip-tapered-btn relative flex h-[130px] w-[28px] animate-pulse items-center justify-center overflow-visible bg-gray-700 text-white shadow-lg hover:bg-gray-500"
-                >
-                  <div className="flex origin-center flex-col items-center gap-2">
-                    <Icon icon="ci:chevron-left-duo" className="animate-pulse text-lg" />
-                    <span className="my-2.5 rotate-90 whitespace-nowrap text-sm">Estimator</span>
-                    <Icon icon="ci:chevron-left-duo" className="animate-pulse text-lg" />
+              <div className={`mobile-drawer-trigger ${isDrawerOpen ? 'translate-x-[300px]' : ''}`}>
+                <button onClick={() => setIsDrawerOpen(!isDrawerOpen)} className="clip-tapered-btn">
+                  <div className="flex origin-center flex-col items-center">
+                    <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300 dark:text-gray-700" />
+                    <span className="mobile-drawer-label">estimator</span>
+                    <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300 dark:text-gray-700" />
                   </div>
                 </button>
               </div>
 
               {isDrawerOpen && (
                 <>
-                  <div className="drawer-overlay" onClick={() => setIsDrawerOpen(false)} />
-                  <div className="drawer-content">
+                  <div className="mobile-drawer-overlay transition-slow" onClick={() => setIsDrawerOpen(false)} />
+                  <div className="mobile-drawer-content transition-slow">
                     <EstimationCard variant="drawer" data={data} onClose={() => setIsDrawerOpen(false)} />
                   </div>
                 </>
@@ -98,23 +123,15 @@ const App = () => {
             </div>
 
             {/* Desktop Layout */}
-            <div className="mb-8 hidden h-full grid-cols-12 gap-6 sm:grid sm:gap-2 md:gap-3 lg:gap-4">
-              <div
-                className={`transition-all duration-300 ease-in-out ${
-                  isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'
-                }`}
-              >
-                <div className="h-full rounded-lg bg-white p-6 shadow-lg">
-                  <StackedBarChart data={data} filters={filters} />
+            <div className="section-block hidden grid-cols-12 gap-6 sm:grid sm:gap-2 md:gap-3 lg:gap-4">
+              <div className={`transition-slow ${isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'}`}>
+                <div className="base-container">
+                  <StackedBarChart data={data} filters={filters} isDarkMode={isDarkMode} />
                 </div>
               </div>
-              <div
-                className={`transition-all duration-300 ease-in-out ${
-                  isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'
-                }`}
-              >
+              <div className={`transition-slow ${isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'}`}>
                 <div
-                  className="h-full cursor-pointer rounded-lg bg-white shadow-lg"
+                  className="h-full cursor-pointer rounded-lg bg-white shadow-lg dark:bg-gray-700"
                   onClick={() => !isEstimationExpanded && setIsEstimationExpanded(true)}
                 >
                   <EstimationCard
@@ -132,31 +149,24 @@ const App = () => {
         )}
       </main>
 
-      <footer className="border-t bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="footer-text text-pretty">
-            Official Statistics provided by Immigration Services Agency of Japan<br></br>
+      <footer className="footer-block mt-auto">
+        <div className="marginals">
+          <div className="footer-text">
+            Official Statistics provided by Immigration Services Agency of Japan
+            <br />
             Data acquisition provided by e-Stat
             <a href="https://www.e-stat.go.jp/dbview?sid=0003449073">
-              <Icon
-                icon="ri:link"
-                className="inline-block align-middle text-indigo-600 hover:text-indigo-500"
-                style={{ verticalAlign: '-0.125em' }}
-              />
+              <Icon icon="ri:link" className="hyperlink vertical-align-sub inline-block align-middle" />
             </a>
           </div>
-          <div className="footer-text-small mt-1">
+          <div className="footer-text-small">
             Built using{' '}
-            <a href="https://react.dev" className="text-indigo-600 hover:text-indigo-500">
+            <a href="https://react.dev" className="hyperlink">
               React
             </a>{' '}
             in 2025 by{' '}
-            <a href="https://github.com/RetroHazard" className="text-indigo-600 hover:text-indigo-500">
-              <Icon
-                icon="openmoji:github"
-                className="inline-block align-middle"
-                style={{ verticalAlign: '-0.125em' }}
-              />
+            <a href="https://github.com/RetroHazard" className="hyperlink">
+              <Icon icon="openmoji:github" className="vertical-align-sub-more inline-block align-middle text-sm" />
               RetroHazard
             </a>
           </div>

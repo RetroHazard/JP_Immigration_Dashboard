@@ -5,7 +5,7 @@ import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export const StackedBarChart = ({ data, filters }) => {
+export const StackedBarChart = ({ data, filters, isDarkMode }) => {
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
 
@@ -74,7 +74,7 @@ export const StackedBarChart = ({ data, filters }) => {
         {
           label: 'Old Applications',
           data: monthlyStats.map((stat) => stat.totalApplications),
-          backgroundColor: 'rgba(54, 162, 235, 0.6)',
+          backgroundColor: 'rgba(54, 162, 245, 0.7)',
           borderColor: 'rgb(54, 162, 235)',
           borderWidth: 1,
           yAxisID: 'y',
@@ -83,7 +83,7 @@ export const StackedBarChart = ({ data, filters }) => {
         {
           label: 'New Applications',
           data: monthlyStats.map((stat) => stat.newApplications),
-          backgroundColor: 'rgba(234, 179, 8, 0.6)',
+          backgroundColor: 'rgba(245, 179, 8, 0.7)',
           borderColor: 'rgb(234, 179, 8)',
           borderWidth: 1,
           yAxisID: 'y',
@@ -92,8 +92,8 @@ export const StackedBarChart = ({ data, filters }) => {
         {
           label: 'Processed Applications',
           data: monthlyStats.map((stat) => stat.processed),
-          backgroundColor: 'rgba(34, 197, 94, 0.8)',
-          borderColor: 'rgb(34, 197, 94)',
+          backgroundColor: 'rgba(34, 197, 94, 0.9)',
+          borderColor: 'rgb(34, 220, 94)',
           borderWidth: 1,
           yAxisID: 'y2',
           barPercentage: 0.6,
@@ -114,10 +114,12 @@ export const StackedBarChart = ({ data, filters }) => {
         title: {
           display: true,
           text: 'Month',
+          color: isDarkMode ? '#fff' : '#000',
         },
         ticks: {
           minRotation: 45,
           maxRotation: 45,
+          color: isDarkMode ? '#fff' : '#000',
         },
       },
       y: {
@@ -125,21 +127,19 @@ export const StackedBarChart = ({ data, filters }) => {
         title: {
           display: true,
           text: 'Application Count',
+          color: isDarkMode ? '#fff' : '#000',
         },
         ticks: {
           suggestedMin: Math.min(...chartData.datasets.map((dataset) => Math.min(...dataset.data))),
           suggestedMax: Math.max(...chartData.datasets.map((dataset) => Math.max(...dataset.data))),
+          color: isDarkMode ? '#fff' : '#000',
         },
         afterBuildTicks: (axis) => {
           axis.chart.scales.y2.options.min = axis.min;
           axis.chart.scales.y2.options.max = axis.max;
         },
         grid: {
-          drawOnChartArea: true,
-          drawTicks: true,
-          color: (context) => {
-            return Math.abs(context.tick.value) % 10000 === 0 ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.05)';
-          },
+          color: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
         },
       },
       y2: {
@@ -150,12 +150,13 @@ export const StackedBarChart = ({ data, filters }) => {
       legend: {
         position: 'top',
         labels: {
-          usePointStyle: true,
-          padding: 20,
+          usePointStyle: false,
+          padding: 10,
+          color: isDarkMode ? '#fff' : '#000',
         },
       },
       title: {
-        display: true,
+        display: false,
         text: 'Immigration Applications by Period',
         padding: {
           top: 10,
@@ -173,7 +174,7 @@ export const StackedBarChart = ({ data, filters }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="card-content">
       <div className="mb-4 flex h-full items-center justify-between">
         <h2 className="section-title">Processing and Reception by Month</h2>
         <select
