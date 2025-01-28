@@ -11,7 +11,7 @@
 
 @layer components {
     .base-container {
-        @apply bg-white rounded-lg shadow-lg p-3 w-full h-full
+        @apply bg-white dark:bg-gray-700 rounded-lg shadow-lg p-3 w-full h-full
         sm:p-4
         md:p-5
         lg:p-6
@@ -22,50 +22,58 @@
     }
 
     .build-info {
-        @apply text-xxs text-gray-500 text-nowrap
+        @apply text-xxs text-gray-500 dark:text-gray-300 text-nowrap
         sm:text-xs
         lg:text-sm
     }
 
     .hyperlink {
-        @apply text-indigo-600 hover:text-indigo-500
+        @apply text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200
     }
 
     .form-label {
-        @apply block text-sm font-medium text-gray-700
+        @apply block text-sm font-medium text-gray-700 dark:text-gray-300
+    }
+
+    .theme-toggle {
+        @apply w-6 h-12 rounded-full transition-colors flex items-center justify-center bg-gray-300 dark:bg-gray-600 border border-gray-800 dark:border-gray-200
+    }
+
+    .theme-toggle-icon {
+        @apply h-4 w-4 text-gray-600 dark:text-gray-300
     }
 
     .header-block {
-        @apply border-b bg-white shadow-md
+        @apply border-b bg-white shadow-md dark:bg-gray-700 dark:border-gray-600
     }
 
     .footer-block {
-        @apply border-t bg-white
+        @apply border-t bg-white dark:bg-gray-700 dark:border-gray-600
     }
 
     .marginals {
         @apply mx-auto max-w-7xl px-3
-        sm:px-6 sm:py-1
+        sm:px-4 sm:py-1
         lg:px-8
     }
 
     .footer-text {
-        @apply text-center text-xs text-gray-500 text-pretty
+        @apply text-center text-xs text-gray-500 dark:text-gray-300 mt-1 text-pretty
     }
 
     .footer-text-small {
-        @apply text-center text-xxs text-gray-500 mt-2 text-pretty
+        @apply text-center text-xxs text-gray-500 dark:text-gray-300 mt-1 mb-2 text-pretty
     }
 
     .section-title {
-        @apply text-sm font-semibold
+        @apply text-sm font-semibold dark:text-gray-100
         sm:text-base
         md:text-lg
         lg:text-xl
     }
 
     .flex-col-end {
-        @apply flex flex-col items-end
+        @apply flex flex-col items-end p-2
     }
 
     .flex-between {
@@ -80,7 +88,7 @@
     .stat-tooltip {
         @apply absolute bottom-full left-1/2 -translate-x-1/2
         mb-2 p-2 z-50
-        text-xs font-medium text-white bg-gray-900 rounded-lg
+        text-xs font-medium text-white dark:text-gray-800 bg-gray-900 dark:bg-gray-300 rounded-lg
         opacity-0 invisible
         group-hover:opacity-100 group-hover:visible
         transition-opacity duration-300
@@ -92,7 +100,7 @@
     }
 
     .stat-tooltip-arrow {
-        @apply absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45
+        @apply absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 dark:bg-gray-300 rotate-45
     }
 
     .card-base {
@@ -100,7 +108,7 @@
     }
 
     .card-base-gray {
-        @apply bg-gray-50 rounded-lg shadow-lg p-4 drop-shadow-xl
+        @apply bg-gray-50 dark:bg-gray-700 rounded-lg shadow-lg p-4 drop-shadow-xl
     }
 
     .card-content {
@@ -112,9 +120,10 @@
     }
 
     .stat-card {
-        @apply items-center justify-center bg-white rounded-lg shadow-lg p-2 w-fit mx-auto
+        @apply items-center justify-center bg-white dark:bg-gray-700 rounded-lg shadow-lg p-2 w-fit mx-auto
         sm:flex sm:items-start sm:justify-start sm:p-3 sm:w-full sm:h-full sm:scale-95
         md:items-center md:p-4 md:text-nowrap
+        lg:rounded-2xl
     }
 
     .stat-badge {
@@ -137,32 +146,32 @@
 
     .stat-value {
         @apply hidden
-        sm:block sm:text-xs sm:font-semibold sm:text-gray-900
+        sm:block sm:text-xs sm:font-semibold sm:text-gray-900 sm:dark:text-gray-100
         md:text-base md:mt-1
         lg:text-2xl
     }
 
     .stat-title {
         @apply hidden
-        lg:block lg:text-sm lg:font-semibold lg:text-gray-500
+        lg:block lg:text-sm lg:font-semibold lg:text-gray-500 lg:dark:text-gray-300
     }
 
     .stat-short-title {
         @apply hidden
-        sm:block sm:text-xs sm:text-nowrap sm:font-semibold sm:text-gray-500
+        sm:block sm:text-xs sm:text-nowrap sm:font-semibold sm:text-gray-500 sm:dark:text-gray-300
         md:text-sm
         lg:hidden
     }
 
     .stat-subtitle {
         @apply hidden
-        md:block md:text-xs md:text-gray-400
+        md:block md:text-xs md:text-gray-400 md:dark:text-gray-300
         lg:text-sm
     }
 
     .stat-date {
         @apply hidden
-        md:block md:text-xs md:text-gray-400 md:italic
+        md:block md:text-xs md:text-gray-400 md:dark:text-gray-300 md:italic
     }
 
     /* Filters */
@@ -173,21 +182,25 @@
     }
 
     .filter-select {
-        @apply w-full text-xs rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500
+        @apply w-full text-xs font-semibold rounded-md input-box-colors
         sm:rounded-md sm:text-sm
         md:text-base
     }
 
     .filter-label {
-        @apply text-sm font-medium text-gray-700
+        @apply text-sm font-medium text-gray-700 dark:text-gray-300
         sm:rounded-md sm:text-sm
         md:text-base md:font-semibold
         lg:text-lg
     }
 
     .filter-note {
-        @apply text-xs italic text-gray-500
+        @apply text-xs italic text-gray-500 dark:text-gray-300
         md:text-sm md:text-pretty
+    }
+
+    .input-box-colors {
+        @apply text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 border-gray-800 dark:border-gray-500 focus:border-indigo-500 dark:focus:border-gray-300 focus:ring-indigo-700 dark:focus:ring-gray-500
     }
 
     /* Charts */
@@ -197,10 +210,10 @@
     }
 
     .chart-filter-select {
-        @apply rounded-lg text-xs border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500
+        @apply rounded-lg text-xs shadow-sm input-box-colors
         sm:rounded-md sm:text-sm
         md:text-base md:font-semibold
-        lg:text-xl
+        lg:text-lg
     }
 
     .chart-collapsed {
@@ -217,11 +230,12 @@
 
     /* Estimation */
     .estimator-container {
-        @apply bg-white rounded-lg shadow-lg h-full
+        @apply bg-white shadow-lg h-full
+        sm:rounded-lg
     }
     
     .flashing-chevron {
-        @apply animate-pulse text-lg text-gray-500
+        @apply animate-pulse text-lg text-gray-500 dark:text-gray-300
         sm:text-3xl
     }
 
@@ -260,7 +274,7 @@
     }
 
     .clip-tapered-btn {
-        @apply relative flex h-[130px] w-[25px] animate-pulse items-center justify-center overflow-visible bg-gray-700 text-white shadow-lg hover:bg-gray-500 clip-path-tapered-btn;
+        @apply relative flex h-[130px] w-[25px] animate-pulse items-center justify-center overflow-visible bg-gray-700 dark:bg-gray-300 text-white dark:text-gray-700 shadow-lg hover:bg-gray-500 clip-path-tapered-btn;
     }
 
     @screen sm {
@@ -301,8 +315,16 @@
     @apply bg-gray-100
 }
 
+.dark ::-webkit-scrollbar-track {
+    @apply bg-gray-800
+}
+
 ::-webkit-scrollbar-thumb {
     @apply bg-gray-400 rounded-full
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    @apply bg-gray-600
 }
 
 ::-webkit-scrollbar-thumb:hover {

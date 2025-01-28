@@ -1,5 +1,5 @@
 // App.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FilterPanel } from './components/FilterPanel';
 import { StackedBarChart } from './components/StackedBarChart';
 import { EstimationCard } from './components/EstimationCard';
@@ -19,12 +19,34 @@ const App = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEstimationExpanded, setIsEstimationExpanded] = useState(false);
 
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const systemIsDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme) {
+      setIsDarkMode(savedTheme === 'dark');
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    } else {
+      setIsDarkMode(systemIsDark);
+      document.documentElement.classList.toggle('dark', systemIsDark);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode ? 'dark' : 'light';
+    setIsDarkMode(!isDarkMode);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark');
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
       <nav className="header-block">
         <div className="marginals">
           <div className="flex h-16 justify-between">
@@ -38,7 +60,7 @@ const App = () => {
                 <h1 className="section-title">Statistics Dashboard</h1>
               </div>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center gap-1 lg:gap-5">
               <div className="flex-col-end">
                 <span className="build-info">Version: {buildInfo.buildVersion}</span>
                 <span className="build-info">Last Updated:</span>
@@ -50,6 +72,16 @@ const App = () => {
                   })}
                 </span>
               </div>
+              <button onClick={toggleTheme} className="theme-toggle">
+                <Icon
+                  icon={
+                    isDarkMode
+                      ? 'line-md:sunny-filled-loop-to-moon-filled-alt-loop-transition'
+                      : 'line-md:sunny-outline-loop'
+                  }
+                  className="theme-toggle-icon"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -66,16 +98,16 @@ const App = () => {
             <div className="relative sm:hidden">
               <div className="section-block">
                 <div className="base-container">
-                  <StackedBarChart data={data} filters={filters} />
+                  <StackedBarChart data={data} filters={filters} isDarkMode={isDarkMode} />
                 </div>
               </div>
 
               <div className={`mobile-drawer-trigger ${isDrawerOpen ? 'translate-x-[300px]' : ''}`}>
                 <button onClick={() => setIsDrawerOpen(!isDrawerOpen)} className="clip-tapered-btn">
                   <div className="flex origin-center flex-col items-center">
-                    <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300" />
+                    <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300 dark:text-gray-700" />
                     <span className="mobile-drawer-label">estimator</span>
-                    <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300" />
+                    <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300 dark:text-gray-700" />
                   </div>
                 </button>
               </div>
@@ -94,12 +126,12 @@ const App = () => {
             <div className="section-block hidden grid-cols-12 gap-6 sm:grid sm:gap-2 md:gap-3 lg:gap-4">
               <div className={`transition-slow ${isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'}`}>
                 <div className="base-container">
-                  <StackedBarChart data={data} filters={filters} />
+                  <StackedBarChart data={data} filters={filters} isDarkMode={isDarkMode} />
                 </div>
               </div>
               <div className={`transition-slow ${isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'}`}>
                 <div
-                  className="h-full cursor-pointer rounded-lg bg-white shadow-lg"
+                  className="h-full cursor-pointer rounded-lg bg-white shadow-lg dark:bg-gray-700"
                   onClick={() => !isEstimationExpanded && setIsEstimationExpanded(true)}
                 >
                   <EstimationCard

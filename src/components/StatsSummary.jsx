@@ -55,7 +55,7 @@ export const StatsSummary = ({ data, filters }) => {
     return (
       <div className="stat-card">
         <div className="group relative">
-          <div className={`${color} stat-badge`}>
+          <div className={`${color} dark:${color.replace('500', '600')} stat-badge`}>
             <span className="stat-icon-text">
               <Icon icon={icon} />
             </span>

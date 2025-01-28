@@ -37,7 +37,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
       <div className="flex h-full cursor-pointer flex-col items-center justify-between p-5" onClick={onCollapse}>
         <Icon icon="ci:chevron-left-duo" className="flashing-chevron" />
         <div
-          className="section-title whitespace-nowrap text-gray-500 hover:text-gray-700"
+          className="section-title whitespace-nowrap text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-600"
           style={{ writingMode: 'vertical-rl' }}
         >
           <h2>Processing Time Estimator</h2>
@@ -47,8 +47,8 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
     );
   }
   return (
-    <div className="estimator-container flex flex-col">
-      <div className="flex-between border-b p-2">
+    <div className="estimator-container flex flex-col sm:p-3 md:p-4 lg:p-5 dark:bg-gray-700">
+      <div className="flex-between border-b p-2 dark:border-gray-500">
         <h2 className="section-title">Processing Time Estimator</h2>
         <button onClick={variant === 'drawer' ? onClose : onCollapse} className="p-2 text-gray-500 hover:text-gray-700">
           <Icon icon={variant === 'drawer' ? 'ci:close-md' : 'ci:chevron-right-duo'} className="flashing-chevron" />
@@ -123,10 +123,12 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
 
         {estimatedDate && (
           <div className="card-base-gray">
-            <h3 className="text-lg font-medium text-gray-900">Estimated Completion Date</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-200">Estimated Completion Date</h3>
             <p
               className={`mt-2 text-2xl font-bold ${
-                estimatedDate.details.isPastDue ? 'text-amber-600' : 'text-indigo-600'
+                estimatedDate.details.isPastDue
+                  ? 'text-amber-600 dark:text-amber-500'
+                  : 'text-indigo-600 dark:text-indigo-500'
               }`}
             >
               {estimatedDate.estimatedDate.toLocaleDateString('en-US', {
@@ -137,7 +139,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
 
             <button
               onClick={() => setShowDetails(!showDetails)}
-              className="mt-3 flex items-center text-sm text-indigo-600 hover:text-indigo-800"
+              className="mt-3 flex items-center text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-500"
             >
               <Icon
                 icon={showDetails ? 'material-symbols:settings' : 'material-symbols:info-outline'}
@@ -147,18 +149,18 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
             </button>
 
             {showDetails && (
-              <div className="mt-2.5 space-y-2 border-t pt-3 text-xs text-gray-600">
+              <div className="mt-2.5 space-y-2 border-t pt-3 text-xs text-gray-600 dark:text-gray-200">
                 {estimatedDate.details.isPastDue ? (
                   <>
-                    <p className="text-amber-600">
+                    <p className="text-amber-600 dark:text-amber-500">
                       <strong>Applications at Submission:</strong>
                       {estimatedDate.details.adjustedQueueTotal.toLocaleString()}
                     </p>
-                    <p className="text-amber-600">
+                    <p className="text-amber-600 dark:text-amber-500">
                       <strong>Processed Since Submission:</strong>
                       {estimatedDate.details.processedSince.toLocaleString()}
                     </p>
-                    <p className="mt-2 text-xs italic text-amber-600">
+                    <p className="mt-2 text-xs italic text-amber-600 dark:text-amber-500">
                       Based on our expected processing rates, it appears that completion of this application is past
                       due. If you have not yet received a decision on this application, please contact the bureau for
                       more information.
@@ -186,7 +188,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                       </strong>
                       {estimatedDate.details.monthlyRate.toLocaleString()} /month
                     </p>
-                    <div className="rounded bg-gray-100 p-5 text-xs">
+                    <div className="rounded bg-gray-100 p-5 text-xs dark:bg-gray-600">
                       <p className="font-medium">Calculation Formula:</p>
                       <p>Estimated Months = QP ÷ APR</p>
                       <p>
@@ -200,7 +202,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
               </div>
             )}
 
-            <p className="mt-4 text-xs italic text-gray-500">
+            <p className="mt-4 text-xs italic text-gray-500 dark:text-gray-200">
               *This is an estimate based on current processing rates and pending applications. The actual completion
               date may vary.
             </p>
