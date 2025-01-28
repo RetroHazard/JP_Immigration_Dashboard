@@ -55,7 +55,7 @@ export const StatsSummary = ({ data, filters }) => {
     return (
       <div className="stat-card">
         <div className="group relative">
-          <div className={`${color} stat-icon`}>
+          <div className={`${color} stat-badge`}>
             <span className="stat-icon-text">
               <Icon icon={icon} />
             </span>

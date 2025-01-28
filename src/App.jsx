@@ -32,18 +32,14 @@ const App = () => {
               <div className="flex flex-col items-start">
                 <h1 className="section-title">
                   Japan
-                  <Icon
-                    icon="ph:line-vertical-light"
-                    className="inline-block align-middle"
-                    style={{ verticalAlign: '-0.125em' }}
-                  />
+                  <Icon icon="ph:line-vertical-light" className="vertical-align-sub inline-block align-middle" />
                   Immigration Applications
                 </h1>
                 <h1 className="section-title">Statistics Dashboard</h1>
               </div>
             </div>
             <div className="flex items-center">
-              <div className="flex flex-col items-end">
+              <div className="flex-col-end">
                 <span className="build-info">Version: {buildInfo.buildVersion}</span>
                 <span className="build-info">Last Updated:</span>
                 <span className="build-info">
@@ -59,7 +55,7 @@ const App = () => {
         </div>
       </nav>
 
-      <main className="mx-auto max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8">
+      <main className="marginals py-8">
         {!loading && (
           <>
             <div className="section-block grid grid-cols-1">
@@ -74,11 +70,11 @@ const App = () => {
                 </div>
               </div>
 
-              <div className={`drawer-trigger ${isDrawerOpen ? 'translate-x-[300px]' : ''}`}>
+              <div className={`mobile-drawer-trigger ${isDrawerOpen ? 'translate-x-[300px]' : ''}`}>
                 <button onClick={() => setIsDrawerOpen(!isDrawerOpen)} className="clip-tapered-btn">
                   <div className="flex origin-center flex-col items-center">
                     <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300" />
-                    <span className="drawer-label">estimator</span>
+                    <span className="mobile-drawer-label">estimator</span>
                     <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300" />
                   </div>
                 </button>
@@ -86,8 +82,8 @@ const App = () => {
 
               {isDrawerOpen && (
                 <>
-                  <div className="drawer-overlay" onClick={() => setIsDrawerOpen(false)} />
-                  <div className="drawer-content">
+                  <div className="mobile-drawer-overlay transition-slow" onClick={() => setIsDrawerOpen(false)} />
+                  <div className="mobile-drawer-content transition-slow">
                     <EstimationCard variant="drawer" data={data} onClose={() => setIsDrawerOpen(false)} />
                   </div>
                 </>
@@ -96,20 +92,12 @@ const App = () => {
 
             {/* Desktop Layout */}
             <div className="section-block hidden grid-cols-12 gap-6 sm:grid sm:gap-2 md:gap-3 lg:gap-4">
-              <div
-                className={`transition-all duration-300 ease-in-out ${
-                  isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'
-                }`}
-              >
+              <div className={`transition-slow ${isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'}`}>
                 <div className="base-container">
                   <StackedBarChart data={data} filters={filters} />
                 </div>
               </div>
-              <div
-                className={`transition-all duration-300 ease-in-out ${
-                  isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'
-                }`}
-              >
+              <div className={`transition-slow ${isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'}`}>
                 <div
                   className="h-full cursor-pointer rounded-lg bg-white shadow-lg"
                   onClick={() => !isEstimationExpanded && setIsEstimationExpanded(true)}
@@ -132,14 +120,11 @@ const App = () => {
       <footer className="footer-block">
         <div className="marginals">
           <div className="footer-text">
-            Official Statistics provided by Immigration Services Agency of Japan<br></br>
+            Official Statistics provided by Immigration Services Agency of Japan
+            <br />
             Data acquisition provided by e-Stat
             <a href="https://www.e-stat.go.jp/dbview?sid=0003449073">
-              <Icon
-                icon="ri:link"
-                className="hyperlink inline-block align-middle"
-                style={{ verticalAlign: '-0.125em' }}
-              />
+              <Icon icon="ri:link" className="hyperlink vertical-align-sub inline-block align-middle" />
             </a>
           </div>
           <div className="footer-text-small">
@@ -149,11 +134,7 @@ const App = () => {
             </a>{' '}
             in 2025 by{' '}
             <a href="https://github.com/RetroHazard" className="hyperlink">
-              <Icon
-                icon="openmoji:github"
-                className="inline-block align-middle text-sm"
-                style={{ verticalAlign: '-0.225em' }}
-              />
+              <Icon icon="openmoji:github" className="vertical-align-sub-more inline-block align-middle text-sm" />
               RetroHazard
             </a>
           </div>

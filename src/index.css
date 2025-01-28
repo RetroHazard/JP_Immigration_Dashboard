@@ -11,7 +11,7 @@
 
 @layer components {
     .base-container {
-        @apply bg-white rounded-lg shadow-lg p-3 w-full
+        @apply bg-white rounded-lg shadow-lg p-3 w-full h-full
         sm:p-4
         md:p-5
         lg:p-6
@@ -29,6 +29,10 @@
 
     .hyperlink {
         @apply text-indigo-600 hover:text-indigo-500
+    }
+
+    .form-label {
+        @apply block text-sm font-medium text-gray-700
     }
 
     .header-block {
@@ -60,6 +64,14 @@
         lg:text-xl
     }
 
+    .flex-col-end {
+        @apply flex flex-col items-end
+    }
+
+    .flex-between {
+        @apply flex items-center justify-between
+    }
+
     /* Stats Summary */
     .stat-container {
         @apply grid grid-cols-5 gap-1 mt-4
@@ -83,15 +95,31 @@
         @apply absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45
     }
 
+    .card-base {
+        @apply bg-white rounded-lg shadow-lg p-4
+    }
+
+    .card-base-gray {
+        @apply bg-gray-50 rounded-lg shadow-lg p-4 drop-shadow-xl
+    }
+
+    .card-content {
+        @apply space-y-4 overflow-y-auto
+    }
+
+    .card-content-padded {
+        @apply card-content p-5
+    }
+
     .stat-card {
         @apply items-center justify-center bg-white rounded-lg shadow-lg p-2 w-fit mx-auto
         sm:flex sm:items-start sm:justify-start sm:p-3 sm:w-full sm:h-full sm:scale-95
         md:items-center md:p-4 md:text-nowrap
     }
 
-    .stat-icon {
+    .stat-badge {
         @apply w-10 h-10 rounded-lg flex items-center justify-center
-        md:min-w-10 md:h-28 md:min-h-12 md:rounded-2xl
+        md:h-28 md:min-h-12 md:rounded-2xl
         xl:min-w-16 xl:rounded-3xl
     }
 
@@ -212,52 +240,56 @@
         text-orientation: mixed;
     }
 
-    .drawer-label {
+    .mobile-drawer-label {
         @apply my-3 rotate-90 whitespace-nowrap text-sm p-2
     }
-    .drawer-overlay {
-        @apply fixed inset-0 bg-black/50 z-40 transition-opacity duration-500 ease-in-out
+
+    .mobile-drawer-overlay {
+        @apply fixed inset-0 bg-black/50 z-40 transition-slow
         sm:hidden
     }
 
-    .drawer-content {
-        @apply fixed top-0 right-0 h-full w-full max-w-[300px] bg-white shadow-xl z-50 transform transition-transform duration-500 ease-in-out
+    .mobile-drawer-content {
+        @apply fixed top-0 right-0 h-full w-full max-w-[300px] bg-white shadow-xl z-50 transform transition-slow
         sm:hidden
     }
 
-    .drawer-trigger {
-        @apply fixed right-0 top-[25%] z-30 transition-transform duration-300
+    .mobile-drawer-trigger {
+        @apply fixed right-0 top-[25%] z-30 transition-slow
         sm:hidden
     }
 
     .clip-tapered-btn {
-        @apply relative flex h-[130px] w-[25px] animate-pulse items-center justify-center overflow-visible bg-gray-700 text-white shadow-lg hover:bg-gray-500;
-        clip-path: polygon(
-                0 20%,
-                100% 0,
-                100% 100%,
-                0 80%
-        );
+        @apply relative flex h-[130px] w-[25px] animate-pulse items-center justify-center overflow-visible bg-gray-700 text-white shadow-lg hover:bg-gray-500 clip-path-tapered-btn;
     }
 
     @screen sm {
         .clip-tapered-btn {
-            clip-path: polygon(
-                    0 15%,
-                    100% 0,
-                    100% 100%,
-                    0 85%
-            );
-            padding-top: 1.5rem;
-            padding-bottom: 1.5rem;
+            @apply clip-path-tapered-btn-sm;
         }
     }
-}
 
-/* Loading animation */
-.loading-spinner {
-    @apply animate-spin rounded-full h-12 w-12 border-4 border-gray-200;
-    border-top-color: theme('colors.indigo.500');
+    @layer utilities {
+        .vertical-align-sub {
+            vertical-align: -0.125em;
+        }
+
+        .vertical-align-sub-more {
+            vertical-align: -0.225em;
+        }
+
+        .clip-path-tapered-btn {
+            clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 80%);
+        }
+
+        .clip-path-tapered-btn-sm {
+            clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 85%);
+        }
+
+        .transition-slow {
+            @apply transition-all duration-500 ease-in-out;
+        }
+    }
 }
 
 /* Custom scrollbar */
@@ -275,9 +307,4 @@
 
 ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-500
-}
-
-/* Transitions */
-.transition-fade {
-    @apply transition-opacity duration-200
 }

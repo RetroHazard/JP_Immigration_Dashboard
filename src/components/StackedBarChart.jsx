@@ -150,12 +150,12 @@ export const StackedBarChart = ({ data, filters }) => {
       legend: {
         position: 'top',
         labels: {
-          usePointStyle: true,
-          padding: 20,
+          usePointStyle: false,
+          padding: 10,
         },
       },
       title: {
-        display: true,
+        display: false,
         text: 'Immigration Applications by Period',
         padding: {
           top: 10,
@@ -173,7 +173,7 @@ export const StackedBarChart = ({ data, filters }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="card-content">
       <div className="mb-4 flex h-full items-center justify-between">
         <h2 className="section-title">Processing and Reception by Month</h2>
         <select
