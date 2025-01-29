@@ -32,10 +32,6 @@
         @apply text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200
     }
 
-    .form-label {
-        @apply block text-sm font-medium text-gray-700 dark:text-gray-300
-    }
-
     /* Theme Toggle */
     .theme-toggle {
         @apply flex items-center justify-center w-6 h-12 transition-colors bg-gray-300 border border-gray-800 rounded-full dark:bg-gray-600 dark:border-gray-200
@@ -147,14 +143,14 @@
 
     .stat-value {
         @apply hidden
-        sm:block sm:text-xs sm:font-semibold sm:text-gray-900 sm:dark:text-gray-100
+        sm:block sm:text-xs sm:font-semibold sm:text-gray-700 sm:dark:text-gray-200
         md:text-base md:mt-1
         lg:text-2xl
     }
 
     .stat-title {
         @apply hidden
-        lg:block lg:text-sm lg:font-semibold lg:text-gray-500 lg:dark:text-gray-300
+        lg:block lg:text-base lg:font-semibold lg:text-gray-500 lg:dark:text-gray-300
     }
 
     .stat-short-title {
@@ -190,7 +186,6 @@
 
     .filter-label {
         @apply text-sm font-medium text-gray-700 dark:text-gray-300
-        sm:text-sm
         md:text-base md:font-semibold
         lg:text-lg
     }
@@ -231,8 +226,10 @@
 
     /* Estimation Components */
     .estimator-container {
-        @apply h-full bg-white shadow-lg
-        sm:rounded-lg
+        @apply flex flex-col h-full bg-white shadow-lg dark:bg-gray-700
+        sm:rounded-lg sm:p-3
+        md:p-4
+        lg:p-5
     }
 
     .flashing-chevron {

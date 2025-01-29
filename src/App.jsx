@@ -1,5 +1,5 @@
 // App.jsx
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FilterPanel } from './components/FilterPanel';
 import { StackedBarChart } from './components/StackedBarChart';
 import { EstimationCard } from './components/EstimationCard';
@@ -55,7 +55,7 @@ const App = () => {
                 <h1 className="section-title">
                   Japan
                   <Icon icon="ph:line-vertical-light" className="vertical-align-sub inline-block align-middle" />
-                  Immigration Applications
+                  Immigration Bureaus
                 </h1>
                 <h1 className="section-title">Statistics Dashboard</h1>
               </div>
