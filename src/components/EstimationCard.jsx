@@ -47,7 +47,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
     );
   }
   return (
-    <div className="estimator-container flex flex-col sm:p-3 md:p-4 lg:p-5 dark:bg-gray-700">
+    <div className="estimator-container">
       <div className="flex-between border-b p-2 dark:border-gray-500">
         <h2 className="section-title">Processing Time Estimator</h2>
         <button onClick={variant === 'drawer' ? onClose : onCollapse} className="p-2 text-gray-500 hover:text-gray-700">
@@ -57,8 +57,8 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
       <div className="card-content-padded flex-1">
         {!showDetails && (
           <>
-            <div>
-              <label className="form-label">Immigration Bureau</label>
+            <div className="space-y-2">
+              <label className="filter-label">Immigration Bureau</label>
               <select
                 className="filter-select"
                 value={applicationDetails.bureau}
@@ -78,8 +78,8 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
               </select>
             </div>
 
-            <div>
-              <label className="form-label">Application Type</label>
+            <div className="space-y-2">
+              <label className="filter-label">Application Type</label>
               <select
                 className="filter-select"
                 value={applicationDetails.type}
@@ -101,8 +101,8 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
               </select>
             </div>
 
-            <div>
-              <label className="form-label">Application Date</label>
+            <div className="space-y-2">
+              <label className="filter-label">Application Date</label>
               <input
                 type="month"
                 placeholder="YYYY-MM"

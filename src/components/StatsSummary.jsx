@@ -62,7 +62,7 @@ export const StatsSummary = ({ data, filters }) => {
           </div>
           {/* Mobile Tooltip */}
           <div className="stat-tooltip">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 text-center">
               <span className="font-semibold">{title}</span>
               <span className="mt-1 font-bold">{value}</span>
             </div>
