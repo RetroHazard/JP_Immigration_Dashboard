@@ -1,13 +1,10 @@
 // components/EstimationCard.jsx
 import { useMemo, useState } from 'react';
-import { bureauOptions } from '../constants/bureauOptions';
+import { FilterInput } from './common/FilterInput';
+import { nonAirportBureaus } from '../utils/getBureauData';
 import { applicationOptions } from '../constants/applicationOptions';
 import { Icon } from '@iconify/react';
 import { calculateEstimatedDate } from '../utils/calculateEstimates';
-
-const nonAirportBureaus = bureauOptions.filter((option) => {
-  return option.value !== 'all' && !option.label.toLowerCase().includes('airport');
-});
 
 export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollapse, onClose }) => {
   const [applicationDetails, setApplicationDetails] = useState({
@@ -57,67 +54,35 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
       <div className="card-content-padded flex-1">
         {!showDetails && (
           <>
-            <div className="space-y-2">
-              <label className="filter-label">Immigration Bureau</label>
-              <select
-                className="filter-select"
-                value={applicationDetails.bureau}
-                onChange={(e) =>
-                  setApplicationDetails({
-                    ...applicationDetails,
-                    bureau: e.target.value,
-                  })
-                }
-              >
-                <option value="">Select Bureau</option>
-                {nonAirportBureaus.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FilterInput
+              type="select"
+              label="Immigration Bureau"
+              options={nonAirportBureaus}
+              value={applicationDetails.bureau}
+              includeDefaultOption
+              defaultOptionLabel="Select Bureau"
+              onChange={(value) => setApplicationDetails({ ...applicationDetails, bureau: value })}
+            />
 
-            <div className="space-y-2">
-              <label className="filter-label">Application Type</label>
-              <select
-                className="filter-select"
-                value={applicationDetails.type}
-                onChange={(e) =>
-                  setApplicationDetails({
-                    ...applicationDetails,
-                    type: e.target.value,
-                  })
-                }
-              >
-                <option value="">Select Type</option>
-                {applicationOptions
-                  .filter((option) => option.value !== 'all')
-                  .map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-              </select>
-            </div>
+            <FilterInput
+              type="select"
+              label="Application Type"
+              options={applicationOptions}
+              value={applicationDetails.type}
+              includeDefaultOption
+              defaultOptionLabel="Select Type"
+              filterFn={(option) => option.value !== 'all'}
+              onChange={(value) => setApplicationDetails({ ...applicationDetails, type: value })}
+            />
 
-            <div className="space-y-2">
-              <label className="filter-label">Application Date</label>
-              <input
-                type="month"
-                placeholder="YYYY-MM"
-                className="filter-select"
-                value={applicationDetails.applicationDate}
-                onChange={(e) =>
-                  setApplicationDetails({
-                    ...applicationDetails,
-                    applicationDate: e.target.value,
-                  })
-                }
-                min={dateRange.min}
-                max={dateRange.max}
-              />
-            </div>
+            <FilterInput
+              type="month"
+              label="Application Date"
+              value={applicationDetails.applicationDate}
+              min={dateRange.min}
+              max={dateRange.max}
+              onChange={(value) => setApplicationDetails({ ...applicationDetails, applicationDate: value })}
+            />
           </>
         )}
 
@@ -131,10 +96,19 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                   : 'text-indigo-600 dark:text-indigo-500'
               }`}
             >
-              {estimatedDate.estimatedDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-              })}
+              {estimatedDate.estimatedDate.toLocaleDateString(
+                'en-US',
+                estimatedDate.details.useDailyEstimate
+                  ? {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    }
+                  : {
+                      year: 'numeric',
+                      month: 'long',
+                    }
+              )}
             </p>
 
             <button
@@ -149,7 +123,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
             </button>
 
             {showDetails && (
-              <div className="mt-2.5 space-y-2 border-t pt-3 text-xs text-gray-600 dark:text-gray-200">
+              <div className="mt-2.5 space-y-1 border-t pt-3 text-xs text-gray-600 dark:text-gray-200">
                 {estimatedDate.details.isPastDue ? (
                   <>
                     <p className="text-amber-600 dark:text-amber-500">
@@ -188,8 +162,8 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                       </strong>
                       {estimatedDate.details.monthlyRate.toLocaleString()} /month
                     </p>
-                    <div className="rounded bg-gray-100 p-5 text-xs dark:bg-gray-600">
-                      <p className="font-medium">Calculation Formula:</p>
+                    <div className="rounded-lg bg-gray-100 p-5 text-xxs dark:bg-gray-600">
+                      <p className="text-xs font-semibold">Calculation Formula:</p>
                       <p>Estimated Months = QP ÷ APR</p>
                       <p>
                         = {estimatedDate.details.queuePosition.toLocaleString()} ÷{' '}
@@ -203,8 +177,11 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
             )}
 
             <p className="mt-4 text-xs italic text-gray-500 dark:text-gray-200">
-              *This is an estimate based on current processing rates and pending applications. The actual completion
-              date may vary.
+              *This is an{' '}
+              <strong>
+                <u>estimate</u>
+              </strong>{' '}
+              based on current processing rates and pending applications. The actual completion date may vary.
             </p>
           </div>
         )}

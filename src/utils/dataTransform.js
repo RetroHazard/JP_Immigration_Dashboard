@@ -14,11 +14,3 @@ export const transformData = (rawData) => {
     status: entry['@cat01'],
   }));
 };
-
-export const matchesFilters = (entry, filters) => {
-  const matchesBureau = filters.bureau === 'all' || entry.bureau === filters.bureau;
-  const matchesType = filters.type === 'all' || entry.type === filters.type;
-  const matchesMonth = !filters.month || entry.month === filters.month;
-
-  return matchesBureau && matchesType && matchesMonth;
-};

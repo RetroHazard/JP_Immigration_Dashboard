@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { FilterInput } from './common/FilterInput';
 import { bureauOptions } from '../constants/bureauOptions';
 import { applicationOptions } from '../constants/applicationOptions';
 
@@ -38,45 +39,30 @@ export const FilterPanel = ({ data, filters, onChange }) => {
   return (
     <div className="base-container">
       <div className="filter-block">
-        <div className="space-y-2">
-          <label className="filter-label">Immigration Bureau</label>
-          <select
-            className="filter-select"
-            value={filters.bureau}
-            onChange={(e) => onChange({ ...filters, bureau: e.target.value })}
-          >
-            {bureauOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FilterInput
+          type="select"
+          label="Immigration Bureau"
+          options={bureauOptions}
+          value={filters.bureau}
+          onChange={(value) => onChange({ ...filters, bureau: value })}
+        />
+
+        <FilterInput
+          type="select"
+          label="Application Type"
+          options={applicationOptions}
+          value={filters.type}
+          onChange={(value) => onChange({ ...filters, type: value })}
+        />
 
         <div className="space-y-2">
-          <label className="filter-label">Application Type</label>
-          <select
-            className="filter-select"
-            value={filters.type}
-            onChange={(e) => onChange({ ...filters, type: e.target.value })}
-          >
-            {applicationOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="filter-label">Month</label>
-          <input
+          <FilterInput
             type="month"
-            placeholder="YYYY-MM"
-            className="filter-select"
+            label="Month"
             value={filters.month}
-            onChange={(e) => onChange({ ...filters, month: e.target.value })}
             min={dateRange.min}
             max={dateRange.max}
+            onChange={(value) => onChange({ ...filters, month: value })}
           />
           <span className="filter-note">
             * Data available from {formatDateString(dateRange.min)} to {formatDateString(dateRange.max)}

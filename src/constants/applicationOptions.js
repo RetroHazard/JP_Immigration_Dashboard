@@ -1,4 +1,5 @@
 // constants/applicationOptions.js
+
 export const applicationOptions = [
   { value: 'all', label: 'All Types', short: 'ALL' },
   { value: '10', label: 'Status Acquisition', short: 'ENT' },

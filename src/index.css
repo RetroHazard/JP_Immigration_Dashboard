@@ -84,6 +84,7 @@
     /* Stats Components */
     .stat-container {
         @apply grid grid-cols-5 gap-1 mt-4
+        xl:w-full
     }
 
     .stat-tooltip {
@@ -117,8 +118,8 @@
 
     .stat-card {
         @apply w-fit p-2 mx-auto bg-white rounded-lg shadow-lg dark:bg-gray-700
-        sm:flex sm:items-start sm:justify-start sm:w-full sm:h-full sm:p-3 sm:scale-95
-        md:items-center md:p-4 md:text-nowrap
+        sm:flex sm:items-start sm:justify-start sm:w-full sm:h-full sm:p-3 sm:scale-95 sm:overflow-x-clip sm:text-pretty
+        md:items-center md:p-4 md:rounded-xl
         lg:rounded-2xl
     }
 
