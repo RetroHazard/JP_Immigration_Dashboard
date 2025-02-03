@@ -27,7 +27,7 @@ export const FilterInput = ({
         </select>
       ) : (
         <input
-          type="month"
+          type={type}
           placeholder="YYYY-MM"
           className="filter-select"
           value={value}
