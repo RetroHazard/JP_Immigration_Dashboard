@@ -54,20 +54,9 @@ export const FilterPanel = ({ data, filters, onChange }) => {
           value={filters.type}
           onChange={(value) => onChange({ ...filters, type: value })}
         />
-
-        <div className="space-y-2">
-          <FilterInput
-            type="month"
-            label="Month"
-            value={filters.month}
-            min={dateRange.min}
-            max={dateRange.max}
-            onChange={(value) => onChange({ ...filters, month: value })}
-          />
-          <span className="filter-note">
-            * Data available from {formatDateString(dateRange.min)} to {formatDateString(dateRange.max)}
-          </span>
-        </div>
+      </div>
+      <div className="filter-note mt-2">
+        * Data is available from {formatDateString(dateRange.min)} to {formatDateString(dateRange.max)}
       </div>
     </div>
   );

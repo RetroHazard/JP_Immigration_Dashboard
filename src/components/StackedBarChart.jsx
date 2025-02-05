@@ -176,7 +176,7 @@ export const StackedBarChart = ({ data, filters, isDarkMode }) => {
   return (
     <div className="card-content">
       <div className="mb-4 flex h-full items-center justify-between">
-        <h2 className="section-title">Processing and Reception by Month</h2>
+        <h2 className="section-title">Processing and Reception</h2>
         <select
           className="chart-filter-select"
           value={showAllMonths ? 'all' : monthRange}

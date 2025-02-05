@@ -51,7 +51,7 @@ export const StatsSummary = ({ data, filters }) => {
 
   if (!stats) return null;
 
-  const StatCard = ({ title, shortTitle, subtitle, date, value, color, icon }) => {
+  const StatCard = ({ title, shortTitle, subtitle, value, color, icon }) => {
     return (
       <div className="stat-card">
         <div className="group relative">
@@ -60,11 +60,12 @@ export const StatsSummary = ({ data, filters }) => {
               <Icon icon={icon} />
             </span>
           </div>
+
           {/* Mobile Tooltip */}
           <div className="stat-tooltip">
             <div className="flex flex-col gap-1 text-center">
-              <span className="font-semibold">{title}</span>
-              <span className="mt-1 font-bold">{value}</span>
+              <div className="font-semibold">{title}</div>
+              <div className="mt-1 font-bold">{value}</div>
             </div>
             <div className="stat-tooltip-arrow"></div>
           </div>
@@ -72,13 +73,10 @@ export const StatsSummary = ({ data, filters }) => {
 
         {/* Desktop View */}
         <div className="stat-details">
-          <div className="flex flex-col">
-            <h3 className="stat-title">{title}</h3>
-            <h3 className="stat-short-title">{shortTitle}</h3>
-            <span className="stat-subtitle">{subtitle}</span>
-            <span className="stat-date">{date}</span>
-          </div>
-          <p className="stat-value">{value}</p>
+          <div className="stat-title">{title}</div>
+          <div className="stat-short-title">{shortTitle}</div>
+          <div className="stat-subtitle">{subtitle}</div>
+          <div className="stat-value">{value}</div>
         </div>
       </div>
     );
@@ -87,10 +85,9 @@ export const StatsSummary = ({ data, filters }) => {
   return (
     <div className="stat-container">
       <StatCard
-        title="Total Applications"
-        shortTitle="Total"
+        title="Total"
+        shortTitle="Total" //TODO: Cleanup unused shortTitle
         subtitle={getBureauLabel(filters.bureau)}
-        date={filters.month}
         value={stats.totalApplications.toLocaleString()}
         color="bg-blue-500"
         icon="material-symbols:file-copy-outline-rounded"
@@ -99,7 +96,6 @@ export const StatsSummary = ({ data, filters }) => {
         title="Pending"
         shortTitle="Pending"
         subtitle={getBureauLabel(filters.bureau)}
-        date={filters.month}
         value={stats.pending.toLocaleString()}
         color="bg-yellow-500"
         icon="material-symbols:pending-actions-rounded"
@@ -108,7 +104,6 @@ export const StatsSummary = ({ data, filters }) => {
         title="Granted"
         shortTitle="Granted"
         subtitle={getBureauLabel(filters.bureau)}
-        date={filters.month}
         value={stats.granted.toLocaleString()}
         color="bg-green-500"
         icon="material-symbols:order-approve-rounded"
@@ -117,7 +112,6 @@ export const StatsSummary = ({ data, filters }) => {
         title="Denied"
         shortTitle="Denied"
         subtitle={getBureauLabel(filters.bureau)}
-        date={filters.month}
         value={stats.denied.toLocaleString()}
         color="bg-red-500"
         icon="material-symbols:cancel-outline-rounded"
@@ -126,7 +120,6 @@ export const StatsSummary = ({ data, filters }) => {
         title="Approval Rate"
         shortTitle="APV. Rate"
         subtitle={getBureauLabel(filters.bureau)}
-        date={filters.month}
         value={`${stats.approvalRate}%`}
         color="bg-gray-500"
         icon="material-symbols:percent-rounded"
