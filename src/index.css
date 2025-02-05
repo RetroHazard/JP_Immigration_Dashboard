@@ -57,7 +57,8 @@
     }
 
     .footer-text {
-        @apply mt-1 text-xs text-center text-gray-500 text-pretty dark:text-gray-300
+        @apply mt-1 text-xxs text-center text-gray-500 text-pretty dark:text-gray-300
+        sm:text-xs
     }
 
     .footer-text-small {
@@ -124,33 +125,28 @@
 
     .stat-badge {
         @apply flex items-center justify-center w-10 h-10 rounded-lg
-        md:min-h-12 md:h-28 md:rounded-2xl
-        xl:min-w-16 xl:rounded-3xl
+        md:min-h-12 md:h-16 md:w-8 md:rounded-lg
+        lg:min-h-16 lg:h-20 lg:w-9
+        xl:min-w-12 xl:rounded-xl
     }
 
     .stat-icon-text {
         @apply flex items-center justify-center text-2xl text-white
-        md:text-3xl
-        xl:text-5xl
+        md:text-2xl
+        lg:text-3xl
+        xl:text-4xl
     }
 
     /* Stat Text Elements */
     .stat-details {
         @apply hidden
-        sm:block sm:ml-2
+        sm:flex sm:flex-col sm:ml-3 sm:h-full
         xl:ml-4
-    }
-
-    .stat-value {
-        @apply hidden
-        sm:block sm:text-xs sm:font-semibold sm:text-gray-700 sm:dark:text-gray-200
-        md:text-base md:mt-1
-        lg:text-2xl
     }
 
     .stat-title {
         @apply hidden
-        lg:block lg:text-sm lg:font-semibold lg:text-gray-500 lg:dark:text-gray-300
+        lg:block lg:text-base lg:font-semibold lg:text-gray-500 lg:dark:text-gray-300
     }
 
     .stat-short-title {
@@ -164,6 +160,13 @@
         @apply hidden
         md:block md:text-xs md:text-gray-400 md:dark:text-gray-300
         lg:text-sm
+    }
+
+    .stat-value {
+        @apply hidden
+        sm:block sm:text-xs sm:font-semibold sm:text-gray-700 sm:dark:text-gray-200 sm:mt-auto
+        md:text-base
+        lg:text-2xl
     }
 
     /* Filter Components */
@@ -208,14 +211,14 @@
         lg:text-lg
     }
 
-    .chart-collapsed {
+    .main-collapsed {
         @apply hidden
         sm:block sm:col-span-6
         md:col-span-7
         lg:col-span-8
     }
 
-    .chart-expanded {
+    .main-expanded {
         @apply hidden
         sm:block sm:col-span-11
         md:col-span-11

@@ -60,11 +60,12 @@ export const StatsSummary = ({ data, filters }) => {
               <Icon icon={icon} />
             </span>
           </div>
+
           {/* Mobile Tooltip */}
           <div className="stat-tooltip">
             <div className="flex flex-col gap-1 text-center">
-              <span className="font-semibold">{title}</span>
-              <span className="mt-1 font-bold">{value}</span>
+              <div className="font-semibold">{title}</div>
+              <div className="mt-1 font-bold">{value}</div>
             </div>
             <div className="stat-tooltip-arrow"></div>
           </div>
@@ -72,12 +73,10 @@ export const StatsSummary = ({ data, filters }) => {
 
         {/* Desktop View */}
         <div className="stat-details">
-          <div className="flex flex-col">
-            <h3 className="stat-title">{title}</h3>
-            <h3 className="stat-short-title">{shortTitle}</h3>
-            <span className="stat-subtitle">{subtitle}</span>
-          </div>
-          <p className="stat-value">{value}</p>
+          <div className="stat-title">{title}</div>
+          <div className="stat-short-title">{shortTitle}</div>
+          <div className="stat-subtitle">{subtitle}</div>
+          <div className="stat-value">{value}</div>
         </div>
       </div>
     );
@@ -86,8 +85,8 @@ export const StatsSummary = ({ data, filters }) => {
   return (
     <div className="stat-container">
       <StatCard
-        title="Total Applications"
-        shortTitle="Total"
+        title="Total"
+        shortTitle="Total" //TODO: Cleanup unused shortTitle
         subtitle={getBureauLabel(filters.bureau)}
         value={stats.totalApplications.toLocaleString()}
         color="bg-blue-500"

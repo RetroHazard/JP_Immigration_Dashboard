@@ -122,11 +122,11 @@ const App = () => {
             </div>
 
             {/* Desktop Layout */}
-            <div className="section-block grid h-full grid-cols-12 sm:gap-3 md:gap-4 lg:gap-5">
+            <div className="section-block hidden h-full grid-cols-12 sm:grid sm:gap-3 md:gap-4 lg:gap-5">
               {/* Left main content column */}
               <div
                 className={`transition-slow flex h-full flex-col ${
-                  isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'
+                  isEstimationExpanded ? 'main-collapsed' : 'main-expanded'
                 }`}
               >
                 {/* Filter row */}
