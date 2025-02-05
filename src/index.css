@@ -137,8 +137,8 @@
     /* Stat Text Elements */
     .stat-details {
         @apply hidden
-        sm:block sm:ml-3
-        xl:ml-5
+        sm:block sm:ml-2
+        xl:ml-4
     }
 
     .stat-value {
@@ -150,7 +150,7 @@
 
     .stat-title {
         @apply hidden
-        lg:block lg:text-base lg:font-semibold lg:text-gray-500 lg:dark:text-gray-300
+        lg:block lg:text-sm lg:font-semibold lg:text-gray-500 lg:dark:text-gray-300
     }
 
     .stat-short-title {
@@ -166,15 +166,10 @@
         lg:text-sm
     }
 
-    .stat-date {
-        @apply hidden
-        md:block md:text-xs md:text-gray-400 md:italic md:dark:text-gray-300
-    }
-
     /* Filter Components */
     .filter-block {
         @apply grid grid-cols-2 gap-4
-        sm:grid-cols-3 sm:gap-5
+        sm:gap-5
         md:gap-6
     }
 
@@ -191,7 +186,8 @@
     }
 
     .filter-note {
-        @apply text-xs italic text-gray-500 dark:text-gray-300
+        @apply text-xxs italic text-gray-500 dark:text-gray-300
+        sm:text-xs
         md:text-sm md:text-pretty
     }
 
@@ -201,8 +197,8 @@
 
     /* Chart Components */
     .chart-container {
-        @apply w-full h-[300px]
-        sm:h-[400px]
+        @apply w-full min-h-[300px]
+        sm:min-h-[400px]
     }
 
     .chart-filter-select {

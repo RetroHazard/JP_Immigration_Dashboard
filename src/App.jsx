@@ -13,7 +13,6 @@ const App = () => {
   const [filters, setFilters] = useState({
     bureau: 'all',
     type: 'all',
-    month: '', // Initialize Empty
   });
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -90,7 +89,7 @@ const App = () => {
       <main className="marginals flex-1 py-8">
         {!loading && (
           <>
-            <div className="section-block grid grid-cols-1">
+            <div className="section-block grid grid-cols-1 sm:hidden">
               <FilterPanel data={data} filters={filters} onChange={setFilters} />
             </div>
 
@@ -123,13 +122,32 @@ const App = () => {
             </div>
 
             {/* Desktop Layout */}
-            <div className="section-block hidden grid-cols-12 gap-6 sm:grid sm:gap-2 md:gap-3 lg:gap-4">
-              <div className={`transition-slow ${isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'}`}>
-                <div className="base-container">
-                  <StackedBarChart data={data} filters={filters} isDarkMode={isDarkMode} />
+            <div className="section-block grid h-full grid-cols-12 sm:gap-3 md:gap-4 lg:gap-5">
+              {/* Left main content column */}
+              <div
+                className={`transition-slow flex h-full flex-col ${
+                  isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'
+                }`}
+              >
+                {/* Filter row */}
+                <div className="flex-shrink-0">
+                  <FilterPanel data={data} filters={filters} onChange={setFilters} />
+                </div>
+
+                {/* Chart row */}
+                <div className="flex-grow sm:mt-4 md:mt-5 lg:mt-6">
+                  <div className="base-container h-full">
+                    <StackedBarChart data={data} filters={filters} isDarkMode={isDarkMode} />
+                  </div>
                 </div>
               </div>
-              <div className={`transition-slow ${isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'}`}>
+
+              {/* Right estimator column */}
+              <div
+                className={`transition-slow h-full ${
+                  isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'
+                }`}
+              >
                 <div
                   className="h-full cursor-pointer rounded-lg bg-white shadow-lg dark:bg-gray-700"
                   onClick={() => !isEstimationExpanded && setIsEstimationExpanded(true)}

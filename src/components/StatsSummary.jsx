@@ -51,7 +51,7 @@ export const StatsSummary = ({ data, filters }) => {
 
   if (!stats) return null;
 
-  const StatCard = ({ title, shortTitle, subtitle, date, value, color, icon }) => {
+  const StatCard = ({ title, shortTitle, subtitle, value, color, icon }) => {
     return (
       <div className="stat-card">
         <div className="group relative">
@@ -76,7 +76,6 @@ export const StatsSummary = ({ data, filters }) => {
             <h3 className="stat-title">{title}</h3>
             <h3 className="stat-short-title">{shortTitle}</h3>
             <span className="stat-subtitle">{subtitle}</span>
-            <span className="stat-date">{date}</span>
           </div>
           <p className="stat-value">{value}</p>
         </div>
@@ -90,7 +89,6 @@ export const StatsSummary = ({ data, filters }) => {
         title="Total Applications"
         shortTitle="Total"
         subtitle={getBureauLabel(filters.bureau)}
-        date={filters.month}
         value={stats.totalApplications.toLocaleString()}
         color="bg-blue-500"
         icon="material-symbols:file-copy-outline-rounded"
@@ -99,7 +97,6 @@ export const StatsSummary = ({ data, filters }) => {
         title="Pending"
         shortTitle="Pending"
         subtitle={getBureauLabel(filters.bureau)}
-        date={filters.month}
         value={stats.pending.toLocaleString()}
         color="bg-yellow-500"
         icon="material-symbols:pending-actions-rounded"
@@ -108,7 +105,6 @@ export const StatsSummary = ({ data, filters }) => {
         title="Granted"
         shortTitle="Granted"
         subtitle={getBureauLabel(filters.bureau)}
-        date={filters.month}
         value={stats.granted.toLocaleString()}
         color="bg-green-500"
         icon="material-symbols:order-approve-rounded"
@@ -117,7 +113,6 @@ export const StatsSummary = ({ data, filters }) => {
         title="Denied"
         shortTitle="Denied"
         subtitle={getBureauLabel(filters.bureau)}
-        date={filters.month}
         value={stats.denied.toLocaleString()}
         color="bg-red-500"
         icon="material-symbols:cancel-outline-rounded"
@@ -126,7 +121,6 @@ export const StatsSummary = ({ data, filters }) => {
         title="Approval Rate"
         shortTitle="APV. Rate"
         subtitle={getBureauLabel(filters.bureau)}
-        date={filters.month}
         value={`${stats.approvalRate}%`}
         color="bg-gray-500"
         icon="material-symbols:percent-rounded"
