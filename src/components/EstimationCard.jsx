@@ -123,11 +123,11 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                 {estimatedDate.details.isPastDue ? (
                   <>
                     <p className="text-amber-600 dark:text-amber-500">
-                      <strong>Est. Applications at Submission:</strong>
+                      <strong>Applications at Submission: </strong>
                       {estimatedDate.details.queueAtApplication.toLocaleString()}
                     </p>
                     <p className="text-amber-600 dark:text-amber-500">
-                      <strong>Est. Processed since Submission:</strong>
+                      <strong>Processed since Submission: </strong>
                       {estimatedDate.details.processedSince.toLocaleString()}
                     </p>
                     <p className="mt-2 text-xs italic text-amber-600 dark:text-amber-500">
@@ -166,7 +166,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                         <BlockMath
                           math={`
                             \\begin{aligned}
-                            R_{\\text{daily}} &\\approx \\frac{\\sum P}{\\sum D} = \\frac{${estimatedDate.details.processedSince}}{${estimatedDate.details.estimatedDays}} \\approx ${estimatedDate.details.dailyRate.toFixed(2)} \\\\
+                            R_{\\text{daily}} &\\approx \\frac{\\sum P}{\\sum D} = \\frac{${estimatedDate.details.calculationBreakdown.totalProcessed}}{${estimatedDate.details.calculationBreakdown.totalDays}} \\approx ${estimatedDate.details.dailyRate.toFixed(2)} \\\\
                             \\\\
                             \\Delta_{\\text{net}} &\\approx \\underbrace{R_{\\text{new}}}_{${estimatedDate.details.calculationBreakdown.dailyNew.toFixed(2)}} - \\underbrace{R_{\\text{proc}}}_{${estimatedDate.details.calculationBreakdown.dailyProcessed.toFixed(2)}} \\\\
                             \\\\
