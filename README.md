@@ -24,13 +24,13 @@ using a combination of predictive averages and confirmed statistics reported by 
     + Queue position tracking
     + Historical processing rate analysis
     + Predictive modeling for future dates
+    + Detailed Calculation Formula
     + Past-due notifications
 
 :mag: Advanced Filtering
 
 - Immigration bureau selection
 - Application type filtering
-- Time period adjustment
 - Statistics summary
 
 :iphone: Responsive Design
@@ -49,6 +49,7 @@ using a combination of predictive averages and confirmed statistics reported by 
 - `Chart.js` - Data Visualization
 - `Tailwind CSS` - Styling
 - `Iconify` - UI icons
+- `KaTeX` - LaTeX Typesetting
 
 ## Data Processing
 
@@ -62,6 +63,7 @@ using a combination of predictive averages and confirmed statistics reported by 
 **Calculations**
 
 - Application processing rates
+- Application intake rates
 - Queue position tracking
 - Completion date estimation
 - Trend analysis
