@@ -146,7 +146,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                         <BlockMath
                           math={`
                             \\begin{aligned}
-                            &D_{\\text{rem}} \\approx \\left\\lbrack\\frac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\frac{{${estimatedDate.details.modelVariables.Q_pos.toFixed()}}}{${estimatedDate.details.modelVariables.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${estimatedDate.details.modelVariables.D_rem.toFixed()} \\ \\text{d} \\\\
+                            &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${estimatedDate.details.modelVariables.Q_pos.toFixed()}}}{${estimatedDate.details.modelVariables.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${estimatedDate.details.modelVariables.D_rem.toFixed()} \\ \\text{d} \\\\
                             \\end{aligned}
                           `}
                         />
@@ -159,7 +159,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                             \\begin{cases}
                             Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{adj}}}_{${estimatedDate.details.modelVariables.Q_adj.toFixed()}} - \\underbrace{P_{\\text{proc}}}_{${estimatedDate.details.modelVariables.P_proc.toFixed()}} \\\\
                             \\\\
-                            Q_{\\text{adj}} \\approx \\underbrace{Q_{\\text{app}}}_{\\mathclap{${estimatedDate.details.modelVariables.Q_app.toFixed()}}} + \\lparen\\underbrace{\\Delta_{\\text{net}}\\vphantom{Q_{\\text{app}}}}_{\\mathclap{${estimatedDate.details.modelVariables.Delta_net.toFixed(2)}}} \\times \\underbrace{t_{\\text{pred}}\\vphantom{Q_{\\text{app}}}}_{\\mathclap{${estimatedDate.details.modelVariables.t_pred.toFixed()}\\ \\text{d}}}\\rparen \\\\
+                            R_{\\text{daily}} \\approx \\left\\lbrack\\dfrac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\dfrac{${estimatedDate.details.modelVariables.Sigma_P}}{${estimatedDate.details.modelVariables.Sigma_D}}\\right\\rbrack \\\\
                             \\end{cases}
                             \\end{aligned}
                           `}
@@ -169,11 +169,16 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                         <BlockMath
                           math={`
                             \\begin{aligned}
-                            \\Delta_{\\text{net}} &\\approx \\underbrace{R_{\\text{new}}}_{${estimatedDate.details.modelVariables.R_new.toFixed()}} - \\underbrace{R_{\\text{daily}}}_{${estimatedDate.details.modelVariables.R_daily.toFixed()}} \\\\
+                            &Q_{\\text{adj}} 
+                            \\begin{cases}
+                            &\\approx \\underbrace{Q_{\\text{app}}}_{\\mathclap{${estimatedDate.details.modelVariables.Q_app.toFixed()}}} + \\lparen\\underbrace{\\Delta_{\\text{net}}\\vphantom{Q_{\\text{app}}}}_{\\mathclap{${estimatedDate.details.modelVariables.Delta_net.toFixed(2)}}} \\times \\underbrace{t_{\\text{pred}}\\vphantom{Q_{\\text{app}}}}_{\\mathclap{${estimatedDate.details.modelVariables.t_pred.toFixed()}\\ \\text{d}}}\\rparen \\\\
                             \\\\
-                            R_{\\text{daily}} &\\approx \\left\\lbrack\\frac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\frac{${estimatedDate.details.modelVariables.Sigma_P}}{${estimatedDate.details.modelVariables.Sigma_D}}\\right\\rbrack \\\\
+                            &\\text{}\\
+                            \\begin{cases}
+                            \\Delta_{\\text{net}} \\approx \\underbrace{R_{\\text{new}}}_{${estimatedDate.details.modelVariables.R_new.toFixed(2)}} - \\underbrace{R_{\\text{daily}}}_{${estimatedDate.details.modelVariables.R_daily.toFixed(2)}} \\\\
                             \\\\
-                            Q_{\\text{app}} &\\approx \\underbrace{C_{\\text{prev}}}_{${estimatedDate.details.modelVariables.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${estimatedDate.details.modelVariables.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${estimatedDate.details.modelVariables.P_app.toFixed()}} \\\\
+                            Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${estimatedDate.details.modelVariables.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${estimatedDate.details.modelVariables.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${estimatedDate.details.modelVariables.P_app.toFixed()}} \\\\
+                            \\end{cases}\\end{cases}
                             \\end{aligned}
                           `}
                         />
