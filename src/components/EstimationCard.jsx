@@ -128,7 +128,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                     </p>
                     <p className="text-amber-600 dark:text-amber-500">
                       <strong>Processed since Submission: </strong>
-                      {estimatedDate.details.processedSince.toLocaleString()}
+                      {estimatedDate.details.totalProcessedSinceApp.toLocaleString()}
                     </p>
                     <p className="mt-2 text-xs italic text-amber-600 dark:text-amber-500">
                       Based on our expected processing rates, it appears that completion of this application is past
@@ -138,12 +138,15 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                   </>
                 ) : (
                   <>
-                    <div className="rounded-xl bg-gray-100 p-2.5 text-xxs shadow-lg dark:bg-gray-600">
+                    <div
+                      id="calculationModel"
+                      className="rounded-xl bg-gray-100 p-2.5 text-xxs shadow-lg dark:bg-gray-600"
+                    >
                       <div className="mt-2 border-b border-gray-300 text-center text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                         <BlockMath
                           math={`
                             \\begin{aligned}
-                            &D_{\\text{rem}} \\approx \\left\\lceil\\frac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rfloor = \\left\\lceil\\frac{{${estimatedDate.details.adjustedQueueTotal - estimatedDate.details.processedSince}}}{${estimatedDate.details.dailyRate.toFixed(2)}}\\right\\rfloor \\approx ${Math.round((estimatedDate.details.adjustedQueueTotal - estimatedDate.details.processedSince) / estimatedDate.details.dailyRate.toFixed(2))} \\ \\text{d} \\\\
+                            &D_{\\text{rem}} \\approx \\left\\lbrack\\frac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\frac{{${estimatedDate.details.modelVariables.Q_pos.toFixed()}}}{${estimatedDate.details.modelVariables.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${estimatedDate.details.modelVariables.D_rem.toFixed()} \\ \\text{d} \\\\
                             \\end{aligned}
                           `}
                         />
@@ -154,9 +157,9 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                             \\begin{aligned}
                             &\\text{where}\\
                             \\begin{cases}
-                            Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{adj}}}_{${estimatedDate.details.adjustedQueueTotal}} - \\underbrace{P_{\\text{proc}}}_{${estimatedDate.details.processedSince}} \\\\
+                            Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{adj}}}_{${estimatedDate.details.modelVariables.Q_adj.toFixed()}} - \\underbrace{P_{\\text{proc}}}_{${estimatedDate.details.modelVariables.P_proc.toFixed()}} \\\\
                             \\\\
-                            Q_{\\text{adj}} \\approx \\underbrace{Q_{\\text{app}}}_{${estimatedDate.details.queueAtApplication}} + (\\underbrace{\\Delta_{\\text{net}}}_{${(estimatedDate.details.calculationBreakdown.dailyNew - estimatedDate.details.calculationBreakdown.dailyProcessed).toFixed(2)}} \\times \\underbrace{t_{\\text{pred}}}_{${estimatedDate.details.calculationBreakdown.predictionDays}\\ \\text{d}})
+                            Q_{\\text{adj}} \\approx \\underbrace{Q_{\\text{app}}}_{\\mathclap{${estimatedDate.details.modelVariables.Q_app.toFixed()}}} + \\lparen\\underbrace{\\Delta_{\\text{net}}\\vphantom{Q_{\\text{app}}}}_{\\mathclap{${estimatedDate.details.modelVariables.Delta_net.toFixed(2)}}} \\times \\underbrace{t_{\\text{pred}}\\vphantom{Q_{\\text{app}}}}_{\\mathclap{${estimatedDate.details.modelVariables.t_pred.toFixed()}\\ \\text{d}}}\\rparen \\\\
                             \\end{cases}
                             \\end{aligned}
                           `}
@@ -166,11 +169,11 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                         <BlockMath
                           math={`
                             \\begin{aligned}
-                            R_{\\text{daily}} &\\approx \\frac{\\sum P}{\\sum D} = \\frac{${estimatedDate.details.calculationBreakdown.totalProcessed}}{${estimatedDate.details.calculationBreakdown.totalDays}} \\approx ${estimatedDate.details.dailyRate.toFixed(2)} \\\\
+                            \\Delta_{\\text{net}} &\\approx \\underbrace{R_{\\text{new}}}_{${estimatedDate.details.modelVariables.R_new.toFixed()}} - \\underbrace{R_{\\text{daily}}}_{${estimatedDate.details.modelVariables.R_daily.toFixed()}} \\\\
                             \\\\
-                            \\Delta_{\\text{net}} &\\approx \\underbrace{R_{\\text{new}}}_{${estimatedDate.details.calculationBreakdown.dailyNew.toFixed(2)}} - \\underbrace{R_{\\text{proc}}}_{${estimatedDate.details.calculationBreakdown.dailyProcessed.toFixed(2)}} \\\\
+                            R_{\\text{daily}} &\\approx \\left\\lbrack\\frac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\frac{${estimatedDate.details.modelVariables.Sigma_P}}{${estimatedDate.details.modelVariables.Sigma_D}}\\right\\rbrack \\\\
                             \\\\
-                            Q_{\\text{app}} &\\approx \\underbrace{C_{\\text{prev}}}_{${estimatedDate.details.calculationBreakdown.carriedOver}} + \\underbrace{N_{\\text{app}}}_{${estimatedDate.details.calculationBreakdown.receivedByAppDate}} - \\underbrace{P_{\\text{app}}}_{${estimatedDate.details.calculationBreakdown.processedByAppDate}} \\\\
+                            Q_{\\text{app}} &\\approx \\underbrace{C_{\\text{prev}}}_{${estimatedDate.details.modelVariables.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${estimatedDate.details.modelVariables.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${estimatedDate.details.modelVariables.P_app.toFixed()}} \\\\
                             \\end{aligned}
                           `}
                         />
