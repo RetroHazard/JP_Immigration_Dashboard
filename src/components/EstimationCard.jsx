@@ -92,9 +92,11 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
 
         {estimatedDate && (
           <div className="card-base-gray">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-200">Estimated Completion Date</h3>
+            <div className="text-center text-lg font-medium text-gray-900 dark:text-gray-200">
+              Estimated Completion Date
+            </div>
             <p
-              className={`mt-2 text-2xl font-bold ${
+              className={`mt-2 text-center text-2xl font-bold ${
                 estimatedDate.details.isPastDue
                   ? 'text-amber-600 dark:text-amber-500'
                   : 'text-indigo-600 dark:text-indigo-500'
@@ -102,7 +104,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
             >
               {estimatedDate.estimatedDate.toLocaleDateString('en-US', {
                 year: 'numeric',
-                month: 'short',
+                month: 'long',
                 day: 'numeric',
               })}
             </p>
@@ -119,7 +121,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
             </button>
 
             {showDetails && (
-              <div className="mt-2.5 space-y-1 border-t pt-3 text-xs text-gray-600 dark:text-gray-200">
+              <div className="mt-2.5 space-y-1 border-t pt-3 text-xs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                 {estimatedDate.details.isPastDue ? (
                   <>
                     <p className="text-amber-600 dark:text-amber-500">
@@ -142,7 +144,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                       id="calculationModel"
                       className="rounded-xl bg-gray-100 p-2.5 text-xxs shadow-lg dark:bg-gray-600"
                     >
-                      <div className="mt-2 border-b border-gray-300 text-center text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+                      <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                         <BlockMath
                           math={`
                             \\begin{aligned}
@@ -151,7 +153,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                           `}
                         />
                       </div>
-                      <div className="mt-2 border-b border-gray-300 text-center text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+                      <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                         <BlockMath
                           math={`
                             \\begin{aligned}
@@ -165,7 +167,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                           `}
                         />
                       </div>
-                      <div className="mt-2 border-gray-300 text-center text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+                      <div className="mt-2 border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                         <BlockMath
                           math={`
                             \\begin{aligned}
@@ -194,7 +196,8 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
               <strong>
                 <u>estimate</u>
               </strong>{' '}
-              based on current processing rates and pending applications. Actual completion date may vary.
+              based on current processing rates, expected queue position, and pending applications. Actual completion
+              time may vary.
             </p>
           </div>
         )}
