@@ -196,8 +196,8 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
               <strong>
                 <u>estimate</u>
               </strong>{' '}
-              based on current processing rates, expected queue position, and pending applications. Actual completion
-              time may vary.
+              based on current processing rates, expected queue position, and pending applications. Actual processing
+              time for your application may vary.
             </p>
           </div>
         )}
