@@ -1,12 +1,12 @@
 // App.jsx
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { FilterPanel } from './components/FilterPanel';
-import { StackedBarChart } from './components/StackedBarChart';
 import { EstimationCard } from './components/EstimationCard';
 import { StatsSummary } from './components/StatsSummary';
 import { useImmigrationData } from './hooks/useImmigrationData';
 import { Icon } from '@iconify/react';
 import buildInfo from './buildInfo';
+import { CHART_COMPONENTS } from './components/common/ChartComponents';
 
 const App = () => {
   const { data, loading } = useImmigrationData();
@@ -17,8 +17,8 @@ const App = () => {
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEstimationExpanded, setIsEstimationExpanded] = useState(false);
-
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeChartIndex, setActiveChartIndex] = useState(0);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -97,7 +97,25 @@ const App = () => {
             <div className="relative sm:hidden">
               <div className="section-block">
                 <div className="base-container">
-                  <StackedBarChart data={data} filters={filters} isDarkMode={isDarkMode} />
+                  <div className="mb-2 flex justify-between space-x-1">
+                    {CHART_COMPONENTS.map((chart, index) => (
+                      <button
+                        key={chart.name}
+                        onClick={() => setActiveChartIndex(index)}
+                        className={`rounded-lg px-4 py-2 ${
+                          activeChartIndex === index
+                            ? 'bg-blue-500 text-gray-100 dark:bg-gray-300 dark:text-gray-600'
+                            : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-500 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <Icon icon={chart.icon} />
+                      </button>
+                    ))}
+                  </div>
+                  {(() => {
+                    const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
+                    return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
+                  })()}
                 </div>
               </div>
 
@@ -137,7 +155,25 @@ const App = () => {
                 {/* Chart row */}
                 <div className="flex-grow sm:mt-4 md:mt-5 lg:mt-6">
                   <div className="base-container h-full">
-                    <StackedBarChart data={data} filters={filters} isDarkMode={isDarkMode} />
+                    <div className="mb-4 flex space-x-2 overflow-x-auto">
+                      {CHART_COMPONENTS.map((chart, index) => (
+                        <button
+                          key={chart.name}
+                          onClick={() => setActiveChartIndex(index)}
+                          className={`rounded-t-lg px-4 py-2 ${
+                            activeChartIndex === index
+                              ? 'bg-blue-500 text-gray-100 dark:bg-gray-300 dark:text-gray-600'
+                              : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-500 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          <Icon icon={chart.icon} />
+                        </button>
+                      ))}
+                    </div>
+                    {(() => {
+                      const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
+                      return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
+                    })()}
                   </div>
                 </div>
               </div>
