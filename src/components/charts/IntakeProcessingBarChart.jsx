@@ -177,7 +177,7 @@ export const IntakeProcessingBarChart = ({ data, filters, isDarkMode }) => {
   return (
     <div className="card-content">
       <div className="mb-4 flex h-full items-center justify-between">
-        <h2 className="section-title">Processing and Reception</h2>
+        <div className="section-title">Intake and Processing</div>
         <select
           className="chart-filter-select"
           value={showAllMonths ? 'all' : monthRange}

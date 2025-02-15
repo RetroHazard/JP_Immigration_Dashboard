@@ -105,7 +105,7 @@ const App = () => {
                         className={`rounded-lg px-4 py-2 ${
                           activeChartIndex === index
                             ? 'bg-blue-500 text-gray-100 dark:bg-gray-300 dark:text-gray-600'
-                            : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-500 dark:hover:bg-gray-700'
+                            : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-500 dark:hover:bg-gray-400'
                         }`}
                       >
                         <Icon icon={chart.icon} />
@@ -163,7 +163,7 @@ const App = () => {
                           className={`rounded-t-lg px-4 py-2 ${
                             activeChartIndex === index
                               ? 'bg-blue-500 text-gray-100 dark:bg-gray-300 dark:text-gray-600'
-                              : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-500 dark:hover:bg-gray-700'
+                              : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-500 dark:hover:bg-gray-400'
                           }`}
                         >
                           <Icon icon={chart.icon} />
@@ -209,17 +209,17 @@ const App = () => {
             Official Statistics provided by Immigration Services Agency of Japan
             <br />
             Data acquisition provided by e-Stat
-            <a href="https://www.e-stat.go.jp/dbview?sid=0003449073">
+            <a href="https://www.e-stat.go.jp/dbview?sid=0003449073" target="_blank" rel="noreferrer">
               <Icon icon="ri:link" className="hyperlink vertical-align-sub inline-block align-middle" />
             </a>
           </div>
           <div className="footer-text-small">
             Built using{' '}
-            <a href="https://react.dev" className="hyperlink">
+            <a href="https://react.dev" className="hyperlink" target="_blank" rel="noreferrer">
               React
             </a>{' '}
             in 2025 by{' '}
-            <a href="https://github.com/RetroHazard" className="hyperlink">
+            <a href="https://github.com/RetroHazard" className="hyperlink" target="_blank" rel="noreferrer">
               <Icon icon="openmoji:github" className="vertical-align-sub-more inline-block align-middle text-sm" />
               RetroHazard
             </a>

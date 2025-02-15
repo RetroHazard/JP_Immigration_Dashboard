@@ -1,4 +1,4 @@
-// components/ApplicationTypeLineChart.jsx
+// components/CategorySubmissionsLineChart.jsx
 import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
@@ -14,7 +14,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
 
-export const ApplicationTypeLineChart = ({ data, filters, isDarkMode }) => {
+export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
@@ -182,7 +182,7 @@ export const ApplicationTypeLineChart = ({ data, filters, isDarkMode }) => {
   return (
     <div className="card-content">
       <div className="mb-4 flex h-full items-center justify-between">
-        <h2 className="section-title">Submissions by Category</h2>
+        <h2 className="section-title">Category Submissions</h2>
         <select
           className="chart-filter-select"
           value={showAllMonths ? 'all' : monthRange}

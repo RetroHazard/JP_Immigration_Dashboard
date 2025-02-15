@@ -10,9 +10,10 @@ import {
   PointElement,
   Title,
   Tooltip,
+  Filler,
 } from 'chart.js';
 
-ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Filler, Legend);
 
 export const IntakeProcessingLineChart = ({ data, filters, isDarkMode }) => {
   const [monthRange, setMonthRange] = useState(12);
@@ -58,30 +59,30 @@ export const IntakeProcessingLineChart = ({ data, filters, isDarkMode }) => {
         {
           label: 'Old Applications',
           data: monthlyStats.map((stat) => stat.totalApplications),
-          backgroundColor: 'rgba(54, 162, 245, 0.4)',
+          backgroundColor: 'rgba(54, 162, 245, 0.75)',
           borderColor: 'rgb(54, 162, 235)',
           borderWidth: 2,
-          order: 1,
+          order: 0,
           tension: 0.4,
           fill: true,
         },
         {
           label: 'New Applications',
           data: monthlyStats.map((stat) => stat.newApplications),
-          backgroundColor: 'rgba(245, 179, 8, 0.4)',
+          backgroundColor: 'rgba(245, 179, 8, 0.5)',
           borderColor: 'rgb(234, 179, 8)',
           borderWidth: 2,
-          order: 2,
+          order: -1,
           tension: 0.4,
           fill: true,
         },
         {
           label: 'Processed Applications',
           data: monthlyStats.map((stat) => stat.processed),
-          backgroundColor: 'rgba(34, 197, 94, 0.4)',
+          backgroundColor: 'rgba(34, 197, 94, 0.5)',
           borderColor: 'rgb(34, 220, 94)',
           borderWidth: 2,
-          order: 0,
+          order: -2,
           tension: 0.4,
           fill: true,
         },
@@ -96,7 +97,6 @@ export const IntakeProcessingLineChart = ({ data, filters, isDarkMode }) => {
     maintainAspectRatio: false,
     scales: {
       x: {
-        stacked: false,
         title: {
           display: true,
           text: 'Month',
@@ -109,7 +109,6 @@ export const IntakeProcessingLineChart = ({ data, filters, isDarkMode }) => {
         },
       },
       y: {
-        stacked: false,
         title: {
           display: true,
           text: 'Application Count',
@@ -134,14 +133,6 @@ export const IntakeProcessingLineChart = ({ data, filters, isDarkMode }) => {
           color: isDarkMode ? '#fff' : '#000',
         },
       },
-      title: {
-        display: false,
-        text: 'Immigration Applications by Period',
-        padding: {
-          top: 10,
-          bottom: 10,
-        },
-      },
       tooltip: {
         mode: 'index',
         callbacks: {
@@ -156,7 +147,7 @@ export const IntakeProcessingLineChart = ({ data, filters, isDarkMode }) => {
   return (
     <div className="card-content">
       <div className="mb-4 flex h-full items-center justify-between">
-        <h2 className="section-title">Processing and Reception</h2>
+        <div className="section-title">Processing and Reception</div>
         <select
           className="chart-filter-select"
           value={showAllMonths ? 'all' : monthRange}

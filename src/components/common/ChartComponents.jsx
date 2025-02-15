@@ -1,35 +1,24 @@
-import { ApplicationDensityTreemapChart } from '../charts/ApplicationDensityTreemapChart';
-import { ApplicationTypeLineChart } from '../charts/ApplicationTypeLineChart';
-import { BureauDistributionPieChart } from '../charts/BureauDistributionPieChart';
-import { BureauPerformanceBubbleChart } from '../charts/BureauPerformanceBubbleChart';
 import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
+import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineChart';
+import { BureauDistributionRingChart } from '../charts/BureauDistributionRingChart';
+import { BureauPerformanceBubbleChart } from '../charts/BureauPerformanceBubbleChart';
 import { MonthlyRadarChart } from '../charts/MonthlyRadarChart';
 
 export const CHART_COMPONENTS = [
   {
     name: 'Intake Processing',
-    icon: 'carbon:chart-combo',
+    icon: 'carbon:chart-stacked',
     component: IntakeProcessingBarChart,
   },
-  /*  {
-    name: 'Intake Processing (Line)',
-    icon: 'carbon:chart-multi-line',
-    component: IntakeProcessingLineChart,
-  },*/
   {
     name: 'Application Types',
     icon: 'carbon:chart-multi-line',
-    component: ApplicationTypeLineChart,
-  },
-  {
-    name: 'Application Bureau Heatmap',
-    icon: 'carbon:chart-treemap',
-    component: ApplicationDensityTreemapChart,
+    component: CategorySubmissionsLineChart,
   },
   {
     name: 'Bureau Distribution',
-    icon: 'carbon:chart-pie',
-    component: BureauDistributionPieChart,
+    icon: 'carbon:chart-ring',
+    component: BureauDistributionRingChart,
   },
   {
     name: 'Bureau Performance',

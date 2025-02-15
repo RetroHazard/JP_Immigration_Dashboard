@@ -159,7 +159,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                             \\begin{aligned}
                             &\\text{where}\\
                             \\begin{cases}
-                            Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{adj}}}_{${estimatedDate.details.modelVariables.Q_adj.toFixed()}} - \\underbrace{P_{\\text{proc}}}_{${estimatedDate.details.modelVariables.P_proc.toFixed()}} \\\\
+                            Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{adj}}}_{${estimatedDate.details.modelVariables.Q_adj.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${estimatedDate.details.modelVariables.C_proc.toFixed()}} - \\underbrace{P_{\\text{proc}}}_{${estimatedDate.details.modelVariables.P_proc.toFixed()}} \\\\
                             \\\\
                             R_{\\text{daily}} \\approx \\left\\lbrack\\dfrac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\dfrac{${estimatedDate.details.modelVariables.Sigma_P}}{${estimatedDate.details.modelVariables.Sigma_D}}\\right\\rbrack \\\\
                             \\end{cases}
