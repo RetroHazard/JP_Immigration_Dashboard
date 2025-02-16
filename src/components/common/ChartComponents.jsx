@@ -1,3 +1,4 @@
+// components/common/ChartComponents.jsx
 import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
 import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineChart';
 import { BureauDistributionRingChart } from '../charts/BureauDistributionRingChart';
