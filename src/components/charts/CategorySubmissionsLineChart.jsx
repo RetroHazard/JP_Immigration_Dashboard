@@ -58,7 +58,7 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
       labels: months,
       datasets: [
         {
-          label: 'Status Acquisition',
+          label: 'Acquisition',
           data: monthlyStats.map((stat) => stat.statusAcquisition),
           backgroundColor: 'rgba(54, 162, 235, 0.4)', // Light blue
           borderColor: 'rgb(54, 162, 235)', // Blue
@@ -67,7 +67,7 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
           fill: false,
         },
         {
-          label: 'Extension of Stay',
+          label: 'Extension',
           data: monthlyStats.map((stat) => stat.extensionOfStay),
           backgroundColor: 'rgba(75, 192, 192, 0.4)', // Light teal
           borderColor: 'rgb(75, 192, 192)', // Teal
@@ -76,7 +76,7 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
           fill: false,
         },
         {
-          label: 'Change of Status',
+          label: 'Change',
           data: monthlyStats.map((stat) => stat.changeOfStatus),
           backgroundColor: 'rgba(255, 206, 86, 0.4)', // Light yellow
           borderColor: 'rgb(255, 206, 86)', // Yellow
@@ -85,7 +85,7 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
           fill: false,
         },
         {
-          label: 'Permission for Activity',
+          label: 'Activity',
           data: monthlyStats.map((stat) => stat.permissionForActivity),
           backgroundColor: 'rgba(153, 102, 255, 0.4)', // Light purple
           borderColor: 'rgb(153, 102, 255)', // Purple
@@ -103,7 +103,7 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
           fill: false,
         },
         {
-          label: 'Permanent Residence',
+          label: 'Permanent',
           data: monthlyStats.map((stat) => stat.permanentResidence),
           backgroundColor: 'rgba(201, 203, 207, 0.4)', // Light gray
           borderColor: 'rgb(201, 203, 207)', // Gray

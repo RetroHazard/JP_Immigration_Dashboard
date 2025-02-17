@@ -97,7 +97,7 @@ const App = () => {
             <div className="relative sm:hidden">
               <div className="section-block">
                 <div className="base-container">
-                  <div className="mb-2 flex justify-between space-x-1">
+                  <div className="mb-2 flex justify-between space-x-1 border-b dark:border-gray-500">
                     {CHART_COMPONENTS.map((chart, index) => (
                       <button
                         key={chart.name}
@@ -155,7 +155,7 @@ const App = () => {
                 {/* Chart row */}
                 <div className="flex-grow sm:mt-4 md:mt-5 lg:mt-6">
                   <div className="base-container h-full">
-                    <div className="mb-4 flex space-x-2 overflow-x-auto">
+                    <div className="mb-4 flex space-x-2 overflow-x-auto border-b dark:border-gray-500">
                       {CHART_COMPONENTS.map((chart, index) => (
                         <button
                           key={chart.name}

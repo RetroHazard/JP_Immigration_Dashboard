@@ -1,28 +1,37 @@
 // components/MonthlyRadarChart.jsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Radar } from 'react-chartjs-2';
 import { Chart as ChartJS, Filler, Legend, LineElement, PointElement, RadialLinearScale, Tooltip } from 'chart.js';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { applicationOptions } from '../../constants/applicationOptions';
-import { bureauColours } from '../../constants/bureauColours';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
 export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
-  // Automatically determine latest month from data
-  const latestMonth = useMemo(() => {
-    if (!data || data.length === 0) return '2024-11'; // Fallback
-    const months = [...new Set(data.map((entry) => entry.month))].sort();
-    return months[months.length - 1];
+  const [selectedPeriod, setSelectedPeriod] = useState('1');
+
+  // Get sorted list of unique months
+  const sortedMonths = useMemo(() => {
+    if (!data?.length) return [];
+    return [...new Set(data.map(entry => entry.month))].sort();
   }, [data]);
 
-  // Filter data for latest month and selected bureau
+  // Determine months to include based on selected period
+  const selectedMonths = useMemo(() => {
+    if (selectedPeriod === 'all') return sortedMonths;
+    const period = parseInt(selectedPeriod, 10);
+    return sortedMonths.slice(-period);
+  }, [selectedPeriod, sortedMonths]);
+
+  // Filter data for selected months and bureau
   const filteredData = useMemo(
     () =>
       data.filter(
-        (entry) => entry.month === latestMonth && (filters.bureau === 'all' || entry.bureau === filters.bureau)
+        entry =>
+          selectedMonths.includes(entry.month) &&
+          (filters.bureau === 'all' || entry.bureau === filters.bureau)
       ),
-    [data, latestMonth, filters.bureau]
+    [data, selectedMonths, filters.bureau]
   );
 
   // Calculate percentages for each bureau/type combination
@@ -49,8 +58,8 @@ export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
           return {
             label: bureau.label,
             data: percentages,
-            borderColor: bureauColours[bureau.value]?.border || '#94a3b8',
-            backgroundColor: bureauColours[bureau.value]?.background || '#94a3b860',
+            borderColor: bureau.border || '#94a3b8',
+            backgroundColor: bureau.background || '#94a3b860',
             pointRadius: percentages.map((p) => (p > 0 ? 3 : 0)),
             pointHoverRadius: percentages.map((p) => (p > 0 ? 5 : 0)),
           };
@@ -61,6 +70,7 @@ export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
       // Single bureau view
     } else {
       const total = filteredData.reduce((sum, d) => sum + d.value, 0);
+      const bureau = bureauOptions.find(b => b.value === filters.bureau);
       const percentages = applicationOptions
         .filter((t) => t.value !== 'all')
         .map((type) => {
@@ -75,8 +85,8 @@ export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
           {
             label: bureauOptions.find((b) => b.value === filters.bureau)?.label,
             data: percentages,
-            borderColor: bureauColours[filters.bureau]?.border || '#3B82F6',
-            backgroundColor: bureauColours[filters.bureau]?.background || '#3B82F620',
+            borderColor: bureau.border || '#3B82F6',
+            backgroundColor: bureau.background || '#3B82F620',
             pointRadius: percentages.map((p) => (p > 0 ? 5 : 0)),
             pointHoverRadius: percentages.map((p) => (p > 0 ? 5 : 0)),
           },
@@ -135,11 +145,23 @@ export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
     <div className="card-content">
       <div className="mb-4 flex h-full items-center justify-between">
         <div className="section-title">Category Distribution</div>
+        <select
+          className="chart-filter-select"
+          value={selectedPeriod}
+          onChange={(e) => setSelectedPeriod(e.target.value)}
+        >
+          <option value="1">Latest</option>
+          <option value="6">6 Months</option>
+          <option value="12">12 Months</option>
+          <option value="24">24 Months</option>
+          <option value="36">36 Months</option>
+          <option value="all">All Data</option>
+        </select>
       </div>
       <div className="chart-container">
         <Radar
           data={{
-            labels: applicationOptions.filter((t) => t.value !== 'all').map((t) => t.label),
+            labels: applicationOptions.filter((t) => t.value !== 'all').map((t) => t.short),
             datasets,
           }}
           options={options}

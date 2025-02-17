@@ -1,57 +1,91 @@
 // components/charts/BureauPerformanceBubbleChart.jsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Bubble } from 'react-chartjs-2';
 import { Chart as ChartJS, LinearScale, PointElement, Tooltip, Legend, Title } from 'chart.js';
 import { bureauOptions } from '../../constants/bureauOptions';
-import { bureauColours } from '../../constants/bureauColours';
+import { applicationOptions } from '../../constants/applicationOptions';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
 
 export const BureauPerformanceBubbleChart = ({ data, filters, isDarkMode }) => {
-  // Get latest month from data
-  const latestMonth = useMemo(() => {
-    if (!data?.length) return '2024-11';
-    const months = [...new Set(data.map((entry) => entry.month))].sort();
-    return months[months.length - 1];
+  const [selectedPeriod, setSelectedPeriod] = useState('1');
+
+  const sortedMonths = useMemo(() => {
+    if (!data?.length) return [];
+    return [...new Set(data.map(entry => entry.month))].sort();
   }, [data]);
+
+  const selectedMonths = useMemo(() => {
+    if (selectedPeriod === 'all') return sortedMonths;
+    const period = parseInt(selectedPeriod, 10);
+    return sortedMonths.slice(-period);
+  }, [selectedPeriod, sortedMonths]);
 
   const filteredData = useMemo(() => {
     return data.filter(
       (entry) =>
-        entry.month === latestMonth &&
+        selectedMonths.includes(entry.month) &&
+        (filters.bureau === 'all' || entry.bureau === filters.bureau) &&
         (filters.type === 'all' || entry.type === filters.type) &&
         ['103000', '300000'].includes(entry.status)
     );
-  }, [data, latestMonth, filters.type]);
+  }, [data, selectedMonths, filters.bureau, filters.type]);
 
   const chartData = useMemo(() => {
-    return bureauOptions
-      .filter((b) => b.value !== 'all')
-      .map((bureau) => {
-        const bureauData = filteredData.filter((d) => d.bureau === bureau.value);
+    const bureaus = bureauOptions.filter(b => b.value !== 'all');
+    const appTypes = applicationOptions.filter(t => t.value !== 'all');
 
-        // Calculate total received applications
-        const totalReceived = bureauData.filter((d) => d.status === '103000').reduce((sum, d) => sum + d.value, 0);
+    // Calculate maximum processed value
+    let maxProcessed = 0;
+    bureaus.forEach(bureau => {
+      appTypes.forEach(type => {
+        const processed = filteredData
+          .filter(d => d.bureau === bureau.value && d.type === type.value)
+          .filter(d => d.status === '300000')
+          .reduce((sum, d) => sum + d.value, 0);
+        if (processed > maxProcessed) maxProcessed = processed;
+      });
+    });
 
-        // Calculate total processed applications
-        const totalProcessed = bureauData.filter((d) => d.status === '300000').reduce((sum, d) => sum + d.value, 0);
+    const AREA_SCALING_FACTOR = 15000; // Adjust based on visual requirements
+    const sizeScale = maxProcessed > 0
+      ? Math.sqrt(AREA_SCALING_FACTOR / (Math.PI * maxProcessed))
+      : 0;
 
-        // Calculate processing efficiency
+    return bureaus.map((bureau) => {
+      const bureauDataPoints = appTypes.map((type) => {
+        const bureauTypeData = filteredData.filter(
+          (d) => d.bureau === bureau.value && d.type === type.value
+        );
+
+        const totalReceived = bureauTypeData
+          .filter(d => d.status === '103000')
+          .reduce((sum, d) => sum + d.value, 0);
+
+        const totalProcessed = bureauTypeData
+          .filter(d => d.status === '300000')
+          .reduce((sum, d) => sum + d.value, 0);
+
         const efficiency = totalReceived > 0 ? (totalProcessed / totalReceived) * 100 : 0;
 
-        console.log('Bureau Value:', bureau.value);
-        console.log('Available Bureau Colours:', bureauColours);
-
         return {
-          label: bureau.label,
           x: totalReceived,
           y: efficiency,
-          r: Math.sqrt(totalProcessed) * 0.8,
-          backgroundColor: bureauColours[bureau.value] || 'rgba(75, 192, 192, 0.6)', // Default fallback
-          borderColor: bureauColours[bureau.value] || 'rgba(75, 192, 192, 1)', // Default fallback
+          r: Math.sqrt(totalProcessed) * sizeScale, // Controls bubble size
+          label: type.label,
+          processed: totalProcessed,
+          bureau: bureau.label,
         };
-      })
-      .filter((item) => item.x > 0); // Exclude zero values
+      }).filter(point => point.x > 0); // Exclude points with no data
+
+      return {
+        label: bureau.label,
+        data: bureauDataPoints,
+        backgroundColor: bureau.background,
+        borderColor: bureau.border,
+        borderWidth: 1,
+      };
+    });
   }, [filteredData]);
 
   const options = {
@@ -61,23 +95,20 @@ export const BureauPerformanceBubbleChart = ({ data, filters, isDarkMode }) => {
       x: {
         title: {
           display: true,
-          text: 'Monthly Application Volume',
+          text: 'Volume Received',
           color: isDarkMode ? '#fff' : '#000',
         },
         ticks: {
-          beginAtZero: true,
           color: isDarkMode ? '#fff' : '#000',
         },
       },
       y: {
         title: {
           display: true,
-          text: 'Processing Completion Rate (%)',
+          text: 'Completion Rate (%)',
           color: isDarkMode ? '#fff' : '#000',
         },
         ticks: {
-          beginAtZero: true,
-          max: 100, // Efficiency is a percentage (0-100)
           color: isDarkMode ? '#fff' : '#000',
         },
       },
@@ -87,18 +118,11 @@ export const BureauPerformanceBubbleChart = ({ data, filters, isDarkMode }) => {
         callbacks: {
           label(context) {
             const raw = context.raw || {};
-            const label = raw.label || 'Unknown Bureau';
-            const x = raw.x || 0;
-            const y = raw.y || 0;
-            const z = raw.z || 0;
-            const r = raw.r || 0;
-
-            // Ensure all values are numbers
             return [
-              `${label}`,
-              `Monthly Received: ${Number(x).toLocaleString()}`,
-              `Monthly Processed: ${Number(z).toLocaleString()}`,
-              `Efficiency (%): ${Number(y).toFixed(2)}%`,
+              `${raw.bureau} - ${raw.label}`, // Use bureau from raw data
+              `Received: ${raw.x.toLocaleString()}`,
+              `Processed: ${raw.processed.toLocaleString()}`,
+              `Efficiency: ${raw.y.toFixed(2)}%`
             ];
           },
         },
@@ -110,21 +134,22 @@ export const BureauPerformanceBubbleChart = ({ data, filters, isDarkMode }) => {
   return (
     <div className="card-content">
       <div className="mb-4 flex h-full items-center justify-between">
-        <div className="section-title">Processing Efficiency ({latestMonth})</div>
+        <div className="section-title">Processing Efficiency</div>
+        <select
+          className="chart-filter-select"
+          value={selectedPeriod}
+          onChange={(e) => setSelectedPeriod(e.target.value)}
+        >
+          <option value="1">Latest</option>
+          <option value="6">6 Months</option>
+          <option value="12">12 Months</option>
+          <option value="24">24 Months</option>
+          <option value="36">36 Months</option>
+          <option value="all">All Data</option>
+        </select>
       </div>
       <div className="chart-container">
-        <Bubble
-          data={{
-            datasets: chartData.map((item) => ({
-              label: item.bureau,
-              data: [{ x: item.x, y: item.y, r: item.r }],
-              backgroundColor: bureauColours[item.bureau] || 'rgba(75, 192, 192, 0.6)',
-              borderColor: bureauColours[item.bureau] || 'rgba(75, 192, 192, 1)',
-              borderWidth: 1,
-            })),
-          }}
-          options={options}
-        />
+        <Bubble data={{datasets: chartData}} options={options} />
       </div>
     </div>
   );
