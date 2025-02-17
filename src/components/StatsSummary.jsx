@@ -74,7 +74,8 @@ export const StatsSummary = ({ data, filters }) => {
         {/* Desktop View */}
         <div className="stat-details">
           <div className="stat-title">{title}</div>
-          <div className="stat-short-title">{shortTitle}</div> {/* TODO: Add conditional(?) display of application type/filtered */}
+          <div className="stat-short-title">{shortTitle}</div>
+          {/* TODO: Add conditional(?) display of application type/filtered */}
           <div className="stat-subtitle">{subtitle}</div>
           <div className="stat-value">{value}</div>
         </div>

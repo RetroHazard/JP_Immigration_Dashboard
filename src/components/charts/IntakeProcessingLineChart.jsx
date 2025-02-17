@@ -4,13 +4,13 @@ import { Line } from 'react-chartjs-2';
 import {
   CategoryScale,
   Chart as ChartJS,
+  Filler,
   Legend,
   LinearScale,
   LineElement,
   PointElement,
   Title,
   Tooltip,
-  Filler,
 } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Filler, Legend);
@@ -115,8 +115,6 @@ export const IntakeProcessingLineChart = ({ data, filters, isDarkMode }) => {
           color: isDarkMode ? '#fff' : '#000',
         },
         ticks: {
-          suggestedMin: Math.min(...chartData.datasets.map((dataset) => Math.min(...dataset.data))),
-          suggestedMax: Math.max(...chartData.datasets.map((dataset) => Math.max(...dataset.data))),
           color: isDarkMode ? '#fff' : '#000',
         },
         grid: {

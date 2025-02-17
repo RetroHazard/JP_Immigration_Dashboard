@@ -13,7 +13,7 @@ export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
   // Get sorted list of unique months
   const sortedMonths = useMemo(() => {
     if (!data?.length) return [];
-    return [...new Set(data.map(entry => entry.month))].sort();
+    return [...new Set(data.map((entry) => entry.month))].sort();
   }, [data]);
 
   // Determine months to include based on selected period
@@ -27,9 +27,7 @@ export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
   const filteredData = useMemo(
     () =>
       data.filter(
-        entry =>
-          selectedMonths.includes(entry.month) &&
-          (filters.bureau === 'all' || entry.bureau === filters.bureau)
+        (entry) => selectedMonths.includes(entry.month) && (filters.bureau === 'all' || entry.bureau === filters.bureau)
       ),
     [data, selectedMonths, filters.bureau]
   );
@@ -70,7 +68,7 @@ export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
       // Single bureau view
     } else {
       const total = filteredData.reduce((sum, d) => sum + d.value, 0);
-      const bureau = bureauOptions.find(b => b.value === filters.bureau);
+      const bureau = bureauOptions.find((b) => b.value === filters.bureau);
       const percentages = applicationOptions
         .filter((t) => t.value !== 'all')
         .map((type) => {
