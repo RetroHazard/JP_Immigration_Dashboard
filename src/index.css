@@ -203,7 +203,7 @@
 
     /* Chart Components */
     .chart-container {
-        @apply w-full min-h-[300px]
+        @apply w-full min-h-[325px]
         sm:min-h-[400px]
     }
 

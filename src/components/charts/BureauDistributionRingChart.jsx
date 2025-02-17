@@ -12,7 +12,7 @@ export const BureauDistributionRingChart = ({ data, filters, isDarkMode }) => {
   // Get sorted list of unique months
   const sortedMonths = useMemo(() => {
     if (!data?.length) return [];
-    return [...new Set(data.map(entry => entry.month))].sort();
+    return [...new Set(data.map((entry) => entry.month))].sort();
   }, [data]);
 
   // Determine months to include based on selected period
@@ -26,32 +26,31 @@ export const BureauDistributionRingChart = ({ data, filters, isDarkMode }) => {
   const filteredData = useMemo(
     () =>
       data.filter(
-        entry =>
-          selectedMonths.includes(entry.month) &&
-          (filters.type === 'all' || entry.type === filters.type)
+        (entry) => selectedMonths.includes(entry.month) && (filters.type === 'all' || entry.type === filters.type)
       ),
     [data, selectedMonths, filters.type]
   );
 
   // Calculate bureau data with aggregated values
   const bureauData = useMemo(
-    () => bureauOptions
-      .filter(b => b.value !== 'all')
-      .map(bureau => ({
-        id: bureau.value, // Add bureau ID for lookup
-        label: bureau.label,
-        value: filteredData
-          .filter(d => d.bureau === bureau.value)
-          .reduce((sum, d) => {
+    () =>
+      bureauOptions
+        .filter((b) => b.value !== 'all')
+        .map((bureau) => ({
+          id: bureau.value,
+          label: bureau.label,
+          value: filteredData
+            .filter((d) => d.bureau === bureau.value)
+            .reduce((sum, d) => {
               if (d.status === '102000' || d.status === '103000') {
                 return sum + d.value;
               } else if (d.status === '300000') {
-                return sum - d.value;
+                return sum + d.value;
               }
               return sum;
-          }, 0)
-      }))
-      .filter(b => b.value > 0),
+            }, 0),
+        }))
+        .filter((b) => b.value > 0),
     [filteredData]
   );
 
@@ -63,35 +62,33 @@ export const BureauDistributionRingChart = ({ data, filters, isDarkMode }) => {
     elements: {
       arc: {
         backgroundColor: (ctx) => {
-          const bureau = bureauOptions.find(b => b.value === bureauData[ctx.dataIndex]?.id);
+          const bureau = bureauOptions.find((b) => b.value === bureauData[ctx.dataIndex]?.id);
           return bureau?.background || 'rgba(100, 116, 139, 0.4)'; // Fallback to Slate
         },
         borderColor: (ctx) => {
-          const bureau = bureauOptions.find(b => b.value === bureauData[ctx.dataIndex]?.id);
+          const bureau = bureauOptions.find((b) => b.value === bureauData[ctx.dataIndex]?.id);
           return bureau?.border || 'rgba(100, 116, 139, 1)'; // Fallback to Slate
         },
-        borderWidth: 1
-      }
+        borderWidth: 1,
+      },
     },
     plugins: {
       legend: {
         position: 'left',
         labels: {
           color: isDarkMode ? '#fff' : '#000',
-          filter: item => item.text !== '0',
+          filter: (item) => item.text !== '0',
         },
       },
       tooltip: {
         callbacks: {
           label: (context) => {
             const total = context.dataset.data.reduce((a, b) => a + b, 0);
-            const percentage = total > 0
-              ? ((context.parsed / total) * 100).toFixed(1)
-              : '0.0';
+            const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
             return `${context.label}: ${percentage}%`;
-          }
-        }
-      }
+          },
+        },
+      },
     },
   };
 
@@ -115,8 +112,8 @@ export const BureauDistributionRingChart = ({ data, filters, isDarkMode }) => {
       <div className="chart-container">
         <Doughnut
           data={{
-            labels: bureauData.map(b => b.label),
-            datasets: [{data: bureauData.map(b => b.value)}],
+            labels: bureauData.map((b) => b.label),
+            datasets: [{ data: bureauData.map((b) => b.value) }],
           }}
           options={options}
         />

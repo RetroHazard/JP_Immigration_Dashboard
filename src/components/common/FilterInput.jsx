@@ -5,6 +5,7 @@ export const FilterInput = ({
   options = [],
   value,
   onChange,
+  disabled,
   min,
   max,
   includeDefaultOption = false,
@@ -17,14 +18,16 @@ export const FilterInput = ({
     <div className="space-y-2">
       <label className="filter-label">{label}</label>
       {type === 'select' ? (
-        <select className="filter-select" value={value} onChange={handleChange}>
-          {includeDefaultOption && <option value="">{defaultOptionLabel}</option>}
-          {options.filter(filterFn).map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <div className={`${disabled ? 'pointer-events-none opacity-50' : ''}`}>
+          <select className="filter-select" value={value} onChange={handleChange}>
+            {includeDefaultOption && <option value="">{defaultOptionLabel}</option>}
+            {options.filter(filterFn).map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
       ) : (
         <input
           type={type}
