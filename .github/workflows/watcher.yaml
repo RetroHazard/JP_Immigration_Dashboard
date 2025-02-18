@@ -1,0 +1,127 @@
+name: Data Watcher
+on:
+  schedule:
+    - cron: '0 * 23-27 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+  id-token: write
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: watcher-${{ github.ref }}
+      cancel-in-progress: true
+
+    env:
+      DATA_PATH: public/datastore/statData.json
+      CURRENT_MONTH: ${{ format(utcnow(), 'yyyy-MM') }}
+
+    steps:
+      - name: Check monthly lock
+        id: lock-check
+        uses: actions/github-script@v6
+        with:
+          script: |
+            try {
+              await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: `monthly-lock-${process.env.CURRENT_MONTH}.lock`
+              });
+              core.setFailed('Monthly update already completed');
+            } catch (error) {
+              // Proceed if file not found
+            }
+
+      - uses: actions/checkout@v4
+
+      - name: Restore previous data
+        uses: actions/cache@v4
+        id: data-cache
+        with:
+          path: ${{ env.DATA_PATH }}
+          key: estat-data-${{ hashFiles(env.DATA_PATH) }}
+          restore-keys: |
+            estat-data-
+
+      - name: Download new data
+        run: |
+          mkdir -p $(dirname $DATA_PATH)
+          curl -L "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId=${{ secrets.ESTAT_APP_ID }}&lang=J&statsDataId=0003449073&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y§ionHeaderFlg=1&replaceSpChars=0" \
+            -o $DATA_PATH || {
+              echo "::error::API request failed"
+              exit 1
+            }
+
+      - name: Validate and compare data
+        id: data-diff
+        run: |
+          if [ -f $DATA_PATH ]; then
+            if [ -f prev-$DATA_PATH ]; then
+              diff $DATA_PATH prev-$DATA_PATH || exit 0
+              echo "No data changes detected" && exit 1
+            fi
+          else
+            echo "Download failed" && exit 1
+          fi
+
+      - name: Cache new data
+        if: steps.data-diff.outcome == 'success'
+        uses: actions/cache@v4
+        id: cache-step
+        with:
+          path: ${{ env.DATA_PATH }}
+          key: estat-data-${{ hashFiles(env.DATA_PATH) }}
+
+      - name: Clean old caches
+        if: steps.data-diff.outcome == 'success'
+        uses: actions/github-script@v6
+        env:
+          CURRENT_CACHE_KEY: ${{ steps.cache-step.outputs.cache-primary-key }}
+        with:
+          script: |
+            const { data } = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              key: 'estat-data-'
+            });
+            
+            for (const cache of data.actions_caches) {
+              if (cache.key !== process.env.CURRENT_CACHE_KEY) {
+                await github.rest.actions.deleteActionsCacheById({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  cache_id: cache.id
+                });
+              }
+            }
+
+      - name: Create monthly lock
+        if: steps.data-diff.outcome == 'success'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: `monthly-lock-${process.env.CURRENT_MONTH}.lock`,
+              message: 'Lock monthly updates',
+              content: Buffer.from('Updated').toString('base64'),
+              branch: 'main'
+            })
+
+      - name: Trigger build
+        if: steps.data-diff.outcome == 'success'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'build.yaml',
+              ref: 'main'
+            })
