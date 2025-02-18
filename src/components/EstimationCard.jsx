@@ -7,6 +7,7 @@ import { Icon } from '@iconify/react';
 import { calculateEstimatedDate } from '../utils/calculateEstimates';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
+import { FormulaTooltip, variableExplanations } from './common/FormulaTooltip';
 
 export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollapse, onClose }) => {
   const [applicationDetails, setApplicationDetails] = useState({
@@ -145,17 +146,34 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                       className="rounded-xl bg-gray-100 p-2.5 text-xxs shadow-lg dark:bg-gray-600"
                     >
                       <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
-                        <BlockMath
-                          math={`
+                        <FormulaTooltip
+                          variables={{
+                            'D_{\\text{rem}}': variableExplanations['D_rem'],
+                            'Q_{\\text{pos}}': variableExplanations['Q_pos'],
+                            'R_{\\text{daily}}': variableExplanations['R_daily'],
+                          }}
+                        >
+                          <BlockMath
+                            math={`
                             \\begin{aligned}
                             &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${estimatedDate.details.modelVariables.Q_pos.toFixed()}}}{${estimatedDate.details.modelVariables.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${estimatedDate.details.modelVariables.D_rem.toFixed()} \\ \\text{d} \\\\
                             \\end{aligned}
                           `}
-                        />
+                          />
+                        </FormulaTooltip>
                       </div>
                       <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
-                        <BlockMath
-                          math={`
+                        <FormulaTooltip
+                          variables={{
+                            'Q_{\\text{adj}}': variableExplanations['Q_adj'],
+                            'C_{\\text{proc}}': variableExplanations['C_proc'],
+                            'P_{\\text{proc}}': variableExplanations['P_proc'],
+                            '\\sum P': variableExplanations['Sigma_P'],
+                            '\\sum D': variableExplanations['Sigma_D'],
+                          }}
+                        >
+                          <BlockMath
+                            math={`
                             \\begin{aligned}
                             &\\text{where}\\
                             \\begin{cases}
@@ -165,11 +183,20 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                             \\end{cases}
                             \\end{aligned}
                           `}
-                        />
+                          />
+                        </FormulaTooltip>
                       </div>
                       <div className="mt-2 border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
-                        <BlockMath
-                          math={`
+                        <FormulaTooltip
+                          variables={{
+                            'Q_{\\text{app}}': variableExplanations['Q_app'],
+                            '\\Delta_{\\text{net}}': variableExplanations['Delta_net'],
+                            't_{\\text{pred}}': variableExplanations['t_pred'],
+                            'R_{\\text{new}}': variableExplanations['R_new'],
+                          }}
+                        >
+                          <BlockMath
+                            math={`
                             \\begin{aligned}
                             &Q_{\\text{adj}} 
                             \\begin{cases}
@@ -183,7 +210,8 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                             \\end{cases}\\end{cases}
                             \\end{aligned}
                           `}
-                        />
+                          />
+                        </FormulaTooltip>
                       </div>
                     </div>
                   </>

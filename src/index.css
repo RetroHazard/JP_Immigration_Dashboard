@@ -131,7 +131,7 @@
     /* Tippy.js */
 
     .tippy-box[data-theme~='stat-tooltip'] {
-        @apply bg-gray-900 text-white text-xs px-2 py-1 shadow-lg dark:bg-gray-300 dark:text-gray-800;
+        @apply bg-gray-900 text-white text-xs px-2 py-1 shadow-lg rounded-2xl dark:bg-gray-300 dark:text-gray-800;
     }
 
     .tippy-box[data-theme~='stat-tooltip'] > .tippy-arrow {
