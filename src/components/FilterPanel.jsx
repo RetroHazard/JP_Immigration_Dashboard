@@ -3,7 +3,7 @@ import { FilterInput } from './common/FilterInput';
 import { bureauOptions } from '../constants/bureauOptions';
 import { applicationOptions } from '../constants/applicationOptions';
 
-export const FilterPanel = ({ data, filters, onChange }) => {
+export const FilterPanel = ({ data, filters, onChange, filterConfig }) => {
   const dateRange = useMemo(() => {
     if (!data || !Array.isArray(data) || data.length === 0) {
       console.log('No valid data provided');
@@ -45,6 +45,7 @@ export const FilterPanel = ({ data, filters, onChange }) => {
           options={bureauOptions}
           value={filters.bureau}
           onChange={(value) => onChange({ ...filters, bureau: value })}
+          disabled={!filterConfig.bureau}
         />
 
         <FilterInput
@@ -53,6 +54,7 @@ export const FilterPanel = ({ data, filters, onChange }) => {
           options={applicationOptions}
           value={filters.type}
           onChange={(value) => onChange({ ...filters, type: value })}
+          disabled={!filterConfig.appType}
         />
       </div>
       <div className="filter-note mt-2">

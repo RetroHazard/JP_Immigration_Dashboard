@@ -1,6 +1,6 @@
 {
   "name": "jp_immigration_dashboard",
-  "version": "0.2.5",
+  "version": "0.2.8",
   "private": true,
   "dependencies": {
     "chart.js": "^4.4.7",

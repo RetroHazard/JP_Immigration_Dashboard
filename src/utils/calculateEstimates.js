@@ -102,7 +102,7 @@ export const calculateEstimatedDate = (data, details) => {
     processedInAppMonth = dailyProcessed * (daysInMonth - appDay);
   }
 
-  const confirmedProcessed = sumByStatus('300000', (m) => m > applicationMonth) + Math.round(processedInAppMonth);
+  const confirmedProcessed = sumByStatus('300000', (m) => m > applicationMonth) + processedInAppMonth;
 
   const totalInQueue = sumByStatus(
     '102000',
@@ -196,7 +196,8 @@ export const calculateEstimatedDate = (data, details) => {
       Sigma_P: Number(totalProcessed), // Total number of applications processed since submission
       Sigma_D: Number(totalDays), // Total days in data since application month (inclusive)
       Q_app: Number(carriedOver + receivedByAppDate - processedByAppDate), // Estimated queue position at submission time
-      P_proc: Number(totalProcessedSinceApp), // Estimated applications processed since submission time
+      C_proc: Number(confirmedProcessed), // Confirmed applications processed since submission time
+      P_proc: Number(predictedProcessed), // Estimated applications processed since last data point
       Q_adj: Number(
         carriedOver + receivedByAppDate - processedByAppDate + (dailyNew - dailyProcessed) * predictionDays
       ), // Estimated current queue total
