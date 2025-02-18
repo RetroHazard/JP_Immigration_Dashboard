@@ -3,6 +3,7 @@
   "version": "0.2.8",
   "private": true,
   "dependencies": {
+    "@tippyjs/react": "^4.2.6",
     "chart.js": "^4.4.7",
     "cra-template": "1.2.0",
     "katex": "^0.16.21",
