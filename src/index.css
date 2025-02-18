@@ -9,6 +9,20 @@
     }
 }
 
+/* Tippy.js */
+
+.tippy-box[data-theme~='stat-tooltip'] {
+    @apply bg-gray-700 text-white text-xs px-2 py-1 shadow-lg rounded-xl dark:bg-gray-300 dark:text-gray-800;
+}
+
+.tippy-box[data-theme~='stat-tooltip'] > .tippy-arrow {
+    @apply text-gray-700 dark:text-gray-300;
+}
+
+.tippy-box[data-theme~='stat-tooltip'] > .tippy-backdrop {
+    @apply bg-gray-700 dark:bg-gray-300;
+}
+
 @layer components {
     /* Base Components */
     .base-container {
@@ -126,20 +140,6 @@
         md:text-2xl
         lg:text-3xl
         xl:text-4xl
-    }
-
-    /* Tippy.js */
-
-    .tippy-box[data-theme~='stat-tooltip'] {
-        @apply bg-gray-900 text-white text-xs px-2 py-1 shadow-lg rounded-2xl dark:bg-gray-300 dark:text-gray-800;
-    }
-
-    .tippy-box[data-theme~='stat-tooltip'] > .tippy-arrow {
-        @apply text-gray-900 dark:text-gray-300;
-    }
-
-    .tippy-box[data-theme~='stat-tooltip'] > .tippy-backdrop {
-        @apply bg-gray-900 dark:bg-gray-300;
     }
 
     /* Stat Text Elements */

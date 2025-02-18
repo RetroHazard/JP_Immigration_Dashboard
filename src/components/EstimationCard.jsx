@@ -145,14 +145,14 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                       id="calculationModel"
                       className="rounded-xl bg-gray-100 p-2.5 text-xxs shadow-lg dark:bg-gray-600"
                     >
-                      <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
-                        <FormulaTooltip
-                          variables={{
-                            'D_{\\text{rem}}': variableExplanations['D_rem'],
-                            'Q_{\\text{pos}}': variableExplanations['Q_pos'],
-                            'R_{\\text{daily}}': variableExplanations['R_daily'],
-                          }}
-                        >
+                      <FormulaTooltip
+                        variables={{
+                          'D_{\\text{rem}}': variableExplanations['D_rem'],
+                          'Q_{\\text{pos}}': variableExplanations['Q_pos'],
+                          'R_{\\text{daily}}': variableExplanations['R_daily'],
+                        }}
+                      >
+                        <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                           <BlockMath
                             math={`
                             \\begin{aligned}
@@ -160,18 +160,18 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                             \\end{aligned}
                           `}
                           />
-                        </FormulaTooltip>
-                      </div>
-                      <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
-                        <FormulaTooltip
-                          variables={{
-                            'Q_{\\text{adj}}': variableExplanations['Q_adj'],
-                            'C_{\\text{proc}}': variableExplanations['C_proc'],
-                            'P_{\\text{proc}}': variableExplanations['P_proc'],
-                            '\\sum P': variableExplanations['Sigma_P'],
-                            '\\sum D': variableExplanations['Sigma_D'],
-                          }}
-                        >
+                        </div>
+                      </FormulaTooltip>
+                      <FormulaTooltip
+                        variables={{
+                          'Q_{\\text{adj}}': variableExplanations['Q_adj'],
+                          'C_{\\text{proc}}': variableExplanations['C_proc'],
+                          'P_{\\text{proc}}': variableExplanations['P_proc'],
+                          '\\sum P': variableExplanations['Sigma_P'],
+                          '\\sum D': variableExplanations['Sigma_D'],
+                        }}
+                      >
+                        <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                           <BlockMath
                             math={`
                             \\begin{aligned}
@@ -184,17 +184,17 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                             \\end{aligned}
                           `}
                           />
-                        </FormulaTooltip>
-                      </div>
-                      <div className="mt-2 border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
-                        <FormulaTooltip
-                          variables={{
-                            'Q_{\\text{app}}': variableExplanations['Q_app'],
-                            '\\Delta_{\\text{net}}': variableExplanations['Delta_net'],
-                            't_{\\text{pred}}': variableExplanations['t_pred'],
-                            'R_{\\text{new}}': variableExplanations['R_new'],
-                          }}
-                        >
+                        </div>
+                      </FormulaTooltip>
+                      <FormulaTooltip
+                        variables={{
+                          'Q_{\\text{app}}': variableExplanations['Q_app'],
+                          '\\Delta_{\\text{net}}': variableExplanations['Delta_net'],
+                          't_{\\text{pred}}': variableExplanations['t_pred'],
+                          'R_{\\text{new}}': variableExplanations['R_new'],
+                        }}
+                      >
+                        <div className="mt-2 border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                           <BlockMath
                             math={`
                             \\begin{aligned}
@@ -211,8 +211,8 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                             \\end{aligned}
                           `}
                           />
-                        </FormulaTooltip>
-                      </div>
+                        </div>
+                      </FormulaTooltip>
                     </div>
                   </>
                 )}
