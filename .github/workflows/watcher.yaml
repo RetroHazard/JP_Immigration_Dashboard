@@ -18,9 +18,11 @@ jobs:
 
     env:
       DATA_PATH: public/datastore/statData.json
-      CURRENT_MONTH: ${{ format(utcnow(), 'yyyy-MM') }}
 
     steps:
+      - name: Set environment variable for CURRENT_MONTH
+        run: echo "CURRENT_MONTH=$(date +'%Y-%m')" >> "$GITHUB_ENV"
+
       - name: Check monthly lock
         id: lock-check
         uses: actions/github-script@v6
