@@ -1,11 +1,11 @@
-// components/StackedBarChart.jsx
+// components/IntakeProcessingBarChart.jsx
 import React, { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export const StackedBarChart = ({ data, filters, isDarkMode }) => {
+export const IntakeProcessingBarChart = ({ data, filters, isDarkMode }) => {
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
 
@@ -76,7 +76,7 @@ export const StackedBarChart = ({ data, filters, isDarkMode }) => {
           data: monthlyStats.map((stat) => stat.totalApplications),
           backgroundColor: 'rgba(54, 162, 245, 0.7)',
           borderColor: 'rgb(54, 162, 235)',
-          borderWidth: 1,
+          borderWidth: 2,
           yAxisID: 'y',
           order: 1,
         },
@@ -85,7 +85,7 @@ export const StackedBarChart = ({ data, filters, isDarkMode }) => {
           data: monthlyStats.map((stat) => stat.newApplications),
           backgroundColor: 'rgba(245, 179, 8, 0.7)',
           borderColor: 'rgb(234, 179, 8)',
-          borderWidth: 1,
+          borderWidth: 2,
           yAxisID: 'y',
           order: 2,
         },
@@ -94,7 +94,7 @@ export const StackedBarChart = ({ data, filters, isDarkMode }) => {
           data: monthlyStats.map((stat) => stat.processed),
           backgroundColor: 'rgba(34, 197, 94, 0.9)',
           borderColor: 'rgb(34, 220, 94)',
-          borderWidth: 1,
+          borderWidth: 2,
           yAxisID: 'y2',
           barPercentage: 0.6,
           order: 0,
@@ -164,6 +164,7 @@ export const StackedBarChart = ({ data, filters, isDarkMode }) => {
         },
       },
       tooltip: {
+        mode: 'index',
         callbacks: {
           label: (context) => {
             return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
@@ -176,7 +177,7 @@ export const StackedBarChart = ({ data, filters, isDarkMode }) => {
   return (
     <div className="card-content">
       <div className="mb-4 flex h-full items-center justify-between">
-        <h2 className="section-title">Processing and Reception by Month</h2>
+        <div className="section-title">Intake and Processing</div>
         <select
           className="chart-filter-select"
           value={showAllMonths ? 'all' : monthRange}

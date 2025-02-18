@@ -2,75 +2,115 @@
 [![Build and Deploy to GitHub Pages](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/build.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/build.yaml)
 
 ## Overview
-
-A React-based dashboard for visualizing and analyzing Japanese immigration application processing statistics. The
+A React-based dashboard for visualising and analysing Japanese immigration application processing statistics. The
 dashboard provides estimates and visual analytics for application processing times across different immigration bureaus
 using a combination of predictive averages and confirmed statistics reported by Immigration Services Agency of Japan.
 
+
 ## Features
+## :bar_chart: Data Visualisation
+This project offers a suite of interactive and configurable charts for analysing data trends and distributions. 
+Each chart is designed to provide clear insights while allowing flexibility through filters and customisation.
+---
+### **Stacked Bar Chart**
+**Purpose:** Visualise intake and processing trends.
+- Displays:
+  - Previously received applications
+  - Newly received applications
+  - Processed applications per month
+- Filterable by bureau and application type
+- Indexed tooltips for detailed viewing
+- Configurable time range display
 
-:bar_chart: Data Visualisation
 
-- Interactive Stacked Bar Chart
-    + Previously received applications
-    + Newly received applications
-    + Processed applications per month
-    + Configurable time range display (6/12/24/36/all months)
+### **Multi-Line Chart**
+**Purpose:** Visualise submission trends.
+- Tracks all category types
+- Filterable by individual bureaus
+- Exclude specific application types via UI
+- Indexed tooltips for detailed viewing
+- Configurable time range display
 
+
+### **Ring Chart**
+**Purpose:** Show distribution of workload.
+- Visualises load distribution by application type
+- Exclude specific bureaus via UI
+- Configurable cumulative time range display
+
+
+### **Bubble Chart**
+**Purpose:** Measure processing efficiency.
+- Visualises monthly intake vs. processing rates
+- Normalised bubble sizes for large datasets
+- Filterable by bureau and application type
+- Clear, concise tooltips
+- Configurable cumulative time range display
+
+
+### **Radar Chart**
+**Purpose:** Highlight category spread.
+- Easily identify category distributions
+- Filterable by individual bureaus
+- Configurable cumulative time range display
+
+---
 :clock2: Processing Time Estimator
-
-- Smart Estimation Panel
-    + Collapsible interface
-    + Queue position tracking
-    + Historical processing rate analysis
-    + Predictive modeling for future dates
-    + Past-due notifications
++ Smart Estimation Panel
+  + Collapsible interface
+  + Queue position tracking
+  + Historical processing rate analysis
+  + Predictive modeling
+  + Detailed calculation formula
+  + Past-due notifications
 
 :mag: Advanced Filtering
-
-- Immigration bureau selection
-- Application type filtering
-- Time period adjustment
+- Dynamic filter availability
+  - Immigration bureau selection
+  - Application type selection
 - Statistics summary
+- On-chart series pruning
 
 :iphone: Responsive Design
+- Mobile friendly
+- Adaptive breakpoints
+- Fluid layout
+- Responsive user interface
+- Light/dark mode support
 
-- Adaptive Breakpoints
-- Fluid Layout
-- Responsive Interface
-- Light/Dark Mode Support
 
 ## Tech Stack
-
 **Frontend**
-
 - `Node.js` - Runtime & Build
 - `React` - Core Framework
-- `Chart.js` - Data Visualization
+- `Chart.js` - Data Visualisation
 - `Tailwind CSS` - Styling
 - `Iconify` - UI icons
+- `KaTeX` - LaTeX Typesetting
+
+**Tooling**
+- `WebStorm` - Primary IDE
+- `Prettier` - Code Formatter
+
 
 ## Data Processing
-
 **Prediction Model**
-
 - 3-month rolling averages
 - Dynamic queue position calculation
 - Real-time processing rate analysis
 - Missing month predictions
 
 **Calculations**
-
 - Application processing rates
+- Application intake rates
 - Queue position tracking
 - Completion date estimation
 - Trend analysis
 
-## Data Source
 
+## Data Source
 - Official statistics provided by Immigration Services Agency of Japan 
 - Data acquisition via [e-Stat API](https://www.e-stat.go.jp/)
 
 ## Contributing
-
 Pull requests are welcome. For major changes, please open an issue first to discuss proposed changes.
