@@ -9,6 +9,20 @@
     }
 }
 
+/* Tippy.js */
+
+.tippy-box[data-theme~='stat-tooltip'] {
+    @apply bg-gray-700 text-white text-xs px-2 py-1 shadow-lg rounded-xl dark:bg-gray-300 dark:text-gray-800;
+}
+
+.tippy-box[data-theme~='stat-tooltip'] > .tippy-arrow {
+    @apply text-gray-700 dark:text-gray-300;
+}
+
+.tippy-box[data-theme~='stat-tooltip'] > .tippy-backdrop {
+    @apply bg-gray-700 dark:bg-gray-300;
+}
+
 @layer components {
     /* Base Components */
     .base-container {
@@ -85,18 +99,6 @@
     .stat-container {
         @apply grid grid-cols-5 gap-1 mt-4
         xl:w-full
-    }
-
-    .stat-tooltip {
-        @apply absolute bottom-full left-1/2 z-50 p-2 mb-2 text-xs font-medium text-white bg-gray-900 rounded-lg opacity-0 invisible -translate-x-1/2 transition-opacity duration-300 dark:bg-gray-300 dark:text-gray-800
-        max-w-[calc(100vw-1rem)]
-        group-hover:opacity-100 group-hover:visible
-        whitespace-normal
-        sm:hidden
-    }
-
-    .stat-tooltip-arrow {
-        @apply absolute -bottom-1 left-1/2 w-2 h-2 bg-gray-900 -translate-x-1/2 rotate-45 dark:bg-gray-300
     }
 
     /* Card Components */
