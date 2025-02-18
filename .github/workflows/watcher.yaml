@@ -50,9 +50,15 @@ jobs:
 
       - name: Download new data
         run: |
-          mkdir -p $(dirname $DATA_PATH)
+          mkdir -p $(dirname "$DATA_PATH")
+          # Backup existing data to prev file if present
+          if [ -f "$DATA_PATH" ]; then
+            dir=$(dirname "$DATA_PATH")
+            filename=$(basename "$DATA_PATH")
+            cp "$DATA_PATH" "$dir/prev-$filename"
+          fi
           curl -L "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId=${{ secrets.ESTAT_APP_ID }}&lang=J&statsDataId=0003449073&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y§ionHeaderFlg=1&replaceSpChars=0" \
-            -o $DATA_PATH || {
+            -o "$DATA_PATH" || {
               echo "::error::API request failed"
               exit 1
             }
@@ -60,13 +66,36 @@ jobs:
       - name: Validate and compare data
         id: data-diff
         run: |
-          if [ -f $DATA_PATH ]; then
-            if [ -f prev-$DATA_PATH ]; then
-              diff $DATA_PATH prev-$DATA_PATH || exit 0
-              echo "No data changes detected" && exit 1
-            fi
+          if [ ! -f "$DATA_PATH" ]; then
+            echo "::error::Download failed"
+            exit 1
+          fi
+
+          dir=$(dirname "$DATA_PATH")
+          filename=$(basename "$DATA_PATH")
+          prev_file="$dir/prev-$filename"
+
+          # Check if previous data exists
+          if [ ! -f "$prev_file" ]; then
+            echo "No previous data, changes detected"
+            exit 0
+          fi
+
+          # Extract current dates
+          current_survey=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.SURVEY_DATE' "$DATA_PATH")
+          current_updated=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.UPDATED_DATE' "$DATA_PATH")
+
+          # Extract previous dates
+          prev_survey=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.SURVEY_DATE' "$prev_file")
+          prev_updated=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.UPDATED_DATE' "$prev_file")
+
+          # Compare dates
+          if [ "$current_survey" != "$prev_survey" ] || [ "$current_updated" != "$prev_updated" ]; then
+            echo "Dates changed, proceeding"
+            exit 0
           else
-            echo "Download failed" && exit 1
+            echo "No changes in SURVEY_DATE or UPDATED_DATE"
+            exit 1
           fi
 
       - name: Cache new data
