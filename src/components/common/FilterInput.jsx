@@ -19,7 +19,7 @@ export const FilterInput = ({
       <label className="filter-label">{label}</label>
       {type === 'select' ? (
         <div className={`${disabled ? 'pointer-events-none opacity-50' : ''}`}>
-          <select className="filter-select" value={value} onChange={handleChange}>
+          <select className="filter-select" aria-label={value} value={value} onChange={handleChange}>
             {includeDefaultOption && <option value="">{defaultOptionLabel}</option>}
             {options.filter(filterFn).map((option) => (
               <option key={option.value} value={option.value}>

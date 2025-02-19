@@ -84,7 +84,7 @@ const App = () => {
                   })}
                 </span>
               </div>
-              <button onClick={toggleTheme} className="theme-toggle">
+              <button onClick={toggleTheme} className="theme-toggle" aria-label="Toggle theme">
                 <Icon
                   icon={
                     isDarkMode
@@ -119,6 +119,7 @@ const App = () => {
                     {CHART_COMPONENTS.map((chart, index) => (
                       <button
                         key={chart.name}
+                        aria-label={chart.name}
                         onClick={() => setActiveChartIndex(index)}
                         className={`rounded-t-lg px-4 py-2 ${
                           activeChartIndex === index
@@ -232,7 +233,7 @@ const App = () => {
             Official Statistics provided by Immigration Services Agency of Japan
             <br />
             Data acquisition provided by e-Stat
-            <a href="https://www.e-stat.go.jp/dbview?sid=0003449073" target="_blank" rel="noreferrer">
+            <a href="https://www.e-stat.go.jp/" target="_blank" rel="noreferrer" aria-label="e-Stat Website">
               <Icon icon="ri:link" className="hyperlink vertical-align-sub inline-block align-middle" />
             </a>
           </div>
