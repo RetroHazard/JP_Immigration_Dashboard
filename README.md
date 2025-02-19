@@ -2,115 +2,142 @@
 [![Build and Deploy to GitHub Pages](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/build.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/build.yaml)
 
 ## Overview
-A React-based dashboard for visualising and analysing Japanese immigration application processing statistics. The
-dashboard provides estimates and visual analytics for application processing times across different immigration bureaus
-using a combination of predictive averages and confirmed statistics reported by Immigration Services Agency of Japan.
-
-
-## Features
-## :bar_chart: Data Visualisation
-This project offers a suite of interactive and configurable charts for analysing data trends and distributions. 
-Each chart is designed to provide clear insights while allowing flexibility through filters and customisation.
----
-### **Stacked Bar Chart**
-**Purpose:** Visualise intake and processing trends.
-- Displays:
-  - Previously received applications
-  - Newly received applications
-  - Processed applications per month
-- Filterable by bureau and application type
-- Indexed tooltips for detailed viewing
-- Configurable time range display
-
-
-### **Multi-Line Chart**
-**Purpose:** Visualise submission trends.
-- Tracks all category types
-- Filterable by individual bureaus
-- Exclude specific application types via UI
-- Indexed tooltips for detailed viewing
-- Configurable time range display
-
-
-### **Ring Chart**
-**Purpose:** Show distribution of workload.
-- Visualises load distribution by application type
-- Exclude specific bureaus via UI
-- Configurable cumulative time range display
-
-
-### **Bubble Chart**
-**Purpose:** Measure processing efficiency.
-- Visualises monthly intake vs. processing rates
-- Normalised bubble sizes for large datasets
-- Filterable by bureau and application type
-- Clear, concise tooltips
-- Configurable cumulative time range display
-
-
-### **Radar Chart**
-**Purpose:** Highlight category spread.
-- Easily identify category distributions
-- Filterable by individual bureaus
-- Configurable cumulative time range display
+A React-based dashboard for visualizing and analyzing application processing statistics at Japan's 
+Immigration Bureaus. The dashboard provides estimates and visual analytics for application processing 
+times across different immigration bureaus using a combination of predictive averages and confirmed statistics 
+reported by the Immigration Services Agency of Japan.
 
 ---
-:clock2: Processing Time Estimator
-+ Smart Estimation Panel
-  + Collapsible interface
-  + Queue position tracking
-  + Historical processing rate analysis
-  + Predictive modeling
-  + Detailed calculation formula
-  + Past-due notifications
 
-:mag: Advanced Filtering
-- Dynamic filter availability
+## :sparkles: Features
+
+### :bar_chart: Data Visualization
+This project offers a suite of interactive and configurable charts to analyze data trends and distributions. 
+Each chart is designed to provide clear insights while allowing flexibility through filters and customization.
+
+#### **Stacked Bar Chart**
+- **Purpose:** Represents intake and processing trends.
+- **Features:**
+  - Displays:
+    - Previously received applications
+    - Newly received applications
+    - Processed applications per month
+  - Filterable by bureau and application type
+  - Indexed tooltips for detailed viewing
+  - Configurable time range display
+
+#### **Multi-Line Chart**
+- **Purpose:** Represents submission trends.
+- **Features:**
+  - Tracks all category types
+  - Filterable by individual bureaus
+  - Exclude specific application types via UI
+  - Indexed tooltips for detailed viewing
+  - Configurable time range display
+
+#### **Ring Chart**
+- **Purpose:** Represents distribution of workload.
+- **Features:**
+  - Visualizes load distribution by application type
+  - Exclude specific bureaus via UI
+  - Configurable cumulative time range display
+
+#### **Bubble Chart**
+- **Purpose:** Measure processing efficiency.
+- **Features:**
+  - Visualizes monthly intake vs. processing rates
+  - Normalized bubble sizes for large datasets
+  - Filterable by bureau and application type
+  - Clear, concise tooltips
+  - Configurable cumulative time range display
+
+#### **Radar Chart**
+- **Purpose:** Highlight category spread.
+- **Features:**
+  - Easily identify category distributions
+  - Filterable by individual bureaus
+  - Configurable cumulative time range display
+
+---
+
+### :mag: Dynamic Filtering
+- Dynamic filter availability:
   - Immigration bureau selection
   - Application type selection
-- Statistics summary
-- On-chart series pruning
+- Statistics summary on charts
+- On-chart series pruning for better insights
 
-:iphone: Responsive Design
-- Mobile friendly
-- Adaptive breakpoints
-- Fluid layout
-- Responsive user interface
-- Light/dark mode support
+---
 
+### :clock2: Processing Time Estimator
+- Smart Estimation Panel:
+  - Collapsible interface
+  - Queue position tracking
+  - Historical processing rate analysis
+  - Predictive modeling with detailed calculation formulas
+    - Tooltip reference /w variable explanations
+  - Past-due notifications
 
-## Tech Stack
-**Frontend**
-- `Node.js` - Runtime & Build
-- `React` - Core Framework
-- `Chart.js` - Data Visualisation
-- `Tailwind CSS` - Styling
-- `Iconify` - UI icons
-- `KaTeX` - LaTeX Typesetting
+---
 
-**Tooling**
-- `WebStorm` - Primary IDE
-- `Prettier` - Code Formatter
+### :pencil: Summary Badges
+- Effortlessly reference the most recent data points
+- Filterable by Immigration Bureau and Application Type
+- Responsive tooltips for mobile users
 
+---
 
-## Data Processing
-**Prediction Model**
-- 3-month rolling averages
-- Dynamic queue position calculation
-- Real-time processing rate analysis
-- Missing month predictions
+### :iphone: Responsive Design
+- Mobile-friendly with adaptive breakpoints
+- Fluid layout for all screen sizes
+- Responsive user interface with light/dark mode support
 
-**Calculations**
+---
+
+## :hammer_and_wrench: Tech Stack
+
+### Frontend:
+- `Node.js` – Runtime & Build
+- `React` – Core Framework
+- `Chart.js` – Data Visualization
+- `Tippy.js` – Tooltips
+- `Tailwind CSS` – Styling
+- `Iconify` – UI Icons
+- `KaTeX` – LaTeX Typesetting
+
+### DevOps:
+- `GitHub Actions` – Automation
+
+### Hosting:
+- `GitHub Pages` – Static Site Hosting
+
+### Tooling:
+- `WebStorm` – IDE
+- `Prettier` – Code Formatter
+
+---
+
+## :chart_with_upwards_trend: Data Processing
+
+### Prediction Model:
+- Uses a rolling average (3 months) for dynamic queue position calculation.
+- Real-time analysis of processing rates.
+- Predicts missing months where data is unavailable.
+
+### Calculations:
 - Application processing rates
 - Application intake rates
 - Queue position tracking
 - Completion date estimation
 - Trend analysis
 
+---
 
-## Data Source
-- Official statistics provided by Immigration Services Agency of Japan 
-- Data acquisition via [e-Stat API](https://www.e-stat.go.jp/)
+## :file_folder: Data Source
+This project uses official statistics provided by the Immigration Services Agency of Japan. 
+Data acquisition is performed via the [e-Stat API](https://www.e-stat.go.jp/).
+
+---
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss proposed changes.
