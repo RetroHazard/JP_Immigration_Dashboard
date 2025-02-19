@@ -1,26 +1,36 @@
 {
   "name": "jp_immigration_dashboard",
   "version": "0.2.9",
+  "homepage": "https://dashboard.retrohazard.jp",
   "private": true,
   "dependencies": {
-    "@tippyjs/react": "^4.2.6",
-    "chart.js": "^4.4.7",
-    "cra-template": "1.2.0",
-    "katex": "^0.16.21",
     "react": "^18.3.1",
-    "react-build-info": "^0.0.3",
-    "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.3.1",
+    "chart.js": "^4.4.7",
+    "react-chartjs-2": "^5.3.0",
+    "katex": "^0.16.21",
     "react-katex": "^3.0.1",
-    "react-scripts": "5.0.1",
-    "tailwindcss": "^3.4.17"
+    "@tippyjs/react": "^4.2.6"
   },
-  "homepage": "https://dashboard.retrohazard.jp",
+  "devDependencies": {
+    "cra-template": "1.2.0",
+    "autoprefixer": "^10.4.20",
+    "react-build-info": "^0.0.3",
+    "react-scripts": "5.0.1",
+    "@iconify/react": "^5.2.0",
+    "tailwindcss": "^3.4.17",
+    "@tailwindcss/forms": "^0.5.10",
+    "postcss": "^8.5.1",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "lockfile-shaker": "^1.0.1"
+  },
   "scripts": {
     "start": "react-build-info && react-scripts start",
     "build": "react-build-info && react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postinstall": "node -e \"(process.env.npm_command != 'ci') && require('lockfile-shaker/lib/bin.js')\""
   },
   "eslintConfig": {
     "extends": [
@@ -39,13 +49,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@iconify/react": "^5.2.0",
-    "@tailwindcss/forms": "^0.5.10",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.5.1",
-    "prettier": "^3.4.2",
-    "prettier-plugin-tailwindcss": "^0.6.11"
   }
 }
