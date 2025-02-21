@@ -12,14 +12,15 @@ const geoUrl = '/static/japan.topo.json';
 
 // Calculate color based on density
 const adjustColor = (originalColor, density, minDensity, maxDensity) => {
-  if (!originalColor) return '#DDD';
-  const colorMatch = originalColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(,\s*[\d.]+)?\)/);
-  if (!colorMatch) return originalColor;
+  if (!originalColor) return 'rgba(221, 221, 221, 0.8)';
 
-  // Extract RGB values
-  const r = parseInt(colorMatch[1]) / 255;
-  const g = parseInt(colorMatch[2]) / 255;
-  const b = parseInt(colorMatch[3]) / 255;
+  // Handle colors with spaces in RGBA values
+  const colorParts = originalColor.replace(/ /g, '').match(/(\d+\.?\d*)/g) || [];
+  const [r, g, b] = colorParts.slice(0, 3).map((c) => parseInt(c) / 255);
+  const originalAlpha = colorParts[3] ? parseFloat(colorParts[3]) : 0.4;
+
+  // Handle single-value density ranges
+  const densityScale = maxDensity !== minDensity ? (density - minDensity) / (maxDensity - minDensity) : 0.5; // Default to midpoint
 
   // Convert RGB to HSL
   const max = Math.max(r, g, b);
@@ -47,11 +48,6 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
     h /= 6;
   }
 
-  // Adjust based on density
-  const densityScale = (density - minDensity) / (maxDensity - minDensity);
-  s = Math.min(s + densityScale * 0.4, 1); // Increase saturation
-  l = l * (1 - densityScale * 0.3); // Darken color
-
   // Convert HSL back to RGB
   const hue2rgb = (p, q, t) => {
     if (t < 0) t += 1;
@@ -66,9 +62,7 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
   const p = 2 * l - q;
   const rgb = [hue2rgb(p, q, h + 1 / 3), hue2rgb(p, q, h), hue2rgb(p, q, h - 1 / 3)].map((x) => Math.round(x * 255));
 
-  // Preserve original alpha
-  const alpha = colorMatch[4] ? parseFloat(colorMatch[4]) : 1;
-  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${originalAlpha})`; // Preserve original alpha
 };
 
 export const GeographicDistributionChart = ({ isDarkMode }) => {
@@ -85,6 +79,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
 
   // Bureau density calculations
   const bureauDensityRanges = useMemo(() => {
+    // First create the groups
     const groups = japanPrefectures.reduce((acc, prefecture) => {
       const bureau = prefecture.bureau;
       acc[bureau] = acc[bureau] || [];
@@ -92,8 +87,12 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
       return acc;
     }, {});
 
+    // Then process the ranges
     return Object.entries(groups).reduce((acc, [bureau, densities]) => {
-      acc[bureau] = { min: Math.min(...densities), max: Math.max(...densities) };
+      acc[bureau] = {
+        min: Math.min(...densities),
+        max: Math.max(...densities) || Math.min(...densities), // Fallback for single-value
+      };
       return acc;
     }, {});
   }, []);
@@ -127,9 +126,6 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
       : bureau.background;
   };
 
-  // Marker position adjustment
-  const adjustMarkerPosition = ([lon, lat]) => [lon - 0.425, lat + 0.615];
-
   return (
     <div className="card-content">
       <div className="mb-4 flex items-center justify-between">
@@ -151,7 +147,11 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
         {' '}
         {/* // TODO: Fix Chart Container Height */}
         <ComposableMap projection="geoMercator" projectionConfig={{ scale: 1000, center: [136, 36] }}>
-          <ZoomableGroup center={position.coordinates} zoom={position.zoom}>
+          <ZoomableGroup
+            center={position.coordinates}
+            zoom={position.zoom}
+            onMoveEnd={({ coordinates, zoom }) => setPosition({ coordinates, zoom })}
+          >
             <Geographies geography={geoUrl}>
               {({ geographies }) =>
                 geographies.map((geo) => {
@@ -191,23 +191,31 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
               .filter((b) => b.value !== 'all')
               .map((bureau) => {
                 const isAirport = !nonAirportBureaus.find((b) => b.value === bureau.value);
-                const iconSize = Math.min(24, Math.max(8, 35 / position.zoom));
+                const baseSize = Math.min(24, Math.max(8, 35 / position.zoom));
+                const iconSize = isAirport ? baseSize * 0.2 : baseSize; // 1/4 size for airports
 
+                // Different coordinate adjustments for airports
+                const adjustCoords = ([lon, lat]) => {
+                  return isAirport ? [lon - 0.5, lat + 0.7] : [lon - 0.425, lat + 0.615];
+                };
                 return (
                   <Marker
                     key={bureau.value}
-                    coordinates={adjustMarkerPosition(bureau.coordinates)}
+                    coordinates={adjustCoords(bureau.coordinates)}
                     onMouseEnter={() => setMarkerTooltip(bureau)}
                     onMouseLeave={() => setMarkerTooltip(null)}
                     ref={(node) => markerRefs.current.set(bureau.value, node)}
                   >
                     <Icon
-                      icon={isAirport ? 'carbon:airport-01' : 'carbon:building'}
+                      icon={isAirport ? 'streamline:airport-security-solid' : 'tdesign:building-filled'}
                       color={bureau.border}
                       stroke={'black'}
                       strokeWidth={0.5}
-                      width={iconSize}
-                      height={iconSize}
+                      style={{
+                        transform: `translate(-50%, -50%)`,
+                        width: `${iconSize}px`,
+                        height: `${iconSize}px`,
+                      }}
                     />
                   </Marker>
                 );
