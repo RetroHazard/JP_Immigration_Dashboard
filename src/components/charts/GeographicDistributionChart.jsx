@@ -6,15 +6,70 @@ import 'tippy.js/dist/tippy.css';
 import { Icon } from '@iconify/react';
 import { japanPrefectures } from '../../constants/japanPrefectures';
 import { bureauOptions } from '../../constants/bureauOptions';
+import { nonAirportBureaus } from '../../utils/getBureauData';
 
 const geoUrl = '/static/japan.topo.json';
 
-// Calculate alpha channel based on density
-const calculateAlpha = (density, minDensity, maxDensity) => {
-  if (minDensity === maxDensity) return 0.75;
-  const scaled = (density - minDensity) / (maxDensity - minDensity);
-  return scaled * 0.75 + 0.65;
-}; // TODO: also adjust Hue/Saturation based on Density Rating
+// Calculate color based on density
+const adjustColor = (originalColor, density, minDensity, maxDensity) => {
+  if (!originalColor) return '#DDD';
+  const colorMatch = originalColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(,\s*[\d.]+)?\)/);
+  if (!colorMatch) return originalColor;
+
+  // Extract RGB values
+  const r = parseInt(colorMatch[1]) / 255;
+  const g = parseInt(colorMatch[2]) / 255;
+  const b = parseInt(colorMatch[3]) / 255;
+
+  // Convert RGB to HSL
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h,
+    s,
+    l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0;
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
+    }
+    h /= 6;
+  }
+
+  // Adjust based on density
+  const densityScale = (density - minDensity) / (maxDensity - minDensity);
+  s = Math.min(s + densityScale * 0.4, 1); // Increase saturation
+  l = l * (1 - densityScale * 0.3); // Darken color
+
+  // Convert HSL back to RGB
+  const hue2rgb = (p, q, t) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const rgb = [hue2rgb(p, q, h + 1 / 3), hue2rgb(p, q, h), hue2rgb(p, q, h - 1 / 3)].map((x) => Math.round(x * 255));
+
+  // Preserve original alpha
+  const alpha = colorMatch[4] ? parseFloat(colorMatch[4]) : 1;
+  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+};
 
 export const GeographicDistributionChart = ({ isDarkMode }) => {
   const [tooltipInfo, setTooltipInfo] = useState(null);
@@ -67,9 +122,9 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
     if (!bureau) return '#DDD';
 
     const range = bureauDensityRanges[prefecture.bureau];
-    const alpha = range ? calculateAlpha(parseFloat(prefecture.density), range.min, range.max) : 0.75;
-
-    return bureau.background.replace(/0\.4\)$/, `${alpha})`);
+    return range
+      ? adjustColor(bureau.background, parseFloat(prefecture.density), range.min, range.max)
+      : bureau.background;
   };
 
   // Marker position adjustment
@@ -134,24 +189,29 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
 
             {bureauOptions
               .filter((b) => b.value !== 'all')
-              .map((bureau) => (
-                <Marker
-                  key={bureau.value}
-                  coordinates={adjustMarkerPosition(bureau.coordinates)}
-                  onMouseEnter={() => setMarkerTooltip(bureau)}
-                  onMouseLeave={() => setMarkerTooltip(null)}
-                  ref={(node) => markerRefs.current.set(bureau.value, node)}
-                >
-                  <Icon
-                    icon="carbon:location-filled" // TODO: Switch Icon if Airport Bureau
-                    color={bureau.border}
-                    stroke={'black'}
-                    strokeWidth={0.5}
-                    width={15} // TODO: Scale Marker Size based on current Zoom level
-                    height={15}
-                  />
-                </Marker>
-              ))}
+              .map((bureau) => {
+                const isAirport = !nonAirportBureaus.find((b) => b.value === bureau.value);
+                const iconSize = Math.min(24, Math.max(8, 35 / position.zoom));
+
+                return (
+                  <Marker
+                    key={bureau.value}
+                    coordinates={adjustMarkerPosition(bureau.coordinates)}
+                    onMouseEnter={() => setMarkerTooltip(bureau)}
+                    onMouseLeave={() => setMarkerTooltip(null)}
+                    ref={(node) => markerRefs.current.set(bureau.value, node)}
+                  >
+                    <Icon
+                      icon={isAirport ? 'carbon:airport-01' : 'carbon:building'}
+                      color={bureau.border}
+                      stroke={'black'}
+                      strokeWidth={0.5}
+                      width={iconSize}
+                      height={iconSize}
+                    />
+                  </Marker>
+                );
+              })}
           </ZoomableGroup>
         </ComposableMap>
         {/* Prefecture Tooltips */}
@@ -184,8 +244,9 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
             markerTooltip && (
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full" style={{ backgroundColor: markerTooltip.border }} />
-                {markerTooltip.label}{' '}
-                {/* // TODO: Add additional label to identify Immigration Bureau, to clarify that this is not a city marker. */}
+                {nonAirportBureaus.find((b) => b.value === markerTooltip.value)
+                  ? `Regional Immigration Bureau: ${markerTooltip.label}`
+                  : markerTooltip.label}
               </div>
             )
           }

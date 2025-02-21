@@ -8,3 +8,7 @@ export const getBureauLabel = (bureauCode) => {
 export const nonAirportBureaus = bureauOptions.filter((option) => {
   return option.value !== 'all' && !option.label.toLowerCase().includes('airport');
 });
+
+export const isAirportBureau = (bureauCode) => {
+  return !nonAirportBureaus.some((b) => b.value === bureauCode);
+};

@@ -104,8 +104,8 @@ export const bureauOptions = [
     label: 'Kansai Airport',
     short: 'KIX',
     coordinates: [135.2441, 34.4342],
-    border: 'rgba(217,70 ,239 ,1 )',
-    background: 'rgba(217 ,70 ,239, 0.4)',
+    border: 'rgba(217, 70, 239, 1)',
+    background: 'rgba(217, 70, 239, 0.4)',
   },
   {
     value: '101370',

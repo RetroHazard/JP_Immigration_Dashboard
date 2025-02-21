@@ -103,12 +103,17 @@ const App = () => {
         {!loading && (
           <>
             <div className="section-block grid grid-cols-1 sm:hidden">
-              <FilterPanel
-                data={data}
-                filters={filters}
-                onChange={setFilters}
-                filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
-              />
+              {' '}
+              {/* //TODO: Fix Spacing when Filters Hidden */}
+              {(CHART_COMPONENTS[activeChartIndex].filters.bureau ||
+                CHART_COMPONENTS[activeChartIndex].filters.appType) && (
+                <FilterPanel
+                  data={data}
+                  filters={filters}
+                  onChange={setFilters}
+                  filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
+                />
+              )}
             </div>
 
             {/* Mobile Layout */}
@@ -168,12 +173,17 @@ const App = () => {
               >
                 {/* Filter row */}
                 <div className="flex-shrink-0">
-                  <FilterPanel
-                    data={data}
-                    filters={filters}
-                    onChange={setFilters}
-                    filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
-                  />
+                  {' '}
+                  {/* //TODO: Fix Spacing when Filters Hidden */}
+                  {(CHART_COMPONENTS[activeChartIndex].filters.bureau ||
+                    CHART_COMPONENTS[activeChartIndex].filters.appType) && (
+                    <FilterPanel
+                      data={data}
+                      filters={filters}
+                      onChange={setFilters}
+                      filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
+                    />
+                  )}
                 </div>
 
                 {/* Chart row */}
