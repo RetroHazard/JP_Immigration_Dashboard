@@ -12,7 +12,7 @@
 /* Tippy.js */
 
 .tippy-box[data-theme~='stat-tooltip'] {
-    @apply bg-gray-700 text-white text-xs px-2 py-1 shadow-lg rounded-xl dark:bg-gray-300 dark:text-gray-800;
+    @apply bg-gray-700 text-white text-xs px-2 py-1 shadow-xl rounded-md dark:bg-gray-300 dark:text-gray-800;
 }
 
 .tippy-box[data-theme~='stat-tooltip'] > .tippy-arrow {
@@ -275,6 +275,10 @@
     /* Special Components */
     .clip-tapered-btn {
         @apply relative flex items-center justify-center h-[130px] w-[25px] overflow-visible bg-gray-700 text-white shadow-lg animate-pulse clip-path-tapered-btn hover:bg-gray-500 dark:bg-gray-300 dark:text-gray-700
+    }
+
+    .zoom-button {
+        @apply h-8 w-8 flex items-center justify-center bg-gray-300 dark:bg-gray-500 rounded-full shadow-lg border border-gray-500 dark:border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors;
     }
 
     @screen sm {
