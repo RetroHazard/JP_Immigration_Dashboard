@@ -10,8 +10,9 @@ const geoUrl = '/static/japan.topo.json';
 
 // Calculate alpha channel based on density
 const calculateAlpha = (density, minDensity, maxDensity) => {
+  if (minDensity === maxDensity) return 0.75;
   const scaled = (density - minDensity) / (maxDensity - minDensity);
-  return scaled * 0.25 + 0.5; // Range 0.5-0.75
+  return scaled * 0.25 + 0.5;
 };
 
 export const GeographicDistributionChart = ({ isDarkMode }) => {
@@ -75,6 +76,8 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
     return bureau.background.replace(/0\.4\)$/, `${alpha})`);
   };
 
+  const adjustMarkerPosition = ([lon, lat]) => [lon - 0.4, lat + 0.525];
+
   return (
     <div className="chart-container relative">
       <ComposableMap
@@ -96,7 +99,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                     geography={geo}
                     fill={getFillColor(geo.properties.name)}
                     stroke={isDarkMode ? '#475569' : '#CBD5E1'}
-                    strokeWidth={1}
+                    strokeWidth={0.25}
                     onMouseEnter={() => {
                       if (!prefecture) return;
                       const centroid = geo.centroid;
@@ -129,7 +132,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
             .map((bureau) => (
               <Marker
                 key={bureau.value}
-                coordinates={bureau.coordinates}
+                coordinates={adjustMarkerPosition(bureau.coordinates)}
                 onMouseEnter={() => setMarkerTooltip(bureau)}
                 onMouseLeave={() => setMarkerTooltip(null)}
               >
