@@ -192,12 +192,17 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
               .map((bureau) => {
                 const isAirport = !nonAirportBureaus.find((b) => b.value === bureau.value);
                 const baseSize = Math.min(24, Math.max(8, 35 / position.zoom));
-                const iconSize = isAirport ? baseSize * 0.2 : baseSize; // 1/4 size for airports
+                const iconSize = isAirport ? baseSize * 0.25 : baseSize;
 
-                // Different coordinate adjustments for airports
+                // Zoom-aware coordinate adjustments
                 const adjustCoords = ([lon, lat]) => {
-                  return isAirport ? [lon - 0.5, lat + 0.7] : [lon - 0.425, lat + 0.615];
+                  const zoomFactor = position.zoom;
+                  if (isAirport) {
+                    return [lon - 0.45 / zoomFactor, lat + 0.05]; // Airport adjustment
+                  }
+                  return [lon - 1 / zoomFactor, lat + 0.8 / zoomFactor]; // Regular bureau adjustment
                 };
+
                 return (
                   <Marker
                     key={bureau.value}
@@ -209,12 +214,11 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                     <Icon
                       icon={isAirport ? 'streamline:airport-security-solid' : 'tdesign:building-filled'}
                       color={bureau.border}
-                      stroke={'black'}
-                      strokeWidth={0.5}
+                      width={iconSize}
+                      height={iconSize}
                       style={{
-                        transform: `translate(-50%, -50%)`,
-                        width: `${iconSize}px`,
-                        height: `${iconSize}px`,
+                        transform: 'translate(-50%, -50%)',
+                        transition: 'width 0.2s, height 0.2s',
                       }}
                     />
                   </Marker>
