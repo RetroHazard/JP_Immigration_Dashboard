@@ -33,7 +33,7 @@
     }
 
     .section-block {
-        @apply h-full mb-8
+        @apply h-full
     }
 
     .build-info {
@@ -65,8 +65,8 @@
     }
 
     .marginals {
-        @apply max-w-7xl px-3 mx-auto
-        sm:px-4 sm:py-1
+        @apply px-3
+        sm:px-4 sm:py-1 sm:max-w-7xl sm:mx-auto
         lg:px-8
     }
 

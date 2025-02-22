@@ -42,5 +42,5 @@ export const CHART_COMPONENTS = [
     icon: 'carbon:map',
     component: GeographicDistributionChart,
     filters: { bureau: false, appType: false },
-  }, // TODO: Hide Filter Panel if Geographic Chart is active.
+  },
 ];
