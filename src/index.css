@@ -212,7 +212,7 @@
     .map-container {
         @apply w-full min-h-[250px]
         sm:min-h-[350px]
-        md:min-h-[450px]
+        md:min-h-[450px] md:max-h-[550px] md:overflow-hidden
     }
 
     .chart-filter-select {

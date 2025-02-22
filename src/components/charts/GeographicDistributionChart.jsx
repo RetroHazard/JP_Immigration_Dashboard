@@ -10,6 +10,8 @@ import { nonAirportBureaus } from '../../utils/getBureauData';
 
 const geoUrl = '/static/japan.topo.json';
 
+// TODO: Implement lazy loading + loading/progress indicator for throttled systems
+
 // Calculate color based on density
 const adjustColor = (originalColor, density, minDensity, maxDensity) => {
   if (!originalColor) return 'rgba(221, 221, 221, 0.8)';
