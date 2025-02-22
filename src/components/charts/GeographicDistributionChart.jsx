@@ -14,12 +14,15 @@ const geoUrl = '/static/japan.topo.json';
 const adjustColor = (originalColor, density, minDensity, maxDensity) => {
   if (!originalColor) return 'rgba(221, 221, 221, 0.8)';
 
-  // Handle colors with spaces in RGBA values
+  // Parse color values
   const colorParts = originalColor.replace(/ /g, '').match(/(\d+\.?\d*)/g) || [];
   const [r, g, b] = colorParts.slice(0, 3).map((c) => parseInt(c) / 255);
   const originalAlpha = colorParts[3] ? parseFloat(colorParts[3]) : 0.4;
 
-  // Convert RGB to HSL
+  // Calculate density scale factor
+  const densityScale = maxDensity !== minDensity ? (density - minDensity) / (maxDensity - minDensity) : 0.5;
+
+  // Convert to HSL
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   let h,
@@ -45,7 +48,11 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
     h /= 6;
   }
 
-  // Convert HSL back to RGB
+  // Apply density-based adjustments
+  s = Math.min(s + densityScale * 0.8, 1); // Enhanced saturation
+  l = l * (1 - densityScale * 0.6); // Enhanced lightness
+
+  // Convert back to RGB
   const hue2rgb = (p, q, t) => {
     if (t < 0) t += 1;
     if (t > 1) t -= 1;
@@ -59,7 +66,7 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
   const p = 2 * l - q;
   const rgb = [hue2rgb(p, q, h + 1 / 3), hue2rgb(p, q, h), hue2rgb(p, q, h - 1 / 3)].map((x) => Math.round(x * 255));
 
-  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${originalAlpha})`; // Preserve original alpha
+  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${originalAlpha})`;
 };
 
 export const GeographicDistributionChart = ({ isDarkMode }) => {
@@ -123,6 +130,24 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
       : bureau.background;
   };
 
+  // Calculate Bureau Regional Statistics
+  const bureauStats = useMemo(() => {
+    const stats = {};
+    bureauOptions.forEach((bureau) => {
+      if (bureau.value === 'all') return;
+      const prefectures = japanPrefectures.filter((p) => p.bureau === bureau.value);
+      stats[bureau.value] = prefectures.reduce(
+        (acc, p) => ({
+          population: acc.population + p.population,
+          area: acc.area + p.area,
+          count: acc.count + 1,
+        }),
+        { population: 0, area: 0, count: 0 }
+      );
+    });
+    return stats;
+  }, []);
+
   return (
     <div className="card-content">
       <div className="mb-4 flex items-center justify-between">
@@ -140,9 +165,15 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
         </div>
       </div>
 
-      <div className="chart-container">
-        {' '}
-        {/* // TODO: Fix Chart Container Height */}
+      <div
+        className="chart-container"
+        style={{
+          maxHeight: '600px',
+          height: '600px',
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
         <ComposableMap projection="geoMercator" projectionConfig={{ scale: 1000, center: [136, 36] }}>
           <ZoomableGroup
             center={position.coordinates}
@@ -161,8 +192,8 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                       fill={getFillColor(geo.properties.name)}
                       stroke={isDarkMode ? '#475569' : '#CBD5E1'}
                       strokeWidth={0.25}
-                      onMouseMove={() =>
-                        prefecture &&
+                      onMouseMove={(event) => {
+                        if (!prefecture) return;
                         setTooltipInfo({
                           name: geo.properties.name,
                           name_ja: geo.properties.name_ja,
@@ -170,13 +201,23 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                           population: prefecture.population.toLocaleString(),
                           area: `${prefecture.area.toLocaleString()} km²`,
                           density: prefecture.density,
-                        })
-                      }
+                          mousePosition: [event.clientX, event.clientY],
+                        });
+                      }}
                       onMouseLeave={() => setTooltipInfo(null)}
-                      ref={(node) => geographyRefs.current.set(geo.properties.name, node)}
                       style={{
-                        default: { outline: 'none' },
-                        hover: { outline: 'none', fillOpacity: 0.8 },
+                        default: {
+                          outline: 'none',
+                          fillOpacity: 1,
+                          cursor: 'pointer',
+                        },
+                        hover: {
+                          outline: 'none',
+                          fillOpacity: 0.9,
+                        },
+                        pressed: {
+                          outline: 'none',
+                        },
                       }}
                     />
                   );
@@ -188,27 +229,24 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
               .filter((b) => b.value !== 'all')
               .map((bureau) => {
                 const isAirport = !nonAirportBureaus.find((b) => b.value === bureau.value);
-                const baseSize = Math.min(15, Math.max(5, 20 / position.zoom));
+                const baseSize = Math.min(32, Math.max(5, 35 / position.zoom));
                 const iconSize = isAirport ? baseSize * 0.5 : baseSize;
 
                 return (
-                  <Marker
-                    key={bureau.value}
-                    coordinates={bureau.coordinates}
-                    onMouseEnter={() => setMarkerTooltip(bureau)}
-                    onMouseLeave={() => setMarkerTooltip(null)}
-                    ref={(node) => markerRefs.current.set(bureau.value, node)}
-                  >
-                    <Icon
-                      icon={isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-crop-circle-fill'}
-                      color={bureau.border}
-                      width={iconSize}
-                      height={iconSize}
-                      style={{
-                        transform: 'translate(-50%, -50%)',
-                        transition: 'width 0.2s, height 0.2s',
-                      }}
-                    />
+                  <Marker key={bureau.value} coordinates={bureau.coordinates}>
+                    <g transform={`translate(-${iconSize / 2}, -${iconSize / 2})`}>
+                      <Icon
+                        icon={
+                          isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-crop-circle-fill'
+                        }
+                        width={iconSize}
+                        height={iconSize}
+                        color={bureau.border}
+                        onMouseEnter={() => setMarkerTooltip(bureau)}
+                        onMouseLeave={() => setMarkerTooltip(null)}
+                        ref={(node) => markerRefs.current.set(bureau.value, node)}
+                      />
+                    </g>
                   </Marker>
                 );
               })}
@@ -235,7 +273,26 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
           animation="shift-away"
           theme="stat-tooltip"
           delay={[300, 50]}
-          reference={geographyRefs.current.get(tooltipInfo?.name)}
+          followCursor="initial"
+          getReferenceClientRect={() => ({
+            width: 0,
+            height: 0,
+            top: tooltipInfo?.mousePosition[1] || 0,
+            left: tooltipInfo?.mousePosition[0] || 0,
+            right: tooltipInfo?.mousePosition[0] || 0,
+            bottom: tooltipInfo?.mousePosition[1] || 0,
+          })}
+          popperOptions={{
+            modifiers: [
+              {
+                name: 'preventOverflow',
+                options: {
+                  padding: 8,
+                  boundariesElement: 'viewport',
+                },
+              },
+            ],
+          }}
         />
         {/* Bureau Tooltips */}
         <Tippy
@@ -249,13 +306,18 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                     ? `${markerTooltip.label} Regional Immigration Bureau`
                     : markerTooltip.label}
                 </div>
-                {nonAirportBureaus.find((b) => b.value === markerTooltip.value) ? (
+                {nonAirportBureaus.find((b) => b.value === markerTooltip.value) && (
                   <div className="flex-row p-0.5">
-                    <div>Population: TOTAL POP</div>
-                    <div>Area: TOTAL AREA</div>
-                    <div>Density Rating: AVERAGE DENSITY</div>
+                    <div>Service Area Population: {bureauStats[markerTooltip.value]?.population.toLocaleString()}</div>
+                    <div>Service Area: {bureauStats[markerTooltip.value]?.area.toLocaleString()} km²</div>
+                    <div>
+                      Average Density of Service Area:{' '}
+                      {(bureauStats[markerTooltip.value]?.population / bureauStats[markerTooltip.value]?.area).toFixed(
+                        2
+                      )}
+                    </div>
                   </div>
-                ) : null}
+                )}
               </>
             )
           }
@@ -264,7 +326,26 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
           animation="shift-away"
           theme="stat-tooltip"
           delay={[300, 50]}
+          interactive={true}
+          appendTo={document.body}
           reference={markerRefs.current.get(markerTooltip?.value)}
+          popperOptions={{
+            modifiers: [
+              {
+                name: 'offset',
+                options: {
+                  offset: [0, 15],
+                },
+              },
+              {
+                name: 'preventOverflow',
+                options: {
+                  padding: 8,
+                  boundariesElement: 'viewport',
+                },
+              },
+            ],
+          }}
         />
       </div>
     </div>
