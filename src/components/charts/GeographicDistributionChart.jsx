@@ -19,9 +19,6 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
   const [r, g, b] = colorParts.slice(0, 3).map((c) => parseInt(c) / 255);
   const originalAlpha = colorParts[3] ? parseFloat(colorParts[3]) : 0.4;
 
-  // Handle single-value density ranges
-  const densityScale = maxDensity !== minDensity ? (density - minDensity) / (maxDensity - minDensity) : 0.5; // Default to midpoint
-
   // Convert RGB to HSL
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
@@ -191,28 +188,19 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
               .filter((b) => b.value !== 'all')
               .map((bureau) => {
                 const isAirport = !nonAirportBureaus.find((b) => b.value === bureau.value);
-                const baseSize = Math.min(24, Math.max(8, 35 / position.zoom));
-                const iconSize = isAirport ? baseSize * 0.25 : baseSize;
-
-                // Zoom-aware coordinate adjustments
-                const adjustCoords = ([lon, lat]) => {
-                  const zoomFactor = position.zoom;
-                  if (isAirport) {
-                    return [lon - 0.45 / zoomFactor, lat + 0.05]; // Airport adjustment
-                  }
-                  return [lon - 1 / zoomFactor, lat + 0.8 / zoomFactor]; // Regular bureau adjustment
-                };
+                const baseSize = Math.min(15, Math.max(5, 20 / position.zoom));
+                const iconSize = isAirport ? baseSize * 0.5 : baseSize;
 
                 return (
                   <Marker
                     key={bureau.value}
-                    coordinates={adjustCoords(bureau.coordinates)}
+                    coordinates={bureau.coordinates}
                     onMouseEnter={() => setMarkerTooltip(bureau)}
                     onMouseLeave={() => setMarkerTooltip(null)}
                     ref={(node) => markerRefs.current.set(bureau.value, node)}
                   >
                     <Icon
-                      icon={isAirport ? 'streamline:airport-security-solid' : 'tdesign:building-filled'}
+                      icon={isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-crop-circle-fill'}
                       color={bureau.border}
                       width={iconSize}
                       height={iconSize}
@@ -231,7 +219,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
           visible={!!tooltipInfo}
           content={
             tooltipInfo && (
-              <div className="font-semibold">
+              <div>
                 <div className="font-semibold">
                   {tooltipInfo.name} ({tooltipInfo.name_ja})
                 </div>
@@ -254,12 +242,21 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
           visible={!!markerTooltip}
           content={
             markerTooltip && (
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: markerTooltip.border }} />
-                {nonAirportBureaus.find((b) => b.value === markerTooltip.value)
-                  ? `Regional Immigration Bureau: ${markerTooltip.label}`
-                  : markerTooltip.label}
-              </div>
+              <>
+                <div className="mb-1 flex items-center gap-2 border-b border-gray-500 pb-1 font-semibold">
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: markerTooltip.border }} />
+                  {nonAirportBureaus.find((b) => b.value === markerTooltip.value)
+                    ? `${markerTooltip.label} Regional Immigration Bureau`
+                    : markerTooltip.label}
+                </div>
+                {nonAirportBureaus.find((b) => b.value === markerTooltip.value) ? (
+                  <div className="flex-row p-0.5">
+                    <div>Population: TOTAL POP</div>
+                    <div>Area: TOTAL AREA</div>
+                    <div>Density Rating: AVERAGE DENSITY</div>
+                  </div>
+                ) : null}
+              </>
             )
           }
           placement="top"
