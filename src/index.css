@@ -208,6 +208,12 @@
         @apply w-full min-h-[325px]
         sm:min-h-[400px]
     }
+    
+    .map-container {
+        @apply w-full min-h-[250px]
+        sm:min-h-[350px]
+        md:min-h-[450px]
+    }
 
     .chart-filter-select {
         @apply text-xs rounded-lg shadow-sm input-box-colors

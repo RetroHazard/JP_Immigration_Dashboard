@@ -34,6 +34,7 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
   } else {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    // eslint-disable-next-line
     switch (max) {
       case r:
         h = (g - b) / d + (g < b ? 6 : 0);
@@ -77,9 +78,9 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
   const markerRefs = useRef(new Map());
 
   // Zoom controls
-  const handleZoomIn = () => setPosition((pos) => ({ ...pos, zoom: Math.min(pos.zoom * 1.5, 8) }));
-  const handleZoomOut = () => setPosition((pos) => ({ ...pos, zoom: Math.max(pos.zoom / 1.5, 1) }));
-  const handleReset = () => setPosition({ coordinates: [136, 36], zoom: 1 });
+  const handleZoomIn = () => setPosition((pos) => ({ ...pos, zoom: Math.min(pos.zoom * 2, 32) }));
+  const handleZoomOut = () => setPosition((pos) => ({ ...pos, zoom: Math.max(pos.zoom / 1.5, 2) }));
+  const handleReset = () => setPosition({ coordinates: [136, 36], zoom: 2 });
 
   // Bureau density calculations
   const bureauDensityRanges = useMemo(() => {
@@ -151,7 +152,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
   return (
     <div className="card-content">
       <div className="mb-4 flex items-center justify-between">
-        <div className="section-title">National Distribution</div>
+        <div className="section-title">Service Area Density</div>
         <div className="flex gap-2">
           <button onClick={handleZoomIn} className="zoom-button">
             +
@@ -165,20 +166,14 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
         </div>
       </div>
 
-      <div
-        className="chart-container"
-        style={{
-          maxHeight: '600px',
-          height: '600px',
-          overflow: 'hidden',
-          position: 'relative',
-        }}
-      >
+      <div className="map-container">
         <ComposableMap projection="geoMercator" projectionConfig={{ scale: 1000, center: [136, 36] }}>
           <ZoomableGroup
             center={position.coordinates}
             zoom={position.zoom}
             onMoveEnd={({ coordinates, zoom }) => setPosition({ coordinates, zoom })}
+            maxZoom={32}
+            minZoom={2}
           >
             <Geographies geography={geoUrl}>
               {({ geographies }) =>
@@ -265,7 +260,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                 <div className="font-semibold">
                   {tooltipInfo.name} ({tooltipInfo.name_ja})
                 </div>
-                <div>Bureau: {tooltipInfo.bureau}</div>
+                <div>Service Bureau: {tooltipInfo.bureau}</div>
                 <div>Population: {tooltipInfo.population}</div>
                 <div>Area: {tooltipInfo.area}</div>
                 <div>Density Rating: {tooltipInfo.density}</div>
@@ -332,7 +327,9 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
           animation="shift-away"
           theme="stat-tooltip"
           delay={[300, 50]}
+          onClickOutside={() => setMarkerTooltip(null)}
           interactive={true}
+          hideOnClick={false}
           appendTo={document.body}
           reference={markerRefs.current.get(markerTooltip?.value)}
           popperOptions={{
