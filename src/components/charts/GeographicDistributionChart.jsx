@@ -205,6 +205,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                         });
                       }}
                       onMouseLeave={() => setTooltipInfo(null)}
+                      ref={(node) => geographyRefs.current.set(geo.properties.name, node)}
                       style={{
                         default: {
                           outline: 'none',
@@ -234,7 +235,13 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
 
                 return (
                   <Marker key={bureau.value} coordinates={bureau.coordinates}>
-                    <g transform={`translate(-${iconSize / 2}, -${iconSize / 2})`}>
+                    <g
+                      transform={`translate(-${iconSize / 2}, -${iconSize / 2})`}
+                      onMouseEnter={() => setMarkerTooltip(bureau)}
+                      onMouseLeave={() => setMarkerTooltip(null)}
+                      ref={(node) => markerRefs.current.set(bureau.value, node)}
+                      pointerEvents="bounding-box"
+                    >
                       <Icon
                         icon={
                           isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-crop-circle-fill'
@@ -242,9 +249,6 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                         width={iconSize}
                         height={iconSize}
                         color={bureau.border}
-                        onMouseEnter={() => setMarkerTooltip(bureau)}
-                        onMouseLeave={() => setMarkerTooltip(null)}
-                        ref={(node) => markerRefs.current.set(bureau.value, node)}
                       />
                     </g>
                   </Marker>
@@ -308,8 +312,10 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                 </div>
                 {nonAirportBureaus.find((b) => b.value === markerTooltip.value) && (
                   <div className="flex-row p-0.5">
-                    <div>Service Area Population: {bureauStats[markerTooltip.value]?.population.toLocaleString()}</div>
-                    <div>Service Area: {bureauStats[markerTooltip.value]?.area.toLocaleString()} km²</div>
+                    <div>
+                      Population of Service Area: {bureauStats[markerTooltip.value]?.population.toLocaleString()}
+                    </div>
+                    <div>Total Service Area: {bureauStats[markerTooltip.value]?.area.toLocaleString()} km²</div>
                     <div>
                       Average Density of Service Area:{' '}
                       {(bureauStats[markerTooltip.value]?.population / bureauStats[markerTooltip.value]?.area).toFixed(
