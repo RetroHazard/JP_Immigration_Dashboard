@@ -1,5 +1,5 @@
 // src/components/charts/GeographicDistributionChart.jsx
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
@@ -9,8 +9,6 @@ import { bureauOptions } from '../../constants/bureauOptions';
 import { nonAirportBureaus } from '../../utils/getBureauData';
 
 const geoUrl = '/static/japan.topo.json';
-
-// TODO: Implement lazy loading + loading/progress indicator for throttled systems
 
 // Calculate color based on density
 const adjustColor = (originalColor, density, minDensity, maxDensity) => {
@@ -73,11 +71,27 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
 };
 
 export const GeographicDistributionChart = ({ isDarkMode }) => {
+  const [geographyData, setGeographyData] = useState(null);
+  const [isMapLoading, setIsMapLoading] = useState(true);
   const [tooltipInfo, setTooltipInfo] = useState(null);
   const [markerTooltip, setMarkerTooltip] = useState(null);
   const [position, setPosition] = useState({ coordinates: [136, 36], zoom: 1 });
   const geographyRefs = useRef(new Map());
   const markerRefs = useRef(new Map());
+
+  // Loading Indication
+  useEffect(() => {
+    fetch(geoUrl)
+      .then((response) => response.json())
+      .then((data) => {
+        setGeographyData(data);
+        setIsMapLoading(false);
+      })
+      .catch((error) => {
+        console.error('Error loading map data:', error);
+        setIsMapLoading(false);
+      });
+  }, []);
 
   // Zoom controls
   const handleZoomIn = () => setPosition((pos) => ({ ...pos, zoom: Math.min(pos.zoom * 2, 32) }));
@@ -160,7 +174,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
             +
           </button>
           <button onClick={handleZoomOut} className="zoom-button">
-            -
+            –
           </button>
           <button onClick={handleReset} className="zoom-button">
             ⟲
@@ -169,90 +183,103 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
       </div>
 
       <div className="map-container">
-        <ComposableMap projection="geoMercator" projectionConfig={{ scale: 1000, center: [136, 36] }}>
-          <ZoomableGroup
-            center={position.coordinates}
-            zoom={position.zoom}
-            onMoveEnd={({ coordinates, zoom }) => setPosition({ coordinates, zoom })}
-            maxZoom={32}
-            minZoom={2}
-          >
-            <Geographies geography={geoUrl}>
-              {({ geographies }) =>
-                geographies.map((geo) => {
-                  const prefecture = prefectureMap[geo.properties.name];
+        {isMapLoading ? (
+          <div className="flex h-96 items-center justify-center">
+            <div className="flex flex-col items-center gap-2 text-gray-600 dark:text-gray-300">
+              <Icon
+                icon="svg-spinners:90-ring-with-bg"
+                className="h-8 w-8 text-indigo-600 dark:text-indigo-300"
+                aria-hidden="true"
+              />
+              <span className="text-sm">Loading map data...</span>
+            </div>
+          </div>
+        ) : (
+          <ComposableMap projection="geoMercator" projectionConfig={{ scale: 1000, center: [136, 36] }}>
+            <ZoomableGroup
+              center={position.coordinates}
+              zoom={position.zoom}
+              onMoveEnd={({ coordinates, zoom }) => setPosition({ coordinates, zoom })}
+              maxZoom={32}
+              minZoom={2}
+            >
+              <Geographies geography={geographyData}>
+                {({ geographies }) =>
+                  geographies.map((geo) => {
+                    const prefecture = prefectureMap[geo.properties.name];
+
+                    return (
+                      <Geography
+                        key={geo.rsmKey}
+                        geography={geo}
+                        fill={getFillColor(geo.properties.name)}
+                        stroke={isDarkMode ? '#475569' : '#CBD5E1'}
+                        strokeWidth={0.25}
+                        onMouseMove={(event) => {
+                          if (!prefecture) return;
+                          setTooltipInfo({
+                            name: geo.properties.name,
+                            name_ja: geo.properties.name_ja,
+                            bureau: bureauColorMap[prefecture.bureau]?.label,
+                            population: prefecture.population.toLocaleString(),
+                            area: `${prefecture.area.toLocaleString()} km²`,
+                            density: prefecture.density,
+                            mousePosition: [event.clientX, event.clientY],
+                          });
+                        }}
+                        onMouseLeave={() => setTooltipInfo(null)}
+                        ref={(node) => geographyRefs.current.set(geo.properties.name, node)}
+                        style={{
+                          default: {
+                            outline: 'none',
+                            fillOpacity: 1,
+                            cursor: 'pointer',
+                          },
+                          hover: {
+                            outline: 'none',
+                            fillOpacity: 0.9,
+                          },
+                          pressed: {
+                            outline: 'none',
+                          },
+                        }}
+                      />
+                    );
+                  })
+                }
+              </Geographies>
+
+              {bureauOptions
+                .filter((b) => b.value !== 'all')
+                .map((bureau) => {
+                  const isAirport = !nonAirportBureaus.find((b) => b.value === bureau.value);
+                  const baseSize = Math.min(32, Math.max(2, 35 / position.zoom));
+                  const iconSize = isAirport ? baseSize * 0.5 : baseSize;
 
                   return (
-                    <Geography
-                      key={geo.rsmKey}
-                      geography={geo}
-                      fill={getFillColor(geo.properties.name)}
-                      stroke={isDarkMode ? '#475569' : '#CBD5E1'}
-                      strokeWidth={0.25}
-                      onMouseMove={(event) => {
-                        if (!prefecture) return;
-                        setTooltipInfo({
-                          name: geo.properties.name,
-                          name_ja: geo.properties.name_ja,
-                          bureau: bureauColorMap[prefecture.bureau]?.label,
-                          population: prefecture.population.toLocaleString(),
-                          area: `${prefecture.area.toLocaleString()} km²`,
-                          density: prefecture.density,
-                          mousePosition: [event.clientX, event.clientY],
-                        });
-                      }}
-                      onMouseLeave={() => setTooltipInfo(null)}
-                      ref={(node) => geographyRefs.current.set(geo.properties.name, node)}
-                      style={{
-                        default: {
-                          outline: 'none',
-                          fillOpacity: 1,
-                          cursor: 'pointer',
-                        },
-                        hover: {
-                          outline: 'none',
-                          fillOpacity: 0.9,
-                        },
-                        pressed: {
-                          outline: 'none',
-                        },
-                      }}
-                    />
+                    <Marker key={bureau.value} coordinates={bureau.coordinates}>
+                      <g
+                        transform={`translate(-${iconSize / 2}, -${iconSize / 2})`}
+                        onMouseEnter={() => setMarkerTooltip(bureau)}
+                        onMouseLeave={() => setMarkerTooltip(null)}
+                        ref={(node) => markerRefs.current.set(bureau.value, node)}
+                        pointerEvents="bounding-box"
+                      >
+                        <Icon
+                          icon={
+                            isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-crop-circle-fill'
+                          }
+                          width={iconSize}
+                          height={iconSize}
+                          color={bureau.border}
+                        />
+                      </g>
+                    </Marker>
                   );
-                })
-              }
-            </Geographies>
-
-            {bureauOptions
-              .filter((b) => b.value !== 'all')
-              .map((bureau) => {
-                const isAirport = !nonAirportBureaus.find((b) => b.value === bureau.value);
-                const baseSize = Math.min(32, Math.max(5, 35 / position.zoom));
-                const iconSize = isAirport ? baseSize * 0.5 : baseSize;
-
-                return (
-                  <Marker key={bureau.value} coordinates={bureau.coordinates}>
-                    <g
-                      transform={`translate(-${iconSize / 2}, -${iconSize / 2})`}
-                      onMouseEnter={() => setMarkerTooltip(bureau)}
-                      onMouseLeave={() => setMarkerTooltip(null)}
-                      ref={(node) => markerRefs.current.set(bureau.value, node)}
-                      pointerEvents="bounding-box"
-                    >
-                      <Icon
-                        icon={
-                          isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-crop-circle-fill'
-                        }
-                        width={iconSize}
-                        height={iconSize}
-                        color={bureau.border}
-                      />
-                    </g>
-                  </Marker>
-                );
-              })}
-          </ZoomableGroup>
-        </ComposableMap>
+                })}
+            </ZoomableGroup>
+          </ComposableMap>
+        )}
         {/* Prefecture Tooltips */}
         <Tippy
           visible={!!tooltipInfo}

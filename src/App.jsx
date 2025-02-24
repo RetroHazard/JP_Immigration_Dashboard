@@ -40,7 +40,6 @@ const App = () => {
     document.documentElement.classList.toggle('dark');
   };
 
-  // TODO: Implement lazy loading | Allow loading indicator to appear faster
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white transition-colors duration-300 dark:bg-gray-700">
