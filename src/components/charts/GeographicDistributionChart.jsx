@@ -214,7 +214,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                         geography={geo}
                         fill={getFillColor(geo.properties.name)}
                         stroke={isDarkMode ? '#475569' : '#CBD5E1'}
-                        strokeWidth={0.25}
+                        strokeWidth={0.1}
                         onMouseMove={(event) => {
                           if (!prefecture) return;
                           setTooltipInfo({
@@ -254,7 +254,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                 .map((bureau) => {
                   const isAirport = !nonAirportBureaus.find((b) => b.value === bureau.value);
                   const baseSize = Math.min(32, Math.max(2, 35 / position.zoom));
-                  const iconSize = isAirport ? baseSize * 0.5 : baseSize;
+                  const iconSize = isAirport ? baseSize * 0.65 : baseSize;
 
                   return (
                     <Marker key={bureau.value} coordinates={bureau.coordinates}>
@@ -272,6 +272,8 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                           width={iconSize}
                           height={iconSize}
                           color={bureau.border}
+                          stroke={'#000000'}
+                          strokeWidth={0.5}
                         />
                       </g>
                     </Marker>
