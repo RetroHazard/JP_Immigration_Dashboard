@@ -284,7 +284,8 @@
     }
 
     .zoom-button {
-        @apply h-8 w-8 flex items-center justify-center bg-gray-300 dark:bg-gray-500 rounded-full shadow-lg border border-gray-500 dark:border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors;
+        @apply h-8 w-8 flex items-center justify-center bg-gray-300 dark:bg-gray-500 rounded-full shadow-lg border border-gray-500 dark:border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors
+        sm:text-xl
     }
 
     @screen sm {
