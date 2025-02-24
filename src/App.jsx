@@ -102,18 +102,21 @@ const App = () => {
       <main className="marginals flex-1 py-8">
         {!loading && (
           <>
-            <div className="section-block grid grid-cols-1 sm:hidden">
-              <FilterPanel
-                data={data}
-                filters={filters}
-                onChange={setFilters}
-                filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
-              />
-            </div>
+            {(CHART_COMPONENTS[activeChartIndex].filters.bureau ||
+              CHART_COMPONENTS[activeChartIndex].filters.appType) && (
+              <div className="section-block mb-4 grid grid-cols-1 sm:hidden">
+                <FilterPanel
+                  data={data}
+                  filters={filters}
+                  onChange={setFilters}
+                  filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
+                />
+              </div>
+            )}
 
             {/* Mobile Layout */}
             <div className="relative sm:hidden">
-              <div className="section-block">
+              <div className="section-block grid grid-cols-1">
                 <div className="base-container">
                   <div className="mb-2 flex justify-between space-x-1 border-b dark:border-gray-500">
                     {CHART_COMPONENTS.map((chart, index) => (
@@ -167,17 +170,20 @@ const App = () => {
                 }`}
               >
                 {/* Filter row */}
-                <div className="flex-shrink-0">
-                  <FilterPanel
-                    data={data}
-                    filters={filters}
-                    onChange={setFilters}
-                    filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
-                  />
-                </div>
+                {(CHART_COMPONENTS[activeChartIndex].filters.bureau ||
+                  CHART_COMPONENTS[activeChartIndex].filters.appType) && (
+                  <div className="flex-shrink-0 sm:mb-4 md:mb-5 lg:mb-6">
+                    <FilterPanel
+                      data={data}
+                      filters={filters}
+                      onChange={setFilters}
+                      filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
+                    />
+                  </div>
+                )}
 
                 {/* Chart row */}
-                <div className="flex-grow sm:mt-4 md:mt-5 lg:mt-6">
+                <div className="flex-grow">
                   <div className="base-container h-full">
                     <div className="mb-4 flex space-x-2 overflow-x-auto border-b dark:border-gray-500">
                       {CHART_COMPONENTS.map((chart, index) => (

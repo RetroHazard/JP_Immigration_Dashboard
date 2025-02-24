@@ -1,4 +1,4 @@
-// components/StatsSummary.jsx
+// src/components/StatsSummary.jsx
 import { useMemo } from 'react';
 import { getBureauLabel } from '../utils/getBureauData';
 import { Icon } from '@iconify/react';

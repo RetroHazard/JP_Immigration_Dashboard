@@ -58,6 +58,15 @@ Each chart is designed to provide clear insights while allowing flexibility thro
   - Filterable by individual bureaus
   - Configurable cumulative time range display
 
+#### **Choropleth Chart**
+- **Purpose:** Show service density.
+- **Features:**
+  - Interactive, topographical map of Japan, at a Prefectural level
+  - Prefectures colored based on Service Bureau and overall Density rating
+  - Prefecture tooltips with vital statistics
+  - Bureau/Airport markers placed via GPS coordinates
+  - Bureau tooltips with Service Area statistics
+
 ---
 
 ### :mag: Dynamic Filtering
@@ -99,7 +108,8 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 ### Frontend:
 - `Node.js` – Runtime & Build
 - `React` – Core Framework
-- `Chart.js` – Data Visualization
+- `Chart.js` – Data Visualization (Charts)
+- `react-simple-maps` - Data Visualization (Maps)
 - `Tippy.js` – Tooltips
 - `Tailwind CSS` – Styling
 - `Iconify` – UI Icons
@@ -122,7 +132,7 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 ### Prediction Model:
 - Uses a rolling average (3 months) for dynamic queue position calculation.
 - Real-time analysis of processing rates.
-- Predicts missing months where data is unavailable.
+- Predicts missing months when data is unavailable.
 
 ### Calculations:
 - Application processing rates

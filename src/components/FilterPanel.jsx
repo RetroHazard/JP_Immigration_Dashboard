@@ -1,3 +1,4 @@
+// src/components/FilterPanel.jsx
 import { useMemo } from 'react';
 import { FilterInput } from './common/FilterInput';
 import { bureauOptions } from '../constants/bureauOptions';

@@ -4,6 +4,7 @@ import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineC
 import { BureauDistributionRingChart } from '../charts/BureauDistributionRingChart';
 import { BureauPerformanceBubbleChart } from '../charts/BureauPerformanceBubbleChart';
 import { MonthlyRadarChart } from '../charts/MonthlyRadarChart';
+import { GeographicDistributionChart } from '../charts/GeographicDistributionChart';
 
 export const CHART_COMPONENTS = [
   {
@@ -35,5 +36,11 @@ export const CHART_COMPONENTS = [
     icon: 'carbon:chart-radar',
     component: MonthlyRadarChart,
     filters: { bureau: true, appType: false },
+  },
+  {
+    name: 'Geographic Distribution',
+    icon: 'carbon:map',
+    component: GeographicDistributionChart,
+    filters: { bureau: false, appType: false },
   },
 ];

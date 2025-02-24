@@ -1,4 +1,4 @@
-// components/BureauDistributionRingChart.jsx
+// src/components/charts/BureauDistributionRingChart.jsx
 import React, { useMemo, useState } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
