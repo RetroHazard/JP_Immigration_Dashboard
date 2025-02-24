@@ -1,4 +1,4 @@
-// components/charts/BureauPerformanceBubbleChart.jsx
+// src/components/charts/BureauPerformanceBubbleChart.jsx
 import React, { useMemo, useState } from 'react';
 import { Bubble } from 'react-chartjs-2';
 import { Chart as ChartJS, Legend, LinearScale, PointElement, Title, Tooltip } from 'chart.js';

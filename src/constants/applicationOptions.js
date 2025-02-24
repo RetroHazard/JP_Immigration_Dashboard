@@ -1,4 +1,4 @@
-// constants/applicationOptions.js
+// src/constants/applicationOptions.js
 
 export const applicationOptions = [
   { value: 'all', label: 'All Types', short: 'ALL' },

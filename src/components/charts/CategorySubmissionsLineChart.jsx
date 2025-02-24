@@ -1,4 +1,4 @@
-// components/CategorySubmissionsLineChart.jsx
+// src/components/charts/CategorySubmissionsLineChart.jsx
 import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import {

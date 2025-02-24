@@ -1,4 +1,4 @@
-// components/IntakeProcessingBarChart.jsx
+// src/components/charts/IntakeProcessingBarChart.jsx
 import React, { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
