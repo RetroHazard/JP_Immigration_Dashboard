@@ -1,6 +1,6 @@
 {
   "name": "jp_immigration_dashboard",
-  "version": "0.2.9",
+  "version": "0.3.1",
   "homepage": "https://dashboard.retrohazard.jp",
   "private": true,
   "dependencies": {
@@ -25,6 +25,7 @@
     "prettier-plugin-tailwindcss": "^0.6.11",
     "react-build-info": "^0.0.3",
     "react-scripts": "5.0.1",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "tailwindcss": "^3.4.17"
   },
   "scripts": {
