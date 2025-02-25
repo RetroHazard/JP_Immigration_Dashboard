@@ -1,13 +1,13 @@
-// components/EstimationCard.jsx
+// src/components/EstimationCard.jsx
 import { useMemo, useState } from 'react';
-import { bureauOptions } from '../constants/bureauOptions';
+import { FilterInput } from './common/FilterInput';
+import { nonAirportBureaus } from '../utils/getBureauData';
 import { applicationOptions } from '../constants/applicationOptions';
 import { Icon } from '@iconify/react';
 import { calculateEstimatedDate } from '../utils/calculateEstimates';
-
-const nonAirportBureaus = bureauOptions.filter((option) => {
-  return option.value !== 'all' && !option.label.toLowerCase().includes('airport');
-});
+import { BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
+import { FormulaTooltip, variableExplanations } from './common/FormulaTooltip';
 
 export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollapse, onClose }) => {
   const [applicationDetails, setApplicationDetails] = useState({
@@ -23,12 +23,14 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
   const dateRange = useMemo(() => {
     if (!data || data.length === 0) return { min: '', max: '' };
 
-    const months = [...new Set(data.map((entry) => entry.month))].sort();
-    const currentDate = new Date().toISOString().slice(0, 7); // YYYY-MM format
+    // Extract and sort unique dates from data (YYYY-MM-DD format)
+    const dates = [...new Set(data.map((entry) => entry.date))].sort();
+    // Get current date in UTC (YYYY-MM-DD format)
+    const currentDate = new Date().toISOString().slice(0, 10);
 
     return {
-      min: months[0],
-      max: currentDate, // Allow selection up to current month
+      min: dates[0],
+      max: currentDate, // Allow selection up to current date
     };
   }, [data]);
 
@@ -57,75 +59,45 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
       <div className="card-content-padded flex-1">
         {!showDetails && (
           <>
-            <div className="space-y-2">
-              <label className="filter-label">Immigration Bureau</label>
-              <select
-                className="filter-select"
-                value={applicationDetails.bureau}
-                onChange={(e) =>
-                  setApplicationDetails({
-                    ...applicationDetails,
-                    bureau: e.target.value,
-                  })
-                }
-              >
-                <option value="">Select Bureau</option>
-                {nonAirportBureaus.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FilterInput
+              type="select"
+              label="Immigration Bureau"
+              options={nonAirportBureaus}
+              value={applicationDetails.bureau}
+              includeDefaultOption
+              defaultOptionLabel="Select Bureau"
+              onChange={(value) => setApplicationDetails({ ...applicationDetails, bureau: value })}
+            />
 
-            <div className="space-y-2">
-              <label className="filter-label">Application Type</label>
-              <select
-                className="filter-select"
-                value={applicationDetails.type}
-                onChange={(e) =>
-                  setApplicationDetails({
-                    ...applicationDetails,
-                    type: e.target.value,
-                  })
-                }
-              >
-                <option value="">Select Type</option>
-                {applicationOptions
-                  .filter((option) => option.value !== 'all')
-                  .map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-              </select>
-            </div>
+            <FilterInput
+              type="select"
+              label="Application Type"
+              options={applicationOptions}
+              value={applicationDetails.type}
+              includeDefaultOption
+              defaultOptionLabel="Select Type"
+              filterFn={(option) => option.value !== 'all'}
+              onChange={(value) => setApplicationDetails({ ...applicationDetails, type: value })}
+            />
 
-            <div className="space-y-2">
-              <label className="filter-label">Application Date</label>
-              <input
-                type="month"
-                placeholder="YYYY-MM"
-                className="filter-select"
-                value={applicationDetails.applicationDate}
-                onChange={(e) =>
-                  setApplicationDetails({
-                    ...applicationDetails,
-                    applicationDate: e.target.value,
-                  })
-                }
-                min={dateRange.min}
-                max={dateRange.max}
-              />
-            </div>
+            <FilterInput
+              type="date"
+              label="Application Date"
+              value={applicationDetails.applicationDate}
+              min={dateRange.min}
+              max={dateRange.max}
+              onChange={(value) => setApplicationDetails({ ...applicationDetails, applicationDate: value })}
+            />
           </>
         )}
 
         {estimatedDate && (
           <div className="card-base-gray">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-200">Estimated Completion Date</h3>
+            <div className="text-center text-lg font-medium text-gray-900 dark:text-gray-200">
+              Estimated Completion Date
+            </div>
             <p
-              className={`mt-2 text-2xl font-bold ${
+              className={`mt-2 text-center text-2xl font-bold ${
                 estimatedDate.details.isPastDue
                   ? 'text-amber-600 dark:text-amber-500'
                   : 'text-indigo-600 dark:text-indigo-500'
@@ -134,6 +106,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
               {estimatedDate.estimatedDate.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
+                day: 'numeric',
               })}
             </p>
 
@@ -149,16 +122,16 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
             </button>
 
             {showDetails && (
-              <div className="mt-2.5 space-y-2 border-t pt-3 text-xs text-gray-600 dark:text-gray-200">
+              <div className="mt-2.5 space-y-1 border-t pt-3 text-xs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                 {estimatedDate.details.isPastDue ? (
                   <>
                     <p className="text-amber-600 dark:text-amber-500">
-                      <strong>Applications at Submission:</strong>
-                      {estimatedDate.details.adjustedQueueTotal.toLocaleString()}
+                      <strong>Applications at Submission: </strong>
+                      {estimatedDate.details.queueAtApplication.toLocaleString()}
                     </p>
                     <p className="text-amber-600 dark:text-amber-500">
-                      <strong>Processed Since Submission:</strong>
-                      {estimatedDate.details.processedSince.toLocaleString()}
+                      <strong>Processed since Submission: </strong>
+                      {estimatedDate.details.totalProcessedSinceApp.toLocaleString()}
                     </p>
                     <p className="mt-2 text-xs italic text-amber-600 dark:text-amber-500">
                       Based on our expected processing rates, it appears that completion of this application is past
@@ -168,43 +141,91 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                   </>
                 ) : (
                   <>
-                    <p>
-                      <strong>Applications at Submission:</strong>
-                      {estimatedDate.details.adjustedQueueTotal.toLocaleString()}
-                    </p>
-                    <p>
-                      <strong>Processed Since Submission:</strong>
-                      {estimatedDate.details.processedSince.toLocaleString()}
-                    </p>
-                    <p>
-                      <strong>
-                        Estimated Queue Position <i>(QP)</i>:
-                      </strong>
-                      {estimatedDate.details.queuePosition.toLocaleString()}
-                    </p>
-                    <p>
-                      <strong>
-                        Application Processing Rate <i>(APR)</i>:
-                      </strong>
-                      {estimatedDate.details.monthlyRate.toLocaleString()} /month
-                    </p>
-                    <div className="rounded bg-gray-100 p-5 text-xs dark:bg-gray-600">
-                      <p className="font-medium">Calculation Formula:</p>
-                      <p>Estimated Months = QP ÷ APR</p>
-                      <p>
-                        = {estimatedDate.details.queuePosition.toLocaleString()} ÷{' '}
-                        {estimatedDate.details.monthlyRate.toLocaleString()}
-                      </p>
-                      <p>= {estimatedDate.details.estimatedMonths.toFixed(0)}~ months remaining</p>
+                    <div
+                      id="calculationModel"
+                      className="rounded-xl bg-gray-100 p-2.5 text-xxs shadow-lg dark:bg-gray-600"
+                    >
+                      <FormulaTooltip
+                        variables={{
+                          'D_{\\text{rem}}': variableExplanations['D_rem'],
+                          'Q_{\\text{pos}}': variableExplanations['Q_pos'],
+                          'R_{\\text{daily}}': variableExplanations['R_daily'],
+                        }}
+                      >
+                        <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+                          <BlockMath
+                            math={`
+                            \\begin{aligned}
+                            &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${estimatedDate.details.modelVariables.Q_pos.toFixed()}}}{${estimatedDate.details.modelVariables.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${estimatedDate.details.modelVariables.D_rem.toFixed()} \\ \\text{d} \\\\
+                            \\end{aligned}
+                          `}
+                          />
+                        </div>
+                      </FormulaTooltip>
+                      <FormulaTooltip
+                        variables={{
+                          'Q_{\\text{adj}}': variableExplanations['Q_adj'],
+                          'C_{\\text{proc}}': variableExplanations['C_proc'],
+                          'P_{\\text{proc}}': variableExplanations['P_proc'],
+                          '\\sum P': variableExplanations['Sigma_P'],
+                          '\\sum D': variableExplanations['Sigma_D'],
+                        }}
+                      >
+                        <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+                          <BlockMath
+                            math={`
+                            \\begin{aligned}
+                            &\\text{where}\\
+                            \\begin{cases}
+                            Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{adj}}}_{${estimatedDate.details.modelVariables.Q_adj.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${estimatedDate.details.modelVariables.C_proc.toFixed()}} - \\underbrace{P_{\\text{proc}}}_{${estimatedDate.details.modelVariables.P_proc.toFixed()}} \\\\
+                            \\\\
+                            R_{\\text{daily}} \\approx \\left\\lbrack\\dfrac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\dfrac{${estimatedDate.details.modelVariables.Sigma_P}}{${estimatedDate.details.modelVariables.Sigma_D}}\\right\\rbrack \\\\
+                            \\end{cases}
+                            \\end{aligned}
+                          `}
+                          />
+                        </div>
+                      </FormulaTooltip>
+                      <FormulaTooltip
+                        variables={{
+                          'Q_{\\text{app}}': variableExplanations['Q_app'],
+                          '\\Delta_{\\text{net}}': variableExplanations['Delta_net'],
+                          't_{\\text{pred}}': variableExplanations['t_pred'],
+                          'R_{\\text{new}}': variableExplanations['R_new'],
+                        }}
+                      >
+                        <div className="mt-2 border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+                          <BlockMath
+                            math={`
+                            \\begin{aligned}
+                            &Q_{\\text{adj}} 
+                            \\begin{cases}
+                            &\\approx \\underbrace{Q_{\\text{app}}}_{\\mathclap{${estimatedDate.details.modelVariables.Q_app.toFixed()}}} + \\lparen\\underbrace{\\Delta_{\\text{net}}\\vphantom{Q_{\\text{app}}}}_{\\mathclap{${estimatedDate.details.modelVariables.Delta_net.toFixed(2)}}} \\times \\underbrace{t_{\\text{pred}}\\vphantom{Q_{\\text{app}}}}_{\\mathclap{${estimatedDate.details.modelVariables.t_pred.toFixed()}\\ \\text{d}}}\\rparen \\\\
+                            \\\\
+                            &\\text{}\\
+                            \\begin{cases}
+                            \\Delta_{\\text{net}} \\approx \\underbrace{R_{\\text{new}}}_{${estimatedDate.details.modelVariables.R_new.toFixed(2)}} - \\underbrace{R_{\\text{daily}}}_{${estimatedDate.details.modelVariables.R_daily.toFixed(2)}} \\\\
+                            \\\\
+                            Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${estimatedDate.details.modelVariables.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${estimatedDate.details.modelVariables.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${estimatedDate.details.modelVariables.P_app.toFixed()}} \\\\
+                            \\end{cases}\\end{cases}
+                            \\end{aligned}
+                          `}
+                          />
+                        </div>
+                      </FormulaTooltip>
                     </div>
                   </>
                 )}
               </div>
             )}
 
-            <p className="mt-4 text-xs italic text-gray-500 dark:text-gray-200">
-              *This is an estimate based on current processing rates and pending applications. The actual completion
-              date may vary.
+            <p className="mt-4 text-xxs italic text-gray-500 dark:text-gray-200 sm:text-xs">
+              *This is an{' '}
+              <strong>
+                <u>estimate</u>
+              </strong>{' '}
+              based on current processing rates, expected queue position, and pending applications. Actual processing
+              time for your application may vary.
             </p>
           </div>
         )}

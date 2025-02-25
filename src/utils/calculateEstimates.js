@@ -1,156 +1,228 @@
+// src/utils/calculateEstimates.js
 export const calculateEstimatedDate = (data, details) => {
+  // --------------------------------------------
+  // Input Validation & Early Exit
+  // --------------------------------------------
   if (!data || !details.bureau || !details.type || !details.applicationDate) {
     return null;
   }
 
+  // --------------------------------------------
+  // Configuration Constants
+  // --------------------------------------------
   const minMonths = 3;
-  const maxMonths = 12;
   const maxBackwardMonths = 3;
 
+  // --------------------------------------------
+  // Data Filtering and Preparation
+  // --------------------------------------------
   const { bureau, type, applicationDate } = details;
-
-  // Filter data for specific bureau and type
   const filteredData = data.filter((entry) => entry.bureau === bureau && entry.type === type);
-
   if (filteredData.length === 0) return null;
 
-  // Get unique months from filtered data
+  // Get sorted unique months from filtered data
   const months = [...new Set(filteredData.map((entry) => entry.month))].sort();
   const lastAvailableMonth = months[months.length - 1];
+  const effectiveAppDate = applicationDate > lastAvailableMonth ? lastAvailableMonth : applicationDate;
 
-  // If application date is after last available data, use last available month's data
-  const effectiveApplicationDate = applicationDate > lastAvailableMonth ? lastAvailableMonth : applicationDate;
-
-  // Split months into before and after application date
-  const beforeMonths = months.filter((month) => month < effectiveApplicationDate);
-  const afterMonths = months.filter((month) => month >= effectiveApplicationDate);
-
-  // Start with forward-looking months
-  let selectedMonths = afterMonths.slice(0, maxMonths);
-
-  // If we don't have minimum months, add backward data (up to 3 months)
+  // Select relevant months for rate calculations
+  let selectedMonths = months.filter((month) => month >= effectiveAppDate);
   if (selectedMonths.length < minMonths) {
+    const beforeMonths = months.filter((month) => month < effectiveAppDate);
     const needed = Math.min(minMonths - selectedMonths.length, maxBackwardMonths);
     selectedMonths = [...beforeMonths.slice(-needed), ...selectedMonths];
   }
 
-  if (selectedMonths.length === 0) return null;
+  // --------------------------------------------
+  // Helper Functions
+  // --------------------------------------------
+  const sumByStatus = (status, monthCondition) =>
+    filteredData
+      .filter((entry) => entry.status === status && monthCondition(entry.month))
+      .reduce((sum, entry) => sum + entry.value, 0);
 
-  // Find the first month after application date or use last available month
-  let applicationMonth;
-  if (applicationDate > lastAvailableMonth) {
-    // For future dates, use the last available month's data
-    applicationMonth = lastAvailableMonth;
-  } else {
-    // For past dates, find the first month after application
-    applicationMonth = months.find((month) => month > applicationDate) || lastAvailableMonth;
+  const getDaysInMonth = (monthStr) => {
+    const [year, month] = monthStr.split('-').map(Number);
+    return new Date(year, month, 0).getDate();
+  };
+
+  const getDaysBetweenDates = (start, end) => {
+    const utcStart = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+    const utcEnd = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
+    return Math.ceil((utcEnd - utcStart) / (1000 * 60 * 60 * 24));
+  };
+
+  const formatMonth = (date) => `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+
+  // --------------------------------------------
+  // Core Rate Calculations
+  // --------------------------------------------
+  // Calculate daily processing rates
+  const totalNew = sumByStatus('103000', (m) => selectedMonths.includes(m));
+  const totalProcessed = sumByStatus('300000', (m) => selectedMonths.includes(m));
+  const totalDays = selectedMonths.reduce((sum, month) => sum + getDaysInMonth(month), 0);
+
+  const dailyProcessed = totalProcessed / totalDays;
+  const dailyNew = totalNew / totalDays;
+  const netChangePerDay = dailyNew - dailyProcessed;
+  const processingRate = dailyProcessed;
+
+  // --------------------------------------------
+  // Application Date Analysis
+  // --------------------------------------------
+  const appDate = new Date(applicationDate);
+  const appDay = appDate.getDate();
+  const applicationMonth = formatMonth(appDate);
+
+  // Previous month calculation
+  const prevMonthDate = new Date(appDate);
+  prevMonthDate.setMonth(appDate.getMonth() - 1);
+  const prevMonth = formatMonth(prevMonthDate);
+
+  // --------------------------------------------
+  // Historical Data Detection
+  // --------------------------------------------
+  const hasActualAppMonth = months.includes(applicationMonth);
+  const hasActualPrevMonth = months.includes(prevMonth);
+
+  // --------------------------------------------
+  // Queue Position Calculations
+  // --------------------------------------------
+  // Current queue state calculations
+  const lastAvailableDate = new Date(
+    Date.UTC(parseInt(lastAvailableMonth.split('-')[0]), parseInt(lastAvailableMonth.split('-')[1]) - 1, 1)
+  );
+  lastAvailableDate.setMonth(lastAvailableDate.getMonth() + 1);
+  lastAvailableDate.setDate(0);
+  const predictionDays = getDaysBetweenDates(lastAvailableDate, new Date());
+
+  // Processed applications estimation
+  let processedInAppMonth = 0;
+  if (hasActualAppMonth) {
+    const daysInMonth = getDaysInMonth(applicationMonth);
+    processedInAppMonth = dailyProcessed * (daysInMonth - appDay);
   }
 
-  if (!applicationMonth) return null;
+  const confirmedProcessed = sumByStatus('300000', (m) => m > applicationMonth) + processedInAppMonth;
 
-  // Calculate applications processed since user's application date
-  const confirmedProcessed = filteredData
-    .filter((entry) => entry.month > applicationDate && entry.month <= lastAvailableMonth && entry.status === '300000')
-    .reduce((sum, entry) => sum + entry.value, 0);
-
-  // Get total applications in queue at application month
-  const totalInQueue = filteredData
-    .filter((entry) => entry.month === applicationMonth && entry.status === '102000')
-    .reduce((sum, entry) => sum + entry.value, 0);
-
-  // Calculate averages from last 3 months
-  const lastThreeMonths = months.slice(-3);
-  const averages = lastThreeMonths.reduce(
-    (acc, month) => {
-      const monthData = filteredData.filter((entry) => entry.month === month);
-      return {
-        newApplications:
-          acc.newApplications +
-          monthData.filter((entry) => entry.status === '103000').reduce((sum, entry) => sum + entry.value, 0),
-        processed:
-          acc.processed +
-          monthData.filter((entry) => entry.status === '300000').reduce((sum, entry) => sum + entry.value, 0),
-      };
-    },
-    { newApplications: 0, processed: 0 }
+  const totalInQueue = sumByStatus(
+    '102000',
+    (m) =>
+      m ===
+      (applicationDate > lastAvailableMonth
+        ? lastAvailableMonth
+        : months.find((m) => m > applicationDate) || lastAvailableMonth)
   );
 
-  const monthlyNewAverage = averages.newApplications / 3;
-  const monthlyProcessedAverage = averages.processed / 3;
-  const netChangePerMonth = monthlyNewAverage - monthlyProcessedAverage;
+  // --------------------------------------------
+  // Predictive Calculations
+  // --------------------------------------------
+  const daysSinceApplication = getDaysBetweenDates(appDate, new Date());
+  const predictedProcessed =
+    applicationDate > lastAvailableMonth ? dailyProcessed * daysSinceApplication : dailyProcessed * predictionDays;
 
-  // Calculate prediction period
-  const lastDataDate = new Date(lastAvailableMonth);
-  const today = new Date();
-  const daysInCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  const fullMonths =
-    (today.getFullYear() - lastDataDate.getFullYear()) * 12 + (today.getMonth() - lastDataDate.getMonth() - 1);
-  const partialMonth = today.getDate() / daysInCurrentMonth;
-  const predictionMonths = fullMonths + partialMonth;
+  const totalProcessedSinceApp = Math.round(confirmedProcessed + predictedProcessed);
+  const adjustedQueueTotal = Math.round(totalInQueue + netChangePerDay * predictionDays);
+  const remainingAhead = Math.round(adjustedQueueTotal - totalProcessedSinceApp);
 
-  // Calculate predicted processed applications for missing months
-  const predictedProcessed = predictionMonths * monthlyProcessedAverage;
+  // --------------------------------------------
+  // Queue at Application Date Calculation
+  // --------------------------------------------
+  const getMonthData = (month, status) =>
+    filteredData.find((entry) => entry.month === month && entry.status === status)?.value || 0;
 
-  // Calculate months between application date and current date
-  const applicationDateTime = new Date(applicationDate);
-  const monthsSinceApplication =
-    (today.getFullYear() - applicationDateTime.getFullYear()) * 12 +
-    (today.getMonth() - applicationDateTime.getMonth() - 1) +
-    today.getDate() / daysInCurrentMonth;
-
-  // Adjust predicted processing based on application date
-  const applicablePredictedProcessed =
-    applicationDate > lastAvailableMonth ? monthlyProcessedAverage * monthsSinceApplication : predictedProcessed;
-
-  // Total processed applications since application date
-  const totalProcessedSinceApplication = Math.max(0, Math.round(confirmedProcessed + applicablePredictedProcessed));
-
-  // Calculate adjusted queue total
-  const predictedChange = netChangePerMonth * predictionMonths;
-  const adjustedQueueTotal = Math.round(totalInQueue + predictedChange);
-
-  // Calculate remaining applications ahead in queue
-  const remainingAhead = Math.max(0, Math.round(adjustedQueueTotal - totalProcessedSinceApplication));
-
-  // Calculate processing rate using trend data
-  const totalProcessed = selectedMonths.reduce((total, month) => {
-    const monthProcessed = filteredData
-      .filter((entry) => entry.month === month && entry.status === '300000')
-      .reduce((sum, entry) => sum + entry.value, 0);
-    return total + monthProcessed;
-  }, 0);
-
-  const monthlyProcessingRate = Math.round(totalProcessed / selectedMonths.length);
-
-  if (monthlyProcessingRate <= 0) return null;
-
-  // Calculate estimated months based on remaining queue position
-  const estimatedMonths = Math.ceil(remainingAhead / monthlyProcessingRate);
-
-  // Calculate estimated completion date from application date
-  const estimatedDate = new Date(applicationDateTime);
-  if (remainingAhead <= 0) {
-    // For past-due applications, calculate historical completion date
-    const processingTime = Math.ceil(totalInQueue / monthlyProcessingRate);
-    estimatedDate.setMonth(estimatedDate.getMonth() + processingTime);
+  // Carryover calculations
+  let carriedOver = 0;
+  if (hasActualPrevMonth) {
+    carriedOver =
+      getMonthData(prevMonth, '102000') + getMonthData(prevMonth, '103000') - getMonthData(prevMonth, '300000');
   } else {
-    // For active applications, calculate forward from current date
-    const estimatedMonths = Math.ceil(remainingAhead / monthlyProcessingRate);
-    estimatedDate.setTime(today.getTime());
-    estimatedDate.setMonth(estimatedDate.getMonth() + estimatedMonths);
+    const historicalMonths = months.filter((m) => m < applicationMonth);
+    if (historicalMonths.length) {
+      carriedOver =
+        getMonthData(historicalMonths.slice(-1)[0], '102000') +
+        getMonthData(historicalMonths.slice(-1)[0], '103000') -
+        getMonthData(historicalMonths.slice(-1)[0], '300000');
+    }
   }
 
+  // Received/processed by application date
+  let receivedByAppDate, processedByAppDate;
+  if (hasActualAppMonth) {
+    const receivedInMonth = getMonthData(applicationMonth, '103000');
+    const processedInMonth = getMonthData(applicationMonth, '300000');
+    const daysInMonth = getDaysInMonth(applicationMonth);
+
+    receivedByAppDate = (receivedInMonth / daysInMonth) * appDay;
+    processedByAppDate = (processedInMonth / daysInMonth) * appDay;
+  } else {
+    receivedByAppDate = dailyNew * appDay;
+    processedByAppDate = dailyProcessed * appDay;
+  }
+
+  const queueAtApplication = Math.round(carriedOver + receivedByAppDate - processedByAppDate);
+
+  // --------------------------------------------
+  // Final Estimation
+  // --------------------------------------------
+  if (processingRate <= 0) return null;
+
+  const estimatedDate = new Date();
+  const daysRequired = remainingAhead / processingRate;
+  const estimatedDays = daysRequired >= 0 ? Math.ceil(daysRequired) : Math.floor(daysRequired);
+
+  estimatedDate.setDate(estimatedDate.getDate() + estimatedDays);
+
+  // --------------------------------------------
+  // Result Compilation
+  // --------------------------------------------
   const calculationDetails = {
     adjustedQueueTotal,
-    monthlyRate: monthlyProcessingRate,
-    processedSince: totalProcessedSinceApplication,
-    queuePosition: remainingAhead,
-    estimatedMonths: estimatedMonths,
+    queueAtApplication,
+    totalProcessedSinceApp,
+    carriedOver,
+    dailyNew,
+    dailyProcessed,
+    appDay,
+    totalProcessed,
+    totalDays,
+    modelVariables: {
+      C_prev: Number(carriedOver), // Applications carried over from month prior to submission
+      N_app: Number(receivedByAppDate), // New applications received prior to submission
+      P_app: Number(processedByAppDate), // Applications processed prior to submission
+      R_new: Number(dailyNew), // Application submissions per day
+      R_daily: Number(dailyProcessed), // Applications processed per day
+      Delta_net: Number(dailyNew - dailyProcessed), // Daily change in queue total
+      t_pred: Number(predictionDays), // Number of days where prediction data is used
+      Sigma_P: Number(totalProcessed), // Total number of applications processed since submission
+      Sigma_D: Number(totalDays), // Total days in data since application month (inclusive)
+      Q_app: Number(carriedOver + receivedByAppDate - processedByAppDate), // Estimated queue position at submission time
+      C_proc: Number(confirmedProcessed), // Confirmed applications processed since submission time
+      P_proc: Number(predictedProcessed), // Estimated applications processed since last data point
+      Q_adj: Number(
+        carriedOver + receivedByAppDate - processedByAppDate + (dailyNew - dailyProcessed) * predictionDays
+      ), // Estimated current queue total
+      Q_pos: Number(
+        carriedOver +
+          receivedByAppDate -
+          processedByAppDate +
+          (dailyNew - dailyProcessed) * predictionDays -
+          totalProcessedSinceApp
+      ), // Estimated queue position
+      D_rem: Number(
+        (carriedOver +
+          receivedByAppDate -
+          processedByAppDate +
+          (dailyNew - dailyProcessed) * predictionDays -
+          totalProcessedSinceApp) /
+          dailyProcessed
+      ), // Estimated days remaining to completion
+    },
     isPastDue: remainingAhead <= 0,
   };
 
   return {
-    estimatedDate,
+    estimatedDate: remainingAhead <= 0 ? estimatedDate : new Date(estimatedDate.setHours(0, 0, 0, 0)),
     details: calculationDetails,
   };
 };

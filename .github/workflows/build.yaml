@@ -1,16 +1,13 @@
 name: Build and Deploy to GitHub Pages
 
 on:
-  schedule:
-    - cron: '0 0 * * 0'
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 permissions:
   contents: write
   pages: write
   id-token: write
+  deployments: write
 
 jobs:
   build-and-deploy:
@@ -32,28 +29,43 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Create Datastore Directory
+        run: mkdir -p public/datastore
+
       - name: Create CNAME file
         run: echo "dashboard.retrohazard.jp" > public/CNAME
 
-      - name: Create datastore directory
-        run: mkdir -p public/datastore/
+      - name: Restore cached data
+        uses: actions/cache@v4
+        id: data-cache
+        with:
+          path: public/datastore/statData.json
+          key: estat-data-${{ hashFiles('public/datastore/statData.json') }}
+          restore-keys: |
+            estat-data-
 
-      - name: Download JSON Data
+      - name: Validate Cached Data
         working-directory: public/datastore/
         run: |
-          curl -L \
-          "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId="${{ secrets.ESTAT_APP_ID }}"&lang=J&statsDataId=0003449073&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0" \
-          -o statData.json
-
-      - name: Verify JSON Data
-        working-directory: public/datastore/
-        run: |
-          if [ -s statData.json ]; then
-            jq empty statData.json
-          else
-            echo "Error: Downloaded File is Empty"
-            exit 1
+          if [ ! -f statData.json ]; then
+            echo "::warning::No cached data found, downloading fresh copy"
+            curl -L "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId=${{ secrets.ESTAT_APP_ID }}&lang=J&statsDataId=0003449073&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0" --fail -o statData.json || {
+              echo "::error::API request failed with status $?"
+              exit 1
+            }
           fi
+
+          # Check basic JSON validity first
+          jq -e . statData.json >/dev/null || {
+            echo "::error::Invalid JSON structure"
+            exit 1
+          }
+
+          jq -e '.GET_STATS_DATA.STATISTICAL_DATA' statData.json >/dev/null || {
+            echo "::error::Missing required data structure"
+            cat statData.json  # Output for debugging
+            exit 1
+          }
 
       - name: Build Project
         run: npm run build

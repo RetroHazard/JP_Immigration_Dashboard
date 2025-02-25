@@ -25,7 +25,11 @@ export const useImmigrationData = () => {
       }
     };
 
-    fetchData();
+    // Handle the Promise explicitly to avoid uncaught rejection warnings
+    fetchData().catch((error) => {
+      console.error('Unexpected error in fetchData:', error);
+      setError('Failed to fetch data');
+    });
   }, []);
 
   return { data, loading, error };

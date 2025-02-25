@@ -9,6 +9,20 @@
     }
 }
 
+/* Tippy.js */
+
+.tippy-box[data-theme~='stat-tooltip'] {
+    @apply bg-gray-700 text-white text-xs px-2 py-1 shadow-xl rounded-md dark:bg-gray-300 dark:text-gray-800;
+}
+
+.tippy-box[data-theme~='stat-tooltip'] > .tippy-arrow {
+    @apply text-gray-700 dark:text-gray-300;
+}
+
+.tippy-box[data-theme~='stat-tooltip'] > .tippy-backdrop {
+    @apply bg-gray-700 dark:bg-gray-300;
+}
+
 @layer components {
     /* Base Components */
     .base-container {
@@ -19,7 +33,7 @@
     }
 
     .section-block {
-        @apply h-full mb-8
+        @apply h-full
     }
 
     .build-info {
@@ -51,13 +65,14 @@
     }
 
     .marginals {
-        @apply max-w-7xl px-3 mx-auto
-        sm:px-4 sm:py-1
+        @apply px-3
+        sm:px-4 sm:py-1 sm:max-w-7xl sm:mx-auto
         lg:px-8
     }
 
     .footer-text {
-        @apply mt-1 text-xs text-center text-gray-500 text-pretty dark:text-gray-300
+        @apply mt-1 text-xxs text-center text-gray-500 text-pretty dark:text-gray-300
+        sm:text-xs
     }
 
     .footer-text-small {
@@ -67,9 +82,8 @@
     /* Typography */
     .section-title {
         @apply text-sm font-semibold dark:text-gray-100
-        sm:text-base
-        md:text-lg
-        lg:text-xl
+        md:text-base
+        lg:text-lg
     }
 
     /* Flex Layouts */
@@ -84,18 +98,7 @@
     /* Stats Components */
     .stat-container {
         @apply grid grid-cols-5 gap-1 mt-4
-    }
-
-    .stat-tooltip {
-        @apply absolute bottom-full left-1/2 z-50 p-2 mb-2 text-xs font-medium text-white bg-gray-900 rounded-lg opacity-0 invisible -translate-x-1/2 transition-opacity duration-300 dark:bg-gray-300 dark:text-gray-800
-        max-w-[calc(100vw-1rem)]
-        group-hover:opacity-100 group-hover:visible
-        whitespace-normal
-        sm:hidden
-    }
-
-    .stat-tooltip-arrow {
-        @apply absolute -bottom-1 left-1/2 w-2 h-2 bg-gray-900 -translate-x-1/2 rotate-45 dark:bg-gray-300
+        xl:w-full
     }
 
     /* Card Components */
@@ -112,40 +115,38 @@
     }
 
     .card-content-padded {
-        @apply p-5 card-content
+        @apply p-2 card-content
+        md:p-3
+        lg:p-4
+        xl:p-5
     }
 
     .stat-card {
         @apply w-fit p-2 mx-auto bg-white rounded-lg shadow-lg dark:bg-gray-700
-        sm:flex sm:items-start sm:justify-start sm:w-full sm:h-full sm:p-3 sm:scale-95
-        md:items-center md:p-4 md:text-nowrap
+        sm:flex sm:items-start sm:justify-start sm:w-full sm:h-full sm:p-3 sm:scale-95 sm:overflow-x-clip sm:text-pretty
+        md:items-center md:p-4 md:rounded-xl
         lg:rounded-2xl
     }
 
     .stat-badge {
         @apply flex items-center justify-center w-10 h-10 rounded-lg
-        md:min-h-12 md:h-28 md:rounded-2xl
-        xl:min-w-16 xl:rounded-3xl
+        md:min-h-12 md:h-16 md:w-8 md:rounded-lg
+        lg:min-h-16 lg:h-20 lg:w-9
+        xl:min-w-12 xl:rounded-xl
     }
 
     .stat-icon-text {
         @apply flex items-center justify-center text-2xl text-white
-        md:text-3xl
-        xl:text-5xl
+        md:text-2xl
+        lg:text-3xl
+        xl:text-4xl
     }
 
     /* Stat Text Elements */
     .stat-details {
         @apply hidden
-        sm:block sm:ml-3
-        xl:ml-5
-    }
-
-    .stat-value {
-        @apply hidden
-        sm:block sm:text-xs sm:font-semibold sm:text-gray-700 sm:dark:text-gray-200
-        md:text-base md:mt-1
-        lg:text-2xl
+        sm:flex sm:flex-col sm:ml-3 sm:h-full
+        xl:ml-4
     }
 
     .stat-title {
@@ -166,15 +167,17 @@
         lg:text-sm
     }
 
-    .stat-date {
+    .stat-value {
         @apply hidden
-        md:block md:text-xs md:text-gray-400 md:italic md:dark:text-gray-300
+        sm:block sm:text-xs sm:font-semibold sm:text-gray-700 sm:dark:text-gray-200 sm:mt-auto
+        md:text-base
+        lg:text-2xl
     }
 
     /* Filter Components */
     .filter-block {
         @apply grid grid-cols-2 gap-4
-        sm:grid-cols-3 sm:gap-5
+        sm:gap-3
         md:gap-6
     }
 
@@ -185,13 +188,14 @@
     }
 
     .filter-label {
-        @apply text-sm font-medium text-gray-700 dark:text-gray-300
+        @apply text-xs font-medium text-gray-700 dark:text-gray-300
+        sm:text-sm
         md:text-base md:font-semibold
-        lg:text-lg
     }
 
     .filter-note {
-        @apply text-xs italic text-gray-500 dark:text-gray-300
+        @apply text-xxs italic text-gray-500 dark:text-gray-300
+        sm:text-xs
         md:text-sm md:text-pretty
     }
 
@@ -201,8 +205,14 @@
 
     /* Chart Components */
     .chart-container {
-        @apply w-full h-[300px]
-        sm:h-[400px]
+        @apply w-full min-h-[325px]
+        sm:min-h-[400px]
+    }
+    
+    .map-container {
+        @apply w-full min-h-[250px]
+        sm:min-h-[350px]
+        md:min-h-[450px] md:max-h-[550px] md:overflow-hidden
     }
 
     .chart-filter-select {
@@ -212,13 +222,14 @@
         lg:text-lg
     }
 
-    .chart-collapsed {
+    .main-collapsed {
         @apply hidden
         sm:block sm:col-span-6
+        md:col-span-7
         lg:col-span-8
     }
 
-    .chart-expanded {
+    .main-expanded {
         @apply hidden
         sm:block sm:col-span-11
         md:col-span-11
@@ -228,8 +239,6 @@
     .estimator-container {
         @apply flex flex-col h-full bg-white shadow-lg dark:bg-gray-700
         sm:rounded-lg sm:p-3
-        md:p-4
-        lg:p-5
     }
 
     .flashing-chevron {
@@ -245,6 +254,7 @@
     .estimator-expanded {
         @apply hidden
         sm:block sm:col-span-6
+        md:col-span-5
         lg:col-span-4
     }
 
@@ -271,6 +281,11 @@
     /* Special Components */
     .clip-tapered-btn {
         @apply relative flex items-center justify-center h-[130px] w-[25px] overflow-visible bg-gray-700 text-white shadow-lg animate-pulse clip-path-tapered-btn hover:bg-gray-500 dark:bg-gray-300 dark:text-gray-700
+    }
+
+    .zoom-button {
+        @apply h-8 w-8 flex items-center justify-center bg-gray-300 dark:bg-gray-500 rounded-full shadow-lg border border-gray-500 dark:border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors
+        sm:text-xl
     }
 
     @screen sm {
