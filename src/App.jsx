@@ -1,25 +1,24 @@
 // App.jsx
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { FilterPanel } from './components/FilterPanel';
-import { StackedBarChart } from './components/StackedBarChart';
 import { EstimationCard } from './components/EstimationCard';
 import { StatsSummary } from './components/StatsSummary';
 import { useImmigrationData } from './hooks/useImmigrationData';
 import { Icon } from '@iconify/react';
 import buildInfo from './buildInfo';
+import { CHART_COMPONENTS } from './components/common/ChartComponents';
 
 const App = () => {
   const { data, loading } = useImmigrationData();
   const [filters, setFilters] = useState({
     bureau: 'all',
     type: 'all',
-    month: '', // Initialize Empty
   });
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEstimationExpanded, setIsEstimationExpanded] = useState(false);
-
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeChartIndex, setActiveChartIndex] = useState(0);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -42,7 +41,20 @@ const App = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white transition-colors duration-300 dark:bg-gray-700">
+        <div className="flex flex-col items-center gap-4">
+          <Icon
+            icon="svg-spinners:90-ring-with-bg"
+            className="h-12 w-12 text-indigo-600 dark:text-indigo-300"
+            aria-hidden="true"
+          />
+          <span className="text-sm font-semibold text-gray-700 transition-all dark:text-gray-200 md:text-base lg:text-lg">
+            Crunching Immigration Data...
+          </span>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -72,7 +84,7 @@ const App = () => {
                   })}
                 </span>
               </div>
-              <button onClick={toggleTheme} className="theme-toggle">
+              <button onClick={toggleTheme} className="theme-toggle" aria-label="Toggle theme">
                 <Icon
                   icon={
                     isDarkMode
@@ -90,15 +102,42 @@ const App = () => {
       <main className="marginals flex-1 py-8">
         {!loading && (
           <>
-            <div className="section-block grid grid-cols-1">
-              <FilterPanel data={data} filters={filters} onChange={setFilters} />
-            </div>
+            {(CHART_COMPONENTS[activeChartIndex].filters.bureau ||
+              CHART_COMPONENTS[activeChartIndex].filters.appType) && (
+              <div className="section-block mb-4 grid grid-cols-1 sm:hidden">
+                <FilterPanel
+                  data={data}
+                  filters={filters}
+                  onChange={setFilters}
+                  filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
+                />
+              </div>
+            )}
 
             {/* Mobile Layout */}
             <div className="relative sm:hidden">
-              <div className="section-block">
+              <div className="section-block grid grid-cols-1">
                 <div className="base-container">
-                  <StackedBarChart data={data} filters={filters} isDarkMode={isDarkMode} />
+                  <div className="mb-2 flex justify-between space-x-1 border-b dark:border-gray-500">
+                    {CHART_COMPONENTS.map((chart, index) => (
+                      <button
+                        key={chart.name}
+                        aria-label={chart.name}
+                        onClick={() => setActiveChartIndex(index)}
+                        className={`rounded-t-lg px-4 py-2 ${
+                          activeChartIndex === index
+                            ? 'bg-blue-500 text-gray-100 dark:bg-gray-300 dark:text-gray-600'
+                            : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-500 dark:hover:bg-gray-400'
+                        }`}
+                      >
+                        <Icon icon={chart.icon} />
+                      </button>
+                    ))}
+                  </div>
+                  {(() => {
+                    const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
+                    return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
+                  })()}
                 </div>
               </div>
 
@@ -123,13 +162,58 @@ const App = () => {
             </div>
 
             {/* Desktop Layout */}
-            <div className="section-block hidden grid-cols-12 gap-6 sm:grid sm:gap-2 md:gap-3 lg:gap-4">
-              <div className={`transition-slow ${isEstimationExpanded ? 'chart-collapsed' : 'chart-expanded'}`}>
-                <div className="base-container">
-                  <StackedBarChart data={data} filters={filters} isDarkMode={isDarkMode} />
+            <div className="section-block hidden h-full grid-cols-12 sm:grid sm:gap-3 md:gap-4 lg:gap-5">
+              {/* Left main content column */}
+              <div
+                className={`transition-slow flex h-full flex-col ${
+                  isEstimationExpanded ? 'main-collapsed' : 'main-expanded'
+                }`}
+              >
+                {/* Filter row */}
+                {(CHART_COMPONENTS[activeChartIndex].filters.bureau ||
+                  CHART_COMPONENTS[activeChartIndex].filters.appType) && (
+                  <div className="flex-shrink-0 sm:mb-4 md:mb-5 lg:mb-6">
+                    <FilterPanel
+                      data={data}
+                      filters={filters}
+                      onChange={setFilters}
+                      filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
+                    />
+                  </div>
+                )}
+
+                {/* Chart row */}
+                <div className="flex-grow">
+                  <div className="base-container h-full">
+                    <div className="mb-4 flex space-x-2 overflow-x-auto border-b dark:border-gray-500">
+                      {CHART_COMPONENTS.map((chart, index) => (
+                        <button
+                          key={chart.name}
+                          onClick={() => setActiveChartIndex(index)}
+                          className={`rounded-t-lg px-4 py-2 ${
+                            activeChartIndex === index
+                              ? 'bg-blue-500 text-gray-100 dark:bg-gray-300 dark:text-gray-600'
+                              : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-500 dark:hover:bg-gray-400'
+                          }`}
+                        >
+                          <Icon icon={chart.icon} />
+                        </button>
+                      ))}
+                    </div>
+                    {(() => {
+                      const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
+                      return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
+                    })()}
+                  </div>
                 </div>
               </div>
-              <div className={`transition-slow ${isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'}`}>
+
+              {/* Right estimator column */}
+              <div
+                className={`transition-slow h-full ${
+                  isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'
+                }`}
+              >
                 <div
                   className="h-full cursor-pointer rounded-lg bg-white shadow-lg dark:bg-gray-700"
                   onClick={() => !isEstimationExpanded && setIsEstimationExpanded(true)}
@@ -155,17 +239,17 @@ const App = () => {
             Official Statistics provided by Immigration Services Agency of Japan
             <br />
             Data acquisition provided by e-Stat
-            <a href="https://www.e-stat.go.jp/dbview?sid=0003449073">
+            <a href="https://www.e-stat.go.jp/" target="_blank" rel="noreferrer" aria-label="e-Stat Website">
               <Icon icon="ri:link" className="hyperlink vertical-align-sub inline-block align-middle" />
             </a>
           </div>
           <div className="footer-text-small">
             Built using{' '}
-            <a href="https://react.dev" className="hyperlink">
+            <a href="https://react.dev" className="hyperlink" target="_blank" rel="noreferrer">
               React
             </a>{' '}
             in 2025 by{' '}
-            <a href="https://github.com/RetroHazard" className="hyperlink">
+            <a href="https://github.com/RetroHazard" className="hyperlink" target="_blank" rel="noreferrer">
               <Icon icon="openmoji:github" className="vertical-align-sub-more inline-block align-middle text-sm" />
               RetroHazard
             </a>
