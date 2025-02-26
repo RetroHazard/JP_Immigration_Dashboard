@@ -106,8 +106,9 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 ## :hammer_and_wrench: Tech Stack
 
 ### Frontend:
-- `Node.js` – Runtime & Build
-- `React` – Core Framework
+- `Node.js` – Runtime
+- `Next.js` – Framework
+- `React` – Library
 - `Chart.js` – Data Visualization (Charts)
 - `react-simple-maps` - Data Visualization (Maps)
 - `Tippy.js` – Tooltips

@@ -46,10 +46,12 @@ jobs:
 
       - name: Validate Cached Data
         working-directory: public/datastore/
+        env:
+          ESTAT_APP_ID: ${{ secrets.ESTAT_APP_ID }}
         run: |
           if [ ! -f statData.json ]; then
             echo "::warning::No cached data found, downloading fresh copy"
-            curl -L "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId=${{ secrets.ESTAT_APP_ID }}&lang=J&statsDataId=0003449073&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0" --fail -o statData.json || {
+            curl -L "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId=${{ ESTAT_APP_ID }}&lang=J&statsDataId=0003449073&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0" --fail -o statData.json || {
               echo "::error::API request failed with status $?"
               exit 1
             }
@@ -70,6 +72,7 @@ jobs:
       - name: Build Project
         run: npm run build
         env:
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.GA_MEASUREMENT_ID }}
           CI: false
 
       - name: Upload Build Output
