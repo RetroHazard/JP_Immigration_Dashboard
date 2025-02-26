@@ -1,4 +1,4 @@
-import { ClientOnly } from './client';
+import { ClientWrapper } from './client';
 
 export function generateStaticParams() {
   return [
@@ -10,6 +10,6 @@ export function generateStaticParams() {
   ];
 }
 
-export default function Page() {
-  return <ClientOnly />;
+export default function Home() {
+  return <ClientWrapper />;
 }

@@ -31,7 +31,7 @@
     "typescript": "5.7.3"
   },
   "scripts": {
-    "start": "react-build-info && npx serve@latest ./build",
+    "start": "react-build-info && next build && npx serve@latest ./build",
     "build": "react-build-info && next build",
     "dev": "react-build-info && NODE_OPTIONS='--inspect' next dev --turbopack",
     "postinstall": "node -e \"(process.env.npm_command != 'ci') && require('lockfile-shaker/lib/bin.js')\""
