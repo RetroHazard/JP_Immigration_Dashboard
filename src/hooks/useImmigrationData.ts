@@ -1,12 +1,20 @@
-// src/hooks/useImmigrationData.js
+// src/hooks/useImmigrationData.ts
 import { useEffect, useState } from 'react';
 import { loadLocalData } from '../utils/loadLocalData';
 import { transformData } from '../utils/dataTransform';
 
+export interface ImmigrationData {
+  month: string;
+  bureau: string;
+  type: string;
+  value: number;
+  status: string;
+}
+
 export const useImmigrationData = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [data, setData] = useState<ImmigrationData[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,15 +26,14 @@ export const useImmigrationData = () => {
         } else {
           setError('No data available');
         }
-      } catch (err) {
-        setError(err.message);
+      } catch (error: any) {
+        setError(error.message);
       } finally {
         setLoading(false);
       }
     };
 
-    // Handle the Promise explicitly to avoid uncaught rejection warnings
-    fetchData().catch((error) => {
+    fetchData().catch((error: any) => {
       console.error('Unexpected error in fetchData:', error);
       setError('Failed to fetch data');
     });

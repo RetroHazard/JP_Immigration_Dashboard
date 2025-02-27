@@ -1,4 +1,4 @@
-// src/components/charts/BureauDistributionRingChart.jsx
+// src/components/charts/BureauDistributionRingChart.tsx
 import React, { useMemo, useState } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
@@ -6,8 +6,14 @@ import { bureauOptions } from '../../constants/bureauOptions';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export const BureauDistributionRingChart = ({ data, filters, isDarkMode }) => {
-  const [selectedPeriod, setSelectedPeriod] = useState('1');
+interface BureauDistributionRingChartProps {
+  data: any[];
+  filters: { type: string };
+  isDarkMode: boolean;
+}
+
+export const BureauDistributionRingChart: React.FC<BureauDistributionRingChartProps> = ({ data, filters, isDarkMode }) => {
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('1');
 
   // Get sorted list of unique months
   const sortedMonths = useMemo(() => {
@@ -61,11 +67,11 @@ export const BureauDistributionRingChart = ({ data, filters, isDarkMode }) => {
     cutout: '50%',
     elements: {
       arc: {
-        backgroundColor: (ctx) => {
+        backgroundColor: (ctx: any) => {
           const bureau = bureauOptions.find((b) => b.value === bureauData[ctx.dataIndex]?.id);
           return bureau?.background || 'rgba(100, 116, 139, 0.4)'; // Fallback to Slate
         },
-        borderColor: (ctx) => {
+        borderColor: (ctx: any) => {
           const bureau = bureauOptions.find((b) => b.value === bureauData[ctx.dataIndex]?.id);
           return bureau?.border || 'rgba(100, 116, 139, 1)'; // Fallback to Slate
         },
@@ -77,13 +83,13 @@ export const BureauDistributionRingChart = ({ data, filters, isDarkMode }) => {
         position: 'left',
         labels: {
           color: isDarkMode ? '#fff' : '#000',
-          filter: (item) => item.text !== '0',
+          filter: (item: any) => item.text !== '0',
         },
       },
       tooltip: {
         callbacks: {
-          label: (context) => {
-            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+          label: (context: any) => {
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
             const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
             return `${context.label}: ${percentage}%`;
           },

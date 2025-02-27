@@ -1,16 +1,22 @@
-// App.jsx
-import { Fragment, useEffect, useState } from 'react';
+// App.tsx
+import React, { Fragment, useEffect, useState } from 'react';
+import { useImmigrationData } from './hooks/useImmigrationData';
+import { DataLoading } from './components/common/LoadingSpinner';
 import { FilterPanel } from './components/FilterPanel';
 import { EstimationCard } from './components/EstimationCard';
 import { StatsSummary } from './components/StatsSummary';
-import { useImmigrationData } from './hooks/useImmigrationData';
 import { Icon } from '@iconify/react';
 import buildInfo from './buildInfo';
 import { CHART_COMPONENTS } from './components/common/ChartComponents';
 
-const App = () => {
+interface Filters {
+  bureau: string;
+  type: string;
+}
+
+const App: React.FC = () => {
   const { data, loading } = useImmigrationData();
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     bureau: 'all',
     type: 'all',
   });
@@ -41,20 +47,7 @@ const App = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white transition-colors duration-300 dark:bg-gray-700">
-        <div className="flex flex-col items-center gap-4">
-          <Icon
-            icon="svg-spinners:90-ring-with-bg"
-            className="h-12 w-12 text-indigo-600 dark:text-indigo-300"
-            aria-hidden="true"
-          />
-          <span className="text-sm font-semibold text-gray-700 transition-all dark:text-gray-200 md:text-base lg:text-lg">
-            Crunching Immigration Data...
-          </span>
-        </div>
-      </div>
-    );
+    return <DataLoading />;
   }
 
   return (
@@ -155,7 +148,12 @@ const App = () => {
                 <>
                   <div className="mobile-drawer-overlay transition-slow" onClick={() => setIsDrawerOpen(false)} />
                   <div className="mobile-drawer-content transition-slow">
-                    <EstimationCard variant="drawer" data={data} onClose={() => setIsDrawerOpen(false)} />
+                    <EstimationCard
+                      variant="drawer"
+                      data={data}
+                      isExpanded={null}
+                      onClose={() => setIsDrawerOpen(false)}
+                      onCollapse={null}/>
                   </div>
                 </>
               )}
@@ -222,6 +220,7 @@ const App = () => {
                     variant="expandable"
                     data={data}
                     isExpanded={isEstimationExpanded}
+                    onClose={null}
                     onCollapse={() => setIsEstimationExpanded(false)}
                   />
                 </div>
