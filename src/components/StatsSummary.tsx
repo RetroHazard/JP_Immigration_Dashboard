@@ -25,8 +25,8 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
   const stats = useMemo(() => {
     if (!data) return null;
 
-    // Use the selected month from filters, or get the most recent month if none selected
-    const selectedMonth = filters.month || [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+    // Use the most recent month
+    const selectedMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
 
     // Filter data based on all filters including month
     const filteredData = data.filter((entry) => {
@@ -42,11 +42,11 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
 
     const oldApplications = filteredData.reduce(
       (sum, entry) => (entry.status === '102000' ? sum + entry.value : sum),
-      0
+      0,
     );
     const newApplications = filteredData.reduce(
       (sum, entry) => (entry.status === '103000' ? sum + entry.value : sum),
-      0
+      0,
     );
     const processed = filteredData.reduce((sum, entry) => (entry.status === '300000' ? sum + entry.value : sum), 0);
     const granted = filteredData.reduce((sum, entry) => (entry.status === '301000' ? sum + entry.value : sum), 0);

@@ -43,8 +43,8 @@ export interface EstimatedDateResult {
 }
 
 export const calculateEstimatedDate = (
-    data: ImmigrationData[],
-  details: ApplicationDetails
+  data: ImmigrationData[],
+  details: ApplicationDetails,
 ): EstimatedDateResult | null => {
   // --------------------------------------------
   // Input Validation & Early Exit
@@ -136,7 +136,7 @@ export const calculateEstimatedDate = (
   // --------------------------------------------
   // Current queue state calculations
   const lastAvailableDate = new Date(
-    Date.UTC(parseInt(lastAvailableMonth.split('-')[0]), parseInt(lastAvailableMonth.split('-')[1]) - 1, 1)
+    Date.UTC(parseInt(lastAvailableMonth.split('-')[0]), parseInt(lastAvailableMonth.split('-')[1]) - 1, 1),
   );
   lastAvailableDate.setMonth(lastAvailableDate.getMonth() + 1);
   lastAvailableDate.setDate(0);
@@ -157,7 +157,7 @@ export const calculateEstimatedDate = (
       m ===
       (applicationDate > lastAvailableMonth
         ? lastAvailableMonth
-        : months.find((m) => m > applicationDate) || lastAvailableMonth)
+        : months.find((m) => m > applicationDate) || lastAvailableMonth),
   );
 
   // --------------------------------------------
@@ -246,14 +246,14 @@ export const calculateEstimatedDate = (
       C_proc: Number(confirmedProcessed), // Confirmed applications processed since submission time
       P_proc: Number(predictedProcessed), // Estimated applications processed since last data point
       Q_adj: Number(
-        carriedOver + receivedByAppDate - processedByAppDate + (dailyNew - dailyProcessed) * predictionDays
+        carriedOver + receivedByAppDate - processedByAppDate + (dailyNew - dailyProcessed) * predictionDays,
       ), // Estimated current queue total
       Q_pos: Number(
         carriedOver +
-          receivedByAppDate -
-          processedByAppDate +
-          (dailyNew - dailyProcessed) * predictionDays -
-          totalProcessedSinceApp
+        receivedByAppDate -
+        processedByAppDate +
+        (dailyNew - dailyProcessed) * predictionDays -
+        totalProcessedSinceApp,
       ), // Estimated queue position
       D_rem: Number(
         (carriedOver +
@@ -261,7 +261,7 @@ export const calculateEstimatedDate = (
           processedByAppDate +
           (dailyNew - dailyProcessed) * predictionDays -
           totalProcessedSinceApp) /
-          dailyProcessed
+        dailyProcessed,
       ), // Estimated days remaining to completion
     },
     isPastDue: remainingAhead <= 0,

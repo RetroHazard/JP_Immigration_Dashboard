@@ -1,5 +1,5 @@
 // src/components/charts/GeographicDistributionChart.tsx
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
@@ -45,9 +45,15 @@ const adjustColor = (originalColor: string, density: number, minDensity: number,
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
-      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: h = (b - r) / d + 2; break;
-      case b: h = (r - g) / d + 4; break;
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
     }
     h /= 6;
   }
@@ -78,9 +84,27 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
   const [isMapLoading, setIsMapLoading] = useState<boolean>(true);
   const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
   const [markerTooltip, setMarkerTooltip] = useState<any>(null);
-  const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({ coordinates: [136, 36], zoom: 1 });
+  const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
+    coordinates: [136, 36],
+    zoom: 1,
+  });
   const geographyRefs = useRef<Map<string, SVGPathElement>>(new Map());
   const markerRefs = useRef<Map<string, SVGGElement>>(new Map());
+
+  const getReferenceClientRect = () => {
+    const rect = markerTooltip?.mousePosition;
+    return {
+      x: rect[0],
+      y: rect[1],
+      width: 0,
+      height: 0,
+      top: rect[1],
+      left: rect[0],
+      right: rect[0],
+      bottom: rect[1],
+      toJSON: () => ({}),
+    } as DOMRect;
+  };
 
   // Loading Indication
   useEffect(() => {
@@ -160,7 +184,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
           area: acc.area + p.area,
           count: acc.count + 1,
         }),
-        { population: 0, area: 0, count: 0 }
+        { population: 0, area: 0, count: 0 },
       );
     });
     return stats;
@@ -214,7 +238,11 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
                           });
                         }}
                         onMouseLeave={() => setTooltipInfo(null)}
-                        ref={(node) => geographyRefs.current.set(geo.properties.name, node)}
+                        ref={(node) => {
+                          if (node instanceof SVGPathElement) {
+                            geographyRefs.current.set(geo.properties.name, node);
+                          }
+                        }}
                         style={{
                           default: {
                             outline: 'none',
@@ -248,7 +276,11 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
                         transform={`translate(-${iconSize / 2}, -${iconSize / 2})`}
                         onMouseEnter={() => setMarkerTooltip(bureau)}
                         onMouseLeave={() => setMarkerTooltip(null)}
-                        ref={(node) => markerRefs.current.set(bureau.value, node)}
+                        ref={(node) => {
+                          if (node instanceof SVGGElement) {
+                            markerRefs.current.set(bureau.value, node);
+                          }
+                        }}
                         pointerEvents="bounding-box"
                       >
                         <Icon
@@ -288,14 +320,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
           theme="stat-tooltip"
           delay={[300, 50]}
           followCursor="initial"
-          getReferenceClientRect={() => ({
-            width: 0,
-            height: 0,
-            top: tooltipInfo?.mousePosition[1] || 0,
-            left: tooltipInfo?.mousePosition[0] || 0,
-            right: tooltipInfo?.mousePosition[0] || 0,
-            bottom: tooltipInfo?.mousePosition[1] || 0,
-          })}
+          getReferenceClientRect={getReferenceClientRect}
           popperOptions={{
             modifiers: [
               {

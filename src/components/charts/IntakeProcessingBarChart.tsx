@@ -31,17 +31,17 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
   useEffect(() => {
     if (!data) return;
 
-    // Get selected month or latest month if none selected
-    const endMonth = filters.month || [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+    // Get the most recent month from the data
+    const endMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
 
     // Get all months from data
     const allMonths = [...new Set(data.map((entry) => entry.month))].sort();
 
-    // Find index of selected/end month
+    // Find index of the most recent month
     const endIndex = allMonths.indexOf(endMonth);
     if (endIndex === -1) return;
 
-    // Get months based on range selection
+    // Get months based on range
     let months;
     if (showAllMonths) {
       months = allMonths;
@@ -105,7 +105,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
 
     setChartData(processedData);
   }, [data, filters, monthRange, showAllMonths]);
-
+  
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -149,23 +149,15 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
     },
     plugins: {
       legend: {
-        position: 'top',
+        position: 'top' as const,
         labels: {
           usePointStyle: false,
           padding: 10,
           color: isDarkMode ? '#fff' : '#000',
         },
       },
-      title: {
-        display: false,
-        text: 'Immigration Applications by Period',
-        padding: {
-          top: 10,
-          bottom: 10,
-        },
-      },
       tooltip: {
-        mode: 'index',
+        mode: 'index' as const,
         callbacks: {
           label: (context) => {
             return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;

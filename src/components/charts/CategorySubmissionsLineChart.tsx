@@ -23,11 +23,17 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
   useEffect(() => {
     if (!data) return;
 
-    const endMonth = filters.month || [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+    // Get the most recent month from the data
+    const endMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+
+    // Get all months from data
     const allMonths = [...new Set(data.map((entry) => entry.month))].sort();
+
+    // Find index of the most recent month
     const endIndex = allMonths.indexOf(endMonth);
     if (endIndex === -1) return;
 
+    // Get months based on range
     let months;
     if (showAllMonths) {
       months = allMonths;
@@ -154,7 +160,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     },
     plugins: {
       legend: {
-        position: 'top',
+        position: 'top' as const,
         labels: {
           usePointStyle: false,
           padding: 10,
@@ -170,7 +176,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
         },
       },
       tooltip: {
-        mode: 'index',
+        mode: 'index' as const,
         callbacks: {
           label: (context: any) => {
             return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;

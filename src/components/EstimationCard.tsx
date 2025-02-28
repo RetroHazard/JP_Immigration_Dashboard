@@ -41,7 +41,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
 
   const estimatedDate: EstimatedDateResult | null = useMemo(
     () => calculateEstimatedDate(data, applicationDetails),
-    [data, applicationDetails]
+    [data, applicationDetails],
   );
 
   // Get valid date range for the application date input

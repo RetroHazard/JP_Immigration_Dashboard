@@ -11,8 +11,8 @@ export interface ImmigrationChartData {
   data: ImmigrationData[];
   filters: {
     bureau: string;
-    month: string;
-    type: string };
+    type: string
+  };
   isDarkMode: boolean;
 }
 

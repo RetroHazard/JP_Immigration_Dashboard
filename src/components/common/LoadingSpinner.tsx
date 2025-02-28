@@ -9,7 +9,8 @@ interface LoadingSpinnerProps {
 
 export function LoadingSpinner({ icon, message }: LoadingSpinnerProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white transition-colors duration-300 dark:bg-gray-700">
+    <div
+      className="flex min-h-screen items-center justify-center bg-white transition-colors duration-300 dark:bg-gray-700">
       <div className="flex flex-col items-center gap-4">
         <Icon
           icon={icon}
@@ -26,7 +27,8 @@ export function LoadingSpinner({ icon, message }: LoadingSpinnerProps) {
 
 export function PreLoadingSpinner() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white transition-colors duration-300 dark:bg-gray-700">
+    <div
+      className="flex min-h-screen items-center justify-center bg-white transition-colors duration-300 dark:bg-gray-700">
       <div className="flex flex-col items-center gap-4">
         <Icon
           icon="svg-spinners:90-ring-with-bg"
@@ -43,7 +45,8 @@ export function PreLoadingSpinner() {
 
 export function DataLoading() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white transition-colors duration-300 dark:bg-gray-700">
+    <div
+      className="flex min-h-screen items-center justify-center bg-white transition-colors duration-300 dark:bg-gray-700">
       <div className="flex flex-col items-center gap-4">
         <Icon
           icon="svg-spinners:90-ring-with-bg"
@@ -60,7 +63,8 @@ export function DataLoading() {
 
 export function MapLoading() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white transition-colors duration-300 dark:bg-gray-700">
+    <div
+      className="flex min-h-screen items-center justify-center bg-white transition-colors duration-300 dark:bg-gray-700">
       <div className="flex flex-col items-center gap-4">
         <Icon
           icon="svg-spinners:90-ring-with-bg"
@@ -72,5 +76,5 @@ export function MapLoading() {
         </span>
       </div>
     </div>
-  )
+  );
 }
