@@ -299,6 +299,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
           </ComposableMap>
         )}
         {/* Prefecture Tooltips */}
+        {/* TODO: BreakFix: Prefecture Markers are Broken after conversion to TypeScript */}
         <Tippy
           visible={!!tooltipInfo}
           content={
