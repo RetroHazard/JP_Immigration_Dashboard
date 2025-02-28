@@ -37,7 +37,7 @@ interface CalculationDetails {
   isPastDue: boolean;
 }
 
-interface EstimatedDateResult {
+export interface EstimatedDateResult {
   estimatedDate: Date;
   details: CalculationDetails;
 }

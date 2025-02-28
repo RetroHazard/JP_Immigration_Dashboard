@@ -1,10 +1,17 @@
-// src/components/FilterPanel.jsx
-import { useMemo } from 'react';
+// src/components/FilterPanel.tsx
+import React, { useMemo } from 'react';
 import { FilterInput } from './common/FilterInput';
 import { bureauOptions } from '../constants/bureauOptions';
 import { applicationOptions } from '../constants/applicationOptions';
 
-export const FilterPanel = ({ data, filters, onChange, filterConfig }) => {
+interface FilterPanelProps {
+  data: { month: string }[];
+  filters: { bureau: string; type: string };
+  onChange: (filters: { bureau: string; type: string }) => void;
+  filterConfig: { bureau: boolean; appType: boolean };
+}
+
+export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChange, filterConfig }) => {
   const dateRange = useMemo(() => {
     if (!data || !Array.isArray(data) || data.length === 0) {
       console.log('No valid data provided');
@@ -25,7 +32,7 @@ export const FilterPanel = ({ data, filters, onChange, filterConfig }) => {
     };
   }, [data]);
 
-  const formatDateString = (dateStr) => {
+  const formatDateString = (dateStr: string) => {
     if (!dateStr) return '';
 
     const [year, month] = dateStr.split('-');

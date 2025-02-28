@@ -1,13 +1,13 @@
-// src/components/charts/MonthlyRadarChart.jsx
 import React, { useMemo, useState } from 'react';
 import { Radar } from 'react-chartjs-2';
 import { Chart as ChartJS, Filler, Legend, LineElement, PointElement, RadialLinearScale, Tooltip } from 'chart.js';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { applicationOptions } from '../../constants/applicationOptions';
+import { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
-export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
+export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('1');
 
   // Get sorted list of unique months
@@ -83,8 +83,8 @@ export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
           {
             label: bureauOptions.find((b) => b.value === filters.bureau)?.label,
             data: percentages,
-            borderColor: bureau.border || '#3B82F6',
-            backgroundColor: bureau.background || '#3B82F620',
+            borderColor: bureau?.border || '#3B82F6',
+            backgroundColor: bureau?.background || '#3B82F620',
             pointRadius: percentages.map((p) => (p > 0 ? 5 : 0)),
             pointHoverRadius: percentages.map((p) => (p > 0 ? 5 : 0)),
           },
@@ -129,7 +129,7 @@ export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
       },
       tooltip: {
         callbacks: {
-          label: (context) => {
+          label: (context: any) => {
             const label = context.dataset.label || '';
             const value = context.raw.toFixed(1);
             return `${label}: ${value}%`;

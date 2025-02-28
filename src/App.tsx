@@ -1,7 +1,7 @@
 // App.tsx
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useImmigrationData } from './hooks/useImmigrationData';
-import { DataLoading } from './components/common/LoadingSpinner';
+import { LoadingSpinner } from './components/common/LoadingSpinner';
 import { FilterPanel } from './components/FilterPanel';
 import { EstimationCard } from './components/EstimationCard';
 import { StatsSummary } from './components/StatsSummary';
@@ -47,7 +47,7 @@ const App: React.FC = () => {
   };
 
   if (loading) {
-    return <DataLoading />;
+    return <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Crunching Immigration Data..." />;
   }
 
   return (

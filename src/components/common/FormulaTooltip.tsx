@@ -1,11 +1,21 @@
-// components/common/FormulaTooltip.jsx
+// components/common/FormulaTooltip.tsx
+import React from 'react';
 import Tippy, { useSingleton } from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/shift-away.css';
 import { InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
-export const variableExplanations = {
+interface VariableExplanations {
+  [key: string]: { title: string; description: string };
+}
+
+interface FormulaTooltipProps {
+  variables: VariableExplanations;
+  children: React.ReactNode;
+}
+
+export const variableExplanations: VariableExplanations = {
   D_rem: { title: 'Remaining Days', description: 'Estimated days until processing completes.' },
   Q_pos: { title: 'Queue Position', description: 'Estimated position in the processing queue.' },
   R_daily: { title: 'Daily Rate', description: 'Average applications processed per day.' },
@@ -20,7 +30,7 @@ export const variableExplanations = {
   t_pred: { title: 'Prediction Time', description: 'Days since last data point; days where predictive data is used.' },
 };
 
-export const FormulaTooltip = ({ variables, children }) => {
+export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ variables, children }) => {
   const [source, target] = useSingleton({});
 
   return (

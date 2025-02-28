@@ -1,13 +1,14 @@
-// src/components/charts/BureauPerformanceBubbleChart.jsx
+// src/components/charts/BureauPerformanceBubbleChart.tsx
 import React, { useMemo, useState } from 'react';
 import { Bubble } from 'react-chartjs-2';
 import { Chart as ChartJS, Legend, LinearScale, PointElement, Title, Tooltip } from 'chart.js';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { applicationOptions } from '../../constants/applicationOptions';
+import { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
 
-export const BureauPerformanceBubbleChart = ({ data, filters, isDarkMode }) => {
+export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('1');
 
   const sortedMonths = useMemo(() => {
@@ -114,7 +115,7 @@ export const BureauPerformanceBubbleChart = ({ data, filters, isDarkMode }) => {
     plugins: {
       tooltip: {
         callbacks: {
-          label(context) {
+          label(context: any) {
             const raw = context.raw || {};
             return [
               `${raw.bureau} - ${raw.label}`, // Use bureau from raw data

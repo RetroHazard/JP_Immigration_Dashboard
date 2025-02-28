@@ -1,12 +1,27 @@
-// src/components/StatsSummary.jsx
-import { useMemo } from 'react';
+// src/components/StatsSummary.tsx
+import React, { useMemo } from 'react';
+import { ImmigrationData } from '../hooks/useImmigrationData';
 import { getBureauLabel } from '../utils/getBureauData';
 import { Icon } from '@iconify/react';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/shift-away.css';
 
-export const StatsSummary = ({ data, filters }) => {
+interface StatsSummaryProps {
+  data: ImmigrationData[];
+  filters: { month?: string; type: string; bureau: string };
+}
+
+interface StatCardProps {
+  title: string;
+  shortTitle: string;
+  subtitle: string;
+  value: string | number;
+  color: string;
+  icon: string;
+}
+
+export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => {
   const stats = useMemo(() => {
     if (!data) return null;
 
@@ -54,7 +69,7 @@ export const StatsSummary = ({ data, filters }) => {
 
   if (!stats) return null;
 
-  const StatCard = ({ title, shortTitle, subtitle, value, color, icon }) => {
+  const StatCard: React.FC<StatCardProps> = ({ title, shortTitle, subtitle, value, color, icon }) => {
     return (
       <Tippy
         className="sm:pointer-events-none sm:hidden"
@@ -69,7 +84,7 @@ export const StatsSummary = ({ data, filters }) => {
         arrow={true}
         theme="stat-tooltip"
         delay={[300, 0]}
-        touch="tap"
+        touch={false}
       >
         <div className="stat-card">
           <div className="group relative">

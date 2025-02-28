@@ -1,16 +1,16 @@
 'use client';
 import { Suspense } from 'react';
-import { PreLoadingSpinner } from '../../components/common/LoadingSpinner';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import dynamic from 'next/dynamic';
 
 const App = dynamic(() => import('../../App'), {
   ssr: false,
-  loading: () => <PreLoadingSpinner />
+  loading: () => <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading Dashboard..." />
 });
 
 export function ClientWrapper() {
   return (
-    <Suspense fallback={<PreLoadingSpinner />}>
+    <Suspense fallback={<LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading Dashboard..." />}>
       <App />
     </Suspense>
   );

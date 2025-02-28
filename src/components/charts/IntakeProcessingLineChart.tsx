@@ -1,4 +1,4 @@
-// src/components/charts/IntakeProcessingLineChart.jsx
+// src/components/charts/IntakeProcessingLineChart.tsx
 import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
@@ -12,10 +12,11 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
+import { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Filler, Legend);
 
-export const IntakeProcessingLineChart = ({ data, filters, isDarkMode }) => {
+export const IntakeProcessingLineChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
@@ -134,7 +135,7 @@ export const IntakeProcessingLineChart = ({ data, filters, isDarkMode }) => {
       tooltip: {
         mode: 'index',
         callbacks: {
-          label: (context) => {
+          label: (context: any) => {
             return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
           },
         },

@@ -1,32 +1,47 @@
-// src/components/charts/CategorySubmissionsLineChart.jsx
+// src/components/charts/IntakeProcessingBarChart.tsx
 import React, { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
-import {
-  CategoryScale,
-  Chart as ChartJS,
-  Legend,
-  LinearScale,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
+import { ImmigrationChartData } from '../common/ChartComponents';
 
-ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
+export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
-  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+
+  const [chartData, setChartData] = useState({
+    labels: [],
+    datasets: [
+      {
+        label: 'Old Applications',
+        data: [],
+      },
+      {
+        label: 'New Applications',
+        data: [],
+      },
+      {
+        label: 'Processed Applications',
+        data: [],
+      },
+    ],
+  });
 
   useEffect(() => {
     if (!data) return;
 
+    // Get selected month or latest month if none selected
     const endMonth = filters.month || [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+
+    // Get all months from data
     const allMonths = [...new Set(data.map((entry) => entry.month))].sort();
+
+    // Find index of selected/end month
     const endIndex = allMonths.indexOf(endMonth);
     if (endIndex === -1) return;
 
+    // Get months based on range selection
     let months;
     if (showAllMonths) {
       months = allMonths;
@@ -38,19 +53,19 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
     const monthlyStats = months.map((month) => {
       const monthData = data.filter((entry) => {
         const matchesMonth = entry.month === month;
+        const matchesType = filters.type === 'all' || entry.type === filters.type;
+
         if (filters.bureau === 'all') {
-          return entry.bureau === '100000' && entry.status === '103000' && matchesMonth;
+          return entry.bureau === '100000' && matchesMonth && matchesType;
         }
-        return entry.bureau === filters.bureau && entry.status === '103000' && matchesMonth;
+        return entry.bureau === filters.bureau && matchesMonth && matchesType;
       });
+
       return {
         month,
-        statusAcquisition: monthData.reduce((sum, entry) => (entry.type === '10' ? entry.value : sum), 0),
-        extensionOfStay: monthData.reduce((sum, entry) => (entry.type === '20' ? entry.value : sum), 0),
-        changeOfStatus: monthData.reduce((sum, entry) => (entry.type === '30' ? entry.value : sum), 0),
-        permissionForActivity: monthData.reduce((sum, entry) => (entry.type === '40' ? entry.value : sum), 0),
-        reentry: monthData.reduce((sum, entry) => (entry.type === '50' ? entry.value : sum), 0),
-        permanentResidence: monthData.reduce((sum, entry) => (entry.type === '60' ? entry.value : sum), 0),
+        totalApplications: monthData.reduce((sum, entry) => (entry.status === '102000' ? sum + entry.value : sum), 0), // 受理_旧受 (Previously Received)
+        processed: monthData.reduce((sum, entry) => (entry.status === '300000' ? sum + entry.value : sum), 0), // 処理済み (Processed)
+        newApplications: monthData.reduce((sum, entry) => (entry.status === '103000' ? sum + entry.value : sum), 0), // 受理_新受 (Newly Received)
       };
     });
 
@@ -58,58 +73,32 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
       labels: months,
       datasets: [
         {
-          label: 'Acquisition',
-          data: monthlyStats.map((stat) => stat.statusAcquisition),
-          backgroundColor: 'rgba(54, 162, 235, 0.4)', // Light blue
-          borderColor: 'rgb(54, 162, 235)', // Blue
+          label: 'Old Applications',
+          data: monthlyStats.map((stat) => stat.totalApplications),
+          backgroundColor: 'rgba(54, 162, 245, 0.7)',
+          borderColor: 'rgb(54, 162, 235)',
           borderWidth: 2,
-          tension: 0.4,
-          fill: false,
+          yAxisID: 'y',
+          order: 1,
         },
         {
-          label: 'Extension',
-          data: monthlyStats.map((stat) => stat.extensionOfStay),
-          backgroundColor: 'rgba(75, 192, 192, 0.4)', // Light teal
-          borderColor: 'rgb(75, 192, 192)', // Teal
+          label: 'New Applications',
+          data: monthlyStats.map((stat) => stat.newApplications),
+          backgroundColor: 'rgba(245, 179, 8, 0.7)',
+          borderColor: 'rgb(234, 179, 8)',
           borderWidth: 2,
-          tension: 0.4,
-          fill: false,
+          yAxisID: 'y',
+          order: 2,
         },
         {
-          label: 'Change',
-          data: monthlyStats.map((stat) => stat.changeOfStatus),
-          backgroundColor: 'rgba(255, 206, 86, 0.4)', // Light yellow
-          borderColor: 'rgb(255, 206, 86)', // Yellow
+          label: 'Processed Applications',
+          data: monthlyStats.map((stat) => stat.processed),
+          backgroundColor: 'rgba(34, 197, 94, 0.9)',
+          borderColor: 'rgb(34, 220, 94)',
           borderWidth: 2,
-          tension: 0.4,
-          fill: false,
-        },
-        {
-          label: 'Activity',
-          data: monthlyStats.map((stat) => stat.permissionForActivity),
-          backgroundColor: 'rgba(153, 102, 255, 0.4)', // Light purple
-          borderColor: 'rgb(153, 102, 255)', // Purple
-          borderWidth: 2,
-          tension: 0.4,
-          fill: false,
-        },
-        {
-          label: 'Re-entry',
-          data: monthlyStats.map((stat) => stat.reentry),
-          backgroundColor: 'rgba(255, 99, 132, 0.4)', // Light red
-          borderColor: 'rgb(255, 99, 132)', // Red
-          borderWidth: 2,
-          tension: 0.4,
-          fill: false,
-        },
-        {
-          label: 'Permanent',
-          data: monthlyStats.map((stat) => stat.permanentResidence),
-          backgroundColor: 'rgba(201, 203, 207, 0.4)', // Light gray
-          borderColor: 'rgb(201, 203, 207)', // Gray
-          borderWidth: 2,
-          tension: 0.4,
-          fill: false,
+          yAxisID: 'y2',
+          barPercentage: 0.6,
+          order: 0,
         },
       ],
     };
@@ -122,7 +111,7 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
     maintainAspectRatio: false,
     scales: {
       x: {
-        stacked: false,
+        stacked: true,
         title: {
           display: true,
           text: 'Month',
@@ -135,7 +124,7 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
         },
       },
       y: {
-        stacked: false,
+        stacked: true,
         title: {
           display: true,
           text: 'Application Count',
@@ -146,9 +135,16 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
           suggestedMax: Math.max(...chartData.datasets.map((dataset) => Math.max(...dataset.data))),
           color: isDarkMode ? '#fff' : '#000',
         },
+        afterBuildTicks: (axis) => {
+          axis.chart.scales.y2.options.min = axis.min;
+          axis.chart.scales.y2.options.max = axis.max;
+        },
         grid: {
           color: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
         },
+      },
+      y2: {
+        display: false,
       },
     },
     plugins: {
@@ -162,7 +158,7 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
       },
       title: {
         display: false,
-        text: 'Application Types by Period',
+        text: 'Immigration Applications by Period',
         padding: {
           top: 10,
           bottom: 10,
@@ -182,7 +178,7 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
   return (
     <div className="card-content">
       <div className="mb-4 flex h-full items-center justify-between">
-        <h2 className="section-title">Category Submissions</h2>
+        <div className="section-title">Intake and Processing</div>
         <select
           className="chart-filter-select"
           value={showAllMonths ? 'all' : monthRange}
@@ -205,7 +201,7 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
       </div>
 
       <div className="chart-container">
-        <Line data={chartData} options={options} />
+        <Bar data={chartData} options={options} />
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-// src/components/charts/GeographicDistributionChart.jsx
+// src/components/charts/GeographicDistributionChart.tsx
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
 import Tippy from '@tippyjs/react';
@@ -7,11 +7,23 @@ import { Icon } from '@iconify/react';
 import { japanPrefectures } from '../../constants/japanPrefectures';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { nonAirportBureaus } from '../../utils/getBureauData';
+import { LoadingSpinner } from '../common/LoadingSpinner';
+import { ImmigrationChartData } from '../common/ChartComponents';
 
 const geoUrl = '/static/japan.topo.json';
 
+interface TooltipInfo {
+  name: string;
+  name_ja: string;
+  bureau: string;
+  population: string;
+  area: string;
+  density: string;
+  mousePosition: [number, number];
+}
+
 // Calculate color based on density
-const adjustColor = (originalColor, density, minDensity, maxDensity) => {
+const adjustColor = (originalColor: string, density: number, minDensity: number, maxDensity: number): string => {
   if (!originalColor) return 'rgba(221, 221, 221, 0.8)';
 
   // Parse color values
@@ -25,26 +37,17 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
   // Convert to HSL
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  let h,
-    s,
-    l = (max + min) / 2;
+  let h, s, l = (max + min) / 2;
 
   if (max === min) {
     h = s = 0;
   } else {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    // eslint-disable-next-line
     switch (max) {
-      case r:
-        h = (g - b) / d + (g < b ? 6 : 0);
-        break;
-      case g:
-        h = (b - r) / d + 2;
-        break;
-      case b:
-        h = (r - g) / d + 4;
-        break;
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
     }
     h /= 6;
   }
@@ -54,7 +57,7 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
   l = l * (1 - densityScale * 0.6); // Enhanced lightness
 
   // Convert back to RGB
-  const hue2rgb = (p, q, t) => {
+  const hue2rgb = (p: number, q: number, t: number) => {
     if (t < 0) t += 1;
     if (t > 1) t -= 1;
     if (t < 1 / 6) return p + (q - p) * 6 * t;
@@ -70,14 +73,14 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
   return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${originalAlpha})`;
 };
 
-export const GeographicDistributionChart = ({ isDarkMode }) => {
-  const [geographyData, setGeographyData] = useState(null);
-  const [isMapLoading, setIsMapLoading] = useState(true);
-  const [tooltipInfo, setTooltipInfo] = useState(null);
-  const [markerTooltip, setMarkerTooltip] = useState(null);
-  const [position, setPosition] = useState({ coordinates: [136, 36], zoom: 1 });
-  const geographyRefs = useRef(new Map());
-  const markerRefs = useRef(new Map());
+export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ isDarkMode }) => {
+  const [geographyData, setGeographyData] = useState<any>(null);
+  const [isMapLoading, setIsMapLoading] = useState<boolean>(true);
+  const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
+  const [markerTooltip, setMarkerTooltip] = useState<any>(null);
+  const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({ coordinates: [136, 36], zoom: 1 });
+  const geographyRefs = useRef<Map<string, SVGPathElement>>(new Map());
+  const markerRefs = useRef<Map<string, SVGGElement>>(new Map());
 
   // Loading Indication
   useEffect(() => {
@@ -106,7 +109,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
       acc[bureau] = acc[bureau] || [];
       acc[bureau].push(parseFloat(prefecture.density));
       return acc;
-    }, {});
+    }, {} as Record<string, number[]>);
 
     // Then process the ranges
     return Object.entries(groups).reduce((acc, [bureau, densities]) => {
@@ -115,7 +118,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
         max: Math.max(...densities) || Math.min(...densities), // Fallback for single-value
       };
       return acc;
-    }, {});
+    }, {} as Record<string, { min: number; max: number }>);
   }, []);
 
   // Prefecture and bureau data maps
@@ -123,18 +126,18 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
     const bureauMap = bureauOptions.reduce((acc, bureau) => {
       acc[bureau.value] = bureau;
       return acc;
-    }, {});
+    }, {} as Record<string, typeof bureauOptions[0]>);
 
     const prefectureMap = japanPrefectures.reduce((acc, prefecture) => {
       acc[prefecture.name] = prefecture;
       return acc;
-    }, {});
+    }, {} as Record<string, typeof japanPrefectures[0]>);
 
     return [bureauMap, prefectureMap];
   }, []);
 
   // Style calculations
-  const getFillColor = (prefectureName) => {
+  const getFillColor = (prefectureName: string): string => {
     const prefecture = prefectureMap[prefectureName];
     if (!prefecture) return '#DDD';
 
@@ -142,14 +145,12 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
     if (!bureau) return '#DDD';
 
     const range = bureauDensityRanges[prefecture.bureau];
-    return range
-      ? adjustColor(bureau.background, parseFloat(prefecture.density), range.min, range.max)
-      : bureau.background;
+    return range ? adjustColor(bureau.background, parseFloat(prefecture.density), range.min, range.max) : bureau.background;
   };
 
   // Calculate Bureau Regional Statistics
   const bureauStats = useMemo(() => {
-    const stats = {};
+    const stats = {} as Record<string, { population: number; area: number; count: number }>;
     bureauOptions.forEach((bureau) => {
       if (bureau.value === 'all') return;
       const prefectures = japanPrefectures.filter((p) => p.bureau === bureau.value);
@@ -170,30 +171,15 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
       <div className="mb-4 flex items-center justify-between">
         <div className="section-title">Service Area Density</div>
         <div className="flex gap-2">
-          <button onClick={handleZoomIn} className="zoom-button">
-            +
-          </button>
-          <button onClick={handleZoomOut} className="zoom-button">
-            –
-          </button>
-          <button onClick={handleReset} className="zoom-button">
-            ⟲
-          </button>
+          <button onClick={handleZoomIn} className="zoom-button">+</button>
+          <button onClick={handleZoomOut} className="zoom-button">–</button>
+          <button onClick={handleReset} className="zoom-button">⟲</button>
         </div>
       </div>
 
       <div className="map-container">
         {isMapLoading ? (
-          <div className="flex h-96 items-center justify-center">
-            <div className="flex flex-col items-center gap-2 text-gray-600 dark:text-gray-300">
-              <Icon
-                icon="svg-spinners:90-ring-with-bg"
-                className="h-8 w-8 text-indigo-600 dark:text-indigo-300"
-                aria-hidden="true"
-              />
-              <span className="text-sm">Loading map data...</span>
-            </div>
-          </div>
+          <LoadingSpinner icon="svg-spinners:blocks-wave" message="Loading Map Data..." />
         ) : (
           <ComposableMap projection="geoMercator" projectionConfig={{ scale: 1000, center: [136, 36] }}>
             <ZoomableGroup
@@ -266,9 +252,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                         pointerEvents="bounding-box"
                       >
                         <Icon
-                          icon={
-                            isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-crop-circle-fill'
-                          }
+                          icon={isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-crop-circle-fill'}
                           width={iconSize}
                           height={iconSize}
                           color={bureau.border}
@@ -344,9 +328,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                     <div>Total Service Area: {bureauStats[markerTooltip.value]?.area.toLocaleString()} km²</div>
                     <div>
                       Average Density of Service Area:{' '}
-                      {(bureauStats[markerTooltip.value]?.population / bureauStats[markerTooltip.value]?.area).toFixed(
-                        2
-                      )}
+                      {(bureauStats[markerTooltip.value]?.population / bureauStats[markerTooltip.value]?.area).toFixed(2)}
                     </div>
                   </div>
                 )}

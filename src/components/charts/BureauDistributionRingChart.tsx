@@ -3,16 +3,11 @@ import React, { useMemo, useState } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
 import { bureauOptions } from '../../constants/bureauOptions';
+import { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-interface BureauDistributionRingChartProps {
-  data: any[];
-  filters: { type: string };
-  isDarkMode: boolean;
-}
-
-export const BureauDistributionRingChart: React.FC<BureauDistributionRingChartProps> = ({ data, filters, isDarkMode }) => {
+export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('1');
 
   // Get sorted list of unique months
@@ -80,7 +75,7 @@ export const BureauDistributionRingChart: React.FC<BureauDistributionRingChartPr
     },
     plugins: {
       legend: {
-        position: 'left',
+        position: 'left' as const,
         labels: {
           color: isDarkMode ? '#fff' : '#000',
           filter: (item: any) => item.text !== '0',
