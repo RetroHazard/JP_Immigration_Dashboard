@@ -23,10 +23,12 @@ module.exports = {
     // Automatically remove unused imports
     'unused-imports/no-unused-imports': 'error',
 
-    // Sort imports automatically
     'react/react-in-jsx-scope': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/consistent-type-imports': ['error'],
+    "@typescript-eslint/no-require-imports": "off",
+    
+    // Sort imports automatically
     'simple-import-sort/imports': [
       'error',
       {

@@ -88,7 +88,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         arrow={true}
         theme="stat-tooltip"
         delay={[300, 0]}
-        touch={false}
+        touch={true}
       >
         <div className="stat-card">
           <div className="group relative">

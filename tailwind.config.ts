@@ -1,6 +1,4 @@
 // tailwind.config.ts
-import type { Config } from 'tailwindcss';
-import forms from '@tailwindcss/forms';
 
 module.exports = {
   content: [
@@ -27,5 +25,7 @@ module.exports = {
       },
     },
   },
-  plugins: [forms],
-} satisfies Config;
+  plugins: [
+    require('@tailwindcss/forms')
+  ],
+}
