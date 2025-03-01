@@ -1,5 +1,5 @@
 // src/utils/calculateEstimates.ts
-import { ImmigrationData } from '../hooks/useImmigrationData';
+import type { ImmigrationData } from '../hooks/useImmigrationData';
 
 interface ApplicationDetails {
   bureau: string;

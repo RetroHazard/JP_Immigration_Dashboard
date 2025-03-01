@@ -1,6 +1,7 @@
 'use client';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
+
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 
 const App = dynamic(() => import('../../App'), {

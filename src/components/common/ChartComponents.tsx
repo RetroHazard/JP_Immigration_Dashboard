@@ -1,11 +1,13 @@
 // src/components/common/ChartComponents.tsx
-import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
-import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineChart';
+import type React from 'react';
+
+import type { ImmigrationData } from '../../hooks/useImmigrationData';
 import { BureauDistributionRingChart } from '../charts/BureauDistributionRingChart';
 import { BureauPerformanceBubbleChart } from '../charts/BureauPerformanceBubbleChart';
-import { MonthlyRadarChart } from '../charts/MonthlyRadarChart';
+import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineChart';
 import { GeographicDistributionChart } from '../charts/GeographicDistributionChart';
-import { ImmigrationData } from '../../hooks/useImmigrationData';
+import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
+import { MonthlyRadarChart } from '../charts/MonthlyRadarChart';
 
 export interface ImmigrationChartData {
   data: ImmigrationData[];

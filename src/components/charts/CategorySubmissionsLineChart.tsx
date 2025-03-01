@@ -1,6 +1,6 @@
 // src/components/charts/CategorySubmissionsLineChart.tsx
-import React, { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
+import { useEffect, useState } from 'react';
+
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -11,7 +11,10 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import { ImmigrationChartData } from '../common/ChartComponents';
+import type React from 'react';
+import { Line } from 'react-chartjs-2';
+
+import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
 

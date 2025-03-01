@@ -1,7 +1,8 @@
 // src/hooks/useImmigrationData.ts
 import { useEffect, useState } from 'react';
-import { loadLocalData } from '../utils/loadLocalData';
+
 import { transformData } from '../utils/dataTransform';
+import { loadLocalData } from '../utils/loadLocalData';
 
 export interface ImmigrationData {
   month: string;

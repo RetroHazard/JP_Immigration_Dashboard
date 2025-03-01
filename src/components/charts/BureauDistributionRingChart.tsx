@@ -1,9 +1,12 @@
 // src/components/charts/BureauDistributionRingChart.tsx
-import React, { useMemo, useState } from 'react';
-import { Doughnut } from 'react-chartjs-2';
+import { useMemo, useState } from 'react';
+
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
+import type React from 'react';
+import { Doughnut } from 'react-chartjs-2';
+
 import { bureauOptions } from '../../constants/bureauOptions';
-import { ImmigrationChartData } from '../common/ChartComponents';
+import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 

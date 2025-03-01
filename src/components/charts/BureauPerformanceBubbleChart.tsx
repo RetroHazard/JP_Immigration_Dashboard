@@ -1,10 +1,13 @@
 // src/components/charts/BureauPerformanceBubbleChart.tsx
-import React, { useMemo, useState } from 'react';
-import { Bubble } from 'react-chartjs-2';
+import { useMemo, useState } from 'react';
+
 import { Chart as ChartJS, Legend, LinearScale, PointElement, Title, Tooltip } from 'chart.js';
-import { bureauOptions } from '../../constants/bureauOptions';
+import type React from 'react';
+import { Bubble } from 'react-chartjs-2';
+
 import { applicationOptions } from '../../constants/applicationOptions';
-import { ImmigrationChartData } from '../common/ChartComponents';
+import { bureauOptions } from '../../constants/bureauOptions';
+import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
 

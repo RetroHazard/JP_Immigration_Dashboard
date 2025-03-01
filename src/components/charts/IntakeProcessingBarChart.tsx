@@ -1,8 +1,11 @@
 // src/components/charts/IntakeProcessingBarChart.tsx
-import React, { useEffect, useState } from 'react';
-import { Bar } from 'react-chartjs-2';
+import { useEffect, useState } from 'react';
+
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
-import { ImmigrationChartData } from '../common/ChartComponents';
+import type React from 'react';
+import { Bar } from 'react-chartjs-2';
+
+import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -105,7 +108,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
 
     setChartData(processedData);
   }, [data, filters, monthRange, showAllMonths]);
-  
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,

@@ -1,5 +1,6 @@
 // components/common/FilterInput.tsx
-import React, { ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
+import type React from 'react';
 
 interface FilterInputProps {
   type?: 'select' | 'text' | 'date';

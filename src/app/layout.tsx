@@ -1,7 +1,9 @@
 // src/app/layout.tsx
-import React from 'react';
-import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata } from 'next';
+
+import type React from 'react';
+import { GoogleAnalytics } from '@next/third-parties/google';
+
 import '../index.css';
 
 export const metadata: Metadata = {
@@ -24,8 +26,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
     <body>
-      <div id="root">{children}</div>
-      <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+    <div id="root">{children}</div>
+    <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
     </body>
     </html>
   );

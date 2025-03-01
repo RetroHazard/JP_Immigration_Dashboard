@@ -1,13 +1,16 @@
 // App.tsx
-import React, { useEffect, useState } from 'react';
-import { useImmigrationData } from './hooks/useImmigrationData';
-import { LoadingSpinner } from './components/common/LoadingSpinner';
-import { FilterPanel } from './components/FilterPanel';
-import { EstimationCard } from './components/EstimationCard';
-import { StatsSummary } from './components/StatsSummary';
+import { useEffect, useState } from 'react';
+
+import type React from 'react';
 import { Icon } from '@iconify/react';
-import buildInfo from './buildInfo';
+
 import { CHART_COMPONENTS } from './components/common/ChartComponents';
+import { LoadingSpinner } from './components/common/LoadingSpinner';
+import { EstimationCard } from './components/EstimationCard';
+import { FilterPanel } from './components/FilterPanel';
+import { StatsSummary } from './components/StatsSummary';
+import { useImmigrationData } from './hooks/useImmigrationData';
+import buildInfo from './buildInfo';
 
 interface Filters {
   bureau: string;
@@ -170,7 +173,7 @@ const App: React.FC = () => {
                 {/* Filter row */}
                 {(CHART_COMPONENTS[activeChartIndex].filters.bureau ||
                   CHART_COMPONENTS[activeChartIndex].filters.appType) && (
-                  <div className="flex-shrink-0 sm:mb-4 md:mb-5 lg:mb-6">
+                  <div className="shrink-0 sm:mb-4 md:mb-5 lg:mb-6">
                     <FilterPanel
                       data={data}
                       filters={filters}
@@ -181,7 +184,7 @@ const App: React.FC = () => {
                 )}
 
                 {/* Chart row */}
-                <div className="flex-grow">
+                <div className="grow">
                   <div className="base-container h-full">
                     <div className="mb-4 flex space-x-2 overflow-x-auto border-b dark:border-gray-500">
                       {CHART_COMPONENTS.map((chart, index) => (

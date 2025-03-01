@@ -18,6 +18,7 @@
   },
   "devDependencies": {
     "@iconify/react": "^5.2.0",
+    "@next/eslint-plugin-next": "^15.2.0",
     "@tailwindcss/forms": "^0.5.10",
     "@types/node": "22.13.5",
     "@types/react": "19.0.10",
@@ -25,7 +26,12 @@
     "@typescript-eslint/parser": "^8.25.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.21.0",
+    "eslint-config-next": "^15.2.0",
+    "eslint-config-prettier": "^10.0.2",
     "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-tailwindcss": "^3.18.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "lockfile-shaker": "^1.0.1",
     "postcss": "^8.5.3",
     "prettier": "^3.4.2",
@@ -35,6 +41,7 @@
     "typescript": "5.7.3"
   },
   "scripts": {
+    "lint": "next lint",
     "start": "react-build-info && next build && npx serve@latest ./build",
     "build": "react-build-info && next build",
     "dev": "react-build-info && NODE_OPTIONS='--inspect' next dev --turbopack",

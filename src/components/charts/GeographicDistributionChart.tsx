@@ -1,14 +1,18 @@
 // src/components/charts/GeographicDistributionChart.tsx
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+import type React from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
-import Tippy from '@tippyjs/react';
-import 'tippy.js/dist/tippy.css';
 import { Icon } from '@iconify/react';
-import { japanPrefectures } from '../../constants/japanPrefectures';
+import Tippy from '@tippyjs/react';
+
 import { bureauOptions } from '../../constants/bureauOptions';
+import { japanPrefectures } from '../../constants/japanPrefectures';
 import { nonAirportBureaus } from '../../utils/getBureauData';
+import type { ImmigrationChartData } from '../common/ChartComponents';
 import { LoadingSpinner } from '../common/LoadingSpinner';
-import { ImmigrationChartData } from '../common/ChartComponents';
+
+import 'tippy.js/dist/tippy.css';
 
 const geoUrl = '/static/japan.topo.json';
 
@@ -341,7 +345,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
             markerTooltip && (
               <>
                 <div className="mb-1 flex items-center gap-2 border-b border-gray-500 pb-1 font-semibold">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: markerTooltip.border }} />
+                  <div className="size-3 rounded-full" style={{ backgroundColor: markerTooltip.border }} />
                   {nonAirportBureaus.find((b) => b.value === markerTooltip.value)
                     ? `${markerTooltip.label} Regional Immigration Bureau`
                     : markerTooltip.label}

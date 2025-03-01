@@ -1,8 +1,11 @@
 // src/components/FilterPanel.tsx
-import React, { useMemo } from 'react';
-import { FilterInput } from './common/FilterInput';
-import { bureauOptions } from '../constants/bureauOptions';
+import { useMemo } from 'react';
+
+import type React from 'react';
+
 import { applicationOptions } from '../constants/applicationOptions';
+import { bureauOptions } from '../constants/bureauOptions';
+import { FilterInput } from './common/FilterInput';
 
 interface FilterPanelProps {
   data: { month: string }[];

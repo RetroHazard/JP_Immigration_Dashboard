@@ -1,5 +1,5 @@
 // src/utils/dataTransform.ts
-import { ImmigrationData } from '../hooks/useImmigrationData';
+import type { ImmigrationData } from '../hooks/useImmigrationData';
 
 interface RawDataEntry {
   '@time': string;

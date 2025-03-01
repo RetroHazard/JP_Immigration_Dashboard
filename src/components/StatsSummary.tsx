@@ -1,9 +1,13 @@
 // src/components/StatsSummary.tsx
-import React, { useMemo } from 'react';
-import { ImmigrationData } from '../hooks/useImmigrationData';
-import { getBureauLabel } from '../utils/getBureauData';
+import { useMemo } from 'react';
+
+import type React from 'react';
 import { Icon } from '@iconify/react';
 import Tippy from '@tippyjs/react';
+
+import type { ImmigrationData } from '../hooks/useImmigrationData';
+import { getBureauLabel } from '../utils/getBureauData';
+
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/shift-away.css';
 

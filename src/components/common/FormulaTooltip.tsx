@@ -1,9 +1,10 @@
 // components/common/FormulaTooltip.tsx
-import React from 'react';
+import type React from 'react';
+import { InlineMath } from 'react-katex';
 import Tippy, { useSingleton } from '@tippyjs/react';
+
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/shift-away.css';
-import { InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
 interface VariableExplanations {

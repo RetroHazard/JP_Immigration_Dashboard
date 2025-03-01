@@ -14,7 +14,3 @@ export const getBureauLabel = (bureauCode: string): string => {
 export const nonAirportBureaus = bureauOptions.filter((option: BureauOption) => {
   return option.value !== 'all' && !option.label.toLowerCase().includes('airport');
 });
-
-export const isAirportBureau = (bureauCode: string): boolean => {
-  return !nonAirportBureaus.some((b: BureauOption) => b.value === bureauCode);
-};

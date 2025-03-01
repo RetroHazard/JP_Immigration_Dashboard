@@ -1,14 +1,19 @@
 // src/components/EstimationCard.tsx
-import React, { useMemo, useState } from 'react';
-import { FilterInput } from './common/FilterInput';
-import { nonAirportBureaus } from '../utils/getBureauData';
-import { applicationOptions } from '../constants/applicationOptions';
-import { ImmigrationData } from '../hooks/useImmigrationData';
-import { Icon } from '@iconify/react';
-import { calculateEstimatedDate, EstimatedDateResult } from '../utils/calculateEstimates';
+import { useMemo, useState } from 'react';
+
+import type React from 'react';
 import { BlockMath } from 'react-katex';
-import 'katex/dist/katex.min.css';
+import { Icon } from '@iconify/react';
+
+import { applicationOptions } from '../constants/applicationOptions';
+import type { ImmigrationData } from '../hooks/useImmigrationData';
+import type { EstimatedDateResult } from '../utils/calculateEstimates';
+import { calculateEstimatedDate } from '../utils/calculateEstimates';
+import { nonAirportBureaus } from '../utils/getBureauData';
+import { FilterInput } from './common/FilterInput';
 import { FormulaTooltip, variableExplanations } from './common/FormulaTooltip';
+
+import 'katex/dist/katex.min.css';
 
 
 interface EstimationCardProps {
@@ -148,7 +153,8 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
             </button>
 
             {showDetails && (
-              <div className="mt-2.5 space-y-1 border-t pt-3 text-xs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+              <div
+                className="mt-2.5 space-y-1 border-t pt-3 text-xs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                 {estimatedDate.details.isPastDue ? (
                   <>
                     <p className="text-amber-600 dark:text-amber-500">
@@ -178,7 +184,8 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                           'R_{\\text{daily}}': variableExplanations['R_daily'],
                         }}
                       >
-                        <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+                        <div
+                          className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                           <BlockMath
                             math={`
                             \\begin{aligned}
@@ -197,7 +204,8 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                           '\\sum D': variableExplanations['Sigma_D'],
                         }}
                       >
-                        <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+                        <div
+                          className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                           <BlockMath
                             math={`
                             \\begin{aligned}
@@ -220,7 +228,8 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                           'R_{\\text{new}}': variableExplanations['R_new'],
                         }}
                       >
-                        <div className="mt-2 border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+                        <div
+                          className="mt-2 border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                           <BlockMath
                             math={`
                             \\begin{aligned}
