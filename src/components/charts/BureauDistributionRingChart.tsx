@@ -67,11 +67,11 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
       arc: {
         backgroundColor: (ctx: any) => {
           const bureau = bureauOptions.find((b) => b.value === bureauData[ctx.dataIndex]?.id);
-          return bureau?.border || 'rgba(100, 116, 139, 0.4)'; // Fallback to Slate
+          return bureau?.background || 'rgba(100, 116, 139, 0.4)'; // Fallback to Slate
         },
         borderColor: (ctx: any) => {
           const bureau = bureauOptions.find((b) => b.value === bureauData[ctx.dataIndex]?.id);
-          return bureau?.background || 'rgba(100, 116, 139, 1)'; // Fallback to Slate
+          return bureau?.border || 'rgba(100, 116, 139, 1)'; // Fallback to Slate
         },
         borderWidth: 1,
       },

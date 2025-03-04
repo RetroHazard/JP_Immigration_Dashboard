@@ -113,7 +113,7 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
           color: isDarkMode ? '#fff' : '#000',
           backdropColor: isDarkMode ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)',
         },
-        grid: { color: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' },
+        grid: { color: isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)' },
         pointLabels: {
           color: isDarkMode ? '#fff' : '#000',
           font: { size: 12 },
@@ -121,6 +121,9 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
       },
     },
     plugins: {
+      legend: {
+        display: false,
+      },
       tooltip: {
         callbacks: {
           label: (context: any) => {

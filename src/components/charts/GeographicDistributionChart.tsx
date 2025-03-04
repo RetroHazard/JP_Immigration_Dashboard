@@ -96,7 +96,21 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
   const markerRefs = useRef<Map<string, SVGGElement>>(new Map());
 
   const getReferenceClientRect = () => {
-    const rect = markerTooltip?.mousePosition;
+    if (!tooltipInfo || !tooltipInfo.mousePosition) {
+      return {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        toJSON: () => ({}),
+      } as DOMRect;
+    }
+
+    const rect = tooltipInfo.mousePosition;
     return {
       x: rect[0],
       y: rect[1],
@@ -227,8 +241,8 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
                         key={geo.rsmKey}
                         geography={geo}
                         fill={getFillColor(geo.properties.name)}
-                        stroke={isDarkMode ? '#475569' : '#CBD5E1'}
-                        strokeWidth={0.1}
+                        stroke={isDarkMode ? 'rgba(225, 225, 225, 0.75)' : 'rgba(30, 30, 30, 0.75)'}
+                        strokeWidth={0.075}
                         onMouseMove={(event) => {
                           if (!prefecture) return;
                           setTooltipInfo({
@@ -271,8 +285,8 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
                 .filter((b) => b.value !== 'all')
                 .map((bureau) => {
                   const isAirport = !nonAirportBureaus.find((b) => b.value === bureau.value);
-                  const baseSize = Math.min(32, Math.max(2, 35 / position.zoom));
-                  const iconSize = isAirport ? baseSize * 0.65 : baseSize;
+                  const baseSize = Math.min(10, Math.max(1, 50 / position.zoom));
+                  const iconSize = isAirport ? baseSize * 0.85 : baseSize;
 
                   return (
                     <Marker key={bureau.value} coordinates={bureau.coordinates}>
@@ -288,12 +302,12 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
                         pointerEvents="bounding-box"
                       >
                         <Icon
-                          icon={isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-crop-circle-fill'}
+                          icon={isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-fill'}
                           width={iconSize}
                           height={iconSize}
-                          color={bureau.border}
-                          stroke={'#000000'}
-                          strokeWidth={0.5}
+                          color={'rgba(225, 225, 225, 0.9)'}
+                          stroke={bureau.border}
+                          strokeWidth={0.75}
                         />
                       </g>
                     </Marker>
@@ -303,7 +317,6 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
           </ComposableMap>
         )}
         {/* Prefecture Tooltips */}
-        {/* TODO: BreakFix: Prefecture Markers are Broken after conversion to TypeScript */}
         <Tippy
           visible={!!tooltipInfo}
           content={
@@ -324,7 +337,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
           animation="shift-away"
           theme="stat-tooltip"
           delay={[300, 50]}
-          followCursor="initial"
+          followCursor={true}
           getReferenceClientRect={getReferenceClientRect}
           popperOptions={{
             modifiers: [
@@ -344,8 +357,14 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
           content={
             markerTooltip && (
               <>
-                <div className="mb-1 flex items-center gap-2 border-b border-gray-500 pb-1 font-semibold">
-                  <div className="size-3 rounded-full" style={{ backgroundColor: markerTooltip.border }} />
+                <div
+                  className={`mb-1 flex items-center gap-2 font-semibold ${
+                    nonAirportBureaus.find((b) => b.value === markerTooltip.value) ? 'border-b border-gray-500 pb-1' : ''
+                  }`}
+                >
+                  {nonAirportBureaus.find((b) => b.value === markerTooltip.value) && (
+                    <div className="size-3 rounded-full border border-white dark:border-black" style={{ backgroundColor: markerTooltip.border }} />
+                  )}
                   {nonAirportBureaus.find((b) => b.value === markerTooltip.value)
                     ? `${markerTooltip.label} Regional Immigration Bureau`
                     : markerTooltip.label}
@@ -357,7 +376,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
                     </div>
                     <div>Total Service Area: {bureauStats[markerTooltip.value]?.area.toLocaleString()} km²</div>
                     <div>
-                      Average Density of Service Area:{' '}
+                      Density of Service Area:{' '}
                       {(bureauStats[markerTooltip.value]?.population / bureauStats[markerTooltip.value]?.area).toFixed(2)}
                     </div>
                   </div>
