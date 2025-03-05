@@ -1,4 +1,6 @@
 // components/common/FilterInput.tsx
+import { useMemo } from 'react';
+
 import type { ChangeEvent } from 'react';
 import type React from 'react';
 
@@ -31,6 +33,8 @@ export const FilterInput: React.FC<FilterInputProps> = ({
                                                         }) => {
   const handleChange = (e: ChangeEvent<HTMLSelectElement | HTMLInputElement>) => onChange(e.target.value);
 
+  const filteredOptions = useMemo(() => options.filter(filterFn), [options, filterFn]);
+
   return (
     <div className="space-y-2">
       <label className="filter-label">{label}</label>
@@ -38,7 +42,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
         <div className={`${disabled ? 'pointer-events-none opacity-50' : ''}`}>
           <select className="filter-select" aria-label={value} value={value} onChange={handleChange}>
             {includeDefaultOption && <option value="">{defaultOptionLabel}</option>}
-            {options.filter(filterFn).map((option) => (
+            {filteredOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
