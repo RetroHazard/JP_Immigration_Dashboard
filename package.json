@@ -1,6 +1,6 @@
 {
   "name": "jp_immigration_dashboard",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "homepage": "https://dashboard.retrohazard.jp",
   "private": true,
   "dependencies": {

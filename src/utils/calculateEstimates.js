@@ -168,8 +168,14 @@ export const calculateEstimatedDate = (data, details) => {
   if (processingRate <= 0) return null;
 
   const estimatedDate = new Date();
-  const daysRequired = remainingAhead / processingRate;
-  const estimatedDays = daysRequired >= 0 ? Math.ceil(daysRequired) : Math.floor(daysRequired);
+  const daysRemaining =
+    (carriedOver +
+      receivedByAppDate -
+      processedByAppDate +
+      (dailyNew - dailyProcessed) * predictionDays -
+      totalProcessedSinceApp) /
+    dailyProcessed;
+  const estimatedDays = daysRemaining >= 0 ? Math.ceil(daysRemaining) : Math.floor(daysRemaining);
 
   estimatedDate.setDate(estimatedDate.getDate() + estimatedDays);
 
@@ -209,14 +215,7 @@ export const calculateEstimatedDate = (data, details) => {
           (dailyNew - dailyProcessed) * predictionDays -
           totalProcessedSinceApp
       ), // Estimated queue position
-      D_rem: Number(
-        (carriedOver +
-          receivedByAppDate -
-          processedByAppDate +
-          (dailyNew - dailyProcessed) * predictionDays -
-          totalProcessedSinceApp) /
-          dailyProcessed
-      ), // Estimated days remaining to completion
+      D_rem: Number(daysRemaining), // Estimated days remaining to completion
     },
     isPastDue: remainingAhead <= 0,
   };
