@@ -8,12 +8,13 @@ import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineC
 import { GeographicDistributionChart } from '../charts/GeographicDistributionChart';
 import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
 import { MonthlyRadarChart } from '../charts/MonthlyRadarChart';
+import { BureauDistributionTreemap } from '../charts/BureauDistributionTreemap';
 
 export interface ImmigrationChartData {
   data: ImmigrationData[];
   filters: {
     bureau: string;
-    type: string
+    type: string;
   };
   isDarkMode: boolean;
 }
@@ -41,8 +42,8 @@ export const CHART_COMPONENTS: ChartComponent[] = [
   {
     name: 'Bureau Distribution',
     icon: 'carbon:chart-ring',
-    component: BureauDistributionRingChart,
-    filters: { bureau: false, appType: true },
+    component: BureauDistributionTreemap,
+    filters: { bureau: false, appType: false },
   },
   {
     name: 'Bureau Performance',

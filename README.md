@@ -125,6 +125,7 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 ### Tooling:
 - `WebStorm` – IDE
 - `Prettier` – Code Formatter
+- `ESLint` – Linter
 
 ---
 

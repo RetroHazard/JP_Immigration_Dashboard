@@ -5,6 +5,7 @@
   "private": true,
   "dependencies": {
     "@next/third-parties": "^15.1.7",
+    "@nivo/treemap": "^0.88.0",
     "@tippyjs/react": "^4.2.6",
     "chart.js": "^4.4.7",
     "d3-scale": "^4.0.2",
