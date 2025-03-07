@@ -51,7 +51,7 @@ jobs:
         run: |
           if [ ! -f statData.json ]; then
             echo "::warning::No cached data found, downloading fresh copy"
-            curl -L "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId=${{ ESTAT_APP_ID }}&lang=J&statsDataId=0003449073&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0" --fail -o statData.json || {
+            curl -L "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId=${{ secrets.ESTAT_APP_ID }}&lang=J&statsDataId=0003449073&metaGetFlg=Y&sectionHeaderFlg=2&replaceSpChars=0" --fail -o statData.json || {
               echo "::error::API request failed with status $?"
               exit 1
             }

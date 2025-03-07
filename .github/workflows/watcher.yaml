@@ -78,7 +78,7 @@ jobs:
             filename=$(basename "$DATA_PATH")
             cp "$DATA_PATH" "$dir/prev-$filename"
           fi
-          curl -L "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId=${{ secrets.ESTAT_APP_ID }}&lang=J&statsDataId=0003449073&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0" --fail -o "$DATA_PATH" || {
+          curl -L "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId=${{ secrets.ESTAT_APP_ID }}&lang=J&statsDataId=0003449073&metaGetFlg=Y&sectionHeaderFlg=2&replaceSpChars=0" --fail -o "$DATA_PATH" || {
               echo "::error::API request failed with status $?"
               exit 1
             }
