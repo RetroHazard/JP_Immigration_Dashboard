@@ -44,7 +44,7 @@ export interface EstimatedDateResult {
 
 export const calculateEstimatedDate = (
   data: ImmigrationData[],
-  details: ApplicationDetails,
+  details: ApplicationDetails
 ): EstimatedDateResult | null => {
   // --------------------------------------------
   // Input Validation & Early Exit
@@ -136,7 +136,7 @@ export const calculateEstimatedDate = (
   // --------------------------------------------
   // Current queue state calculations
   const lastAvailableDate = new Date(
-    Date.UTC(parseInt(lastAvailableMonth.split('-')[0]), parseInt(lastAvailableMonth.split('-')[1]) - 1, 1),
+    Date.UTC(parseInt(lastAvailableMonth.split('-')[0]), parseInt(lastAvailableMonth.split('-')[1]) - 1, 1)
   );
   lastAvailableDate.setMonth(lastAvailableDate.getMonth() + 1);
   lastAvailableDate.setDate(0);
@@ -157,7 +157,7 @@ export const calculateEstimatedDate = (
       m ===
       (applicationDate > lastAvailableMonth
         ? lastAvailableMonth
-        : months.find((m) => m > applicationDate) || lastAvailableMonth),
+        : months.find((m) => m > applicationDate) || lastAvailableMonth)
   );
 
   // --------------------------------------------
@@ -215,13 +215,12 @@ export const calculateEstimatedDate = (
 
   const estimatedDate = new Date();
   const daysRemaining =
-    (carriedOver
-      + receivedByAppDate
-      - processedByAppDate
-      + (dailyNew - dailyProcessed)
-      * predictionDays
-      - totalProcessedSinceApp)
-    / dailyProcessed;
+    (carriedOver +
+      receivedByAppDate -
+      processedByAppDate +
+      (dailyNew - dailyProcessed) * predictionDays -
+      totalProcessedSinceApp) /
+    dailyProcessed;
   const estimatedDays = daysRemaining >= 0 ? Math.ceil(daysRemaining) : Math.floor(daysRemaining);
 
   estimatedDate.setDate(estimatedDate.getDate() + estimatedDays);
@@ -247,25 +246,20 @@ export const calculateEstimatedDate = (
       R_daily: Number(dailyProcessed), // Applications processed per day
       Delta_net: Number(dailyNew - dailyProcessed), // Daily change in queue total
       t_pred: Number(predictionDays), // Number of days where prediction data is used
-      Sigma_P: Number(totalProcessed), // Total number of applications processed since submission
-      Sigma_D: Number(totalDays), // Total days in data since application month (inclusive)
+      Sigma_P: Number(totalProcessed), // Total number of applications processed in useful data period
+      Sigma_D: Number(totalDays), // Total days in useful data period
       Q_app: Number(carriedOver + receivedByAppDate - processedByAppDate), // Estimated queue position at submission time
       C_proc: Number(confirmedProcessed), // Confirmed applications processed since submission time
       P_proc: Number(predictedProcessed), // Estimated applications processed since last data point
       Q_adj: Number(
-        carriedOver
-        + receivedByAppDate
-        - processedByAppDate
-        + (dailyNew - dailyProcessed)
-        * predictionDays,
+        carriedOver + receivedByAppDate - processedByAppDate + (dailyNew - dailyProcessed) * predictionDays
       ), // Estimated current queue total
       Q_pos: Number(
-        carriedOver
-        + receivedByAppDate
-        - processedByAppDate
-        + (dailyNew - dailyProcessed)
-        * predictionDays
-        - totalProcessedSinceApp
+        carriedOver +
+          receivedByAppDate -
+          processedByAppDate +
+          (dailyNew - dailyProcessed) * predictionDays -
+          totalProcessedSinceApp
       ), // Estimated queue position
       D_rem: Number(daysRemaining),
     },
