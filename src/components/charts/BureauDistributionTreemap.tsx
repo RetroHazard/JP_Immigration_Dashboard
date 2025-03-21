@@ -23,7 +23,7 @@ interface CustomNode {
 export const BureauDistributionTreemap: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('1');
 
-  const { filteredData, sortedMonths } = useMemo(() => {
+  const { filteredData } = useMemo(() => {
     if (!data?.length) return { sortedMonths: [], filteredData: [] };
 
     const sortedMonths = [...new Set(data.map((entry) => entry.month))].sort();
@@ -99,17 +99,12 @@ export const BureauDistributionTreemap: React.FC<ImmigrationChartData> = ({ data
     const total = node.depth === 1 ? chartData.rootTotal : node.parent?.value;
 
     return (
-      <div
-        style={{
-          background: isDarkMode ? '#333' : '#fff',
-          padding: 6,
-          borderRadius: 4,
-          boxShadow: '0 3px 9px rgba(0,0,0,0.15)',
-          color: isDarkMode ? '#fff' : '#333',
-        }}
-      >
-        <strong>{node.id}</strong>
-        <div style={{ marginTop: 8 }}>Applications: {node.value.toLocaleString()}</div>
+      <div className="rounded-md bg-gray-600 px-2 py-1 text-xs text-white shadow-xl dark:bg-gray-300 dark:text-gray-600">
+        <strong className="mb-2 block">{node.id}</strong>
+        <div className="space-y-1">
+          <div>Applications: {node.value.toLocaleString()}</div>
+          <div>{total}% of total applications</div>
+        </div>
       </div>
     );
   };
@@ -131,35 +126,26 @@ export const BureauDistributionTreemap: React.FC<ImmigrationChartData> = ({ data
           <option value="all">All Data</option>
         </select>
       </div>
-      <div className="map-container h-[250px] sm:h-[350px] md:h-[450px] md:overflow-hidden">
+      <div className="map-container h-[350px] rounded-lg sm:h-[450px] md:h-[550px] md:overflow-hidden">
         <ResponsiveTreeMap
           data={chartData}
           identity="name"
           value="value"
           tile="binary"
           colors={(node) => node.data.color}
-          margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
           labelSkipSize={24}
-          outerPadding={5}
-          innerPadding={5}
-          parentLabelPadding={2}
-          parentLabelPosition={'left'}
-          parentLabelTextColor={{ from: 'color', modifiers: [['darker', 2]] }}
-          borderColor={{ from: 'color', modifiers: [['darker', isDarkMode ? 0.4 : 0.2]] }}
+          outerPadding={0}
+          innerPadding={0}
+          parentLabelPadding={3}
+          parentLabelPosition={'top'}
+          parentLabelTextColor={{ from: 'color', modifiers: [[isDarkMode ? 'brighter' : 'darker', 2]] }}
+          borderColor={{ from: 'color', modifiers: [[isDarkMode ? 'brighter' : 'darker', 1]] }}
           nodeOpacity={0.33}
           animate={true}
           tooltip={CustomTooltip}
           enableLabel={false}
           enableParentLabel={true}
           motionConfig="gentle"
-          theme={{
-            tooltip: {
-              container: {
-                backgroundColor: isDarkMode ? '#333' : '#fff',
-                color: isDarkMode ? '#fff' : '#333',
-              },
-            },
-          }}
         />
       </div>
     </div>

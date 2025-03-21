@@ -41,7 +41,7 @@ export const CHART_COMPONENTS: ChartComponent[] = [
   },
   {
     name: 'Bureau Distribution',
-    icon: 'carbon:chart-ring',
+    icon: 'carbon:chart-treemap',
     component: BureauDistributionTreemap,
     filters: { bureau: false, appType: false },
   },
