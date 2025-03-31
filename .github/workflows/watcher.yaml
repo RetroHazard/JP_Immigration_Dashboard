@@ -1,8 +1,5 @@
 name: Data Watcher
 on:
-  schedule:
-    - cron: '0 23 22-27 * MON-FRI'
-    - cron: '0 0-9 22-27 * MON-FRI'
   workflow_dispatch:
 
 concurrency:
