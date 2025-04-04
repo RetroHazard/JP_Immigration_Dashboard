@@ -156,7 +156,8 @@ const App: React.FC = () => {
                       data={data}
                       isExpanded={null}
                       onClose={() => setIsDrawerOpen(false)}
-                      onCollapse={null} />
+                      onCollapse={null}
+                    />
                   </div>
                 </>
               )}

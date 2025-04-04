@@ -31,7 +31,7 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
         selectedMonths.includes(entry.month) &&
         (filters.bureau === 'all' || entry.bureau === filters.bureau) &&
         (filters.type === 'all' || entry.type === filters.type) &&
-        ['103000', '300000'].includes(entry.status),
+        ['103000', '300000'].includes(entry.status)
     );
   }, [data, selectedMonths, filters.bureau, filters.type]);
 

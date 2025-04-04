@@ -5,7 +5,7 @@ interface RawDataEntry {
   '@time': string;
   '@cat03': string;
   '@cat02': string;
-  '$': string;
+  $: string;
   '@cat01': string;
 }
 

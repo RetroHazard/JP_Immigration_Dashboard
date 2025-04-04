@@ -1,8 +1,8 @@
 // components/common/FilterInput.tsx
 import { useMemo } from 'react';
 
-import type { ChangeEvent } from 'react';
 import type React from 'react';
+import type { ChangeEvent } from 'react';
 
 interface FilterInputProps {
   type?: 'select' | 'text' | 'date';
@@ -19,18 +19,18 @@ interface FilterInputProps {
 }
 
 export const FilterInput: React.FC<FilterInputProps> = ({
-                                                          type = 'select',
-                                                          label,
-                                                          options = [],
-                                                          value,
-                                                          onChange,
-                                                          disabled,
-                                                          min,
-                                                          max,
-                                                          includeDefaultOption = false,
-                                                          defaultOptionLabel = 'Select',
-                                                          filterFn = (x) => x,
-                                                        }) => {
+  type = 'select',
+  label,
+  options = [],
+  value,
+  onChange,
+  disabled,
+  min,
+  max,
+  includeDefaultOption = false,
+  defaultOptionLabel = 'Select',
+  filterFn = (x) => x,
+}) => {
   const handleChange = (e: ChangeEvent<HTMLSelectElement | HTMLInputElement>) => onChange(e.target.value);
 
   const filteredOptions = useMemo(() => options.filter(filterFn), [options, filterFn]);

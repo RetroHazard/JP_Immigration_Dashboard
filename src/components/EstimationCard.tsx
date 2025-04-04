@@ -15,7 +15,6 @@ import { FormulaTooltip, variableExplanations } from './common/FormulaTooltip';
 
 import 'katex/dist/katex.min.css';
 
-
 interface EstimationCardProps {
   data: ImmigrationData[];
   variant?: 'drawer' | 'expandable';
@@ -31,12 +30,12 @@ interface ApplicationDetails {
 }
 
 export const EstimationCard: React.FC<EstimationCardProps> = ({
-                                                                data,
-                                                                variant = 'drawer',
-                                                                isExpanded,
-                                                                onCollapse,
-                                                                onClose,
-                                                              }) => {
+  data,
+  variant = 'drawer',
+  isExpanded,
+  onCollapse,
+  onClose,
+}) => {
   const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails>({
     bureau: '',
     type: '',
@@ -46,7 +45,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
 
   const estimatedDate: EstimatedDateResult | null = useMemo(
     () => calculateEstimatedDate(data, applicationDetails),
-    [data, applicationDetails],
+    [data, applicationDetails]
   );
 
   // Get valid date range for the application date input
@@ -153,8 +152,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
             </button>
 
             {showDetails && (
-              <div
-                className="mt-2.5 space-y-1 border-t pt-3 text-xs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+              <div className="mt-2.5 space-y-1 border-t pt-3 text-xs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                 {estimatedDate.details.isPastDue ? (
                   <>
                     <p className="text-amber-600 dark:text-amber-500">
@@ -184,8 +182,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                           'R_{\\text{daily}}': variableExplanations['R_daily'],
                         }}
                       >
-                        <div
-                          className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+                        <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                           <BlockMath
                             math={`
                             \\begin{aligned}
@@ -204,8 +201,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                           '\\sum D': variableExplanations['Sigma_D'],
                         }}
                       >
-                        <div
-                          className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+                        <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                           <BlockMath
                             math={`
                             \\begin{aligned}
@@ -228,8 +224,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                           'R_{\\text{new}}': variableExplanations['R_new'],
                         }}
                       >
-                        <div
-                          className="mt-2 border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
+                        <div className="mt-2 border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                           <BlockMath
                             math={`
                             \\begin{aligned}

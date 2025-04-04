@@ -30,9 +30,9 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
   const filteredData = useMemo(
     () =>
       data.filter(
-        (entry) => selectedMonths.includes(entry.month) && (filters.type === 'all' || entry.type === filters.type),
+        (entry) => selectedMonths.includes(entry.month) && (filters.type === 'all' || entry.type === filters.type)
       ),
-    [data, selectedMonths, filters.type],
+    [data, selectedMonths, filters.type]
   );
 
   // Calculate bureau data with aggregated values
@@ -55,7 +55,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
             }, 0),
         }))
         .filter((b) => b.value > 0),
-    [filteredData],
+    [filteredData]
   );
 
   // Chart options with percentage tooltip

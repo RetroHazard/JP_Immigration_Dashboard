@@ -30,9 +30,9 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
   const filteredData = useMemo(
     () =>
       data.filter(
-        (entry) => selectedMonths.includes(entry.month) && (filters.bureau === 'all' || entry.bureau === filters.bureau),
+        (entry) => selectedMonths.includes(entry.month) && (filters.bureau === 'all' || entry.bureau === filters.bureau)
       ),
-    [data, selectedMonths, filters.bureau],
+    [data, selectedMonths, filters.bureau]
   );
 
   // Calculate percentages for each bureau/type combination

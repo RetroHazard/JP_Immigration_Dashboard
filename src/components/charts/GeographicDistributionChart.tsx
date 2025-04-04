@@ -41,7 +41,9 @@ const adjustColor = (originalColor: string, density: number, minDensity: number,
   // Convert to HSL
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  let h, s, l = (max + min) / 2;
+  let h,
+    s,
+    l = (max + min) / 2;
 
   if (max === min) {
     h = s = 0;
@@ -146,34 +148,46 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
   // Bureau density calculations
   const bureauDensityRanges = useMemo(() => {
     // First create the groups
-    const groups = japanPrefectures.reduce((acc, prefecture) => {
-      const bureau = prefecture.bureau;
-      acc[bureau] = acc[bureau] || [];
-      acc[bureau].push(parseFloat(prefecture.density));
-      return acc;
-    }, {} as Record<string, number[]>);
+    const groups = japanPrefectures.reduce(
+      (acc, prefecture) => {
+        const bureau = prefecture.bureau;
+        acc[bureau] = acc[bureau] || [];
+        acc[bureau].push(parseFloat(prefecture.density));
+        return acc;
+      },
+      {} as Record<string, number[]>
+    );
 
     // Then process the ranges
-    return Object.entries(groups).reduce((acc, [bureau, densities]) => {
-      acc[bureau] = {
-        min: Math.min(...densities),
-        max: Math.max(...densities) || Math.min(...densities), // Fallback for single-value
-      };
-      return acc;
-    }, {} as Record<string, { min: number; max: number }>);
+    return Object.entries(groups).reduce(
+      (acc, [bureau, densities]) => {
+        acc[bureau] = {
+          min: Math.min(...densities),
+          max: Math.max(...densities) || Math.min(...densities), // Fallback for single-value
+        };
+        return acc;
+      },
+      {} as Record<string, { min: number; max: number }>
+    );
   }, []);
 
   // Prefecture and bureau data maps
   const [bureauColorMap, prefectureMap] = useMemo(() => {
-    const bureauMap = bureauOptions.reduce((acc, bureau) => {
-      acc[bureau.value] = bureau;
-      return acc;
-    }, {} as Record<string, typeof bureauOptions[0]>);
+    const bureauMap = bureauOptions.reduce(
+      (acc, bureau) => {
+        acc[bureau.value] = bureau;
+        return acc;
+      },
+      {} as Record<string, (typeof bureauOptions)[0]>
+    );
 
-    const prefectureMap = japanPrefectures.reduce((acc, prefecture) => {
-      acc[prefecture.name] = prefecture;
-      return acc;
-    }, {} as Record<string, typeof japanPrefectures[0]>);
+    const prefectureMap = japanPrefectures.reduce(
+      (acc, prefecture) => {
+        acc[prefecture.name] = prefecture;
+        return acc;
+      },
+      {} as Record<string, (typeof japanPrefectures)[0]>
+    );
 
     return [bureauMap, prefectureMap];
   }, []);
@@ -187,7 +201,9 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
     if (!bureau) return '#DDD';
 
     const range = bureauDensityRanges[prefecture.bureau];
-    return range ? adjustColor(bureau.background, parseFloat(prefecture.density), range.min, range.max) : bureau.background;
+    return range
+      ? adjustColor(bureau.background, parseFloat(prefecture.density), range.min, range.max)
+      : bureau.background;
   };
 
   // Calculate Bureau Regional Statistics
@@ -202,7 +218,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
           area: acc.area + p.area,
           count: acc.count + 1,
         }),
-        { population: 0, area: 0, count: 0 },
+        { population: 0, area: 0, count: 0 }
       );
     });
     return stats;
@@ -213,9 +229,15 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
       <div className="mb-4 flex items-center justify-between">
         <div className="section-title">Service Area Density</div>
         <div className="flex gap-2">
-          <button onClick={handleZoomIn} className="zoom-button">+</button>
-          <button onClick={handleZoomOut} className="zoom-button">–</button>
-          <button onClick={handleReset} className="zoom-button">⟲</button>
+          <button onClick={handleZoomIn} className="zoom-button">
+            +
+          </button>
+          <button onClick={handleZoomOut} className="zoom-button">
+            –
+          </button>
+          <button onClick={handleReset} className="zoom-button">
+            ⟲
+          </button>
         </div>
       </div>
 
@@ -359,11 +381,16 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
               <>
                 <div
                   className={`mb-1 flex items-center gap-2 font-semibold ${
-                    nonAirportBureaus.find((b) => b.value === markerTooltip.value) ? 'border-b border-gray-500 pb-1' : ''
+                    nonAirportBureaus.find((b) => b.value === markerTooltip.value)
+                      ? 'border-b border-gray-500 pb-1'
+                      : ''
                   }`}
                 >
                   {nonAirportBureaus.find((b) => b.value === markerTooltip.value) && (
-                    <div className="size-3 rounded-full border border-white dark:border-black" style={{ backgroundColor: markerTooltip.border }} />
+                    <div
+                      className="size-3 rounded-full border border-white dark:border-black"
+                      style={{ backgroundColor: markerTooltip.background }}
+                    />
                   )}
                   {nonAirportBureaus.find((b) => b.value === markerTooltip.value)
                     ? `${markerTooltip.label} Regional Immigration Bureau`
@@ -377,7 +404,9 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
                     <div>Total Service Area: {bureauStats[markerTooltip.value]?.area.toLocaleString()} km²</div>
                     <div>
                       Density of Service Area:{' '}
-                      {(bureauStats[markerTooltip.value]?.population / bureauStats[markerTooltip.value]?.area).toFixed(2)}
+                      {(bureauStats[markerTooltip.value]?.population / bureauStats[markerTooltip.value]?.area).toFixed(
+                        2
+                      )}
                     </div>
                   </div>
                 )}

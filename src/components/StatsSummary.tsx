@@ -47,11 +47,11 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
 
     const oldApplications = filteredData.reduce(
       (sum, entry) => (entry.status === '102000' ? sum + entry.value : sum),
-      0,
+      0
     );
     const newApplications = filteredData.reduce(
       (sum, entry) => (entry.status === '103000' ? sum + entry.value : sum),
-      0,
+      0
     );
     const processed = filteredData.reduce((sum, entry) => (entry.status === '300000' ? sum + entry.value : sum), 0);
     const granted = filteredData.reduce((sum, entry) => (entry.status === '301000' ? sum + entry.value : sum), 0);

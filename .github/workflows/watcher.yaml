@@ -1,14 +1,17 @@
 name: Data Watcher
 on:
   schedule:
-    - cron: '0 23 22-27 * MON-FRI'
-    - cron: '0 0-9 22-27 * MON-FRI'
+    - cron: '1 0-2 23-26 * MON-FRI'
   workflow_dispatch:
 
 permissions:
   contents: write
   actions: write
   id-token: write
+
+concurrency:
+  group: watcher-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   pre-check:
@@ -49,10 +52,6 @@ jobs:
     needs: pre-check
     if: ${{ needs.pre-check.outputs.should_proceed == 'true' }}
     runs-on: ubuntu-latest
-    concurrency:
-      group: watcher-${{ github.ref }}
-      cancel-in-progress: true
-
     env:
       DATA_PATH: public/datastore/statData.json
 
@@ -103,18 +102,16 @@ jobs:
 
           # Extract current dates
           current_survey=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.SURVEY_DATE' "$DATA_PATH")
-          current_updated=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.UPDATED_DATE' "$DATA_PATH")
 
           # Extract previous dates
           prev_survey=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.SURVEY_DATE' "$prev_file")
-          prev_updated=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.UPDATED_DATE' "$prev_file")
 
           # Compare dates
-          if [ "$current_survey" != "$prev_survey" ] || [ "$current_updated" != "$prev_updated" ]; then
-            echo "Dates changed, proceeding"
+          if [ "$current_survey" != "$prev_survey" ]; then
+            echo "SURVEY_DATE changed, proceeding"
             exit 0
           else
-            echo "No changes in SURVEY_DATE or UPDATED_DATE"
+            echo "No changes in SURVEY_DATE"
             exit 1
           fi
 

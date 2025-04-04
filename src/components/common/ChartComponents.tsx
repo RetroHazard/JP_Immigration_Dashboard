@@ -8,7 +8,6 @@ import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineC
 import { GeographicDistributionChart } from '../charts/GeographicDistributionChart';
 import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
 import { MonthlyRadarChart } from '../charts/MonthlyRadarChart';
-import { BureauDistributionTreemap } from '../charts/BureauDistributionTreemap';
 
 export interface ImmigrationChartData {
   data: ImmigrationData[];
@@ -41,9 +40,9 @@ export const CHART_COMPONENTS: ChartComponent[] = [
   },
   {
     name: 'Bureau Distribution',
-    icon: 'carbon:chart-treemap',
-    component: BureauDistributionTreemap,
-    filters: { bureau: false, appType: false },
+    icon: 'carbon:chart-ring',
+    component: BureauDistributionRingChart,
+    filters: { bureau: false, appType: true },
   },
   {
     name: 'Bureau Performance',
