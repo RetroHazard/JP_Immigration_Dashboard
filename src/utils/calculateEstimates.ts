@@ -1,5 +1,51 @@
-// src/utils/calculateEstimates.js
-export const calculateEstimatedDate = (data, details) => {
+// src/utils/calculateEstimates.ts
+import type { ImmigrationData } from '../hooks/useImmigrationData';
+
+interface ApplicationDetails {
+  bureau: string;
+  type: string;
+  applicationDate: string;
+}
+
+interface CalculationDetails {
+  adjustedQueueTotal: number;
+  queueAtApplication: number;
+  totalProcessedSinceApp: number;
+  carriedOver: number;
+  dailyNew: number;
+  dailyProcessed: number;
+  appDay: number;
+  totalProcessed: number;
+  totalDays: number;
+  modelVariables: {
+    C_prev: number;
+    N_app: number;
+    P_app: number;
+    R_new: number;
+    R_daily: number;
+    Delta_net: number;
+    t_pred: number;
+    Sigma_P: number;
+    Sigma_D: number;
+    Q_app: number;
+    C_proc: number;
+    P_proc: number;
+    Q_adj: number;
+    Q_pos: number;
+    D_rem: number;
+  };
+  isPastDue: boolean;
+}
+
+export interface EstimatedDateResult {
+  estimatedDate: Date;
+  details: CalculationDetails;
+}
+
+export const calculateEstimatedDate = (
+  data: ImmigrationData[],
+  details: ApplicationDetails
+): EstimatedDateResult | null => {
   // --------------------------------------------
   // Input Validation & Early Exit
   // --------------------------------------------
@@ -36,23 +82,23 @@ export const calculateEstimatedDate = (data, details) => {
   // --------------------------------------------
   // Helper Functions
   // --------------------------------------------
-  const sumByStatus = (status, monthCondition) =>
+  const sumByStatus = (status: string, monthCondition: (month: string) => boolean) =>
     filteredData
       .filter((entry) => entry.status === status && monthCondition(entry.month))
       .reduce((sum, entry) => sum + entry.value, 0);
 
-  const getDaysInMonth = (monthStr) => {
+  const getDaysInMonth = (monthStr: string) => {
     const [year, month] = monthStr.split('-').map(Number);
     return new Date(year, month, 0).getDate();
   };
 
-  const getDaysBetweenDates = (start, end) => {
+  const getDaysBetweenDates = (start: Date, end: Date) => {
     const utcStart = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
     const utcEnd = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
     return Math.ceil((utcEnd - utcStart) / (1000 * 60 * 60 * 24));
   };
 
-  const formatMonth = (date) => `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+  const formatMonth = (date: Date) => `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
 
   // --------------------------------------------
   // Core Rate Calculations
@@ -128,7 +174,7 @@ export const calculateEstimatedDate = (data, details) => {
   // --------------------------------------------
   // Queue at Application Date Calculation
   // --------------------------------------------
-  const getMonthData = (month, status) =>
+  const getMonthData = (month: string, status: string) =>
     filteredData.find((entry) => entry.month === month && entry.status === status)?.value || 0;
 
   // Carryover calculations
@@ -182,7 +228,7 @@ export const calculateEstimatedDate = (data, details) => {
   // --------------------------------------------
   // Result Compilation
   // --------------------------------------------
-  const calculationDetails = {
+  const calculationDetails: CalculationDetails = {
     adjustedQueueTotal,
     queueAtApplication,
     totalProcessedSinceApp,
@@ -200,8 +246,8 @@ export const calculateEstimatedDate = (data, details) => {
       R_daily: Number(dailyProcessed), // Applications processed per day
       Delta_net: Number(dailyNew - dailyProcessed), // Daily change in queue total
       t_pred: Number(predictionDays), // Number of days where prediction data is used
-      Sigma_P: Number(totalProcessed), // Total number of applications processed since submission
-      Sigma_D: Number(totalDays), // Total days in data since application month (inclusive)
+      Sigma_P: Number(totalProcessed), // Total number of applications processed in useful data period
+      Sigma_D: Number(totalDays), // Total days in useful data period
       Q_app: Number(carriedOver + receivedByAppDate - processedByAppDate), // Estimated queue position at submission time
       C_proc: Number(confirmedProcessed), // Confirmed applications processed since submission time
       P_proc: Number(predictedProcessed), // Estimated applications processed since last data point

@@ -43,7 +43,7 @@ jobs:
             filename=$(basename "$DATA_PATH")
             cp "$DATA_PATH" "$dir/prev-$filename"
           fi
-          curl -L "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId=${{ secrets.ESTAT_APP_ID }}&lang=J&statsDataId=0003449073&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0" --fail -o "$DATA_PATH" || {
+          curl -L "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData?appId=${{ secrets.ESTAT_APP_ID }}&lang=J&statsDataId=0003449073&metaGetFlg=Y&sectionHeaderFlg=2&replaceSpChars=0" --fail -o "$DATA_PATH" || {
               echo "::error::API request failed with status $?"
               exit 1
             }
@@ -68,18 +68,16 @@ jobs:
 
           # Extract current dates
           current_survey=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.SURVEY_DATE' "$DATA_PATH")
-          current_updated=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.UPDATED_DATE' "$DATA_PATH")
 
           # Extract previous dates
           prev_survey=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.SURVEY_DATE' "$prev_file")
-          prev_updated=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.UPDATED_DATE' "$prev_file")
 
           # Compare dates
-          if [ "$current_survey" != "$prev_survey" ] || [ "$current_updated" != "$prev_updated" ]; then
-            echo "Dates changed, proceeding"
+          if [ "$current_survey" != "$prev_survey" ]; then
+            echo "SURVEY_DATE changed, proceeding"
             exit 0
           else
-            echo "No changes in SURVEY_DATE or UPDATED_DATE"
+            echo "No changes in SURVEY_DATE"
             exit 1
           fi
 

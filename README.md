@@ -54,7 +54,7 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 #### **Radar Chart**
 - **Purpose:** Highlight category spread.
 - **Features:**
-  - Easily identify category distributions
+  - Visualize category distributions
   - Filterable by individual bureaus
   - Configurable cumulative time range display
 
@@ -106,8 +106,9 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 ## :hammer_and_wrench: Tech Stack
 
 ### Frontend:
-- `Node.js` – Runtime & Build
-- `React` – Core Framework
+- `Node.js` – Runtime
+- `Next.js` – Framework
+- `React` – Library
 - `Chart.js` – Data Visualization (Charts)
 - `react-simple-maps` - Data Visualization (Maps)
 - `Tippy.js` – Tooltips
@@ -124,6 +125,7 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 ### Tooling:
 - `WebStorm` – IDE
 - `Prettier` – Code Formatter
+- `ESLint` – Linter
 
 ---
 

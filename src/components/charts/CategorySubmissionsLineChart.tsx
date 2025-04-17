@@ -1,6 +1,6 @@
-// src/components/charts/CategorySubmissionsLineChart.jsx
-import React, { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
+// src/components/charts/CategorySubmissionsLineChart.tsx
+import { useEffect, useState } from 'react';
+
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -11,10 +11,14 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
+import type React from 'react';
+import { Line } from 'react-chartjs-2';
+
+import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
 
-export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
+export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
@@ -22,11 +26,17 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
   useEffect(() => {
     if (!data) return;
 
-    const endMonth = filters.month || [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+    // Get the most recent month from the data
+    const endMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+
+    // Get all months from data
     const allMonths = [...new Set(data.map((entry) => entry.month))].sort();
+
+    // Find index of the most recent month
     const endIndex = allMonths.indexOf(endMonth);
     if (endIndex === -1) return;
 
+    // Get months based on range
     let months;
     if (showAllMonths) {
       months = allMonths;
@@ -153,7 +163,7 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
     },
     plugins: {
       legend: {
-        position: 'top',
+        position: 'top' as const,
         labels: {
           usePointStyle: false,
           padding: 10,
@@ -169,9 +179,9 @@ export const CategorySubmissionsLineChart = ({ data, filters, isDarkMode }) => {
         },
       },
       tooltip: {
-        mode: 'index',
+        mode: 'index' as const,
         callbacks: {
-          label: (context) => {
+          label: (context: any) => {
             return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
           },
         },

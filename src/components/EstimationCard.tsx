@@ -1,30 +1,59 @@
-// src/components/EstimationCard.jsx
+// src/components/EstimationCard.tsx
 import { useMemo, useState } from 'react';
-import { FilterInput } from './common/FilterInput';
-import { nonAirportBureaus } from '../utils/getBureauData';
-import { applicationOptions } from '../constants/applicationOptions';
-import { Icon } from '@iconify/react';
-import { calculateEstimatedDate } from '../utils/calculateEstimates';
+
+import type React from 'react';
 import { BlockMath } from 'react-katex';
-import 'katex/dist/katex.min.css';
+import { Icon } from '@iconify/react';
+
+import { applicationOptions } from '../constants/applicationOptions';
+import type { ImmigrationData } from '../hooks/useImmigrationData';
+import type { EstimatedDateResult } from '../utils/calculateEstimates';
+import { calculateEstimatedDate } from '../utils/calculateEstimates';
+import { nonAirportBureaus } from '../utils/getBureauData';
+import { FilterInput } from './common/FilterInput';
 import { FormulaTooltip, variableExplanations } from './common/FormulaTooltip';
 
-export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollapse, onClose }) => {
-  const [applicationDetails, setApplicationDetails] = useState({
+import 'katex/dist/katex.min.css';
+
+interface EstimationCardProps {
+  data: ImmigrationData[];
+  variant?: 'drawer' | 'expandable';
+  isExpanded?: boolean;
+  onCollapse?: () => void;
+  onClose?: () => void;
+}
+
+interface ApplicationDetails {
+  bureau: string;
+  type: string;
+  applicationDate: string;
+}
+
+export const EstimationCard: React.FC<EstimationCardProps> = ({
+  data,
+  variant = 'drawer',
+  isExpanded,
+  onCollapse,
+  onClose,
+}) => {
+  const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails>({
     bureau: '',
     type: '',
     applicationDate: '',
   });
   const [showDetails, setShowDetails] = useState(false);
 
-  const estimatedDate = useMemo(() => calculateEstimatedDate(data, applicationDetails), [data, applicationDetails]);
+  const estimatedDate: EstimatedDateResult | null = useMemo(
+    () => calculateEstimatedDate(data, applicationDetails),
+    [data, applicationDetails]
+  );
 
   // Get valid date range for the application date input
   const dateRange = useMemo(() => {
     if (!data || data.length === 0) return { min: '', max: '' };
 
     // Extract and sort unique dates from data (YYYY-MM-DD format)
-    const dates = [...new Set(data.map((entry) => entry.date))].sort();
+    const dates = [...new Set(data.map((entry) => entry.month))].sort();
     // Get current date in UTC (YYYY-MM-DD format)
     const currentDate = new Date().toISOString().slice(0, 10);
 
@@ -48,6 +77,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
       </div>
     );
   }
+
   return (
     <div className="estimator-container">
       <div className="flex-between border-b p-2 dark:border-gray-500">
@@ -198,7 +228,7 @@ export const EstimationCard = ({ data, variant = 'drawer', isExpanded, onCollaps
                           <BlockMath
                             math={`
                             \\begin{aligned}
-                            &Q_{\\text{adj}} 
+                            &Q_{\\text{adj}}
                             \\begin{cases}
                             &\\approx \\underbrace{Q_{\\text{app}}}_{\\mathclap{${estimatedDate.details.modelVariables.Q_app.toFixed()}}} + \\lparen\\underbrace{\\Delta_{\\text{net}}\\vphantom{Q_{\\text{app}}}}_{\\mathclap{${estimatedDate.details.modelVariables.Delta_net.toFixed(2)}}} \\times \\underbrace{t_{\\text{pred}}\\vphantom{Q_{\\text{app}}}}_{\\mathclap{${estimatedDate.details.modelVariables.t_pred.toFixed()}\\ \\text{d}}}\\rparen \\\\
                             \\\\

@@ -1,13 +1,16 @@
 {
   "name": "jp_immigration_dashboard",
-  "version": "0.3.2",
+  "version": "0.4.1",
   "homepage": "https://dashboard.retrohazard.jp",
   "private": true,
   "dependencies": {
+    "@next/third-parties": "^15.1.7",
+    "@nivo/treemap": "^0.88.0",
     "@tippyjs/react": "^4.2.6",
     "chart.js": "^4.4.7",
     "d3-scale": "^4.0.2",
     "katex": "^0.16.21",
+    "next": "^15.1.7",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.3.1",
@@ -16,29 +19,39 @@
   },
   "devDependencies": {
     "@iconify/react": "^5.2.0",
+    "@next/eslint-plugin-next": "^15.2.0",
     "@tailwindcss/forms": "^0.5.10",
+    "@types/node": "22.13.5",
+    "@types/react": "19.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.25.0",
+    "@typescript-eslint/parser": "^8.25.0",
     "autoprefixer": "^10.4.20",
-    "cra-template": "1.2.0",
+    "eslint": "^9.21.0",
+    "eslint-config-next": "^15.2.0",
+    "eslint-config-prettier": "^10.0.2",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-tailwindcss": "^3.18.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "lockfile-shaker": "^1.0.1",
-    "postcss": "^8.5.1",
+    "postcss": "^8.5.3",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "react-build-info": "^0.0.3",
-    "react-scripts": "5.0.1",
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "typescript": "5.7.3"
   },
   "scripts": {
-    "start": "react-build-info && react-scripts start",
-    "build": "react-build-info && react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "lint": "next lint",
+    "start": "react-build-info && next build && npx serve@latest ./build",
+    "build": "react-build-info && next build",
+    "dev": "react-build-info && NODE_OPTIONS='--inspect' next dev --turbopack",
     "postinstall": "node -e \"(process.env.npm_command != 'ci') && require('lockfile-shaker/lib/bin.js')\""
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "next",
+      "next/core-web-vitals"
     ]
   },
   "browserslist": {

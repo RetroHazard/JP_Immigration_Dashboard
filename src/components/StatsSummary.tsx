@@ -1,17 +1,37 @@
-// src/components/StatsSummary.jsx
+// src/components/StatsSummary.tsx
 import { useMemo } from 'react';
-import { getBureauLabel } from '../utils/getBureauData';
+
+import type React from 'react';
 import { Icon } from '@iconify/react';
 import Tippy from '@tippyjs/react';
+
+import { applicationOptions } from '../constants/applicationOptions';
+import type { ImmigrationData } from '../hooks/useImmigrationData';
+import { getBureauLabel } from '../utils/getBureauData';
+
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/shift-away.css';
 
-export const StatsSummary = ({ data, filters }) => {
+interface StatsSummaryProps {
+  data: ImmigrationData[];
+  filters: { month?: string; type: string; bureau: string };
+}
+
+interface StatCardProps {
+  title: string;
+  shortTitle: string;
+  subtitle: string;
+  value: string | number;
+  color: string;
+  icon: string;
+}
+
+export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => {
   const stats = useMemo(() => {
     if (!data) return null;
 
-    // Use the selected month from filters, or get the most recent month if none selected
-    const selectedMonth = filters.month || [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+    // Use the most recent month
+    const selectedMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
 
     // Filter data based on all filters including month
     const filteredData = data.filter((entry) => {
@@ -54,13 +74,22 @@ export const StatsSummary = ({ data, filters }) => {
 
   if (!stats) return null;
 
-  const StatCard = ({ title, shortTitle, subtitle, value, color, icon }) => {
+  const getApplicationTypeLabel = (type: string) => {
+    const appType = applicationOptions.find((option) => option.value === type);
+    return appType ? appType.short : '';
+  };
+
+  const StatCard: React.FC<StatCardProps> = ({ title, shortTitle, subtitle, value, color, icon }) => {
+    const appTypeLabel = filters.type !== 'all' ? getApplicationTypeLabel(filters.type) : '';
+    const combinedSubtitle = appTypeLabel ? `${subtitle} (${appTypeLabel})` : subtitle;
+
     return (
       <Tippy
         className="sm:pointer-events-none sm:hidden"
         content={
           <div className="flex flex-col gap-1 text-center">
             <div className="font-semibold">{title}</div>
+            <div className="font-light">{combinedSubtitle}</div>
             <div className="mt-1 font-bold">{value}</div>
           </div>
         }
@@ -69,10 +98,11 @@ export const StatsSummary = ({ data, filters }) => {
         arrow={true}
         theme="stat-tooltip"
         delay={[300, 0]}
-        touch="tap"
+        touch={true}
       >
         <div className="stat-card">
           <div className="group relative">
+            {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
             <div className={`${color} dark:${color.replace('500', '600')} stat-badge`}>
               <div className="stat-icon-text">
                 <Icon icon={icon} />
@@ -82,7 +112,7 @@ export const StatsSummary = ({ data, filters }) => {
           <div className="stat-details">
             <div className="stat-title">{title}</div>
             <div className="stat-short-title">{shortTitle}</div>
-            <div className="stat-subtitle">{subtitle}</div>
+            <div className="stat-subtitle">{combinedSubtitle}</div>
             <div className="stat-value">{value}</div>
           </div>
         </div>

@@ -1,6 +1,12 @@
-// tailwind.config.js
+// tailwind.config.ts
+
 module.exports = {
-  content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  content: [
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
   darkMode: 'class',
   theme: {
     extend: {
@@ -19,5 +25,7 @@ module.exports = {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms')],
-};
+  plugins: [
+    require('@tailwindcss/forms')
+  ],
+}

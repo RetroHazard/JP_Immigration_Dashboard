@@ -1,17 +1,33 @@
-// src/components/charts/GeographicDistributionChart.jsx
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+// src/components/charts/GeographicDistributionChart.tsx
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+import type React from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
-import Tippy from '@tippyjs/react';
-import 'tippy.js/dist/tippy.css';
 import { Icon } from '@iconify/react';
-import { japanPrefectures } from '../../constants/japanPrefectures';
+import Tippy from '@tippyjs/react';
+
 import { bureauOptions } from '../../constants/bureauOptions';
+import { japanPrefectures } from '../../constants/japanPrefectures';
 import { nonAirportBureaus } from '../../utils/getBureauData';
+import type { ImmigrationChartData } from '../common/ChartComponents';
+import { LoadingSpinner } from '../common/LoadingSpinner';
+
+import 'tippy.js/dist/tippy.css';
 
 const geoUrl = '/static/japan.topo.json';
 
+interface TooltipInfo {
+  name: string;
+  name_ja: string;
+  bureau: string;
+  population: string;
+  area: string;
+  density: string;
+  mousePosition: [number, number];
+}
+
 // Calculate color based on density
-const adjustColor = (originalColor, density, minDensity, maxDensity) => {
+const adjustColor = (originalColor: string, density: number, minDensity: number, maxDensity: number): string => {
   if (!originalColor) return 'rgba(221, 221, 221, 0.8)';
 
   // Parse color values
@@ -34,7 +50,6 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
   } else {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    // eslint-disable-next-line
     switch (max) {
       case r:
         h = (g - b) / d + (g < b ? 6 : 0);
@@ -54,7 +69,7 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
   l = l * (1 - densityScale * 0.6); // Enhanced lightness
 
   // Convert back to RGB
-  const hue2rgb = (p, q, t) => {
+  const hue2rgb = (p: number, q: number, t: number) => {
     if (t < 0) t += 1;
     if (t > 1) t -= 1;
     if (t < 1 / 6) return p + (q - p) * 6 * t;
@@ -70,14 +85,46 @@ const adjustColor = (originalColor, density, minDensity, maxDensity) => {
   return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${originalAlpha})`;
 };
 
-export const GeographicDistributionChart = ({ isDarkMode }) => {
-  const [geographyData, setGeographyData] = useState(null);
-  const [isMapLoading, setIsMapLoading] = useState(true);
-  const [tooltipInfo, setTooltipInfo] = useState(null);
-  const [markerTooltip, setMarkerTooltip] = useState(null);
-  const [position, setPosition] = useState({ coordinates: [136, 36], zoom: 1 });
-  const geographyRefs = useRef(new Map());
-  const markerRefs = useRef(new Map());
+export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ isDarkMode }) => {
+  const [geographyData, setGeographyData] = useState<any>(null);
+  const [isMapLoading, setIsMapLoading] = useState<boolean>(true);
+  const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
+  const [markerTooltip, setMarkerTooltip] = useState<any>(null);
+  const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
+    coordinates: [136, 36],
+    zoom: 1,
+  });
+  const geographyRefs = useRef<Map<string, SVGPathElement>>(new Map());
+  const markerRefs = useRef<Map<string, SVGGElement>>(new Map());
+
+  const getReferenceClientRect = () => {
+    if (!tooltipInfo || !tooltipInfo.mousePosition) {
+      return {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        toJSON: () => ({}),
+      } as DOMRect;
+    }
+
+    const rect = tooltipInfo.mousePosition;
+    return {
+      x: rect[0],
+      y: rect[1],
+      width: 0,
+      height: 0,
+      top: rect[1],
+      left: rect[0],
+      right: rect[0],
+      bottom: rect[1],
+      toJSON: () => ({}),
+    } as DOMRect;
+  };
 
   // Loading Indication
   useEffect(() => {
@@ -101,40 +148,52 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
   // Bureau density calculations
   const bureauDensityRanges = useMemo(() => {
     // First create the groups
-    const groups = japanPrefectures.reduce((acc, prefecture) => {
-      const bureau = prefecture.bureau;
-      acc[bureau] = acc[bureau] || [];
-      acc[bureau].push(parseFloat(prefecture.density));
-      return acc;
-    }, {});
+    const groups = japanPrefectures.reduce(
+      (acc, prefecture) => {
+        const bureau = prefecture.bureau;
+        acc[bureau] = acc[bureau] || [];
+        acc[bureau].push(parseFloat(prefecture.density));
+        return acc;
+      },
+      {} as Record<string, number[]>
+    );
 
     // Then process the ranges
-    return Object.entries(groups).reduce((acc, [bureau, densities]) => {
-      acc[bureau] = {
-        min: Math.min(...densities),
-        max: Math.max(...densities) || Math.min(...densities), // Fallback for single-value
-      };
-      return acc;
-    }, {});
+    return Object.entries(groups).reduce(
+      (acc, [bureau, densities]) => {
+        acc[bureau] = {
+          min: Math.min(...densities),
+          max: Math.max(...densities) || Math.min(...densities), // Fallback for single-value
+        };
+        return acc;
+      },
+      {} as Record<string, { min: number; max: number }>
+    );
   }, []);
 
   // Prefecture and bureau data maps
   const [bureauColorMap, prefectureMap] = useMemo(() => {
-    const bureauMap = bureauOptions.reduce((acc, bureau) => {
-      acc[bureau.value] = bureau;
-      return acc;
-    }, {});
+    const bureauMap = bureauOptions.reduce(
+      (acc, bureau) => {
+        acc[bureau.value] = bureau;
+        return acc;
+      },
+      {} as Record<string, (typeof bureauOptions)[0]>
+    );
 
-    const prefectureMap = japanPrefectures.reduce((acc, prefecture) => {
-      acc[prefecture.name] = prefecture;
-      return acc;
-    }, {});
+    const prefectureMap = japanPrefectures.reduce(
+      (acc, prefecture) => {
+        acc[prefecture.name] = prefecture;
+        return acc;
+      },
+      {} as Record<string, (typeof japanPrefectures)[0]>
+    );
 
     return [bureauMap, prefectureMap];
   }, []);
 
   // Style calculations
-  const getFillColor = (prefectureName) => {
+  const getFillColor = (prefectureName: string): string => {
     const prefecture = prefectureMap[prefectureName];
     if (!prefecture) return '#DDD';
 
@@ -149,7 +208,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
 
   // Calculate Bureau Regional Statistics
   const bureauStats = useMemo(() => {
-    const stats = {};
+    const stats = {} as Record<string, { population: number; area: number; count: number }>;
     bureauOptions.forEach((bureau) => {
       if (bureau.value === 'all') return;
       const prefectures = japanPrefectures.filter((p) => p.bureau === bureau.value);
@@ -168,7 +227,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
   return (
     <div className="card-content">
       <div className="mb-4 flex items-center justify-between">
-        <div className="section-title">Service Area Density</div>
+        <div className="section-title">Service Area Coverage/Density</div>
         <div className="flex gap-2">
           <button onClick={handleZoomIn} className="zoom-button">
             +
@@ -184,16 +243,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
 
       <div className="map-container">
         {isMapLoading ? (
-          <div className="flex h-96 items-center justify-center">
-            <div className="flex flex-col items-center gap-2 text-gray-600 dark:text-gray-300">
-              <Icon
-                icon="svg-spinners:90-ring-with-bg"
-                className="h-8 w-8 text-indigo-600 dark:text-indigo-300"
-                aria-hidden="true"
-              />
-              <span className="text-sm">Loading map data...</span>
-            </div>
-          </div>
+          <LoadingSpinner icon="svg-spinners:blocks-wave" message="Loading Map Data..." />
         ) : (
           <ComposableMap projection="geoMercator" projectionConfig={{ scale: 1000, center: [136, 36] }}>
             <ZoomableGroup
@@ -213,8 +263,8 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                         key={geo.rsmKey}
                         geography={geo}
                         fill={getFillColor(geo.properties.name)}
-                        stroke={isDarkMode ? '#475569' : '#CBD5E1'}
-                        strokeWidth={0.1}
+                        stroke={isDarkMode ? 'rgba(225, 225, 225, 0.75)' : 'rgba(30, 30, 30, 0.75)'}
+                        strokeWidth={0.075}
                         onMouseMove={(event) => {
                           if (!prefecture) return;
                           setTooltipInfo({
@@ -228,7 +278,11 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                           });
                         }}
                         onMouseLeave={() => setTooltipInfo(null)}
-                        ref={(node) => geographyRefs.current.set(geo.properties.name, node)}
+                        ref={(node) => {
+                          if (node instanceof SVGPathElement) {
+                            geographyRefs.current.set(geo.properties.name, node);
+                          }
+                        }}
                         style={{
                           default: {
                             outline: 'none',
@@ -253,8 +307,8 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                 .filter((b) => b.value !== 'all')
                 .map((bureau) => {
                   const isAirport = !nonAirportBureaus.find((b) => b.value === bureau.value);
-                  const baseSize = Math.min(32, Math.max(2, 35 / position.zoom));
-                  const iconSize = isAirport ? baseSize * 0.65 : baseSize;
+                  const baseSize = Math.min(10, Math.max(1, 50 / position.zoom));
+                  const iconSize = isAirport ? baseSize * 0.85 : baseSize;
 
                   return (
                     <Marker key={bureau.value} coordinates={bureau.coordinates}>
@@ -262,18 +316,20 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                         transform={`translate(-${iconSize / 2}, -${iconSize / 2})`}
                         onMouseEnter={() => setMarkerTooltip(bureau)}
                         onMouseLeave={() => setMarkerTooltip(null)}
-                        ref={(node) => markerRefs.current.set(bureau.value, node)}
+                        ref={(node) => {
+                          if (node instanceof SVGGElement) {
+                            markerRefs.current.set(bureau.value, node);
+                          }
+                        }}
                         pointerEvents="bounding-box"
                       >
                         <Icon
-                          icon={
-                            isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-crop-circle-fill'
-                          }
+                          icon={isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-fill'}
                           width={iconSize}
                           height={iconSize}
-                          color={bureau.border}
-                          stroke={'#000000'}
-                          strokeWidth={0.5}
+                          color={'rgba(225, 225, 225, 0.9)'}
+                          stroke={bureau.border}
+                          strokeWidth={0.75}
                         />
                       </g>
                     </Marker>
@@ -303,15 +359,8 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
           animation="shift-away"
           theme="stat-tooltip"
           delay={[300, 50]}
-          followCursor="initial"
-          getReferenceClientRect={() => ({
-            width: 0,
-            height: 0,
-            top: tooltipInfo?.mousePosition[1] || 0,
-            left: tooltipInfo?.mousePosition[0] || 0,
-            right: tooltipInfo?.mousePosition[0] || 0,
-            bottom: tooltipInfo?.mousePosition[1] || 0,
-          })}
+          followCursor={true}
+          getReferenceClientRect={getReferenceClientRect}
           popperOptions={{
             modifiers: [
               {
@@ -330,8 +379,19 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
           content={
             markerTooltip && (
               <>
-                <div className="mb-1 flex items-center gap-2 border-b border-gray-500 pb-1 font-semibold">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: markerTooltip.border }} />
+                <div
+                  className={`mb-1 flex items-center gap-2 font-semibold ${
+                    nonAirportBureaus.find((b) => b.value === markerTooltip.value)
+                      ? 'border-b border-gray-500 pb-1'
+                      : ''
+                  }`}
+                >
+                  {nonAirportBureaus.find((b) => b.value === markerTooltip.value) && (
+                    <div
+                      className="size-3 rounded-full border border-white dark:border-black"
+                      style={{ backgroundColor: markerTooltip.background }}
+                    />
+                  )}
                   {nonAirportBureaus.find((b) => b.value === markerTooltip.value)
                     ? `${markerTooltip.label} Regional Immigration Bureau`
                     : markerTooltip.label}
@@ -343,7 +403,7 @@ export const GeographicDistributionChart = ({ isDarkMode }) => {
                     </div>
                     <div>Total Service Area: {bureauStats[markerTooltip.value]?.area.toLocaleString()} km²</div>
                     <div>
-                      Average Density of Service Area:{' '}
+                      Density of Service Area:{' '}
                       {(bureauStats[markerTooltip.value]?.population / bureauStats[markerTooltip.value]?.area).toFixed(
                         2
                       )}

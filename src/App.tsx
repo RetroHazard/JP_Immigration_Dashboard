@@ -1,16 +1,25 @@
-// App.jsx
-import { Fragment, useEffect, useState } from 'react';
-import { FilterPanel } from './components/FilterPanel';
+// App.tsx
+import { useEffect, useState } from 'react';
+
+import type React from 'react';
+import { Icon } from '@iconify/react';
+
+import { CHART_COMPONENTS } from './components/common/ChartComponents';
+import { LoadingSpinner } from './components/common/LoadingSpinner';
 import { EstimationCard } from './components/EstimationCard';
+import { FilterPanel } from './components/FilterPanel';
 import { StatsSummary } from './components/StatsSummary';
 import { useImmigrationData } from './hooks/useImmigrationData';
-import { Icon } from '@iconify/react';
 import buildInfo from './buildInfo';
-import { CHART_COMPONENTS } from './components/common/ChartComponents';
 
-const App = () => {
+interface Filters {
+  bureau: string;
+  type: string;
+}
+
+const App: React.FC = () => {
   const { data, loading } = useImmigrationData();
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     bureau: 'all',
     type: 'all',
   });
@@ -41,20 +50,7 @@ const App = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white transition-colors duration-300 dark:bg-gray-700">
-        <div className="flex flex-col items-center gap-4">
-          <Icon
-            icon="svg-spinners:90-ring-with-bg"
-            className="h-12 w-12 text-indigo-600 dark:text-indigo-300"
-            aria-hidden="true"
-          />
-          <span className="text-sm font-semibold text-gray-700 transition-all dark:text-gray-200 md:text-base lg:text-lg">
-            Crunching Immigration Data...
-          </span>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Crunching Immigration Data..." />;
   }
 
   return (
@@ -155,7 +151,13 @@ const App = () => {
                 <>
                   <div className="mobile-drawer-overlay transition-slow" onClick={() => setIsDrawerOpen(false)} />
                   <div className="mobile-drawer-content transition-slow">
-                    <EstimationCard variant="drawer" data={data} onClose={() => setIsDrawerOpen(false)} />
+                    <EstimationCard
+                      variant="drawer"
+                      data={data}
+                      isExpanded={null}
+                      onClose={() => setIsDrawerOpen(false)}
+                      onCollapse={null}
+                    />
                   </div>
                 </>
               )}
@@ -172,7 +174,7 @@ const App = () => {
                 {/* Filter row */}
                 {(CHART_COMPONENTS[activeChartIndex].filters.bureau ||
                   CHART_COMPONENTS[activeChartIndex].filters.appType) && (
-                  <div className="flex-shrink-0 sm:mb-4 md:mb-5 lg:mb-6">
+                  <div className="shrink-0 sm:mb-4 md:mb-5 lg:mb-6">
                     <FilterPanel
                       data={data}
                       filters={filters}
@@ -183,7 +185,7 @@ const App = () => {
                 )}
 
                 {/* Chart row */}
-                <div className="flex-grow">
+                <div className="grow">
                   <div className="base-container h-full">
                     <div className="mb-4 flex space-x-2 overflow-x-auto border-b dark:border-gray-500">
                       {CHART_COMPONENTS.map((chart, index) => (
@@ -222,6 +224,7 @@ const App = () => {
                     variant="expandable"
                     data={data}
                     isExpanded={isEstimationExpanded}
+                    onClose={null}
                     onCollapse={() => setIsEstimationExpanded(false)}
                   />
                 </div>

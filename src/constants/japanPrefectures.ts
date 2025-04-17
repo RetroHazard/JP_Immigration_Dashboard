@@ -1,7 +1,15 @@
-// src/constants/japanPrefectures.js
+// src/constants/japanPrefectures.ts
 // noinspection SpellCheckingInspection
 
-const createPrefecture = (name, bureau, population, area) => ({
+interface Prefecture {
+  name: string;
+  bureau: string;
+  population: number;
+  area: number;
+  density: string;
+}
+
+const createPrefecture = (name: string, bureau: string, population: number, area: number): Prefecture => ({
   name,
   bureau,
   population,
@@ -11,7 +19,7 @@ const createPrefecture = (name, bureau, population, area) => ({
   },
 });
 
-export const japanPrefectures = [
+export const japanPrefectures: Prefecture[] = [
   createPrefecture('Hokkaido', '101010', 5381733, 83424),
   createPrefecture('Aomori', '101090', 1279594, 9646),
   createPrefecture('Iwate', '101090', 1244537, 15275),
