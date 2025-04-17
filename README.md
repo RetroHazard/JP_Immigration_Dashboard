@@ -54,7 +54,7 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 #### **Radar Chart**
 - **Purpose:** Highlight category spread.
 - **Features:**
-  - Easily identify category distributions
+  - Visualize category distributions
   - Filterable by individual bureaus
   - Configurable cumulative time range display
 
