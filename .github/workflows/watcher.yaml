@@ -1,57 +1,23 @@
 name: Data Watcher
 on:
-  schedule:
-    - cron: '1 0-2 23-26 * MON-FRI'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
   actions: write
   id-token: write
 
-concurrency:
-  group: watcher-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  pre-check:
-    runs-on: ubuntu-latest
-    outputs:
-      should_proceed: ${{ steps.check.outputs.should_proceed }}
-    steps:
-      - name: Set current month
-        run: echo "CURRENT_MONTH=$(date +'%Y-%m')" >> "$GITHUB_ENV"
-
-      - name: Check for previous successful runs in current month
-        id: check
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const workflowFile = 'watcher.yaml';
-            try {
-              const { data: runs } = await github.rest.actions.listWorkflowRuns({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                workflow_id: workflowFile,
-                status: 'success',
-                created: `>=${process.env.CURRENT_MONTH}-01`,
-                per_page: 1
-              });
-
-              const hasRun = runs.workflow_runs.some(run => 
-                ['workflow_dispatch', 'schedule'].includes(run.event)
-              );
-
-              core.setOutput('should_proceed', !hasRun);
-            } catch (error) {
-              core.setOutput('should_proceed', 'false');
-              core.info(`Check failed, Stopping: ${error}`);
-            }
-
   check-updates:
-    needs: pre-check
-    if: ${{ needs.pre-check.outputs.should_proceed == 'true' }}
     runs-on: ubuntu-latest
+    concurrency:
+      group: watcher-${{ github.ref }}
+      cancel-in-progress: true
+
     env:
       DATA_PATH: public/datastore/statData.json
 
