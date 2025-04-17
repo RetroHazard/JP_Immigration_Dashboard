@@ -261,7 +261,7 @@ export const calculateEstimatedDate = (
           (dailyNew - dailyProcessed) * predictionDays -
           totalProcessedSinceApp
       ), // Estimated queue position
-      D_rem: Number(daysRemaining),
+      D_rem: Number(daysRemaining), // Estimated days remaining to completion
     },
     isPastDue: remainingAhead <= 0,
   };
