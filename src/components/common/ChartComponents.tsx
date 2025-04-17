@@ -1,12 +1,31 @@
-// components/common/ChartComponents.jsx
-import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
-import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineChart';
+// src/components/common/ChartComponents.tsx
+import type React from 'react';
+
+import type { ImmigrationData } from '../../hooks/useImmigrationData';
 import { BureauDistributionRingChart } from '../charts/BureauDistributionRingChart';
 import { BureauPerformanceBubbleChart } from '../charts/BureauPerformanceBubbleChart';
-import { MonthlyRadarChart } from '../charts/MonthlyRadarChart';
+import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineChart';
 import { GeographicDistributionChart } from '../charts/GeographicDistributionChart';
+import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
+import { MonthlyRadarChart } from '../charts/MonthlyRadarChart';
 
-export const CHART_COMPONENTS = [
+export interface ImmigrationChartData {
+  data: ImmigrationData[];
+  filters: {
+    bureau: string;
+    type: string;
+  };
+  isDarkMode: boolean;
+}
+
+interface ChartComponent {
+  name: string;
+  icon: string;
+  component: React.ComponentType<ImmigrationChartData>;
+  filters: { bureau: boolean; appType: boolean };
+}
+
+export const CHART_COMPONENTS: ChartComponent[] = [
   {
     name: 'Intake Processing',
     icon: 'carbon:chart-stacked',

@@ -1,13 +1,16 @@
-// src/components/charts/MonthlyRadarChart.jsx
-import React, { useMemo, useState } from 'react';
-import { Radar } from 'react-chartjs-2';
+import { useMemo, useState } from 'react';
+
 import { Chart as ChartJS, Filler, Legend, LineElement, PointElement, RadialLinearScale, Tooltip } from 'chart.js';
-import { bureauOptions } from '../../constants/bureauOptions';
+import type React from 'react';
+import { Radar } from 'react-chartjs-2';
+
 import { applicationOptions } from '../../constants/applicationOptions';
+import { bureauOptions } from '../../constants/bureauOptions';
+import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
-export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
+export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('1');
 
   // Get sorted list of unique months
@@ -83,8 +86,8 @@ export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
           {
             label: bureauOptions.find((b) => b.value === filters.bureau)?.label,
             data: percentages,
-            borderColor: bureau.border || '#3B82F6',
-            backgroundColor: bureau.background || '#3B82F620',
+            borderColor: bureau?.border || '#3B82F6',
+            backgroundColor: bureau?.background || '#3B82F620',
             pointRadius: percentages.map((p) => (p > 0 ? 5 : 0)),
             pointHoverRadius: percentages.map((p) => (p > 0 ? 5 : 0)),
           },
@@ -110,7 +113,7 @@ export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
           color: isDarkMode ? '#fff' : '#000',
           backdropColor: isDarkMode ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)',
         },
-        grid: { color: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' },
+        grid: { color: isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)' },
         pointLabels: {
           color: isDarkMode ? '#fff' : '#000',
           font: { size: 12 },
@@ -120,16 +123,10 @@ export const MonthlyRadarChart = ({ data, filters, isDarkMode }) => {
     plugins: {
       legend: {
         display: false,
-        position: 'top',
-        labels: {
-          color: isDarkMode ? '#fff' : '#000',
-          boxWidth: 10,
-          padding: 10,
-        },
       },
       tooltip: {
         callbacks: {
-          label: (context) => {
+          label: (context: any) => {
             const label = context.dataset.label || '';
             const value = context.raw.toFixed(1);
             return `${label}: ${value}%`;

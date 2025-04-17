@@ -1,5 +1,5 @@
-// src/utils/loadLocalData.js
-export const loadLocalData = async () => {
+// src/utils/loadLocalData.ts
+export const loadLocalData = async (): Promise<any> => {
   try {
     const response = await fetch('/datastore/statData.json');
 

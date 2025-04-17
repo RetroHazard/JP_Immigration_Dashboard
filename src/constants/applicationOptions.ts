@@ -1,6 +1,12 @@
-// src/constants/applicationOptions.js
+// src/constants/applicationOptions.ts
 
-export const applicationOptions = [
+interface ApplicationOption {
+  value: string;
+  label: string;
+  short: string;
+}
+
+export const applicationOptions: ApplicationOption[] = [
   { value: 'all', label: 'All Types', short: 'ALL' },
   { value: '10', label: 'Status Acquisition', short: 'ACQ' },
   { value: '20', label: 'Extension of Stay', short: 'EXT' },
