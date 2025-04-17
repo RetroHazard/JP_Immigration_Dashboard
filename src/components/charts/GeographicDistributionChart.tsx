@@ -227,7 +227,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
   return (
     <div className="card-content">
       <div className="mb-4 flex items-center justify-between">
-        <div className="section-title">Service Area Density</div>
+        <div className="section-title">Service Area Coverage/Density</div>
         <div className="flex gap-2">
           <button onClick={handleZoomIn} className="zoom-button">
             +

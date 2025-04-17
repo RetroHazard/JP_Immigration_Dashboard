@@ -17,15 +17,15 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
     labels: [],
     datasets: [
       {
-        label: 'Old Applications',
+        label: 'Pending',
         data: [],
       },
       {
-        label: 'New Applications',
+        label: 'Received',
         data: [],
       },
       {
-        label: 'Processed Applications',
+        label: 'Processed',
         data: [],
       },
     ],
@@ -76,7 +76,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
       labels: months,
       datasets: [
         {
-          label: 'Old Applications',
+          label: 'Pending',
           data: monthlyStats.map((stat) => stat.totalApplications),
           backgroundColor: 'rgba(54, 162, 245, 0.7)',
           borderColor: 'rgb(54, 162, 235)',
@@ -85,7 +85,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           order: 1,
         },
         {
-          label: 'New Applications',
+          label: 'Received',
           data: monthlyStats.map((stat) => stat.newApplications),
           backgroundColor: 'rgba(245, 179, 8, 0.7)',
           borderColor: 'rgb(234, 179, 8)',
@@ -94,7 +94,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           order: 2,
         },
         {
-          label: 'Processed Applications',
+          label: 'Processed',
           data: monthlyStats.map((stat) => stat.processed),
           backgroundColor: 'rgba(34, 197, 94, 0.9)',
           borderColor: 'rgb(34, 220, 94)',
@@ -173,7 +173,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
   return (
     <div className="card-content">
       <div className="mb-4 flex h-full items-center justify-between">
-        <div className="section-title">Intake and Processing</div>
+        <div className="section-title">Application Intake and Processing</div>
         <select
           className="chart-filter-select"
           value={showAllMonths ? 'all' : monthRange}
