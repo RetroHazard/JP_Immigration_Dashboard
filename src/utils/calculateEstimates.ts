@@ -21,16 +21,12 @@ interface CalculationDetails {
     C_prev: number;
     N_app: number;
     P_app: number;
-    R_new: number;
     R_daily: number;
-    Delta_net: number;
-    t_pred: number;
     Sigma_P: number;
     Sigma_D: number;
     Q_app: number;
     C_proc: number;
     P_proc: number;
-    Q_adj: number;
     Q_pos: number;
     D_rem: number;
   };
@@ -185,15 +181,36 @@ export const calculateEstimatedDate = (
   } else {
     const historicalMonths = months.filter((m) => m < applicationMonth);
     if (historicalMonths.length) {
-      carriedOver =
-        getMonthData(historicalMonths.slice(-1)[0], '102000') +
-        getMonthData(historicalMonths.slice(-1)[0], '103000') -
-        getMonthData(historicalMonths.slice(-1)[0], '300000');
+      const lastHistoricalMonth = historicalMonths.slice(-1)[0];
+      // Calculate initial carriedOver from last historical month
+      let simulatedCarriedOver =
+        getMonthData(lastHistoricalMonth, '102000') +
+        getMonthData(lastHistoricalMonth, '103000') -
+        getMonthData(lastHistoricalMonth, '300000');
+
+      // Check if there are missing months between lastAvailableMonth and prevMonth
+      const lastAvailableDate = new Date(lastAvailableMonth + '-01');
+      const prevMonthDate = new Date(prevMonth + '-01');
+
+      // Simulate each missing month
+      if (prevMonthDate > lastAvailableDate) {
+        const currentMonthDate = new Date(lastAvailableDate);
+        currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); // Start from next month
+
+        while (currentMonthDate < prevMonthDate) {
+          const daysInMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0).getDate();
+          const netChange = (dailyNew - dailyProcessed) * daysInMonth;
+          simulatedCarriedOver += netChange;
+
+          currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
+        }
+      }
+      carriedOver = simulatedCarriedOver;
     }
   }
 
   // Received/processed by application date
-  let receivedByAppDate, processedByAppDate;
+  let receivedByAppDate: number, processedByAppDate: number;
   if (hasActualAppMonth) {
     const receivedInMonth = getMonthData(applicationMonth, '103000');
     const processedInMonth = getMonthData(applicationMonth, '300000');
@@ -215,12 +232,7 @@ export const calculateEstimatedDate = (
 
   const estimatedDate = new Date();
   const daysRemaining =
-    (carriedOver +
-      receivedByAppDate -
-      processedByAppDate +
-      (dailyNew - dailyProcessed) * predictionDays -
-      totalProcessedSinceApp) /
-    dailyProcessed;
+    (carriedOver + receivedByAppDate - processedByAppDate - totalProcessedSinceApp) / dailyProcessed;
   const estimatedDays = daysRemaining >= 0 ? Math.ceil(daysRemaining) : Math.floor(daysRemaining);
 
   estimatedDate.setDate(estimatedDate.getDate() + estimatedDays);
@@ -239,29 +251,17 @@ export const calculateEstimatedDate = (
     totalProcessed,
     totalDays,
     modelVariables: {
-      C_prev: Number(carriedOver), // Applications carried over from month prior to submission
-      N_app: Number(receivedByAppDate), // New applications received prior to submission
-      P_app: Number(processedByAppDate), // Applications processed prior to submission
-      R_new: Number(dailyNew), // Application submissions per day
-      R_daily: Number(dailyProcessed), // Applications processed per day
-      Delta_net: Number(dailyNew - dailyProcessed), // Daily change in queue total
-      t_pred: Number(predictionDays), // Number of days where prediction data is used
-      Sigma_P: Number(totalProcessed), // Total number of applications processed in useful data period
-      Sigma_D: Number(totalDays), // Total days in useful data period
-      Q_app: Number(carriedOver + receivedByAppDate - processedByAppDate), // Estimated queue position at submission time
-      C_proc: Number(confirmedProcessed), // Confirmed applications processed since submission time
-      P_proc: Number(predictedProcessed), // Estimated applications processed since last data point
-      Q_adj: Number(
-        carriedOver + receivedByAppDate - processedByAppDate + (dailyNew - dailyProcessed) * predictionDays
-      ), // Estimated current queue total
-      Q_pos: Number(
-        carriedOver +
-          receivedByAppDate -
-          processedByAppDate +
-          (dailyNew - dailyProcessed) * predictionDays -
-          totalProcessedSinceApp
-      ), // Estimated queue position
-      D_rem: Number(daysRemaining), // Estimated days remaining to completion
+      C_prev: Number(carriedOver), // Applications carried forward from the previous month.
+      N_app: Number(receivedByAppDate), // Estimated applications received prior to submission time.
+      P_app: Number(processedByAppDate), // Estimated applications processed prior to submission time.
+      R_daily: Number(dailyProcessed), // Average applications processed per day.
+      Sigma_P: Number(totalProcessed), // Sum of processed applications used for calculating averages.
+      Sigma_D: Number(totalDays), // Sum of days used for calculating averages.
+      Q_app: Number(carriedOver + receivedByAppDate - processedByAppDate), // Estimated queue position at submission time.
+      C_proc: Number(confirmedProcessed), // Known applications processed since submission.
+      P_proc: Number(predictedProcessed), // EEstimated applications processed since submission.
+      Q_pos: Number(carriedOver + receivedByAppDate - processedByAppDate - totalProcessedSinceApp), // Estimated position in the processing queue.
+      D_rem: Number(daysRemaining), // Estimated days until processing completes.
     },
     isPastDue: remainingAhead <= 0,
   };

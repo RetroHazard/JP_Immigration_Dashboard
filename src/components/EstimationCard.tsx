@@ -194,7 +194,6 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                       </FormulaTooltip>
                       <FormulaTooltip
                         variables={{
-                          'Q_{\\text{adj}}': variableExplanations['Q_adj'],
                           'C_{\\text{proc}}': variableExplanations['C_proc'],
                           'P_{\\text{proc}}': variableExplanations['P_proc'],
                           '\\sum P': variableExplanations['Sigma_P'],
@@ -207,7 +206,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                             \\begin{aligned}
                             &\\text{where}\\
                             \\begin{cases}
-                            Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{adj}}}_{${estimatedDate.details.modelVariables.Q_adj.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${estimatedDate.details.modelVariables.C_proc.toFixed()}} - \\underbrace{P_{\\text{proc}}}_{${estimatedDate.details.modelVariables.P_proc.toFixed()}} \\\\
+                            Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{app}}}_{${estimatedDate.details.modelVariables.Q_app.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${estimatedDate.details.modelVariables.C_proc.toFixed()}} - \\underbrace{P_{\\text{proc}}}_{${estimatedDate.details.modelVariables.P_proc.toFixed()}} \\\\
                             \\\\
                             R_{\\text{daily}} \\approx \\left\\lbrack\\dfrac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\dfrac{${estimatedDate.details.modelVariables.Sigma_P}}{${estimatedDate.details.modelVariables.Sigma_D}}\\right\\rbrack \\\\
                             \\end{cases}
@@ -219,25 +218,16 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                       <FormulaTooltip
                         variables={{
                           'Q_{\\text{app}}': variableExplanations['Q_app'],
-                          '\\Delta_{\\text{net}}': variableExplanations['Delta_net'],
-                          't_{\\text{pred}}': variableExplanations['t_pred'],
-                          'R_{\\text{new}}': variableExplanations['R_new'],
+                          'C_{\\text{prev}}': variableExplanations['C_prev'],
+                          'N_{\\text{app}}': variableExplanations['N_app'],
+                          'P_{\\text{app}}': variableExplanations['P_app'],
                         }}
                       >
                         <div className="mt-2 border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
                           <BlockMath
                             math={`
                             \\begin{aligned}
-                            &Q_{\\text{adj}}
-                            \\begin{cases}
-                            &\\approx \\underbrace{Q_{\\text{app}}}_{\\mathclap{${estimatedDate.details.modelVariables.Q_app.toFixed()}}} + \\lparen\\underbrace{\\Delta_{\\text{net}}\\vphantom{Q_{\\text{app}}}}_{\\mathclap{${estimatedDate.details.modelVariables.Delta_net.toFixed(2)}}} \\times \\underbrace{t_{\\text{pred}}\\vphantom{Q_{\\text{app}}}}_{\\mathclap{${estimatedDate.details.modelVariables.t_pred.toFixed()}\\ \\text{d}}}\\rparen \\\\
-                            \\\\
-                            &\\text{}\\
-                            \\begin{cases}
-                            \\Delta_{\\text{net}} \\approx \\underbrace{R_{\\text{new}}}_{${estimatedDate.details.modelVariables.R_new.toFixed(2)}} - \\underbrace{R_{\\text{daily}}}_{${estimatedDate.details.modelVariables.R_daily.toFixed(2)}} \\\\
-                            \\\\
-                            Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${estimatedDate.details.modelVariables.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${estimatedDate.details.modelVariables.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${estimatedDate.details.modelVariables.P_app.toFixed()}} \\\\
-                            \\end{cases}\\end{cases}
+                            &Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${estimatedDate.details.modelVariables.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${estimatedDate.details.modelVariables.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${estimatedDate.details.modelVariables.P_app.toFixed()}} \\\\
                             \\end{aligned}
                           `}
                           />
