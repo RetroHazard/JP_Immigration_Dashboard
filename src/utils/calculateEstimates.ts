@@ -8,8 +8,8 @@ interface ApplicationDetails {
 }
 
 interface CalculationDetails {
-  adjustedQueueTotal: number;
   queueAtApplication: number;
+  queuePosition: number;
   totalProcessedSinceApp: number;
   carriedOver: number;
   dailyNew: number;
@@ -106,7 +106,6 @@ export const calculateEstimatedDate = (
 
   const dailyProcessed = totalProcessed / totalDays;
   const dailyNew = totalNew / totalDays;
-  const netChangePerDay = dailyNew - dailyProcessed;
   const processingRate = dailyProcessed;
 
   // --------------------------------------------
@@ -147,15 +146,6 @@ export const calculateEstimatedDate = (
 
   const confirmedProcessed = sumByStatus('300000', (m) => m > applicationMonth) + processedInAppMonth;
 
-  const totalInQueue = sumByStatus(
-    '102000',
-    (m) =>
-      m ===
-      (applicationDate > lastAvailableMonth
-        ? lastAvailableMonth
-        : months.find((m) => m > applicationDate) || lastAvailableMonth)
-  );
-
   // --------------------------------------------
   // Predictive Calculations
   // --------------------------------------------
@@ -164,8 +154,6 @@ export const calculateEstimatedDate = (
     applicationDate > lastAvailableMonth ? dailyProcessed * daysSinceApplication : dailyProcessed * predictionDays;
 
   const totalProcessedSinceApp = Math.round(confirmedProcessed + predictedProcessed);
-  const adjustedQueueTotal = Math.round(totalInQueue + netChangePerDay * predictionDays);
-  const remainingAhead = Math.round(adjustedQueueTotal - totalProcessedSinceApp);
 
   // --------------------------------------------
   // Queue at Application Date Calculation
@@ -223,16 +211,15 @@ export const calculateEstimatedDate = (
     processedByAppDate = dailyProcessed * appDay;
   }
 
-  const queueAtApplication = Math.round(carriedOver + receivedByAppDate - processedByAppDate);
-
   // --------------------------------------------
   // Final Estimation
   // --------------------------------------------
   if (processingRate <= 0) return null;
 
   const estimatedDate = new Date();
-  const daysRemaining =
-    (carriedOver + receivedByAppDate - processedByAppDate - totalProcessedSinceApp) / dailyProcessed;
+  const queueAtApplication = Math.round(carriedOver + receivedByAppDate - processedByAppDate);
+  const queuePosition = queueAtApplication - totalProcessedSinceApp;
+  const daysRemaining = queuePosition / dailyProcessed;
   const estimatedDays = daysRemaining >= 0 ? Math.ceil(daysRemaining) : Math.floor(daysRemaining);
 
   estimatedDate.setDate(estimatedDate.getDate() + estimatedDays);
@@ -241,8 +228,8 @@ export const calculateEstimatedDate = (
   // Result Compilation
   // --------------------------------------------
   const calculationDetails: CalculationDetails = {
-    adjustedQueueTotal,
     queueAtApplication,
+    queuePosition,
     totalProcessedSinceApp,
     carriedOver,
     dailyNew,
@@ -257,17 +244,17 @@ export const calculateEstimatedDate = (
       R_daily: Number(dailyProcessed), // Average applications processed per day.
       Sigma_P: Number(totalProcessed), // Sum of processed applications used for calculating averages.
       Sigma_D: Number(totalDays), // Sum of days used for calculating averages.
-      Q_app: Number(carriedOver + receivedByAppDate - processedByAppDate), // Estimated queue position at submission time.
+      Q_app: Number(queueAtApplication), // Estimated queue position at submission time.
       C_proc: Number(confirmedProcessed), // Known applications processed since submission.
-      P_proc: Number(predictedProcessed), // EEstimated applications processed since submission.
-      Q_pos: Number(carriedOver + receivedByAppDate - processedByAppDate - totalProcessedSinceApp), // Estimated position in the processing queue.
+      P_proc: Number(predictedProcessed), // Estimated applications processed since submission.
+      Q_pos: Number(queuePosition), // Estimated position in the processing queue.
       D_rem: Number(daysRemaining), // Estimated days until processing completes.
     },
-    isPastDue: remainingAhead <= 0,
+    isPastDue: queuePosition <= 0,
   };
 
   return {
-    estimatedDate: remainingAhead <= 0 ? estimatedDate : new Date(estimatedDate.setHours(0, 0, 0, 0)),
+    estimatedDate: queuePosition <= 0 ? estimatedDate : new Date(estimatedDate.setHours(0, 0, 0, 0)),
     details: calculationDetails,
   };
 };
