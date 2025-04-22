@@ -26,8 +26,8 @@ export const variableExplanations: VariableExplanations = {
   Sigma_D: { title: 'Total Days', description: 'Sum of days used for calculating averages.' },
   Q_app: { title: 'Application Queue', description: 'Estimated queue position at submission time.' },
   C_prev: { title: 'Carried Over', description: 'Applications carried forward from the previous month.' },
-  N_app: { title: 'New Applications', description: 'Estimated applications received prior to submission time.' },
-  P_app: { title: 'Processed Applications', description: 'Estimated applications processed prior to submission time.' },
+  N_app: { title: 'New Applications', description: 'Estimated applications received prior to submission.' },
+  P_app: { title: 'Processed Applications', description: 'Estimated applications processed prior to submission.' },
 };
 
 export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ variables, children }) => {
