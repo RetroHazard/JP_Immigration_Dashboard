@@ -1,6 +1,6 @@
 {
   "name": "jp_immigration_dashboard",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "homepage": "https://dashboard.retrohazard.jp",
   "private": true,
   "dependencies": {
@@ -10,7 +10,7 @@
     "chart.js": "^4.4.7",
     "d3-scale": "^4.0.2",
     "katex": "^0.16.21",
-    "next": "^15.1.7",
+    "next": "^15.3.1",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.3.1",
@@ -45,7 +45,7 @@
     "lint": "next lint",
     "start": "react-build-info && next build && npx serve@latest ./build",
     "build": "react-build-info && next build",
-    "dev": "react-build-info && NODE_OPTIONS='--inspect' next dev --turbopack",
+    "dev": "react-build-info && next dev --turbopack",
     "postinstall": "node -e \"(process.env.npm_command != 'ci') && require('lockfile-shaker/lib/bin.js')\""
   },
   "eslintConfig": {
