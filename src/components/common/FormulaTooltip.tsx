@@ -20,15 +20,14 @@ export const variableExplanations: VariableExplanations = {
   D_rem: { title: 'Remaining Days', description: 'Estimated days until processing completes.' },
   Q_pos: { title: 'Queue Position', description: 'Estimated position in the processing queue.' },
   R_daily: { title: 'Daily Rate', description: 'Average applications processed per day.' },
-  Q_adj: { title: 'Adjusted Queue', description: 'Accounts for new applications and processing rates.' },
   C_proc: { title: 'Confirmed Processed', description: 'Known applications processed since submission.' },
   P_proc: { title: 'Predicted Processed', description: 'Estimated applications processed since submission.' },
-  Sigma_P: { title: 'Total Processed', description: 'Sum of processed applications in data range used for averages' },
+  Sigma_P: { title: 'Total Processed', description: 'Sum of processed applications used for calculating averages.' },
   Sigma_D: { title: 'Total Days', description: 'Sum of days used for calculating averages.' },
-  R_new: { title: 'New Rate', description: 'Average applications received per day.' },
   Q_app: { title: 'Application Queue', description: 'Estimated queue position at submission time.' },
-  Delta_net: { title: 'Net Change', description: 'Daily change in queue; received vs processed.' },
-  t_pred: { title: 'Prediction Time', description: 'Days since last data point; days where predictive data is used.' },
+  C_prev: { title: 'Carried Over', description: 'Applications carried forward from the previous month.' },
+  N_app: { title: 'New Applications', description: 'Estimated applications received prior to submission.' },
+  P_app: { title: 'Processed Applications', description: 'Estimated applications processed prior to submission.' },
 };
 
 export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ variables, children }) => {
