@@ -161,7 +161,9 @@ export const calculateEstimatedDate = (
   const getMonthData = (month: string, status: string) =>
     filteredData.find((entry) => entry.month === month && entry.status === status)?.value || 0;
 
+  // --------------------------------------------
   // Carryover calculations
+  // --------------------------------------------
   let carriedOver = 0;
   if (hasActualPrevMonth) {
     carriedOver =
@@ -170,30 +172,30 @@ export const calculateEstimatedDate = (
     const historicalMonths = months.filter((m) => m < applicationMonth);
     if (historicalMonths.length) {
       const lastHistoricalMonth = historicalMonths.slice(-1)[0];
+
       // Calculate initial carriedOver from last historical month
       let simulatedCarriedOver =
         getMonthData(lastHistoricalMonth, '102000') +
         getMonthData(lastHistoricalMonth, '103000') -
         getMonthData(lastHistoricalMonth, '300000');
 
-      // Check if there are missing months between lastAvailableMonth and prevMonth
-      const lastAvailableDate = new Date(lastAvailableMonth + '-01');
-      const prevMonthDate = new Date(prevMonth + '-01');
+      // Calculate the exact number of full months between last historical month and application month
+      const lastHistoricalDate = new Date(lastHistoricalMonth + '-01');
+      const appMonthDate = new Date(applicationMonth + '-01');
 
-      // Simulate each missing month
-      if (prevMonthDate > lastAvailableDate) {
-        const currentMonthDate = new Date(lastAvailableDate);
-        currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); // Start from next month
+      const currentMonthDate = new Date(lastHistoricalDate);
+      currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); // Start from next month
 
-        while (currentMonthDate < prevMonthDate) {
-          const daysInMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0).getDate();
-          const netChange = (dailyNew - dailyProcessed) * daysInMonth;
-          simulatedCarriedOver += netChange;
+      while (currentMonthDate < appMonthDate) {
+        const daysInMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0).getDate();
 
-          currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
-        }
+        const netChange = (dailyNew - dailyProcessed) * daysInMonth;
+        simulatedCarriedOver = Math.max(0, simulatedCarriedOver + netChange);
+
+        currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
       }
-      carriedOver = simulatedCarriedOver;
+
+      carriedOver = simulatedCarriedOver; // Removed the redundant adjustment
     }
   }
 
