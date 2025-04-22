@@ -195,7 +195,7 @@ export const calculateEstimatedDate = (
         currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
       }
 
-      carriedOver = simulatedCarriedOver; // Removed the redundant adjustment
+      carriedOver = simulatedCarriedOver;
     }
   }
 
