@@ -151,7 +151,9 @@ export const calculateEstimatedDate = (
   // --------------------------------------------
   const daysSinceApplication = getDaysBetweenDates(appDate, new Date());
   const predictedProcessed =
-    applicationDate > lastAvailableMonth ? dailyProcessed * daysSinceApplication : dailyProcessed * predictionDays;
+    applicationDate > lastAvailableMonth
+      ? dailyProcessed * daysSinceApplication - confirmedProcessed
+      : dailyProcessed * predictionDays;
 
   const totalProcessedSinceApp = Math.round(confirmedProcessed + predictedProcessed);
 
