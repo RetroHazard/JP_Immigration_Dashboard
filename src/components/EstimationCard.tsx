@@ -216,9 +216,9 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                 {estimatedDate.details.isPastDue && (
                   <>
                     <div className="mt-2 text-xs italic text-amber-600 dark:text-amber-500">
-                      Based on expected processing rates, it appears that completion of this application is past due. If
-                      you have not yet received a decision on this application, please contact the bureau for more
-                      information.
+                      Based on expected processing rates, completion of this application may be past due. If you have
+                      not yet received additional requests and/or a decision on this application, please contact the
+                      bureau for more information.
                     </div>
                   </>
                 )}
