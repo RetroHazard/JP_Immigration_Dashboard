@@ -50,12 +50,6 @@ export const calculateEstimatedDate = (
   }
 
   // --------------------------------------------
-  // Configuration Constants
-  // --------------------------------------------
-  const minMonths = 3;
-  const maxBackwardMonths = 3;
-
-  // --------------------------------------------
   // Data Filtering and Preparation
   // --------------------------------------------
   const { bureau, type, applicationDate } = details;
@@ -65,15 +59,9 @@ export const calculateEstimatedDate = (
   // Get sorted unique months from filtered data
   const months = [...new Set(filteredData.map((entry) => entry.month))].sort();
   const lastAvailableMonth = months[months.length - 1];
-  const effectiveAppDate = applicationDate > lastAvailableMonth ? lastAvailableMonth : applicationDate;
 
-  // Select relevant months for rate calculations
-  let selectedMonths = months.filter((month) => month >= effectiveAppDate);
-  if (selectedMonths.length < minMonths) {
-    const beforeMonths = months.filter((month) => month < effectiveAppDate);
-    const needed = Math.min(minMonths - selectedMonths.length, maxBackwardMonths);
-    selectedMonths = [...beforeMonths.slice(-needed), ...selectedMonths];
-  }
+  // Always use the most recent 6 months for rate calculations
+  const selectedMonths = months.slice(-6);
 
   // --------------------------------------------
   // Helper Functions
