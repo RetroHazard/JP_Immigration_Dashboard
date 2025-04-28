@@ -26,7 +26,7 @@ interface CalculationDetails {
     Sigma_D: number;
     Q_app: number;
     C_proc: number;
-    P_proc: number;
+    E_proc: number;
     Q_pos: number;
     D_rem: number;
   };
@@ -150,12 +150,12 @@ export const calculateEstimatedDate = (
   // Predictive Calculations
   // --------------------------------------------
   const daysSinceApplication = getDaysBetweenDates(appDate, new Date());
-  const predictedProcessed =
+  const estimatedProcessed =
     applicationDate > lastAvailableMonth
       ? dailyProcessed * daysSinceApplication - confirmedProcessed
       : dailyProcessed * predictionDays;
 
-  const totalProcessedSinceApp = Math.round(confirmedProcessed + predictedProcessed);
+  const totalProcessedSinceApp = Math.round(confirmedProcessed + estimatedProcessed);
 
   // --------------------------------------------
   // Queue at Application Date Calculation
@@ -249,8 +249,8 @@ export const calculateEstimatedDate = (
       Sigma_P: Number(totalProcessed), // Sum of processed applications used for calculating averages.
       Sigma_D: Number(totalDays), // Sum of days used for calculating averages.
       Q_app: Number(queueAtApplication), // Estimated queue position at submission time.
-      C_proc: Number(confirmedProcessed), // Known applications processed since submission.
-      P_proc: Number(predictedProcessed), // Estimated applications processed since submission.
+      C_proc: Number(confirmedProcessed), // Confirmed number of applications processed since submission.
+      E_proc: Number(estimatedProcessed), // Estimated number of applications processed since submission.
       Q_pos: Number(queuePosition), // Estimated position in the processing queue.
       D_rem: Number(daysRemaining), // Estimated days until processing completes.
     },

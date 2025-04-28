@@ -195,7 +195,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                       <FormulaTooltip
                         variables={{
                           'C_{\\text{proc}}': variableExplanations['C_proc'],
-                          'P_{\\text{proc}}': variableExplanations['P_proc'],
+                          'E_{\\text{proc}}': variableExplanations['E_proc'],
                           '\\sum P': variableExplanations['Sigma_P'],
                           '\\sum D': variableExplanations['Sigma_D'],
                         }}
@@ -206,7 +206,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                             \\begin{aligned}
                             &\\text{where}\\
                             \\begin{cases}
-                            Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{app}}}_{${estimatedDate.details.modelVariables.Q_app.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${estimatedDate.details.modelVariables.C_proc.toFixed()}} - \\underbrace{P_{\\text{proc}}}_{${estimatedDate.details.modelVariables.P_proc.toFixed()}} \\\\
+                            Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{app}}}_{${estimatedDate.details.modelVariables.Q_app.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${estimatedDate.details.modelVariables.C_proc.toFixed()}} - \\underbrace{E_{\\text{proc}}}_{${estimatedDate.details.modelVariables.E_proc.toFixed()}} \\\\
                             \\\\
                             R_{\\text{daily}} \\approx \\left\\lbrack\\dfrac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\dfrac{${estimatedDate.details.modelVariables.Sigma_P}}{${estimatedDate.details.modelVariables.Sigma_D}}\\right\\rbrack \\\\
                             \\end{cases}
