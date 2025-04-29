@@ -109,7 +109,7 @@ export const calculateEstimatedDate = (
   const prevMonth = formatMonth(prevMonthDate);
 
   // --------------------------------------------
-  // Historical Data Detection
+  // Available Data Detection
   // --------------------------------------------
   const hasActualAppMonth = months.includes(applicationMonth);
   const hasActualPrevMonth = months.includes(prevMonth);
@@ -156,24 +156,21 @@ export const calculateEstimatedDate = (
   // --------------------------------------------
   let carriedOver = 0;
   if (hasActualPrevMonth) {
-    carriedOver =
-      getMonthData(prevMonth, '102000') + getMonthData(prevMonth, '103000') - getMonthData(prevMonth, '300000');
+    carriedOver = getMonthData(prevMonth, '100000') - getMonthData(prevMonth, '300000');
   } else {
-    const historicalMonths = months.filter((m) => m < applicationMonth);
-    if (historicalMonths.length) {
-      const lastHistoricalMonth = historicalMonths.slice(-1)[0];
+    const availableMonths = months.filter((m) => m < applicationMonth);
+    if (availableMonths.length) {
+      const lastAvailableMonth = availableMonths.slice(-1)[0];
 
-      // Calculate initial carriedOver from last historical month
+      // Calculate initial carriedOver from the last available month
       let simulatedCarriedOver =
-        getMonthData(lastHistoricalMonth, '102000') +
-        getMonthData(lastHistoricalMonth, '103000') -
-        getMonthData(lastHistoricalMonth, '300000');
+        getMonthData(lastAvailableMonth, '100000') - getMonthData(lastAvailableMonth, '300000');
 
-      // Calculate the exact number of full months between last historical month and application month
-      const lastHistoricalDate = new Date(lastHistoricalMonth + '-01');
+      // Calculate the exact number of full months between the last available month and application month
+      const lastAvailableDate = new Date(lastAvailableMonth + '-01');
       const appMonthDate = new Date(applicationMonth + '-01');
 
-      const currentMonthDate = new Date(lastHistoricalDate);
+      const currentMonthDate = new Date(lastAvailableDate);
       currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); // Start from next month
 
       while (currentMonthDate < appMonthDate) {
