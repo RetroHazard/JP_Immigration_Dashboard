@@ -132,9 +132,10 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 ## :chart_with_upwards_trend: Data Processing
 
 ### Prediction Model:
-- Uses a rolling average (3 months) for dynamic queue position calculation.
-- Real-time analysis of processing rates.
-- Predicts missing months when data is unavailable.
+- Predicts original queue position based on the average daily rate during the month of application.
+- Simulates progression through queue based on a combination of confirmed counts and recent output levels.
+- Uses a rolling average (6 months) for dynamic processing calculation.
+- Predicts data for months that are yet to be published, using historical data.
 
 ### Calculations:
 - Application processing rates

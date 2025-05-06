@@ -26,7 +26,7 @@ interface CalculationDetails {
     Sigma_D: number;
     Q_app: number;
     C_proc: number;
-    P_proc: number;
+    E_proc: number;
     Q_pos: number;
     D_rem: number;
   };
@@ -50,12 +50,6 @@ export const calculateEstimatedDate = (
   }
 
   // --------------------------------------------
-  // Configuration Constants
-  // --------------------------------------------
-  const minMonths = 3;
-  const maxBackwardMonths = 3;
-
-  // --------------------------------------------
   // Data Filtering and Preparation
   // --------------------------------------------
   const { bureau, type, applicationDate } = details;
@@ -65,15 +59,9 @@ export const calculateEstimatedDate = (
   // Get sorted unique months from filtered data
   const months = [...new Set(filteredData.map((entry) => entry.month))].sort();
   const lastAvailableMonth = months[months.length - 1];
-  const effectiveAppDate = applicationDate > lastAvailableMonth ? lastAvailableMonth : applicationDate;
 
-  // Select relevant months for rate calculations
-  let selectedMonths = months.filter((month) => month >= effectiveAppDate);
-  if (selectedMonths.length < minMonths) {
-    const beforeMonths = months.filter((month) => month < effectiveAppDate);
-    const needed = Math.min(minMonths - selectedMonths.length, maxBackwardMonths);
-    selectedMonths = [...beforeMonths.slice(-needed), ...selectedMonths];
-  }
+  // Always use the most recent 6 months for rate calculations
+  const selectedMonths = months.slice(-6);
 
   // --------------------------------------------
   // Helper Functions
@@ -121,7 +109,7 @@ export const calculateEstimatedDate = (
   const prevMonth = formatMonth(prevMonthDate);
 
   // --------------------------------------------
-  // Historical Data Detection
+  // Available Data Detection
   // --------------------------------------------
   const hasActualAppMonth = months.includes(applicationMonth);
   const hasActualPrevMonth = months.includes(prevMonth);
@@ -150,12 +138,12 @@ export const calculateEstimatedDate = (
   // Predictive Calculations
   // --------------------------------------------
   const daysSinceApplication = getDaysBetweenDates(appDate, new Date());
-  const predictedProcessed =
+  const estimatedProcessed =
     applicationDate > lastAvailableMonth
       ? dailyProcessed * daysSinceApplication - confirmedProcessed
       : dailyProcessed * predictionDays;
 
-  const totalProcessedSinceApp = Math.round(confirmedProcessed + predictedProcessed);
+  const totalProcessedSinceApp = Math.round(confirmedProcessed + estimatedProcessed);
 
   // --------------------------------------------
   // Queue at Application Date Calculation
@@ -168,24 +156,21 @@ export const calculateEstimatedDate = (
   // --------------------------------------------
   let carriedOver = 0;
   if (hasActualPrevMonth) {
-    carriedOver =
-      getMonthData(prevMonth, '102000') + getMonthData(prevMonth, '103000') - getMonthData(prevMonth, '300000');
+    carriedOver = getMonthData(prevMonth, '100000') - getMonthData(prevMonth, '300000');
   } else {
-    const historicalMonths = months.filter((m) => m < applicationMonth);
-    if (historicalMonths.length) {
-      const lastHistoricalMonth = historicalMonths.slice(-1)[0];
+    const availableMonths = months.filter((m) => m < applicationMonth);
+    if (availableMonths.length) {
+      const lastAvailableMonth = availableMonths.slice(-1)[0];
 
-      // Calculate initial carriedOver from last historical month
+      // Calculate initial carriedOver from the last available month
       let simulatedCarriedOver =
-        getMonthData(lastHistoricalMonth, '102000') +
-        getMonthData(lastHistoricalMonth, '103000') -
-        getMonthData(lastHistoricalMonth, '300000');
+        getMonthData(lastAvailableMonth, '100000') - getMonthData(lastAvailableMonth, '300000');
 
-      // Calculate the exact number of full months between last historical month and application month
-      const lastHistoricalDate = new Date(lastHistoricalMonth + '-01');
+      // Calculate the exact number of full months between the last available month and application month
+      const lastAvailableDate = new Date(lastAvailableMonth + '-01');
       const appMonthDate = new Date(applicationMonth + '-01');
 
-      const currentMonthDate = new Date(lastHistoricalDate);
+      const currentMonthDate = new Date(lastAvailableDate);
       currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); // Start from next month
 
       while (currentMonthDate < appMonthDate) {
@@ -249,8 +234,8 @@ export const calculateEstimatedDate = (
       Sigma_P: Number(totalProcessed), // Sum of processed applications used for calculating averages.
       Sigma_D: Number(totalDays), // Sum of days used for calculating averages.
       Q_app: Number(queueAtApplication), // Estimated queue position at submission time.
-      C_proc: Number(confirmedProcessed), // Known applications processed since submission.
-      P_proc: Number(predictedProcessed), // Estimated applications processed since submission.
+      C_proc: Number(confirmedProcessed), // Confirmed number of applications processed since submission.
+      E_proc: Number(estimatedProcessed), // Estimated number of applications processed since submission.
       Q_pos: Number(queuePosition), // Estimated position in the processing queue.
       D_rem: Number(daysRemaining), // Estimated days until processing completes.
     },

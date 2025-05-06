@@ -69,7 +69,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChang
         />
       </div>
       <div className="filter-note mt-2">
-        * Data is available from {formatDateString(dateRange.min)} to {formatDateString(dateRange.max)}
+        * Data is available from {formatDateString(dateRange.min)} through {formatDateString(dateRange.max)}
       </div>
     </div>
   );
