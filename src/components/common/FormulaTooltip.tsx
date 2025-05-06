@@ -21,7 +21,7 @@ export const variableExplanations: VariableExplanations = {
   Q_pos: { title: 'Queue Position', description: 'Estimated position in the processing queue.' },
   R_daily: { title: 'Daily Rate', description: 'Average applications processed per day.' },
   C_proc: { title: 'Confirmed Processed', description: 'Confirmed number of applications processed since submission.' },
-  E_proc: { title: 'Estimated Processed', description: 'Estimated number of applications processed since submission.' },
+  E_proc: { title: 'Estimated Processed', description: 'Estimated number of applications processed since last data point.' },
   Sigma_P: { title: 'Total Processed', description: 'Sum of processed applications used for calculating averages.' },
   Sigma_D: { title: 'Total Days', description: 'Sum of days used for calculating averages.' },
   Q_app: { title: 'Application Queue', description: 'Estimated queue position at submission time.' },
