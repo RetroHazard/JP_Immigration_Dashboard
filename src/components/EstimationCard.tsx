@@ -152,87 +152,73 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
             </button>
 
             {showDetails && (
-              <div className="mt-2.5 space-y-1 border-t pt-3 text-xs text-gray-600 dark:border-gray-500 dark:text-gray-200">
-                {estimatedDate.details.isPastDue ? (
+              <div className="mt-2.5 space-y-1 border-t pt-3 text-xs dark:border-gray-500">
+                <div className="rounded-xl bg-gray-100 p-2.5 text-xxs text-gray-600 shadow-lg dark:bg-gray-600 dark:text-gray-200">
+                  <FormulaTooltip
+                    variables={{
+                      'D_{\\text{rem}}': variableExplanations['D_rem'],
+                      'Q_{\\text{pos}}': variableExplanations['Q_pos'],
+                      'R_{\\text{daily}}': variableExplanations['R_daily'],
+                    }}
+                  >
+                    <div className="mt-2 border-b border-gray-300 text-xxs">
+                      <BlockMath
+                        math={`
+                        \\begin{aligned}
+                        &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${estimatedDate.details.modelVariables.Q_pos.toFixed()}}}{${estimatedDate.details.modelVariables.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${estimatedDate.details.modelVariables.D_rem.toFixed()} \\ \\text{d} \\\\
+                        \\end{aligned}
+                      `}
+                      />
+                    </div>
+                  </FormulaTooltip>
+                  <FormulaTooltip
+                    variables={{
+                      'C_{\\text{proc}}': variableExplanations['C_proc'],
+                      'E_{\\text{proc}}': variableExplanations['E_proc'],
+                      '\\sum P': variableExplanations['Sigma_P'],
+                      '\\sum D': variableExplanations['Sigma_D'],
+                    }}
+                  >
+                    <div className="mt-2 border-b border-gray-300 text-xxs">
+                      <BlockMath
+                        math={`
+                        \\begin{aligned}
+                        &\\text{where}\\
+                        \\begin{cases}
+                        Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{app}}}_{${estimatedDate.details.modelVariables.Q_app.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${estimatedDate.details.modelVariables.C_proc.toFixed()}} - \\underbrace{E_{\\text{proc}}}_{${estimatedDate.details.modelVariables.E_proc.toFixed()}} \\\\
+                        \\\\
+                        R_{\\text{daily}} \\approx \\left\\lbrack\\dfrac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\dfrac{${estimatedDate.details.modelVariables.Sigma_P}}{${estimatedDate.details.modelVariables.Sigma_D}}\\right\\rbrack \\\\
+                        \\end{cases}
+                        \\end{aligned}
+                      `}
+                      />
+                    </div>
+                  </FormulaTooltip>
+                  <FormulaTooltip
+                    variables={{
+                      'Q_{\\text{app}}': variableExplanations['Q_app'],
+                      'C_{\\text{prev}}': variableExplanations['C_prev'],
+                      'N_{\\text{app}}': variableExplanations['N_app'],
+                      'P_{\\text{app}}': variableExplanations['P_app'],
+                    }}
+                  >
+                    <div className="mt-2 border-gray-300 text-xxs">
+                      <BlockMath
+                        math={`
+                        \\begin{aligned}
+                        &Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${estimatedDate.details.modelVariables.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${estimatedDate.details.modelVariables.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${estimatedDate.details.modelVariables.P_app.toFixed()}} \\\\
+                        \\end{aligned}
+                      `}
+                      />
+                    </div>
+                  </FormulaTooltip>
+                </div>
+                {estimatedDate.details.isPastDue && (
                   <>
-                    <p className="text-amber-600 dark:text-amber-500">
-                      <strong>Applications at Submission: </strong>
-                      {estimatedDate.details.queueAtApplication.toLocaleString()}
-                    </p>
-                    <p className="text-amber-600 dark:text-amber-500">
-                      <strong>Processed since Submission: </strong>
-                      {estimatedDate.details.totalProcessedSinceApp.toLocaleString()}
-                    </p>
-                    <p className="mt-2 text-xs italic text-amber-600 dark:text-amber-500">
-                      Based on our expected processing rates, it appears that completion of this application is past
-                      due. If you have not yet received a decision on this application, please contact the bureau for
-                      more information.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <div
-                      id="calculationModel"
-                      className="rounded-xl bg-gray-100 p-2.5 text-xxs shadow-lg dark:bg-gray-600"
-                    >
-                      <FormulaTooltip
-                        variables={{
-                          'D_{\\text{rem}}': variableExplanations['D_rem'],
-                          'Q_{\\text{pos}}': variableExplanations['Q_pos'],
-                          'R_{\\text{daily}}': variableExplanations['R_daily'],
-                        }}
-                      >
-                        <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
-                          <BlockMath
-                            math={`
-                            \\begin{aligned}
-                            &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${estimatedDate.details.modelVariables.Q_pos.toFixed()}}}{${estimatedDate.details.modelVariables.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${estimatedDate.details.modelVariables.D_rem.toFixed()} \\ \\text{d} \\\\
-                            \\end{aligned}
-                          `}
-                          />
-                        </div>
-                      </FormulaTooltip>
-                      <FormulaTooltip
-                        variables={{
-                          'C_{\\text{proc}}': variableExplanations['C_proc'],
-                          'P_{\\text{proc}}': variableExplanations['P_proc'],
-                          '\\sum P': variableExplanations['Sigma_P'],
-                          '\\sum D': variableExplanations['Sigma_D'],
-                        }}
-                      >
-                        <div className="mt-2 border-b border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
-                          <BlockMath
-                            math={`
-                            \\begin{aligned}
-                            &\\text{where}\\
-                            \\begin{cases}
-                            Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{app}}}_{${estimatedDate.details.modelVariables.Q_app.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${estimatedDate.details.modelVariables.C_proc.toFixed()}} - \\underbrace{P_{\\text{proc}}}_{${estimatedDate.details.modelVariables.P_proc.toFixed()}} \\\\
-                            \\\\
-                            R_{\\text{daily}} \\approx \\left\\lbrack\\dfrac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\dfrac{${estimatedDate.details.modelVariables.Sigma_P}}{${estimatedDate.details.modelVariables.Sigma_D}}\\right\\rbrack \\\\
-                            \\end{cases}
-                            \\end{aligned}
-                          `}
-                          />
-                        </div>
-                      </FormulaTooltip>
-                      <FormulaTooltip
-                        variables={{
-                          'Q_{\\text{app}}': variableExplanations['Q_app'],
-                          'C_{\\text{prev}}': variableExplanations['C_prev'],
-                          'N_{\\text{app}}': variableExplanations['N_app'],
-                          'P_{\\text{app}}': variableExplanations['P_app'],
-                        }}
-                      >
-                        <div className="mt-2 border-gray-300 text-xxs text-gray-600 dark:border-gray-500 dark:text-gray-200">
-                          <BlockMath
-                            math={`
-                            \\begin{aligned}
-                            &Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${estimatedDate.details.modelVariables.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${estimatedDate.details.modelVariables.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${estimatedDate.details.modelVariables.P_app.toFixed()}} \\\\
-                            \\end{aligned}
-                          `}
-                          />
-                        </div>
-                      </FormulaTooltip>
+                    <div className="mt-2 text-xs italic text-amber-600 dark:text-amber-500">
+                      Based on expected processing rates, completion of this application may be past due. If you have
+                      not yet received additional requests and/or a decision on this application, please contact the
+                      bureau for more information.
                     </div>
                   </>
                 )}

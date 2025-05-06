@@ -1,6 +1,6 @@
 {
   "name": "jp_immigration_dashboard",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "homepage": "https://dashboard.retrohazard.jp",
   "private": true,
   "dependencies": {
@@ -23,6 +23,7 @@
     "@tailwindcss/forms": "^0.5.10",
     "@types/node": "22.13.5",
     "@types/react": "19.0.10",
+    "@types/react-katex": "^3.0.4",
     "@typescript-eslint/eslint-plugin": "^8.25.0",
     "@typescript-eslint/parser": "^8.25.0",
     "autoprefixer": "^10.4.20",
