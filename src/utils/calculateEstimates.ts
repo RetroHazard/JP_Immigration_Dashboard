@@ -235,7 +235,7 @@ export const calculateEstimatedDate = (
       Sigma_D: Number(totalDays), // Sum of days used for calculating averages.
       Q_app: Number(queueAtApplication), // Estimated queue position at submission time.
       C_proc: Number(confirmedProcessed), // Confirmed number of applications processed since submission.
-      E_proc: Number(estimatedProcessed), // Estimated number of applications processed since submission.
+      E_proc: Number(estimatedProcessed), // Estimated number of applications processed since last data point.
       Q_pos: Number(queuePosition), // Estimated position in the processing queue.
       D_rem: Number(daysRemaining), // Estimated days until processing completes.
     },

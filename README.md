@@ -2,7 +2,7 @@
 [![Build and Deploy to GitHub Pages](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/build.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/build.yaml)
 
 ## Overview
-A React-based dashboard for visualizing and analyzing application processing statistics at Japan's 
+A React-based dashboard for visualizing and analyzing application processing statistics at Japan's Regional 
 Immigration Bureaus. The dashboard provides estimates and visual analytics for application processing 
 times across different immigration bureaus using a combination of predictive averages and confirmed statistics 
 reported by the Immigration Services Agency of Japan.
