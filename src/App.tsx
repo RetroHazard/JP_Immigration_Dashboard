@@ -241,7 +241,7 @@ const App: React.FC = () => {
           <div className="footer-text">
             Official Statistics provided by Immigration Services Agency of Japan
             <br />
-            Data acquisition provided by e-Stat
+            Data acquisition provided by e-Stat{' '}
             <a href="https://www.e-stat.go.jp/" target="_blank" rel="noreferrer" aria-label="e-Stat Website">
               <Icon icon="ri:link" className="hyperlink vertical-align-sub inline-block align-middle" />
             </a>
@@ -250,6 +250,10 @@ const App: React.FC = () => {
             Built using{' '}
             <a href="https://react.dev" className="hyperlink" target="_blank" rel="noreferrer">
               React
+            </a>{' '}
+            and{' '}
+            <a href="https://nextjs.org" className="hyperlink" target="_blank" rel="noreferrer">
+              Next.js
             </a>{' '}
             in 2025 by{' '}
             <a href="https://github.com/RetroHazard" className="hyperlink" target="_blank" rel="noreferrer">
