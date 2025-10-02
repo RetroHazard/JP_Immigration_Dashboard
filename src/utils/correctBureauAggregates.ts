@@ -2,6 +2,8 @@
 // Non-mutating, O(1) access-time corrections for “管内” bureaus using bureau CODES.
 // Works directly on the e-Stat DATA_INF.VALUE entries and never mutates the source.
 
+import { bureauOptions } from '../constants/bureauOptions';
+
 export type EStatValue = {
   [k: string]: string | undefined; // "@tab", "@cat01", "@cat02", "@cat03", "@time", "$", etc.
   "@cat03": string;                // bureau code
@@ -29,17 +31,12 @@ export type EStatData = {
   };
 };
 
-// Use code mapping (consistent with bureauOptions values)
-const AGGREGATE_CODE_MAPPING: Record<string, string[]> = {
-  // 東京管内(101170) minus 成田(101190), 羽田(101200), 横浜(101210)
-  "101170": ["101190", "101200", "101210"],
-  // 名古屋管内(101350) minus 中部空港(101370)
-  "101350": ["101370"],
-  // 大阪管内(101460) minus 関西空港(101480), 神戸(101490)
-  "101460": ["101480", "101490"],
-  // 福岡管内(101720) minus 那覇(101740)
-  "101720": ["101740"],
-};
+// Use code mapping (see bureauOptions values)
+const AGGREGATE_MAPPING: Record<string, string[]> = Object.fromEntries(
+  bureauOptions
+    .filter((b: any) => Array.isArray(b.children) && b.children.length)
+    .map((b) => [b.value, b.children as string[]])
+);
 
 export function makeCorrectedAccessor(data: EStatData) {
   const sd = data.GET_STATS_DATA.STATISTICAL_DATA;
@@ -49,7 +46,7 @@ export function makeCorrectedAccessor(data: EStatData) {
     ? sd.DATA_INF.VALUE
     : [sd.DATA_INF.VALUE];
 
-  // Determine the coordinate keys present in this cube (robust to schema variance)
+  // Determine the coordinate keys present in this cube
   const sample = (values[0] ?? {}) as EStatValue;
   const dimKeys = Object.keys(sample)
     .filter((k) => k.startsWith("@"))
@@ -72,7 +69,7 @@ export function makeCorrectedAccessor(data: EStatData) {
 
   /**
    * Returns the corrected numeric value for coord:
-   *  - For aggregate bureaus in AGGREGATE_CODE_MAPPING, subtracts branch totals
+   *  - For aggregate bureaus in AGGREGATE_MAPPING, subtracts branch totals
    *    at the same coordinates (only @cat03 differs).
    *  - For others, returns the original value.
    * Returns NaN when base is missing/unparseable, mirroring parseInt behavior.
@@ -88,7 +85,7 @@ export function makeCorrectedAccessor(data: EStatData) {
     }
 
     const bureau = String(coord["@cat03"] ?? "");
-    const branches = AGGREGATE_CODE_MAPPING[bureau];
+    const branches = AGGREGATE_MAPPING[bureau];
 
     if (!branches) {
       memo.set(key, base);
@@ -113,8 +110,8 @@ export function makeCorrectedAccessor(data: EStatData) {
 
   return {
     getCorrectedValue,
-    isAggregateBureauCode: (code: string) => code in AGGREGATE_CODE_MAPPING,
-    getBranchCodes: (code: string) => AGGREGATE_CODE_MAPPING[code] ?? [],
+    isAggregateBureauCode: (code: string) => code in AGGREGATE_MAPPING,
+    getBranchCodes: (code: string) => AGGREGATE_MAPPING[code] ?? [],
     dimKeys,
   };
 }

@@ -35,7 +35,6 @@ export const transformData = (rawData: RawData): ImmigrationData[] => {
   const { getCorrectedValue } = makeCorrectedAccessor(rawData as unknown as EStatData);
 
   return values.map((entry) => {
-    // Keep your existing YYYY-MM formatting
     const month = entry['@time'].substring(0, 4) + '-' + entry['@time'].substring(8, 10);
 
     // IMPORTANT: include ALL '@' attrs present on the entry (e.g., '@tab', '@cat01', '@cat02', '@cat03', '@time', etc.)
