@@ -7,6 +7,7 @@ interface BureauOption {
   coordinates?: [number, number];
   border?: string;
   background?: string;
+  children?: string[];
 }
 
 // Bureau Colors are based on the color palette of its Prefecture's flag
@@ -21,6 +22,7 @@ export const bureauOptions: BureauOption[] = [
     coordinates: [130.38832, 33.59066],
     border: 'rgba(0,104,178, 1)',
     background: 'rgba(0,104,178, 0.5)',
+    children: ['101740'],
   },
   {
     value: '101580',
@@ -37,6 +39,7 @@ export const bureauOptions: BureauOption[] = [
     coordinates: [136.86337, 35.11406],
     border: 'rgba(180, 65, 80, 1)',
     background: 'rgba(180, 65, 80, 0.5)',
+    children: ['101370'],
   },
   {
     value: '101740',
@@ -53,6 +56,7 @@ export const bureauOptions: BureauOption[] = [
     coordinates: [135.41185, 34.64141],
     border: 'rgba(51, 65, 154, 1)',
     background: 'rgba(51, 65, 154, 0.5)',
+    children: ['101480','101490'],
   },
   {
     value: '101010',
@@ -85,6 +89,7 @@ export const bureauOptions: BureauOption[] = [
     coordinates: [139.75653, 35.62823],
     border: 'rgba(75, 0, 130, 1)',
     background: 'rgba(75, 0, 130, 0.5)',
+    children: ['101190','101200','101210'],
   },
   {
     value: '101210',
