@@ -131,6 +131,27 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 
 ## :chart_with_upwards_trend: Data Processing
 
+### Data Deaggregation:
+- Regional Immigration Bureaus (denominated as **出入国在留管理局管内**) are aggregate representations of all data sources in the region; Special Branch Offices which are also responsible for processing are individually noted in the e-Stat data.
+- To account for this, aggregated data is restructured within the Regional Bureau dataset at runtime. This allows for a more accurate representation of the regional bureau's overall processing capacity and prevents unintentional duplication of data.
+####
+    - Within the Original Dataset:
+        - Tokyo Regional Immigration Bureau (東京出入国在留管理局管内) is inclusive of Shinagawa, Yokohama, Narita Airport, and Haneda Airport.
+          - Yokohama's Branch is responsible for the Kanagawa area.
+          - The statistics provided for Yokohama, Narita, and Haneda, are removed from the Tokyo Regional Bureau, so that each can be represented uniquely.
+        
+        - Nagoya Regional Immigration Bureau (名古屋出入国在留管理局管内) is inclusive of Nagoya, and Chubu Airport.
+          - The statistics provided for Chubu Airport are removed from the Nagoya Regional Bureau, so that each can be represented uniquely.
+        
+        - Osaka Regional Immigration Bureau (大阪出入国在留管理局管内) is inclusive of Osaka, Kobe, and Kansai Airport.
+          - Kobe's Branch is responsible for the Hyogo area.
+          - The statistics provided for Kobe and Kansai Airport are removed from the Osaka Regional Bureau, so that each can be represented uniquely.
+        
+        - Fukuoka Regional Immigration Bureau (福岡出入国在留管理局管内) is inclusive of Fukuoka, and Naha.
+          - Naha's Branch is responsible for the Okinawa area.
+          - The statistics provided for Naha are removed from the Fukuoka Regional Bureau, so that each can be represented uniquely.
+####
+
 ### Prediction Model:
 - Predicts original queue position based on the average daily rate during the month of application.
 - Simulates progression through queue based on a combination of confirmed counts and recent output levels.
