@@ -1,4 +1,5 @@
 // src/utils/calculateEstimates.ts
+import { STATUS_CODES } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 
 interface ApplicationDetails {
@@ -88,8 +89,8 @@ export const calculateEstimatedDate = (
   // Core Rate Calculations
   // --------------------------------------------
   // Calculate daily processing rates
-  const totalNew = sumByStatus('103000', (m) => selectedMonths.includes(m));
-  const totalProcessed = sumByStatus('300000', (m) => selectedMonths.includes(m));
+  const totalNew = sumByStatus(STATUS_CODES.NEWLY_RECEIVED, (m) => selectedMonths.includes(m));
+  const totalProcessed = sumByStatus(STATUS_CODES.PROCESSED, (m) => selectedMonths.includes(m));
   const totalDays = selectedMonths.reduce((sum, month) => sum + getDaysInMonth(month), 0);
 
   const dailyProcessed = totalProcessed / totalDays;
@@ -132,7 +133,7 @@ export const calculateEstimatedDate = (
     processedInAppMonth = dailyProcessed * (daysInMonth - appDay);
   }
 
-  const confirmedProcessed = sumByStatus('300000', (m) => m > applicationMonth) + processedInAppMonth;
+  const confirmedProcessed = sumByStatus(STATUS_CODES.PROCESSED, (m) => m > applicationMonth) + processedInAppMonth;
 
   // --------------------------------------------
   // Predictive Calculations
@@ -156,7 +157,7 @@ export const calculateEstimatedDate = (
   // --------------------------------------------
   let carriedOver = 0;
   if (hasActualPrevMonth) {
-    carriedOver = getMonthData(prevMonth, '100000') - getMonthData(prevMonth, '300000');
+    carriedOver = getMonthData(prevMonth, STATUS_CODES.TOTAL) - getMonthData(prevMonth, STATUS_CODES.PROCESSED);
   } else {
     const availableMonths = months.filter((m) => m < applicationMonth);
     if (availableMonths.length) {
@@ -164,7 +165,7 @@ export const calculateEstimatedDate = (
 
       // Calculate initial carriedOver from the last available month
       let simulatedCarriedOver =
-        getMonthData(lastAvailableMonth, '100000') - getMonthData(lastAvailableMonth, '300000');
+        getMonthData(lastAvailableMonth, STATUS_CODES.TOTAL) - getMonthData(lastAvailableMonth, STATUS_CODES.PROCESSED);
 
       // Calculate the exact number of full months between the last available month and application month
       const lastAvailableDate = new Date(lastAvailableMonth + '-01');
@@ -189,8 +190,8 @@ export const calculateEstimatedDate = (
   // Received/processed by application date
   let receivedByAppDate: number, processedByAppDate: number;
   if (hasActualAppMonth) {
-    const receivedInMonth = getMonthData(applicationMonth, '103000');
-    const processedInMonth = getMonthData(applicationMonth, '300000');
+    const receivedInMonth = getMonthData(applicationMonth, STATUS_CODES.NEWLY_RECEIVED);
+    const processedInMonth = getMonthData(applicationMonth, STATUS_CODES.PROCESSED);
     const daysInMonth = getDaysInMonth(applicationMonth);
 
     receivedByAppDate = (receivedInMonth / daysInMonth) * appDay;
