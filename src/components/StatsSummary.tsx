@@ -6,6 +6,8 @@ import { Icon } from '@iconify/react';
 import Tippy from '@tippyjs/react';
 
 import { applicationOptions } from '../constants/applicationOptions';
+import { BUREAU_CODES } from '../constants/bureauCodes';
+import { STATUS_CODES } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { getBureauLabel } from '../utils/getBureauData';
 
@@ -39,24 +41,30 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       const matchesType = filters.type === 'all' || entry.type === filters.type;
 
       if (filters.bureau === 'all') {
-        return entry.bureau === '100000' && matchesMonth && matchesType;
+        return entry.bureau === BUREAU_CODES.NATIONWIDE && matchesMonth && matchesType;
       }
 
       return entry.bureau === filters.bureau && matchesMonth && matchesType;
     });
 
     const oldApplications = filteredData.reduce(
-      (sum, entry) => (entry.status === '102000' ? sum + entry.value : sum),
+      (sum, entry) => (entry.status === STATUS_CODES.CARRIED_OVER ? sum + entry.value : sum),
       0
     );
     const newApplications = filteredData.reduce(
-      (sum, entry) => (entry.status === '103000' ? sum + entry.value : sum),
+      (sum, entry) => (entry.status === STATUS_CODES.NEWLY_RECEIVED ? sum + entry.value : sum),
       0
     );
-    const processed = filteredData.reduce((sum, entry) => (entry.status === '300000' ? sum + entry.value : sum), 0);
-    const granted = filteredData.reduce((sum, entry) => (entry.status === '301000' ? sum + entry.value : sum), 0);
-    const denied = filteredData.reduce((sum, entry) => (entry.status === '302000' ? sum + entry.value : sum), 0);
-    const other = filteredData.reduce((sum, entry) => (entry.status === '305000' ? sum + entry.value : sum), 0);
+    const processed = filteredData.reduce(
+      (sum, entry) => (entry.status === STATUS_CODES.PROCESSED ? sum + entry.value : sum),
+      0
+    );
+    const granted = filteredData.reduce(
+      (sum, entry) => (entry.status === STATUS_CODES.GRANTED ? sum + entry.value : sum),
+      0
+    );
+    const denied = filteredData.reduce((sum, entry) => (entry.status === STATUS_CODES.DENIED ? sum + entry.value : sum), 0);
+    const other = filteredData.reduce((sum, entry) => (entry.status === STATUS_CODES.OTHER ? sum + entry.value : sum), 0);
 
     const totalApplications = oldApplications + newApplications;
     const pending = totalApplications - processed + other;
@@ -102,8 +110,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       >
         <div className="stat-card">
           <div className="group relative">
-            {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
-            <div className={`${color} dark:${color.replace('500', '600')} stat-badge`}>
+            <div className={`${color} stat-badge`}>
               <div className="stat-icon-text">
                 <Icon icon={icon} />
               </div>
@@ -127,7 +134,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         shortTitle="Total"
         subtitle={getBureauLabel(filters.bureau)}
         value={stats.totalApplications.toLocaleString()}
-        color="bg-blue-500"
+        color="bg-blue-500 dark:bg-blue-600"
         icon="material-symbols:file-copy-outline-rounded"
       />
       <StatCard
@@ -135,7 +142,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         shortTitle="Pending"
         subtitle={getBureauLabel(filters.bureau)}
         value={stats.pending.toLocaleString()}
-        color="bg-yellow-500"
+        color="bg-yellow-500 dark:bg-yellow-600"
         icon="material-symbols:pending-actions-rounded"
       />
       <StatCard
@@ -143,7 +150,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         shortTitle="Granted"
         subtitle={getBureauLabel(filters.bureau)}
         value={stats.granted.toLocaleString()}
-        color="bg-green-500"
+        color="bg-green-500 dark:bg-green-600"
         icon="material-symbols:order-approve-rounded"
       />
       <StatCard
@@ -151,7 +158,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         shortTitle="Denied"
         subtitle={getBureauLabel(filters.bureau)}
         value={stats.denied.toLocaleString()}
-        color="bg-red-500"
+        color="bg-red-500 dark:bg-red-600"
         icon="material-symbols:cancel-outline-rounded"
       />
       <StatCard
@@ -159,7 +166,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         shortTitle="APV. Rate"
         subtitle={getBureauLabel(filters.bureau)}
         value={`${stats.approvalRate}%`}
-        color="bg-gray-500"
+        color="bg-gray-500 dark:bg-gray-600"
         icon="material-symbols:percent-rounded"
       />
     </div>

@@ -14,53 +14,56 @@ import {
 import type React from 'react';
 import { Line } from 'react-chartjs-2';
 
+import { APPLICATION_TYPE_CODES } from '../../constants/applicationTypes';
+import { BUREAU_CODES } from '../../constants/bureauCodes';
+import { STATUS_CODES } from '../../constants/statusCodes';
+import { useChartMonthRange } from '../../hooks/useChartMonthRange';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
 
 export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
-  const [monthRange, setMonthRange] = useState(12);
-  const [showAllMonths, setShowAllMonths] = useState(false);
+  const { months, monthRange, setMonthRange, showAllMonths, setShowAllMonths } = useChartMonthRange({
+    data,
+    defaultRange: 12,
+  });
+
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
 
   useEffect(() => {
-    if (!data) return;
-
-    // Get the most recent month from the data
-    const endMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
-
-    // Get all months from data
-    const allMonths = [...new Set(data.map((entry) => entry.month))].sort();
-
-    // Find index of the most recent month
-    const endIndex = allMonths.indexOf(endMonth);
-    if (endIndex === -1) return;
-
-    // Get months based on range
-    let months;
-    if (showAllMonths) {
-      months = allMonths;
-    } else {
-      const startIndex = Math.max(0, endIndex - (monthRange - 1));
-      months = allMonths.slice(startIndex, endIndex + 1);
-    }
+    if (!data || months.length === 0) return;
 
     const monthlyStats = months.map((month) => {
       const monthData = data.filter((entry) => {
         const matchesMonth = entry.month === month;
         if (filters.bureau === 'all') {
-          return entry.bureau === '100000' && entry.status === '103000' && matchesMonth;
+          return entry.bureau === BUREAU_CODES.NATIONWIDE && entry.status === STATUS_CODES.NEWLY_RECEIVED && matchesMonth;
         }
-        return entry.bureau === filters.bureau && entry.status === '103000' && matchesMonth;
+        return entry.bureau === filters.bureau && entry.status === STATUS_CODES.NEWLY_RECEIVED && matchesMonth;
       });
       return {
         month,
-        statusAcquisition: monthData.reduce((sum, entry) => (entry.type === '10' ? entry.value : sum), 0),
-        extensionOfStay: monthData.reduce((sum, entry) => (entry.type === '20' ? entry.value : sum), 0),
-        changeOfStatus: monthData.reduce((sum, entry) => (entry.type === '30' ? entry.value : sum), 0),
-        permissionForActivity: monthData.reduce((sum, entry) => (entry.type === '40' ? entry.value : sum), 0),
-        reentry: monthData.reduce((sum, entry) => (entry.type === '50' ? entry.value : sum), 0),
-        permanentResidence: monthData.reduce((sum, entry) => (entry.type === '60' ? entry.value : sum), 0),
+        statusAcquisition: monthData.reduce(
+          (sum, entry) => (entry.type === APPLICATION_TYPE_CODES.STATUS_ACQUISITION ? entry.value : sum),
+          0
+        ),
+        extensionOfStay: monthData.reduce(
+          (sum, entry) => (entry.type === APPLICATION_TYPE_CODES.EXTENSION_OF_STAY ? entry.value : sum),
+          0
+        ),
+        changeOfStatus: monthData.reduce(
+          (sum, entry) => (entry.type === APPLICATION_TYPE_CODES.CHANGE_OF_STATUS ? entry.value : sum),
+          0
+        ),
+        permissionForActivity: monthData.reduce(
+          (sum, entry) => (entry.type === APPLICATION_TYPE_CODES.PERMISSION_FOR_ACTIVITY ? entry.value : sum),
+          0
+        ),
+        reentry: monthData.reduce((sum, entry) => (entry.type === APPLICATION_TYPE_CODES.REENTRY ? entry.value : sum), 0),
+        permanentResidence: monthData.reduce(
+          (sum, entry) => (entry.type === APPLICATION_TYPE_CODES.PERMANENT_RESIDENCE ? entry.value : sum),
+          0
+        ),
       };
     });
 
@@ -125,7 +128,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     };
 
     setChartData(processedData);
-  }, [data, filters, monthRange, showAllMonths]);
+  }, [data, filters, months]);
 
   const options = {
     responsive: true,
