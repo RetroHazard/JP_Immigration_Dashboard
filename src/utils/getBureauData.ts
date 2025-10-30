@@ -1,10 +1,6 @@
 // src/utils/getBureauData.ts
 import { bureauOptions } from '../constants/bureauOptions';
-
-interface BureauOption {
-  value: string;
-  label: string;
-}
+import type { BureauOption } from '../types/bureau';
 
 export const getBureauLabel = (bureauCode: string): string => {
   const bureau = bureauOptions.find((b: BureauOption) => b.value === bureauCode);

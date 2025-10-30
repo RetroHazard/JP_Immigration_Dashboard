@@ -1,14 +1,5 @@
 // src/constants/bureauOptions.ts
-
-interface BureauOption {
-  value: string;
-  label: string;
-  short: string;
-  coordinates?: [number, number];
-  border?: string;
-  background?: string;
-  children?: string[];
-}
+import type { BureauOption } from '../types/bureau';
 
 // Bureau Colors are based on the color palette of its Prefecture's flag
 // https://www.flagcolorcodes.com/
