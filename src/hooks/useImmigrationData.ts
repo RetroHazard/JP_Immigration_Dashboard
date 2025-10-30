@@ -1,15 +1,18 @@
 // src/hooks/useImmigrationData.ts
 import { useEffect, useState } from 'react';
 
+import type { ApplicationTypeCode } from '../constants/applicationTypes';
+import type { BureauCode } from '../constants/bureauCodes';
+import type { StatusCode } from '../constants/statusCodes';
 import { transformData } from '../utils/dataTransform';
 import { loadLocalData } from '../utils/loadLocalData';
 
 export interface ImmigrationData {
   month: string;
-  bureau: string;
-  type: string;
+  bureau: BureauCode;
+  type: ApplicationTypeCode;
   value: number;
-  status: string;
+  status: StatusCode;
 }
 
 export const useImmigrationData = () => {

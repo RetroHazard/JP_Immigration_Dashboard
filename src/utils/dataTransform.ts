@@ -1,4 +1,7 @@
 // src/utils/dataTransform.ts
+import type { ApplicationTypeCode } from '../constants/applicationTypes';
+import type { BureauCode } from '../constants/bureauCodes';
+import type { StatusCode } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { type EStatData, type EStatValue, makeCorrectedAccessor } from './correctBureauAggregates';
 
@@ -51,11 +54,11 @@ export const transformData = (rawData: RawData): ImmigrationData[] => {
 
     return {
       month,
-      bureau: entry['@cat03'],
-      type: entry['@cat02'],
+      bureau: entry['@cat03'] as BureauCode,
+      type: entry['@cat02'] as ApplicationTypeCode,
       // If for some reason a cell isn't found, fall back to original behavior
       value: Number.isNaN(corrected) ? original : corrected,
-      status: entry['@cat01'],
+      status: entry['@cat01'] as StatusCode,
     };
   });
 };
