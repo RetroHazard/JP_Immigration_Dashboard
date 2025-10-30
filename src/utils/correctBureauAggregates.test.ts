@@ -1,6 +1,6 @@
 // src/utils/correctBureauAggregates.test.ts
-import { makeCorrectedAccessor, type EStatData, type EStatValue } from './correctBureauAggregates';
-import { mockEStatResponse, mockEStatMinimal } from '../__mocks__/mockEStatData';
+import { mockEStatMinimal,mockEStatResponse } from '../__mocks__/mockEStatData';
+import { type EStatData, type EStatValue,makeCorrectedAccessor } from './correctBureauAggregates';
 
 describe('correctBureauAggregates', () => {
   describe('makeCorrectedAccessor', () => {

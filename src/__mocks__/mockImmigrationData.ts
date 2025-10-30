@@ -276,7 +276,7 @@ export function generateMockData(
   const start = new Date(startMonth + '-01');
   const end = new Date(endMonth + '-01');
 
-  let current = new Date(start);
+  const current = new Date(start);
   while (current <= end) {
     const month = current.toISOString().substring(0, 7);
 
