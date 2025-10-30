@@ -5,6 +5,7 @@ import type React from 'react';
 import { Icon } from '@iconify/react';
 
 import { CHART_COMPONENTS } from './components/common/ChartComponents';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
 import { EstimationCard } from './components/EstimationCard';
 import { FilterPanel } from './components/FilterPanel';
@@ -130,10 +131,12 @@ const App: React.FC = () => {
                       </button>
                     ))}
                   </div>
-                  {(() => {
-                    const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
-                    return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
-                  })()}
+                  <ErrorBoundary>
+                    {(() => {
+                      const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
+                      return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
+                    })()}
+                  </ErrorBoundary>
                 </div>
               </div>
 
@@ -151,13 +154,15 @@ const App: React.FC = () => {
                 <>
                   <div className="mobile-drawer-overlay transition-slow" onClick={() => setIsDrawerOpen(false)} />
                   <div className="mobile-drawer-content transition-slow">
-                    <EstimationCard
-                      variant="drawer"
-                      data={data}
-                      isExpanded={null}
-                      onClose={() => setIsDrawerOpen(false)}
-                      onCollapse={null}
-                    />
+                    <ErrorBoundary>
+                      <EstimationCard
+                        variant="drawer"
+                        data={data}
+                        isExpanded={null}
+                        onClose={() => setIsDrawerOpen(false)}
+                        onCollapse={null}
+                      />
+                    </ErrorBoundary>
                   </div>
                 </>
               )}
@@ -202,10 +207,12 @@ const App: React.FC = () => {
                         </button>
                       ))}
                     </div>
-                    {(() => {
-                      const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
-                      return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
-                    })()}
+                    <ErrorBoundary>
+                      {(() => {
+                        const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
+                        return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
+                      })()}
+                    </ErrorBoundary>
                   </div>
                 </div>
               </div>
@@ -220,18 +227,22 @@ const App: React.FC = () => {
                   className="h-full cursor-pointer rounded-lg bg-white shadow-lg dark:bg-gray-700"
                   onClick={() => !isEstimationExpanded && setIsEstimationExpanded(true)}
                 >
-                  <EstimationCard
-                    variant="expandable"
-                    data={data}
-                    isExpanded={isEstimationExpanded}
-                    onClose={null}
-                    onCollapse={() => setIsEstimationExpanded(false)}
-                  />
+                  <ErrorBoundary>
+                    <EstimationCard
+                      variant="expandable"
+                      data={data}
+                      isExpanded={isEstimationExpanded}
+                      onClose={null}
+                      onCollapse={() => setIsEstimationExpanded(false)}
+                    />
+                  </ErrorBoundary>
                 </div>
               </div>
             </div>
 
-            <StatsSummary data={data} filters={filters} />
+            <ErrorBoundary>
+              <StatsSummary data={data} filters={filters} />
+            </ErrorBoundary>
           </>
         )}
       </main>
