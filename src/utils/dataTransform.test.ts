@@ -1,6 +1,6 @@
 // src/utils/dataTransform.test.ts
+import { mockEStatEmpty,mockEStatMinimal, mockEStatResponse } from '../__mocks__/mockEStatData';
 import { transformData } from './dataTransform';
-import { mockEStatResponse, mockEStatMinimal, mockEStatEmpty } from '../__mocks__/mockEStatData';
 
 describe('dataTransform', () => {
   describe('transformData', () => {
@@ -140,6 +140,100 @@ describe('dataTransform', () => {
       expect(statuses.has('100000')).toBe(true); // Carried over
       expect(statuses.has('103000')).toBe(true); // New applications
       expect(statuses.has('300000')).toBe(true); // Processed
+    });
+
+    it('should correctly deaggregate Shinagawa regional bureau data', () => {
+      const result = transformData(mockEStatResponse);
+
+      // Find Shinagawa aggregate carried over value for Extension of Stay in Jan 2024
+      const shinagawaAggregate = result.find(
+        (item) =>
+          item.month === '2024-01' &&
+          item.bureau === '101170' &&
+          item.type === '20' &&
+          item.status === '100000'
+      );
+
+      // Find branch office values
+      const yokohama = result.find(
+        (item) =>
+          item.month === '2024-01' &&
+          item.bureau === '101210' &&
+          item.type === '20' &&
+          item.status === '100000'
+      );
+      const narita = result.find(
+        (item) =>
+          item.month === '2024-01' &&
+          item.bureau === '101190' &&
+          item.type === '20' &&
+          item.status === '100000'
+      );
+      const haneda = result.find(
+        (item) =>
+          item.month === '2024-01' &&
+          item.bureau === '101200' &&
+          item.type === '20' &&
+          item.status === '100000'
+      );
+
+      expect(shinagawaAggregate).toBeDefined();
+      expect(yokohama).toBeDefined();
+      expect(narita).toBeDefined();
+      expect(haneda).toBeDefined();
+
+      // The Shinagawa value should be corrected: 15000 - 3000 - 500 - 400 = 11100
+      expect(shinagawaAggregate!.value).toBe(11100);
+      expect(yokohama!.value).toBe(3000);
+      expect(narita!.value).toBe(500);
+      expect(haneda!.value).toBe(400);
+
+      // Verify the total adds up correctly
+      const total =
+        shinagawaAggregate!.value + yokohama!.value + narita!.value + haneda!.value;
+      expect(total).toBe(15000); // Should equal the original aggregate value
+    });
+
+    it('should correctly deaggregate Osaka regional bureau data', () => {
+      const result = transformData(mockEStatResponse);
+
+      // Find Osaka aggregate carried over value for Extension of Stay in Jan 2024
+      const osakaAggregate = result.find(
+        (item) =>
+          item.month === '2024-01' &&
+          item.bureau === '101460' &&
+          item.type === '20' &&
+          item.status === '100000'
+      );
+
+      // Find branch office values
+      const kansaiAirport = result.find(
+        (item) =>
+          item.month === '2024-01' &&
+          item.bureau === '101480' &&
+          item.type === '20' &&
+          item.status === '100000'
+      );
+      const kobe = result.find(
+        (item) =>
+          item.month === '2024-01' &&
+          item.bureau === '101490' &&
+          item.type === '20' &&
+          item.status === '100000'
+      );
+
+      expect(osakaAggregate).toBeDefined();
+      expect(kansaiAirport).toBeDefined();
+      expect(kobe).toBeDefined();
+
+      // The Osaka value should be corrected: 8000 - 600 - 1200 = 6200
+      expect(osakaAggregate!.value).toBe(6200);
+      expect(kansaiAirport!.value).toBe(600);
+      expect(kobe!.value).toBe(1200);
+
+      // Verify the total adds up correctly
+      const total = osakaAggregate!.value + kansaiAirport!.value + kobe!.value;
+      expect(total).toBe(8000); // Should equal the original aggregate value
     });
   });
 });

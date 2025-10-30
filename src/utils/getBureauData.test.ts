@@ -1,6 +1,6 @@
 // src/utils/getBureauData.test.ts
-import { getBureauLabel, nonAirportBureaus } from './getBureauData';
 import { bureauOptions } from '../constants/bureauOptions';
+import { getBureauLabel, nonAirportBureaus } from './getBureauData';
 
 describe('getBureauData', () => {
   describe('getBureauLabel', () => {

@@ -1,7 +1,7 @@
 // src/utils/calculateEstimates.test.ts
-import { calculateEstimatedDate } from './calculateEstimates';
-import { mockImmigrationData, generateMockData } from '../__mocks__/mockImmigrationData';
+import { generateMockData,mockImmigrationData } from '../__mocks__/mockImmigrationData';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
+import { calculateEstimatedDate } from './calculateEstimates';
 
 describe('calculateEstimates', () => {
   describe('input validation', () => {
