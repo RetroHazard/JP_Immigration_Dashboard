@@ -5,13 +5,18 @@ import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title
 import type React from 'react';
 import { Bar } from 'react-chartjs-2';
 
+import { BUREAU_CODES } from '../../constants/bureauCodes';
+import { STATUS_CODES } from '../../constants/statusCodes';
+import { useChartMonthRange } from '../../hooks/useChartMonthRange';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
-  const [monthRange, setMonthRange] = useState(12);
-  const [showAllMonths, setShowAllMonths] = useState(false);
+  const { months, monthRange, setMonthRange, showAllMonths, setShowAllMonths } = useChartMonthRange({
+    data,
+    defaultRange: 12,
+  });
 
   const [chartData, setChartData] = useState({
     labels: [],
@@ -32,26 +37,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
   });
 
   useEffect(() => {
-    if (!data) return;
-
-    // Get the most recent month from the data
-    const endMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
-
-    // Get all months from data
-    const allMonths = [...new Set(data.map((entry) => entry.month))].sort();
-
-    // Find index of the most recent month
-    const endIndex = allMonths.indexOf(endMonth);
-    if (endIndex === -1) return;
-
-    // Get months based on range
-    let months;
-    if (showAllMonths) {
-      months = allMonths;
-    } else {
-      const startIndex = Math.max(0, endIndex - (monthRange - 1));
-      months = allMonths.slice(startIndex, endIndex + 1);
-    }
+    if (!data || months.length === 0) return;
 
     const monthlyStats = months.map((month) => {
       const monthData = data.filter((entry) => {
@@ -59,16 +45,22 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
         const matchesType = filters.type === 'all' || entry.type === filters.type;
 
         if (filters.bureau === 'all') {
-          return entry.bureau === '100000' && matchesMonth && matchesType;
+          return entry.bureau === BUREAU_CODES.NATIONWIDE && matchesMonth && matchesType;
         }
         return entry.bureau === filters.bureau && matchesMonth && matchesType;
       });
 
       return {
         month,
-        totalApplications: monthData.reduce((sum, entry) => (entry.status === '102000' ? sum + entry.value : sum), 0), // 受理_旧受 (Previously Received)
-        processed: monthData.reduce((sum, entry) => (entry.status === '300000' ? sum + entry.value : sum), 0), // 処理済み (Processed)
-        newApplications: monthData.reduce((sum, entry) => (entry.status === '103000' ? sum + entry.value : sum), 0), // 受理_新受 (Newly Received)
+        totalApplications: monthData.reduce(
+          (sum, entry) => (entry.status === STATUS_CODES.CARRIED_OVER ? sum + entry.value : sum),
+          0
+        ), // 受理_旧受 (Previously Received)
+        processed: monthData.reduce((sum, entry) => (entry.status === STATUS_CODES.PROCESSED ? sum + entry.value : sum), 0), // 処理済み (Processed)
+        newApplications: monthData.reduce(
+          (sum, entry) => (entry.status === STATUS_CODES.NEWLY_RECEIVED ? sum + entry.value : sum),
+          0
+        ), // 受理_新受 (Newly Received)
       };
     });
 
@@ -107,7 +99,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
     };
 
     setChartData(processedData);
-  }, [data, filters, monthRange, showAllMonths]);
+  }, [data, filters, months]);
 
   const options = {
     responsive: true,

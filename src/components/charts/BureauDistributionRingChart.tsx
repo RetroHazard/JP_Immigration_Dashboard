@@ -6,6 +6,7 @@ import type React from 'react';
 import { Doughnut } from 'react-chartjs-2';
 
 import { bureauOptions } from '../../constants/bureauOptions';
+import { STATUS_CODES } from '../../constants/statusCodes';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -46,9 +47,9 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
           value: filteredData
             .filter((d) => d.bureau === bureau.value)
             .reduce((sum, d) => {
-              if (d.status === '102000' || d.status === '103000') {
+              if (d.status === STATUS_CODES.CARRIED_OVER || d.status === STATUS_CODES.NEWLY_RECEIVED) {
                 return sum + d.value;
-              } else if (d.status === '300000') {
+              } else if (d.status === STATUS_CODES.PROCESSED) {
                 return sum + d.value;
               }
               return sum;
