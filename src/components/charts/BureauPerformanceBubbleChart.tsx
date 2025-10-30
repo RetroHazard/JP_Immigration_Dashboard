@@ -7,6 +7,7 @@ import { Bubble } from 'react-chartjs-2';
 
 import { applicationOptions } from '../../constants/applicationOptions';
 import { bureauOptions } from '../../constants/bureauOptions';
+import { STATUS_CODES, type StatusCode } from '../../constants/statusCodes';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
@@ -26,12 +27,13 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
   }, [selectedPeriod, sortedMonths]);
 
   const filteredData = useMemo(() => {
+    const allowedStatuses = [STATUS_CODES.NEWLY_RECEIVED, STATUS_CODES.PROCESSED] as const;
     return data.filter(
       (entry) =>
         selectedMonths.includes(entry.month) &&
         (filters.bureau === 'all' || entry.bureau === filters.bureau) &&
         (filters.type === 'all' || entry.type === filters.type) &&
-        ['103000', '300000'].includes(entry.status)
+        (allowedStatuses as readonly StatusCode[]).includes(entry.status)
     );
   }, [data, selectedMonths, filters.bureau, filters.type]);
 
@@ -45,7 +47,7 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
       appTypes.forEach((type) => {
         const processed = filteredData
           .filter((d) => d.bureau === bureau.value && d.type === type.value)
-          .filter((d) => d.status === '300000')
+          .filter((d) => d.status === STATUS_CODES.PROCESSED)
           .reduce((sum, d) => sum + d.value, 0);
         if (processed > maxProcessed) maxProcessed = processed;
       });
@@ -60,11 +62,11 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
           const bureauTypeData = filteredData.filter((d) => d.bureau === bureau.value && d.type === type.value);
 
           const totalReceived = bureauTypeData
-            .filter((d) => d.status === '103000')
+            .filter((d) => d.status === STATUS_CODES.NEWLY_RECEIVED)
             .reduce((sum, d) => sum + d.value, 0);
 
           const totalProcessed = bureauTypeData
-            .filter((d) => d.status === '300000')
+            .filter((d) => d.status === STATUS_CODES.PROCESSED)
             .reduce((sum, d) => sum + d.value, 0);
 
           const efficiency = totalReceived > 0 ? (totalProcessed / totalReceived) * 100 : 0;
