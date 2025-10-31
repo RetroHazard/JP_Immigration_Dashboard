@@ -107,6 +107,7 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 
 ### Frontend:
 - `Node.js` – Runtime
+- `TypeScript` – Type-safe JavaScript with compile-time validation
 - `Next.js` – Framework
 - `React` – Library
 - `Chart.js` – Data Visualization (Charts)
