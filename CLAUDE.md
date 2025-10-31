@@ -62,13 +62,18 @@ The e-Stat data includes aggregate "管内" (regional) bureaus that contain stat
 **ImmigrationData** (internal format):
 ```typescript
 {
-  month: string;      // "YYYY-MM" format
-  bureau: string;     // Bureau code (e.g., "101170")
-  type: string;       // Application type code (e.g., "20" for Extension)
-  value: number;      // Count (deaggregated if applicable)
-  status: string;     // Status code: "100000" (carried over), "103000" (new), "300000" (processed)
+  month: string;              // "YYYY-MM" format
+  bureau: BureauCode;         // Typed bureau code (e.g., "101170")
+  type: ApplicationTypeCode;  // Typed application code (e.g., "20" for Extension)
+  value: number;              // Count (deaggregated if applicable)
+  status: StatusCode;         // Typed status code: "100000" (carried over), "103000" (new), "300000" (processed)
 }
 ```
+
+**Type Safety**: All code fields use compile-time validated types from:
+- `src/constants/bureauCodes.ts` - BureauCode type with 16 bureau codes
+- `src/constants/applicationTypes.ts` - ApplicationTypeCode type with 6 application types
+- `src/constants/statusCodes.ts` - StatusCode type with 7 status codes
 
 ### Application Types
 Defined in `applicationOptions.ts`:
