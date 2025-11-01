@@ -7,6 +7,7 @@ import { Doughnut } from 'react-chartjs-2';
 
 import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
+import { useDataMetadata } from '../../hooks/useDataMetadata';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -15,10 +16,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
   const [selectedPeriod, setSelectedPeriod] = useState<string>('1');
 
   // Get sorted list of unique months
-  const sortedMonths = useMemo(() => {
-    if (!data?.length) return [];
-    return [...new Set(data.map((entry) => entry.month))].sort();
-  }, [data]);
+  const { uniqueMonths: sortedMonths } = useDataMetadata(data);
 
   // Determine months to include based on selected period
   const selectedMonths = useMemo(() => {

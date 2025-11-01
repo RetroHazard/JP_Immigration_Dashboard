@@ -6,6 +6,7 @@ import { Radar } from 'react-chartjs-2';
 
 import { applicationOptions } from '../../constants/applicationOptions';
 import { bureauOptions } from '../../constants/bureauOptions';
+import { useDataMetadata } from '../../hooks/useDataMetadata';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
@@ -14,10 +15,7 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
   const [selectedPeriod, setSelectedPeriod] = useState('1');
 
   // Get sorted list of unique months
-  const sortedMonths = useMemo(() => {
-    if (!data?.length) return [];
-    return [...new Set(data.map((entry) => entry.month))].sort();
-  }, [data]);
+  const { uniqueMonths: sortedMonths } = useDataMetadata(data);
 
   // Determine months to include based on selected period
   const selectedMonths = useMemo(() => {

@@ -8,6 +8,7 @@ import Tippy from '@tippyjs/react';
 import { applicationOptions } from '../constants/applicationOptions';
 import { BUREAU_CODES } from '../constants/bureauCodes';
 import { STATUS_CODES } from '../constants/statusCodes';
+import { useDataMetadata } from '../hooks/useDataMetadata';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { getBureauLabel } from '../utils/getBureauData';
 
@@ -29,11 +30,13 @@ interface StatCardProps {
 }
 
 export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => {
+  const { latestMonth } = useDataMetadata(data);
+
   const stats = useMemo(() => {
     if (!data) return null;
 
     // Use the most recent month
-    const selectedMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+    const selectedMonth = latestMonth;
 
     // Filter data based on all filters including month
     const filteredData = data.filter((entry) => {
@@ -78,7 +81,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       pending,
       approvalRate: processed ? ((granted / processed) * 100).toFixed(1) : 0,
     };
-  }, [data, filters]);
+  }, [data, filters, latestMonth]);
 
   if (!stats) return null;
 

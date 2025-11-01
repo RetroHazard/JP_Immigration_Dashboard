@@ -8,17 +8,14 @@ import { Bubble } from 'react-chartjs-2';
 import { applicationOptions } from '../../constants/applicationOptions';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES, type StatusCode } from '../../constants/statusCodes';
+import { useDataMetadata } from '../../hooks/useDataMetadata';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
 
 export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('1');
-
-  const sortedMonths = useMemo(() => {
-    if (!data?.length) return [];
-    return [...new Set(data.map((entry) => entry.month))].sort();
-  }, [data]);
+  const { uniqueMonths: sortedMonths } = useDataMetadata(data);
 
   const selectedMonths = useMemo(() => {
     if (selectedPeriod === 'all') return sortedMonths;

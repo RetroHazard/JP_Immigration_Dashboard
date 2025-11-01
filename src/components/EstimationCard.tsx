@@ -6,6 +6,7 @@ import { BlockMath } from 'react-katex';
 import { Icon } from '@iconify/react';
 
 import { applicationOptions } from '../constants/applicationOptions';
+import { useDataMetadata } from '../hooks/useDataMetadata';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import type { EstimatedDateResult } from '../utils/calculateEstimates';
 import { calculateEstimatedDate } from '../utils/calculateEstimates';
@@ -49,19 +50,16 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
   );
 
   // Get valid date range for the application date input
+  const { dateRange: dataRange } = useDataMetadata(data);
   const dateRange = useMemo(() => {
-    if (!data || data.length === 0) return { min: '', max: '' };
-
-    // Extract and sort unique dates from data (YYYY-MM-DD format)
-    const dates = [...new Set(data.map((entry) => entry.month))].sort();
     // Get current date in UTC (YYYY-MM-DD format)
     const currentDate = new Date().toISOString().slice(0, 10);
 
     return {
-      min: dates[0],
+      min: dataRange.min,
       max: currentDate, // Allow selection up to current date
     };
-  }, [data]);
+  }, [dataRange]);
 
   if (variant === 'expandable' && !isExpanded) {
     return (
