@@ -170,8 +170,8 @@ describe('useImmigrationData', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      // When error doesn't have .message property, error.message is undefined
-      expect(result.current.error).toBeUndefined();
+      // When error doesn't have .message property, fallback to generic message
+      expect(result.current.error).toBe('Unknown error occurred');
       expect(result.current.data).toBeNull();
     });
 
@@ -417,8 +417,8 @@ describe('useImmigrationData', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      // Object without message property results in undefined error
-      expect(result.current.error).toBeUndefined();
+      // Object without message property results in generic error message
+      expect(result.current.error).toBe('Unknown error occurred');
       expect(result.current.data).toBeNull();
     });
 

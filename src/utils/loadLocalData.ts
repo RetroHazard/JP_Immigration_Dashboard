@@ -1,7 +1,8 @@
 // src/utils/loadLocalData.ts
+import type { EStatResponse } from '../types/estat';
 import { logger } from './logger';
 
-export const loadLocalData = async (): Promise<any> => {
+export const loadLocalData = async (): Promise<EStatResponse | null> => {
   try {
     const response = await fetch('/datastore/statData.json');
 

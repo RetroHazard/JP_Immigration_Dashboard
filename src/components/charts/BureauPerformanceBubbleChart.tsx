@@ -1,6 +1,7 @@
 // src/components/charts/BureauPerformanceBubbleChart.tsx
 import { useMemo, useState } from 'react';
 
+import type { TooltipItem } from 'chart.js';
 import { Chart as ChartJS, Legend, LinearScale, PointElement, Title, Tooltip } from 'chart.js';
 import type React from 'react';
 import { Bubble } from 'react-chartjs-2';
@@ -117,8 +118,9 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
     plugins: {
       tooltip: {
         callbacks: {
-          label(context: any) {
-            const raw = context.raw || {};
+          label(context: TooltipItem<'bubble'>) {
+            const raw = context.raw as { bureau: string; label: string; x: number; y: number; processed: number } | undefined;
+            if (!raw) return '';
             return [
               `${raw.bureau} - ${raw.label}`, // Use bureau from raw data
               `Received: ${raw.x.toLocaleString()}`,

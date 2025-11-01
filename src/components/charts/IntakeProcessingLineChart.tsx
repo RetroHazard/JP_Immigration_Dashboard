@@ -1,6 +1,7 @@
 // src/components/charts/IntakeProcessingLineChart.tsx
 import { useEffect, useState } from 'react';
 
+import type { TooltipItem } from 'chart.js';
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -137,7 +138,7 @@ export const IntakeProcessingLineChart: React.FC<ImmigrationChartData> = ({ data
       tooltip: {
         mode: 'index' as const,
         callbacks: {
-          label: (context: any) => {
+          label: (context: TooltipItem<'line'>) => {
             return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
           },
         },
