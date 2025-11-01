@@ -2,9 +2,9 @@
 // Non-mutating, O(1) access-time corrections for "管内" bureaus using bureau CODES.
 // Works directly on the e-Stat DATA_INF.VALUE entries and never mutates the source.
 
+import { bureauOptions } from '../constants/bureauOptions';
 import type { BureauOption } from '../types/bureau';
 import type { EStatResponse, EStatValue } from '../types/estat';
-import { bureauOptions } from '../constants/bureauOptions';
 
 // For backwards compatibility, export EStatValue from the shared types
 export type { EStatValue } from '../types/estat';

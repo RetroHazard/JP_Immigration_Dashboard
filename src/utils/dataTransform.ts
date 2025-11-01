@@ -2,9 +2,9 @@
 import type { ApplicationTypeCode } from '../constants/applicationTypes';
 import type { BureauCode } from '../constants/bureauCodes';
 import type { StatusCode } from '../constants/statusCodes';
-import type { EStatResponse, EStatValue } from '../types/estat';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
-import { type EStatData, makeCorrectedAccessor } from './correctBureauAggregates';
+import type { EStatResponse, EStatValue } from '../types/estat';
+import { makeCorrectedAccessor } from './correctBureauAggregates';
 
 function normalizeValues(rawData: EStatResponse): EStatValue[] {
   const v = rawData?.GET_STATS_DATA?.STATISTICAL_DATA?.DATA_INF?.VALUE;
@@ -21,7 +21,8 @@ export const transformData = (rawData: EStatResponse): ImmigrationData[] => {
   const { getCorrectedValue } = makeCorrectedAccessor(rawData);
 
   return values.map((entry) => {
-    const month = entry['@time'].substring(0, 4) + '-' + entry['@time'].substring(8, 10);
+    const timeCode = entry['@time'] ?? '';
+    const month = timeCode.substring(0, 4) + '-' + timeCode.substring(8, 10);
 
     // IMPORTANT: include ALL '@' attrs present on the entry (e.g., '@tab', '@cat01', '@cat02', '@cat03', '@time', etc.)
     const coord: Partial<EStatValue> = {};
@@ -32,7 +33,7 @@ export const transformData = (rawData: EStatResponse): ImmigrationData[] => {
     });
 
     const corrected = getCorrectedValue(coord);
-    const original = parseInt(entry['$']);
+    const original = parseInt(entry['$'] ?? '0');
 
     return {
       month,

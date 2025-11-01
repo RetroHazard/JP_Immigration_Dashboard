@@ -348,7 +348,7 @@ describe('useImmigrationData', () => {
     });
 
     it('should handle empty object from loadLocalData', async () => {
-      mockedLoadLocalData.mockResolvedValue({});
+      mockedLoadLocalData.mockResolvedValue({} as unknown as EStatResponse);
       mockedTransformData.mockReturnValue([]);
 
       const { result } = renderHook(() => useImmigrationData());
