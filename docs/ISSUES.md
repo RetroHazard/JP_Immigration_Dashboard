@@ -2,7 +2,7 @@
 
 This document tracks identified code quality issues, technical debt, and optimization opportunities discovered during code review.
 
-**Last Updated:** 2025-10-31 (Type safety improvements - ImmigrationData interface now fully typed with constants)
+**Last Updated:** 2025-11-01 (Added Lighthouse performance issues - LCP 4.5s)
 
 ---
 
@@ -654,6 +654,86 @@ npm run build
 
 ---
 
+### 19. Lighthouse Performance Issues
+
+**Current Status:** Largest Contentful Paint (LCP) at 4.5s - Poor performance rating
+
+**Issues Identified:**
+
+#### 19.1 Use Efficient Cache Lifetimes
+**Issue:** Static assets may not have optimal cache headers configured
+**Impact:** Users re-download unchanged assets on every visit
+**Recommendation:**
+- Configure long-term caching for static assets (images, fonts, JS bundles)
+- Implement cache-busting strategy for code updates
+- Set appropriate `Cache-Control` headers for GitHub Pages deployment
+
+#### 19.2 Forced Reflow
+**Issue:** JavaScript causing layout thrashing and forced synchronous layouts
+**Impact:** Blocks main thread and delays rendering
+**Recommendation:**
+- Audit DOM read/write patterns in components
+- Batch DOM reads together, then batch writes together
+- Use `requestAnimationFrame` for layout operations
+- Profile with Chrome DevTools Performance tab to identify specific culprits
+
+#### 19.3 Network Dependency Tree
+**Issue:** Critical resources may be loaded sequentially rather than in parallel
+**Impact:** Delays page rendering and content display
+**Recommendation:**
+- Analyze network waterfall in DevTools
+- Use resource hints (`preload`, `prefetch`) for critical assets
+- Optimize font loading strategy
+- Consider inlining critical CSS
+
+#### 19.4 Reduce JavaScript Execution Time
+**Issue:** JavaScript parsing/execution blocking main thread
+**Impact:** Delays interactive elements and content rendering
+**Recommendation:**
+- Profile JavaScript execution with DevTools Performance tab
+- Identify long-running tasks (>50ms)
+- Consider code splitting for route-based lazy loading
+- Defer non-critical JavaScript
+- Review Chart.js initialization timing
+
+#### 19.5 Minimize Main-Thread Work
+**Issue:** Excessive main thread work blocking rendering
+**Impact:** Poor responsiveness and delayed LCP
+**Recommendation:**
+- Move expensive computations to Web Workers if possible
+- Optimize React component render cycles
+- Review `useEffect` dependencies for unnecessary re-runs
+- Profile with Chrome DevTools to identify specific bottlenecks
+
+#### 19.6 Reduce Unused JavaScript
+**Issue:** Shipping JavaScript that isn't used on initial page load
+**Impact:** Larger bundle size, slower parse/compile time
+**Recommendation:**
+- Run `ANALYZE=true npm run build` to visualize bundle composition
+- Implement code splitting for charts (load on-demand per tab)
+- Tree-shake Chart.js imports (import only needed components)
+- Review @nivo/treemap usage and consider lighter alternatives
+- Audit third-party dependencies for unused code
+
+**Performance Budget Targets:**
+- **LCP:** < 2.5s (currently 4.5s) 🔴
+- **First Contentful Paint (FCP):** < 1.8s
+- **Time to Interactive (TTI):** < 3.8s
+- **Total Blocking Time (TBT):** < 200ms
+
+**Priority:** High
+**Effort:** High (requires systematic performance profiling and optimization)
+
+**Next Steps:**
+1. Run Chrome DevTools Lighthouse audit to get detailed metrics
+2. Run `ANALYZE=true npm run build` for bundle analysis
+3. Profile with Performance tab to identify specific bottlenecks
+4. Implement code splitting for chart components
+5. Optimize Chart.js and @nivo imports
+6. Configure caching strategy for GitHub Pages
+
+---
+
 ## 🧪 Testing & Quality
 
 ### 16. No Error Boundaries ✅ COMPLETE
@@ -758,12 +838,12 @@ expectType<string>(response.GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE[0]['@
 
 | Category | Count | Priority |
 |----------|-------|----------|
-| High Priority Issues | 2 (was 3) | 🔴 |
+| High Priority Issues | 3 (was 3) | 🔴 |
 | Medium Priority Issues | 0 (was 2) | 🟡 |
 | Low Priority Issues | 2 (was 5) | 🟢 |
-| Performance Items | 0 (was 2) | 📊 |
+| Performance Items | 1 (was 2) | 📊 |
 | Testing & Quality | 1 (was 3) | 🧪 |
-| **Total Issues** | **5** (was 10) | - |
+| **Total Issues** | **6** (was 10) | - |
 | **Completed** | **13** (was 8) | ✅ |
 
 ### Code Metrics
@@ -785,12 +865,12 @@ expectType<string>(response.GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE[0]['@
 
 | Priority | Estimated Effort | Issues |
 |----------|-----------------|--------|
-| 🔴 High | ~2-3 days | TypeScript strict mode, type safety |
+| 🔴 High | ~4-6 days | TypeScript strict mode, type safety, Lighthouse performance |
 | 🟡 Medium | ✅ **Complete** | All medium priority issues resolved |
 | 🟢 Low | ~0.5 days | Style fixes, minor improvements |
-| 📊 Performance | ✅ **Complete** | All performance optimizations complete |
+| 📊 Performance | ~2-3 days | Lighthouse LCP optimization (4.5s → 2.5s target) |
 | 🧪 Testing | ~0.5 days | Optional: TypeScript type testing |
-| **Total** | **~3-4 days** | 5 remaining issues (down from 18) |
+| **Total** | **~7-10 days** | 6 remaining issues (down from 18) |
 
 **Note:** Critical business logic testing is ✅ complete (343 tests, 99%+ utils/hooks coverage)
 
@@ -821,6 +901,17 @@ expectType<string>(response.GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE[0]['@
 2. ✅ Run bundle analysis (#15)
 3. ✅ Optimize data filtering (#8)
 4. ✅ Optimize bureau label lookups (#7)
+
+### Phase 5: Lighthouse Performance (2-3 days)
+1. Profile with Chrome DevTools to identify LCP bottlenecks (#19)
+2. Implement code splitting for chart components (#19.6)
+3. Optimize JavaScript execution time and reduce unused code (#19.4, #19.6)
+4. Fix forced reflow issues (#19.2)
+5. Optimize network dependency tree (#19.3)
+6. Configure efficient cache lifetimes for GitHub Pages (#19.1)
+7. Minimize main-thread work (#19.5)
+
+**Goal:** Reduce LCP from 4.5s to < 2.5s
 
 ---
 
