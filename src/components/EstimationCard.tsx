@@ -82,7 +82,11 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
     <div className="estimator-container">
       <div className="flex-between border-b p-2 dark:border-gray-500">
         <h2 className="section-title">Processing Time Estimator</h2>
-        <button onClick={variant === 'drawer' ? onClose : onCollapse} className="p-2 text-gray-500 hover:text-gray-700">
+        <button
+          onClick={variant === 'drawer' ? onClose : onCollapse}
+          aria-label={variant === 'drawer' ? 'Close estimator' : 'Collapse estimator'}
+          className="p-2 text-gray-500 hover:text-gray-700"
+        >
           <Icon icon={variant === 'drawer' ? 'ci:close-md' : 'ci:chevron-right-duo'} className="flashing-chevron" />
         </button>
       </div>

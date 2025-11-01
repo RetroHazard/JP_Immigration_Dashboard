@@ -1,5 +1,16 @@
 // src/utils/loadLocalData.test.ts
 import { loadLocalData } from './loadLocalData';
+import { logger } from './logger';
+
+// Mock the logger module
+jest.mock('./logger', () => ({
+  logger: {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
 
 describe('loadLocalData', () => {
   // Save original fetch to restore after tests
@@ -8,7 +19,7 @@ describe('loadLocalData', () => {
   afterEach(() => {
     // Restore original fetch after each test
     global.fetch = originalFetch;
-    jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('successful data loading', () => {
@@ -94,8 +105,6 @@ describe('loadLocalData', () => {
 
   describe('HTTP error handling', () => {
     it('should return null on 404 error', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
       global.fetch = jest.fn().mockResolvedValue({
         ok: false,
         status: 404,
@@ -104,14 +113,10 @@ describe('loadLocalData', () => {
       const result = await loadLocalData();
 
       expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith('HTTP error loading data:', 404);
-
-      consoleErrorSpy.mockRestore();
+      expect(logger.error).toHaveBeenCalledWith('HTTP error loading data:', 404);
     });
 
     it('should return null on 500 error', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
       global.fetch = jest.fn().mockResolvedValue({
         ok: false,
         status: 500,
@@ -120,14 +125,10 @@ describe('loadLocalData', () => {
       const result = await loadLocalData();
 
       expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith('HTTP error loading data:', 500);
-
-      consoleErrorSpy.mockRestore();
+      expect(logger.error).toHaveBeenCalledWith('HTTP error loading data:', 500);
     });
 
     it('should return null on 403 Forbidden', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
       global.fetch = jest.fn().mockResolvedValue({
         ok: false,
         status: 403,
@@ -136,14 +137,10 @@ describe('loadLocalData', () => {
       const result = await loadLocalData();
 
       expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith('HTTP error loading data:', 403);
-
-      consoleErrorSpy.mockRestore();
+      expect(logger.error).toHaveBeenCalledWith('HTTP error loading data:', 403);
     });
 
     it('should log error message for HTTP errors', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
       global.fetch = jest.fn().mockResolvedValue({
         ok: false,
         status: 404,
@@ -151,65 +148,50 @@ describe('loadLocalData', () => {
 
       await loadLocalData();
 
-      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-      expect(consoleErrorSpy).toHaveBeenCalledWith('HTTP error loading data:', 404);
-
-      consoleErrorSpy.mockRestore();
+      expect(logger.error).toHaveBeenCalledTimes(1);
+      expect(logger.error).toHaveBeenCalledWith('HTTP error loading data:', 404);
     });
   });
 
   describe('network error handling', () => {
     it('should return null on network error', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
       global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
 
       const result = await loadLocalData();
 
       expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith(
         'Error loading local data:',
         expect.any(Error)
       );
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should return null when fetch throws TypeError', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
       global.fetch = jest.fn().mockRejectedValue(new TypeError('Failed to fetch'));
 
       const result = await loadLocalData();
 
       expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith(
         'Error loading local data:',
         expect.any(TypeError)
       );
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should log error message for network errors', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       const networkError = new Error('Failed to connect');
 
       global.fetch = jest.fn().mockRejectedValue(networkError);
 
       await loadLocalData();
 
-      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Error loading local data:', networkError);
-
-      consoleErrorSpy.mockRestore();
+      expect(logger.error).toHaveBeenCalledTimes(1);
+      expect(logger.error).toHaveBeenCalledWith('Error loading local data:', networkError);
     });
   });
 
   describe('JSON parsing error handling', () => {
     it('should return null when JSON parsing fails', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
         json: async () => {
@@ -220,17 +202,13 @@ describe('loadLocalData', () => {
       const result = await loadLocalData();
 
       expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith(
         'Error loading local data:',
         expect.any(SyntaxError)
       );
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should handle malformed JSON response', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
         json: async () => {
@@ -241,13 +219,10 @@ describe('loadLocalData', () => {
       const result = await loadLocalData();
 
       expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalled();
-
-      consoleErrorSpy.mockRestore();
+      expect(logger.error).toHaveBeenCalled();
     });
 
     it('should log error message for JSON parsing errors', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       const parseError = new SyntaxError('Unexpected end of JSON input');
 
       global.fetch = jest.fn().mockResolvedValue({
@@ -259,10 +234,8 @@ describe('loadLocalData', () => {
 
       await loadLocalData();
 
-      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Error loading local data:', parseError);
-
-      consoleErrorSpy.mockRestore();
+      expect(logger.error).toHaveBeenCalledTimes(1);
+      expect(logger.error).toHaveBeenCalledWith('Error loading local data:', parseError);
     });
   });
 
@@ -354,8 +327,6 @@ describe('loadLocalData', () => {
     });
 
     it('should return null on all error paths', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
       // Test HTTP error path
       global.fetch = jest.fn().mockResolvedValue({
         ok: false,
@@ -378,8 +349,6 @@ describe('loadLocalData', () => {
       } as Response);
       result = await loadLocalData();
       expect(result).toBeNull();
-
-      consoleErrorSpy.mockRestore();
     });
   });
 });

@@ -5,6 +5,7 @@ import type React from 'react';
 
 import { applicationOptions } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
+import { logger } from '../utils/logger';
 import { FilterInput } from './common/FilterInput';
 
 interface FilterPanelProps {
@@ -17,14 +18,14 @@ interface FilterPanelProps {
 export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChange, filterConfig }) => {
   const dateRange = useMemo(() => {
     if (!data || !Array.isArray(data) || data.length === 0) {
-      console.log('No valid data provided');
+      logger.debug('No valid data provided');
       return { min: '', max: '' };
     }
 
     const months = [...new Set(data.map((entry) => entry.month))].filter(Boolean);
 
     if (months.length === 0) {
-      console.log('No valid months found in data');
+      logger.debug('No valid months found in data');
       return { min: '', max: '' };
     }
 
