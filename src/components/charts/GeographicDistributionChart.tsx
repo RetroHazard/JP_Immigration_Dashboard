@@ -6,6 +6,7 @@ import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 're
 import { Icon } from '@iconify/react';
 import Tippy from '@tippyjs/react';
 
+import type { BureauOption } from '../../types/bureau';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
 import { nonAirportBureaus } from '../../utils/getBureauData';
@@ -26,11 +27,8 @@ interface TooltipInfo {
   mousePosition: [number, number];
 }
 
-interface MarkerTooltipInfo {
-  name: string;
-  short: string;
-  coordinates: [number, number];
-}
+// MarkerTooltipInfo is the same as BureauOption
+type MarkerTooltipInfo = BureauOption;
 
 // Type for TopoJSON geography data
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,13 +49,11 @@ const adjustColor = (originalColor: string, density: number, minDensity: number,
   // Convert to HSL
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  let h,
-    s,
+  let h = 0,
+    s = 0,
     l = (max + min) / 2;
 
-  if (max === min) {
-    h = s = 0;
-  } else {
+  if (max !== min) {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
@@ -211,9 +207,10 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
     if (!bureau) return '#DDD';
 
     const range = bureauDensityRanges[prefecture.bureau];
+    const bureauBackground = bureau.background ?? '#DDD';
     return range
-      ? adjustColor(bureau.background, parseFloat(prefecture.density), range.min, range.max)
-      : bureau.background;
+      ? adjustColor(bureauBackground, parseFloat(prefecture.density), range.min, range.max)
+      : bureauBackground;
   };
 
   // Calculate Bureau Regional Statistics
@@ -275,12 +272,12 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
                         fill={getFillColor(geo.properties.name)}
                         stroke={isDarkMode ? 'rgba(225, 225, 225, 0.75)' : 'rgba(30, 30, 30, 0.75)'}
                         strokeWidth={0.075}
-                        onMouseMove={(event) => {
+                        onMouseMove={(event: React.MouseEvent) => {
                           if (!prefecture) return;
                           setTooltipInfo({
                             name: geo.properties.name,
                             name_ja: geo.properties.name_ja,
-                            bureau: bureauColorMap[prefecture.bureau]?.label,
+                            bureau: bureauColorMap[prefecture.bureau]?.label ?? 'Unknown',
                             population: prefecture.population.toLocaleString(),
                             area: `${prefecture.area.toLocaleString()} km²`,
                             density: prefecture.density,

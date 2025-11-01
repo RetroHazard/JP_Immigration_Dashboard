@@ -29,7 +29,18 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     defaultRange: 12,
   });
 
-  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+  const [chartData, setChartData] = useState<{
+    labels: string[];
+    datasets: {
+      label: string;
+      data: number[];
+      backgroundColor: string;
+      borderColor: string;
+      borderWidth: number;
+      tension: number;
+      fill: boolean;
+    }[];
+  }>({ labels: [], datasets: [] });
 
   useEffect(() => {
     if (!data || months.length === 0) return;
