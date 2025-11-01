@@ -9,7 +9,8 @@ import { EstimationCard } from './EstimationCard';
 // Mock the calculateEstimatedDate function
 const mockCalculateEstimatedDate = jest.fn();
 jest.mock('../utils/calculateEstimates', () => ({
-  calculateEstimatedDate: (data: any, details: any) => mockCalculateEstimatedDate(data, details),
+  calculateEstimatedDate: (data: ImmigrationData[], details: { bureau: string; type: string; applicationDate: string }) =>
+    mockCalculateEstimatedDate(data, details),
 }));
 
 // Mock FilterInput component
@@ -25,7 +26,18 @@ jest.mock('./common/FilterInput', () => ({
     filterFn,
     min,
     max,
-  }: any) => {
+  }: {
+    type: string;
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    options?: { value: string; label: string }[];
+    includeDefaultOption?: boolean;
+    defaultOptionLabel?: string;
+    filterFn?: (opt: { value: string; label: string }) => boolean;
+    min?: string;
+    max?: string;
+  }) => {
     if (type === 'select') {
       const filteredOptions = filterFn ? options?.filter(filterFn) : options;
       return (
@@ -37,7 +49,7 @@ jest.mock('./common/FilterInput', () => ({
             data-testid={`select-${label.toLowerCase().replace(/\s+/g, '-')}`}
           >
             {includeDefaultOption && <option value="">{defaultOptionLabel}</option>}
-            {filteredOptions?.map((opt: any) => (
+            {filteredOptions?.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -67,7 +79,7 @@ jest.mock('./common/FilterInput', () => ({
 
 // Mock FormulaTooltip component
 jest.mock('./common/FormulaTooltip', () => ({
-  FormulaTooltip: ({ children }: any) => <div data-testid="formula-tooltip">{children}</div>,
+  FormulaTooltip: ({ children }: { children: React.ReactNode }) => <div data-testid="formula-tooltip">{children}</div>,
   variableExplanations: {
     D_rem: 'Days remaining',
     Q_pos: 'Queue position',
@@ -85,12 +97,12 @@ jest.mock('./common/FormulaTooltip', () => ({
 
 // Mock react-katex
 jest.mock('react-katex', () => ({
-  BlockMath: ({ math }: any) => <div data-testid="block-math">{math}</div>,
+  BlockMath: ({ math }: { math: string }) => <div data-testid="block-math">{math}</div>,
 }));
 
 // Mock iconify
 jest.mock('@iconify/react', () => ({
-  Icon: ({ icon }: any) => <span data-testid={`icon-${icon}`}>{icon}</span>,
+  Icon: ({ icon }: { icon: string }) => <span data-testid={`icon-${icon}`}>{icon}</span>,
 }));
 
 // Mock getBureauData
@@ -335,7 +347,7 @@ describe('EstimationCard', () => {
     it('should set max date to current date', () => {
       // Mock current date
       const mockDate = new Date('2024-10-30T00:00:00Z');
-      jest.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
+      jest.spyOn(global, 'Date').mockImplementation(() => mockDate as unknown as Date);
 
       render(<EstimationCard data={mockImmigrationData} />);
 

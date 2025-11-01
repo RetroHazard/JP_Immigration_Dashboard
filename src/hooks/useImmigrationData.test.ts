@@ -3,6 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 
 import { mockEStatResponse } from '../__mocks__/mockEStatData';
 import { mockImmigrationData } from '../__mocks__/mockImmigrationData';
+import type { EStatResponse } from '../types/estat';
 import { transformData } from '../utils/dataTransform';
 import { loadLocalData } from '../utils/loadLocalData';
 import { useImmigrationData } from './useImmigrationData';
@@ -336,7 +337,7 @@ describe('useImmigrationData', () => {
 
   describe('edge cases', () => {
     it('should handle undefined returned from loadLocalData', async () => {
-      mockedLoadLocalData.mockResolvedValue(undefined as any);
+      mockedLoadLocalData.mockResolvedValue(undefined as unknown as EStatResponse);
 
       const { result } = renderHook(() => useImmigrationData());
 

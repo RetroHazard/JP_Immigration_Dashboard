@@ -7,7 +7,7 @@ import { StatsSummary } from './StatsSummary';
 
 // Mock Tippy component
 jest.mock('@tippyjs/react', () => {
-  return function Tippy({ children, content }: any) {
+  return function Tippy({ children, content }: { children: React.ReactNode; content: React.ReactNode }) {
     return (
       <div>
         {children}
@@ -19,7 +19,7 @@ jest.mock('@tippyjs/react', () => {
 
 // Mock iconify
 jest.mock('@iconify/react', () => ({
-  Icon: ({ icon }: any) => <span data-testid={`icon-${icon}`}>{icon}</span>,
+  Icon: ({ icon }: { icon: string }) => <span data-testid={`icon-${icon}`}>{icon}</span>,
 }));
 
 // Mock getBureauLabel
@@ -651,13 +651,13 @@ describe('StatsSummary', () => {
 
   describe('edge cases', () => {
     it('should return null when data is null', () => {
-      const { container } = render(<StatsSummary data={null as any} filters={defaultFilters} />);
+      const { container } = render(<StatsSummary data={null as unknown as ImmigrationData[]} filters={defaultFilters} />);
 
       expect(container.firstChild).toBeNull();
     });
 
     it('should return null when data is undefined', () => {
-      const { container } = render(<StatsSummary data={undefined as any} filters={defaultFilters} />);
+      const { container } = render(<StatsSummary data={undefined as unknown as ImmigrationData[]} filters={defaultFilters} />);
 
       expect(container.firstChild).toBeNull();
     });

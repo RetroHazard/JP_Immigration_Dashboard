@@ -1,5 +1,6 @@
 // src/utils/dataTransform.test.ts
 import { mockEStatEmpty,mockEStatMinimal, mockEStatResponse } from '../__mocks__/mockEStatData';
+import type { EStatResponse } from '../types/estat';
 import { transformData } from './dataTransform';
 
 describe('dataTransform', () => {
@@ -77,7 +78,7 @@ describe('dataTransform', () => {
         },
       };
 
-      const result = transformData(malformedData as any);
+      const result = transformData(malformedData as unknown as EStatResponse);
 
       expect(result).toEqual([]);
     });
@@ -91,7 +92,7 @@ describe('dataTransform', () => {
         },
       };
 
-      const result = transformData(invalidData as any);
+      const result = transformData(invalidData as unknown as EStatResponse);
 
       expect(result).toEqual([]);
     });

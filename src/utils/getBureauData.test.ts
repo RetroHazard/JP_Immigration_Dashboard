@@ -1,5 +1,6 @@
 // src/utils/getBureauData.test.ts
 import { bureauOptions } from '../constants/bureauOptions';
+import type { BureauOption } from '../types/bureau';
 import { getBureauLabel, getBureauShort, nonAirportBureaus } from './getBureauData';
 
 describe('getBureauData', () => {
@@ -117,7 +118,7 @@ describe('getBureauData', () => {
 
     it('should return correct labels for all bureaus in bureauOptions', () => {
       // Test that every bureau option can be retrieved correctly
-      bureauOptions.forEach((bureau: any) => {
+      bureauOptions.forEach((bureau: BureauOption) => {
         const label = getBureauLabel(bureau.value);
         expect(label).toBe(bureau.label);
       });
@@ -166,7 +167,7 @@ describe('getBureauData', () => {
     });
 
     it('should return correct short names for all bureaus in bureauOptions', () => {
-      bureauOptions.forEach((bureau: any) => {
+      bureauOptions.forEach((bureau: BureauOption) => {
         const short = getBureauShort(bureau.value);
         expect(short).toBe(bureau.short);
       });
@@ -187,75 +188,75 @@ describe('getBureauData', () => {
 
   describe('nonAirportBureaus', () => {
     it('should filter out "all" option', () => {
-      const hasAll = nonAirportBureaus.some((bureau: any) => bureau.value === 'all');
+      const hasAll = nonAirportBureaus.some((bureau: BureauOption) => bureau.value === 'all');
       expect(hasAll).toBe(false);
     });
 
     it('should filter out Narita Airport', () => {
-      const hasNarita = nonAirportBureaus.some((bureau: any) =>
+      const hasNarita = nonAirportBureaus.some((bureau: BureauOption) =>
         bureau.label.toLowerCase().includes('narita airport')
       );
       expect(hasNarita).toBe(false);
     });
 
     it('should filter out Haneda Airport', () => {
-      const hasHaneda = nonAirportBureaus.some((bureau: any) =>
+      const hasHaneda = nonAirportBureaus.some((bureau: BureauOption) =>
         bureau.label.toLowerCase().includes('haneda airport')
       );
       expect(hasHaneda).toBe(false);
     });
 
     it('should filter out Kansai Airport', () => {
-      const hasKansai = nonAirportBureaus.some((bureau: any) =>
+      const hasKansai = nonAirportBureaus.some((bureau: BureauOption) =>
         bureau.label.toLowerCase().includes('kansai airport')
       );
       expect(hasKansai).toBe(false);
     });
 
     it('should filter out Chubu Airport', () => {
-      const hasChubu = nonAirportBureaus.some((bureau: any) =>
+      const hasChubu = nonAirportBureaus.some((bureau: BureauOption) =>
         bureau.label.toLowerCase().includes('chubu airport')
       );
       expect(hasChubu).toBe(false);
     });
 
     it('should include Shinagawa regional bureau', () => {
-      const hasShinagawa = nonAirportBureaus.some((bureau: any) =>
+      const hasShinagawa = nonAirportBureaus.some((bureau: BureauOption) =>
         bureau.value === '101170'
       );
       expect(hasShinagawa).toBe(true);
     });
 
     it('should include Osaka regional bureau', () => {
-      const hasOsaka = nonAirportBureaus.some((bureau: any) =>
+      const hasOsaka = nonAirportBureaus.some((bureau: BureauOption) =>
         bureau.value === '101460'
       );
       expect(hasOsaka).toBe(true);
     });
 
     it('should include Nagoya regional bureau', () => {
-      const hasNagoya = nonAirportBureaus.some((bureau: any) =>
+      const hasNagoya = nonAirportBureaus.some((bureau: BureauOption) =>
         bureau.value === '101350'
       );
       expect(hasNagoya).toBe(true);
     });
 
     it('should include non-airport branch offices like Yokohama', () => {
-      const hasYokohama = nonAirportBureaus.some((bureau: any) =>
+      const hasYokohama = nonAirportBureaus.some((bureau: BureauOption) =>
         bureau.value === '101210'
       );
       expect(hasYokohama).toBe(true);
     });
 
     it('should include non-airport branch offices like Kobe', () => {
-      const hasKobe = nonAirportBureaus.some((bureau: any) =>
+      const hasKobe = nonAirportBureaus.some((bureau: BureauOption) =>
         bureau.value === '101490'
       );
       expect(hasKobe).toBe(true);
     });
 
     it('should include non-airport branch offices like Naha', () => {
-      const hasNaha = nonAirportBureaus.some((bureau: any) =>
+      const hasNaha = nonAirportBureaus.some((bureau: BureauOption) =>
         bureau.value === '101740'
       );
       expect(hasNaha).toBe(true);
@@ -274,7 +275,7 @@ describe('getBureauData', () => {
     });
 
     it('should contain objects with value and label properties', () => {
-      nonAirportBureaus.forEach((bureau: any) => {
+      nonAirportBureaus.forEach((bureau: BureauOption) => {
         expect(bureau).toHaveProperty('value');
         expect(bureau).toHaveProperty('label');
         expect(typeof bureau.value).toBe('string');
@@ -283,7 +284,7 @@ describe('getBureauData', () => {
     });
 
     it('should not contain any bureau with "airport" in lowercase label', () => {
-      const hasAirport = nonAirportBureaus.some((bureau: any) =>
+      const hasAirport = nonAirportBureaus.some((bureau: BureauOption) =>
         bureau.label.toLowerCase().includes('airport')
       );
       expect(hasAirport).toBe(false);
@@ -291,7 +292,7 @@ describe('getBureauData', () => {
 
     it('should handle case-insensitive airport filtering', () => {
       // Test that filtering works even if label has mixed case
-      const filtered = nonAirportBureaus.filter((bureau: any) =>
+      const filtered = nonAirportBureaus.filter((bureau: BureauOption) =>
         bureau.label.toUpperCase().includes('AIRPORT')
       );
       expect(filtered.length).toBe(0);
@@ -299,8 +300,8 @@ describe('getBureauData', () => {
 
     it('should maintain original bureauOptions structure', () => {
       // Verify that each non-airport bureau still has all expected properties
-      nonAirportBureaus.forEach((bureau: any) => {
-        const original = bureauOptions.find((b: any) => b.value === bureau.value);
+      nonAirportBureaus.forEach((bureau: BureauOption) => {
+        const original = bureauOptions.find((b: BureauOption) => b.value === bureau.value);
         expect(original).toBeDefined();
         expect(bureau.value).toBe(original?.value);
         expect(bureau.label).toBe(original?.label);
@@ -316,7 +317,7 @@ describe('getBureauData', () => {
 
   describe('integration with bureauOptions', () => {
     it('should handle all bureau codes from bureauOptions', () => {
-      bureauOptions.forEach((bureau: any) => {
+      bureauOptions.forEach((bureau: BureauOption) => {
         const label = getBureauLabel(bureau.value);
         expect(label).toBeTruthy();
         expect(typeof label).toBe('string');
@@ -325,7 +326,7 @@ describe('getBureauData', () => {
 
     it('should maintain consistency between getBureauLabel and nonAirportBureaus', () => {
       // All non-airport bureaus should have valid labels
-      nonAirportBureaus.forEach((bureau: any) => {
+      nonAirportBureaus.forEach((bureau: BureauOption) => {
         const label = getBureauLabel(bureau.value);
         expect(label).toBe(bureau.label);
       });
@@ -341,17 +342,17 @@ describe('getBureauData', () => {
 
   describe('edge cases and boundary conditions', () => {
     it('should handle null input gracefully', () => {
-      const label = getBureauLabel(null as any);
+      const label = getBureauLabel(null as unknown as string);
       expect(label).toBe(null);
     });
 
     it('should handle undefined input gracefully', () => {
-      const label = getBureauLabel(undefined as any);
+      const label = getBureauLabel(undefined as unknown as string);
       expect(label).toBe(undefined);
     });
 
     it('should handle numeric input', () => {
-      const label = getBureauLabel(101170 as any);
+      const label = getBureauLabel(101170 as unknown as string);
       // Since bureauOptions uses string values, numeric won't match
       expect(label).toBe(101170);
     });
@@ -384,7 +385,7 @@ describe('getBureauData', () => {
       const copy = [...nonAirportBureaus];
 
       // Verify that modifications to copy don't affect original
-      copy.push({ value: 'test', label: 'Test' } as any);
+      copy.push({ value: 'test', label: 'Test' } as unknown as BureauOption);
 
       expect(nonAirportBureaus.length).toBe(before);
     });

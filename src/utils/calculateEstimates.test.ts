@@ -6,7 +6,7 @@ import { calculateEstimatedDate } from './calculateEstimates';
 describe('calculateEstimates', () => {
   describe('input validation', () => {
     it('should return null for null data', () => {
-      const result = calculateEstimatedDate(null as any, {
+      const result = calculateEstimatedDate(null as unknown as ImmigrationData[], {
         bureau: '101170',
         type: '20',
         applicationDate: '2024-04-15',
@@ -16,7 +16,7 @@ describe('calculateEstimates', () => {
     });
 
     it('should return null for undefined data', () => {
-      const result = calculateEstimatedDate(undefined as any, {
+      const result = calculateEstimatedDate(undefined as unknown as ImmigrationData[], {
         bureau: '101170',
         type: '20',
         applicationDate: '2024-04-15',
