@@ -1,6 +1,7 @@
 // src/components/charts/IntakeProcessingBarChart.tsx
 import { useEffect, useState } from 'react';
 
+import type { Scale, TooltipItem } from 'chart.js';
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 import type React from 'react';
 import { Bar } from 'react-chartjs-2';
@@ -18,7 +19,19 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
     defaultRange: 12,
   });
 
-  const [chartData, setChartData] = useState({
+  const [chartData, setChartData] = useState<{
+    labels: string[];
+    datasets: {
+      label: string;
+      data: number[];
+      backgroundColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      yAxisID?: string;
+      order?: number;
+      barPercentage?: number;
+    }[];
+  }>({
     labels: [],
     datasets: [
       {
@@ -130,7 +143,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           suggestedMax: Math.max(...chartData.datasets.map((dataset) => Math.max(...dataset.data))),
           color: isDarkMode ? '#fff' : '#000',
         },
-        afterBuildTicks: (axis) => {
+        afterBuildTicks: (axis: Scale) => {
           axis.chart.scales.y2.options.min = axis.min;
           axis.chart.scales.y2.options.max = axis.max;
         },
@@ -154,7 +167,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
       tooltip: {
         mode: 'index' as const,
         callbacks: {
-          label: (context) => {
+          label: (context: TooltipItem<'bar'>) => {
             return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
           },
         },

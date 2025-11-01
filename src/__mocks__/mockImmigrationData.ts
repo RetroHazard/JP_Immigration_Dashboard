@@ -1,6 +1,8 @@
 // src/__mocks__/mockImmigrationData.ts
 // Mock transformed ImmigrationData for testing
 
+import type { ApplicationTypeCode } from '../constants/applicationTypes';
+import type { BureauCode } from '../constants/bureauCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 
 export const mockImmigrationData: ImmigrationData[] = [
@@ -267,10 +269,10 @@ export const mockImmigrationDataEdgeCases: ImmigrationData[] = [
 
 // Helper function to generate mock data for a specific bureau and date range
 export function generateMockData(
-  bureau: string,
+  bureau: BureauCode,
   startMonth: string,
   endMonth: string,
-  applicationType: string = '20'
+  applicationType: ApplicationTypeCode = '20'
 ): ImmigrationData[] {
   const data: ImmigrationData[] = [];
   const start = new Date(startMonth + '-01');

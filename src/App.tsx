@@ -103,7 +103,7 @@ const App: React.FC = () => {
               CHART_COMPONENTS[activeChartIndex].filters.appType) && (
               <div className="section-block mb-4 grid grid-cols-1 sm:hidden">
                 <FilterPanel
-                  data={data}
+                  data={data ?? []}
                   filters={filters}
                   onChange={setFilters}
                   filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
@@ -134,7 +134,7 @@ const App: React.FC = () => {
                   <ErrorBoundary>
                     {(() => {
                       const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
-                      return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
+                      return <ChartComponent data={data ?? []} filters={filters} isDarkMode={isDarkMode} />;
                     })()}
                   </ErrorBoundary>
                 </div>
@@ -161,10 +161,10 @@ const App: React.FC = () => {
                     <ErrorBoundary>
                       <EstimationCard
                         variant="drawer"
-                        data={data}
-                        isExpanded={null}
+                        data={data ?? []}
+                        isExpanded={undefined}
                         onClose={() => setIsDrawerOpen(false)}
-                        onCollapse={null}
+                        onCollapse={undefined}
                       />
                     </ErrorBoundary>
                   </div>
@@ -185,7 +185,7 @@ const App: React.FC = () => {
                   CHART_COMPONENTS[activeChartIndex].filters.appType) && (
                   <div className="shrink-0 sm:mb-4 md:mb-5 lg:mb-6">
                     <FilterPanel
-                      data={data}
+                      data={data ?? []}
                       filters={filters}
                       onChange={setFilters}
                       filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
@@ -215,7 +215,7 @@ const App: React.FC = () => {
                     <ErrorBoundary>
                       {(() => {
                         const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
-                        return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
+                        return <ChartComponent data={data ?? []} filters={filters} isDarkMode={isDarkMode} />;
                       })()}
                     </ErrorBoundary>
                   </div>
@@ -235,9 +235,9 @@ const App: React.FC = () => {
                   <ErrorBoundary>
                     <EstimationCard
                       variant="expandable"
-                      data={data}
+                      data={data ?? []}
                       isExpanded={isEstimationExpanded}
-                      onClose={null}
+                      onClose={undefined}
                       onCollapse={() => setIsEstimationExpanded(false)}
                     />
                   </ErrorBoundary>
@@ -246,7 +246,7 @@ const App: React.FC = () => {
             </div>
 
             <ErrorBoundary>
-              <StatsSummary data={data} filters={filters} />
+              <StatsSummary data={data ?? []} filters={filters} />
             </ErrorBoundary>
           </>
         )}

@@ -215,3 +215,6 @@ The build workflow:
   - Chart components: Not tested (optional - data transformation already covered)
 
 All critical business logic is fully tested.
+
+### Other Instructions
+- write a commit each time a major change occurs, this could be a new feature, refactor, optimization, etc.

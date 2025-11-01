@@ -6,7 +6,6 @@ import { useMemo } from 'react';
  */
 interface DataWithMonth {
   month: string;
-  [key: string]: unknown;
 }
 
 /**
