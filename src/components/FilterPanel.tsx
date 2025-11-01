@@ -1,10 +1,9 @@
 // src/components/FilterPanel.tsx
-import { useMemo } from 'react';
-
 import type React from 'react';
 
 import { applicationOptions } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
+import { useDataMetadata } from '../hooks/useDataMetadata';
 import { logger } from '../utils/logger';
 import { FilterInput } from './common/FilterInput';
 
@@ -16,25 +15,14 @@ interface FilterPanelProps {
 }
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChange, filterConfig }) => {
-  const dateRange = useMemo(() => {
-    if (!data || !Array.isArray(data) || data.length === 0) {
-      logger.debug('No valid data provided');
-      return { min: '', max: '' };
-    }
+  const { dateRange, uniqueMonths } = useDataMetadata(data as any);
 
-    const months = [...new Set(data.map((entry) => entry.month))].filter(Boolean);
-
-    if (months.length === 0) {
-      logger.debug('No valid months found in data');
-      return { min: '', max: '' };
-    }
-
-    const sortedMonths = months.sort();
-    return {
-      min: sortedMonths[0],
-      max: sortedMonths[sortedMonths.length - 1],
-    };
-  }, [data]);
+  // Log debug messages for edge cases
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    logger.debug('No valid data provided');
+  } else if (uniqueMonths.length === 0) {
+    logger.debug('No valid months found in data');
+  }
 
   const formatDateString = (dateStr: string) => {
     if (!dateStr) return '';

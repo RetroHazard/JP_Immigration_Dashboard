@@ -2,8 +2,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { FilterPanel } from './FilterPanel';
 import { logger } from '../utils/logger';
+import { FilterPanel } from './FilterPanel';
 
 // Mock the logger module
 jest.mock('../utils/logger', () => ({

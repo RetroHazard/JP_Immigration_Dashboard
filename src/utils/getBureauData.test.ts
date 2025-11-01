@@ -1,6 +1,6 @@
 // src/utils/getBureauData.test.ts
 import { bureauOptions } from '../constants/bureauOptions';
-import { getBureauLabel, nonAirportBureaus } from './getBureauData';
+import { getBureauLabel, getBureauShort, nonAirportBureaus } from './getBureauData';
 
 describe('getBureauData', () => {
   describe('getBureauLabel', () => {
@@ -126,6 +126,62 @@ describe('getBureauData', () => {
     it('should work with numeric input converted to string', () => {
       const label = getBureauLabel(String(101170));
       expect(label).toBe('Shinagawa');
+    });
+  });
+
+  describe('getBureauShort', () => {
+    it('should return short name for valid Shinagawa bureau code', () => {
+      const short = getBureauShort('101170');
+      expect(short).toBe('SGW');
+    });
+
+    it('should return short name for valid Osaka bureau code', () => {
+      const short = getBureauShort('101460');
+      expect(short).toBe('ITM');
+    });
+
+    it('should return short name for valid Nagoya bureau code', () => {
+      const short = getBureauShort('101350');
+      expect(short).toBe('NAG');
+    });
+
+    it('should return short name for valid Fukuoka bureau code', () => {
+      const short = getBureauShort('101720');
+      expect(short).toBe('FUK');
+    });
+
+    it('should return original code for non-existent bureau', () => {
+      const short = getBureauShort('999999');
+      expect(short).toBe('999999');
+    });
+
+    it('should return original code for empty string', () => {
+      const short = getBureauShort('');
+      expect(short).toBe('');
+    });
+
+    it('should handle special bureau code "all"', () => {
+      const short = getBureauShort('all');
+      expect(short).toBe('ALL');
+    });
+
+    it('should return correct short names for all bureaus in bureauOptions', () => {
+      bureauOptions.forEach((bureau: any) => {
+        const short = getBureauShort(bureau.value);
+        expect(short).toBe(bureau.short);
+      });
+    });
+
+    it('should be performant with multiple calls', () => {
+      const startTime = performance.now();
+      for (let i = 0; i < 1000; i++) {
+        getBureauShort('101170');
+      }
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      // Should complete 1000 calls in under 100ms (O(1) Map lookup)
+      expect(duration).toBeLessThan(100);
     });
   });
 
