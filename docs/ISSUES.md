@@ -128,14 +128,14 @@ export interface Geography {
 - Defined EStatResponse, EStatValue, ClassObj, and 10+ related interfaces
 - All e-Stat API structures fully documented with JSDoc comments
 - Eliminated 10+ production `any` types across 14 files
+- **Eliminated 58+ test `any` types across 9 test files** ✅ **NEW**
 
-**Files Modified:**
+**Production Files Modified (14 files):**
 - `src/types/estat.ts` (new - 174 lines) - Complete e-Stat API type definitions
 - `src/utils/loadLocalData.ts` - Changed `Promise<any>` → `Promise<EStatResponse | null>`
 - `src/utils/correctBureauAggregates.ts` - Fixed type assertions with proper type guard
 - `src/utils/dataTransform.ts` - Removed explicit `any` casts, used proper EStatValue types
 - `src/hooks/useImmigrationData.ts` - Changed `error: any` → `error: unknown` with type guards
-- `src/hooks/useImmigrationData.test.ts` - Updated tests for improved error handling
 - `src/hooks/useDataMetadata.ts` - Made generic to accept any data with month field
 - `src/components/FilterPanel.tsx` - Removed `as any` cast
 - `src/components/charts/BureauDistributionRingChart.tsx` - Used Chart.js types
@@ -144,6 +144,16 @@ export interface Geography {
 - `src/components/charts/IntakeProcessingLineChart.tsx` - Used Chart.js types
 - `src/components/charts/MonthlyRadarChart.tsx` - Used Chart.js types
 - `src/components/charts/GeographicDistributionChart.tsx` - Defined proper interfaces
+
+**Test Files Modified (9 files):**
+- `src/utils/getBureauData.test.ts` - 28 `any` → `BureauOption` types
+- `src/utils/calculateEstimates.test.ts` - 2 `any` → `ImmigrationData[]` types
+- `src/utils/dataTransform.test.ts` - 2 `any` → `EStatResponse` types
+- `src/hooks/useDataMetadata.test.ts` - 4 `any` → `ImmigrationData[]` types
+- `src/hooks/useImmigrationData.test.ts` - 1 `any` → `EStatResponse` type
+- `src/components/StatsSummary.test.tsx` - 4 `any` → typed React component props
+- `src/components/EstimationCard.test.tsx` - 8 `any` → typed mock component interfaces
+- `src/components/FilterPanel.test.tsx` - 9 `any` → typed mock component props
 
 **Chart.js Type Safety:**
 ```typescript
@@ -173,14 +183,46 @@ catch (error: unknown) {
 }
 ```
 
+**Test Mock Type Safety:**
+```typescript
+// Before: Mock components with any types
+jest.mock('@tippyjs/react', () => {
+  return function Tippy({ children, content }: any) { ... }
+});
+jest.mock('./common/FilterInput', () => ({
+  FilterInput: ({ label, value, onChange }: any) => { ... }
+}));
+
+// After: Fully typed mock components
+jest.mock('@tippyjs/react', () => {
+  return function Tippy({ children, content }: {
+    children: React.ReactNode;
+    content: React.ReactNode
+  }) { ... }
+});
+jest.mock('./common/FilterInput', () => ({
+  FilterInput: ({ label, value, onChange }: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    options?: { value: string; label: string }[];
+  }) => { ... }
+}));
+
+// Intentionally invalid test data
+null as unknown as ImmigrationData[]  // Explicit type coercion
+```
+
 **Benefits:**
-- Eliminated 10+ production `any` types across 10 files
-- Improved compile-time type safety
-- Better IDE autocomplete and IntelliSense
-- TypeScript catches more errors at compile time
-- Safer refactoring with type checking
-- All 343 tests passing, zero regressions
-- Net code reduction: 79 lines removed, 72 added (cleaner code)
+- ✅ Eliminated 68+ `any` types across 23 files (14 production + 9 test)
+- ✅ Zero ESLint warnings for `@typescript-eslint/no-explicit-any`
+- ✅ Improved compile-time type safety for production and test code
+- ✅ Better IDE autocomplete and IntelliSense in all files
+- ✅ TypeScript catches more errors at compile time
+- ✅ Safer refactoring with comprehensive type checking
+- ✅ All 343 tests passing, zero regressions
+- ✅ Clean production build with no warnings
+- ✅ Consistent type patterns in test mocks
 
 **Priority:** High ✅
 **Effort:** Medium ✅
@@ -1107,7 +1149,7 @@ export interface Geography {
 - `alwaysStrict` - Emit "use strict" in all files
 
 ### Type Safety Refactoring - Issue #2 Complete (November 2025)
-✅ **Major achievement:** Eliminated all production `any` types
+✅ **Major achievement:** Eliminated all `any` types from production and test code
 
 **Comprehensive Type System:**
 - Created `src/types/estat.ts` with 174 lines of complete e-Stat API type definitions
@@ -1118,7 +1160,11 @@ export interface Geography {
 - **Utils:** loadLocalData, correctBureauAggregates, dataTransform
 - **Hooks:** useImmigrationData (error handling), useDataMetadata (generic)
 - **Components:** FilterPanel, 6 chart components
-- **Tests:** useImmigrationData.test.ts
+
+**Test Code Updated (9 files):** ✅ **NEW**
+- **Utils Tests:** getBureauData.test.ts (28 any), calculateEstimates.test.ts (2 any), dataTransform.test.ts (2 any)
+- **Hooks Tests:** useDataMetadata.test.ts (4 any), useImmigrationData.test.ts (1 any)
+- **Component Tests:** StatsSummary.test.tsx (4 any), EstimationCard.test.tsx (8 any), FilterPanel.test.tsx (9 any)
 
 **Key Improvements:**
 ```typescript
@@ -1137,12 +1183,15 @@ callbacks: { label: (context: TooltipItem<'line'>) => { ... } }
 ```
 
 **Impact:**
-- **10+ production `any` types eliminated** across 14 files
-- **Better IntelliSense:** IDE now provides accurate autocomplete for e-Stat data
-- **Compile-time safety:** TypeScript catches type errors before runtime
+- **68+ `any` types eliminated** across 23 files (14 production + 9 test)
+- **Zero ESLint warnings** for `@typescript-eslint/no-explicit-any`
+- **Better IntelliSense:** IDE now provides accurate autocomplete for all code
+- **Compile-time safety:** TypeScript catches type errors before runtime in production and tests
 - **Safer refactoring:** Type system ensures consistency across changes
+- **Test mock type safety:** All Jest mocks now have proper TypeScript interfaces
 - **All 343 tests passing** with zero regressions
-- **Net code reduction:** Cleaner, more maintainable codebase
+- **Clean production build** with no warnings
+- **Consistent type patterns:** Uses `as unknown as T` for intentionally invalid test data
 
 ### Testing Achievement (October 2025)
 ✅ **Major milestone reached:** Comprehensive test coverage for all critical components
