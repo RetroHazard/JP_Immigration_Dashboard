@@ -4,6 +4,19 @@
 declare module 'react-simple-maps' {
   import type React from 'react';
 
+  export interface GeoProperties {
+    name: string;
+    name_ja: string;
+    [key: string]: unknown;
+  }
+
+  export interface Geography {
+    type: string;
+    properties: GeoProperties;
+    geometry: unknown;
+    rsmKey: string;
+  }
+
   export interface ComposableMapProps {
     projection?: string;
     projectionConfig?: {
@@ -21,26 +34,29 @@ declare module 'react-simple-maps' {
     center?: [number, number];
     onMoveEnd?: (position: { coordinates: [number, number]; zoom: number }) => void;
     children?: React.ReactNode;
+    maxZoom?: number;
+    minZoom?: number;
   }
 
   export interface GeographiesProps {
     geography: string | object;
-    children: (params: { geographies: unknown[] }) => React.ReactNode;
+    children: (params: { geographies: Geography[] }) => React.ReactNode;
   }
 
   export interface GeographyProps {
-    geography: unknown;
+    geography: Geography;
     style?: {
       default?: React.CSSProperties;
       hover?: React.CSSProperties;
       pressed?: React.CSSProperties;
     };
+    onMouseMove?: (event: React.MouseEvent) => void;
     onMouseEnter?: (event: React.MouseEvent) => void;
     onMouseLeave?: () => void;
     fill?: string;
     stroke?: string;
     strokeWidth?: number;
-    ref?: React.Ref<unknown>;
+    ref?: (node: unknown) => void;
   }
 
   export interface MarkerProps {

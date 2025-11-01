@@ -6,9 +6,9 @@ import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 're
 import { Icon } from '@iconify/react';
 import Tippy from '@tippyjs/react';
 
-import type { BureauOption } from '../../types/bureau';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
+import type { BureauOption } from '../../types/bureau';
 import { nonAirportBureaus } from '../../utils/getBureauData';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { LoadingSpinner } from '../common/LoadingSpinner';
@@ -311,14 +311,14 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
               </Geographies>
 
               {bureauOptions
-                .filter((b) => b.value !== 'all')
+                .filter((b) => b.value !== 'all' && b.coordinates !== undefined)
                 .map((bureau) => {
                   const isAirport = !nonAirportBureaus.find((b) => b.value === bureau.value);
                   const baseSize = Math.min(10, Math.max(1, 50 / position.zoom));
                   const iconSize = isAirport ? baseSize * 0.85 : baseSize;
 
                   return (
-                    <Marker key={bureau.value} coordinates={bureau.coordinates}>
+                    <Marker key={bureau.value} coordinates={bureau.coordinates!}>
                       <g
                         transform={`translate(-${iconSize / 2}, -${iconSize / 2})`}
                         onMouseEnter={() => setMarkerTooltip(bureau)}
@@ -429,7 +429,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
           interactive={true}
           hideOnClick={false}
           appendTo={document.body}
-          reference={markerRefs.current.get(markerTooltip?.value)}
+          reference={markerTooltip ? markerRefs.current.get(markerTooltip.value) : undefined}
           popperOptions={{
             modifiers: [
               {

@@ -1,9 +1,70 @@
 // src/__mocks__/mockEStatData.ts
 // Mock e-Stat API response data for testing
 
-export const mockEStatResponse = {
+import type { EStatResponse } from '../types/estat';
+
+export const mockEStatResponse: EStatResponse = {
   GET_STATS_DATA: {
+    RESULT: {
+      STATUS: 0,
+      ERROR_MSG: '',
+      DATE: '2024-01-01T00:00:00Z',
+    },
+    PARAMETER: {
+      LANG: 'J',
+      STATS_DATA_ID: '0003411576',
+      DATA_FORMAT: 'J',
+      START_POSITION: 1,
+      METAGET_FLG: 'N',
+      REPLACE_SP_CHARS: 0,
+      SECTION_HEADER_FLG: 1,
+    },
     STATISTICAL_DATA: {
+      RESULT_INF: {
+        TOTAL_NUMBER: 100,
+        FROM_NUMBER: 1,
+        TO_NUMBER: 100,
+      },
+      TABLE_INF: {
+        '@id': '0003411576',
+        STAT_NAME: {
+          '@code': '00350030',
+          $: '出入国管理統計',
+        },
+        GOV_ORG: {
+          '@code': '00350',
+          $: '出入国在留管理庁',
+        },
+        STATISTICS_NAME: '在留外国人統計',
+        TITLE: {
+          '@no': '1',
+          $: '在留審査処理数',
+        },
+        CYCLE: '月次',
+        SURVEY_DATE: 202401,
+        OPEN_DATE: '2024-02-01',
+        SMALL_AREA: 0,
+        COLLECT_AREA: '全国',
+        MAIN_CATEGORY: {
+          '@code': '02',
+          $: '人口・世帯',
+        },
+        SUB_CATEGORY: {
+          '@code': '02',
+          $: '人口',
+        },
+        OVERALL_TOTAL_NUMBER: 1000,
+        UPDATED_DATE: '2024-02-01',
+        STATISTICS_NAME_SPEC: {
+          TABULATION_CATEGORY: '在留審査処理数',
+          TABULATION_SUB_CATEGORY1: '月次',
+        },
+        DESCRIPTION: 'Test data',
+        TITLE_SPEC: {
+          TABLE_CATEGORY: '在留審査処理数',
+          TABLE_NAME: '月次',
+        },
+      },
       CLASS_INF: {
         CLASS_OBJ: [
           {
@@ -290,7 +351,7 @@ export const mockEStatMinimal = {
       },
     },
   },
-};
+} as unknown as EStatResponse;
 
 // Empty data for error handling tests
 export const mockEStatEmpty = {
@@ -301,4 +362,4 @@ export const mockEStatEmpty = {
       },
     },
   },
-};
+} as unknown as EStatResponse;
