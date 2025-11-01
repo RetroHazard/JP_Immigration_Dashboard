@@ -17,7 +17,19 @@ jest.mock('../utils/logger', () => ({
 
 // Mock FilterInput component
 jest.mock('./common/FilterInput', () => ({
-  FilterInput: ({ label, value, onChange, disabled, options }: any) => (
+  FilterInput: ({
+    label,
+    value,
+    onChange,
+    disabled,
+    options,
+  }: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    disabled?: boolean;
+    options?: { value: string; label: string }[];
+  }) => (
     <div data-testid={`filter-input-${label.toLowerCase().replace(/\s+/g, '-')}`}>
       <label>{label}</label>
       <select
@@ -26,7 +38,7 @@ jest.mock('./common/FilterInput', () => ({
         disabled={disabled}
         data-testid={`select-${label.toLowerCase().replace(/\s+/g, '-')}`}
       >
-        {options?.map((opt: any) => (
+        {options?.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>
@@ -168,7 +180,7 @@ describe('FilterPanel', () => {
     it('should handle null data', () => {
       render(
         <FilterPanel
-          data={null as any}
+          data={null as unknown as { month: string }[]}
           filters={defaultFilters}
           onChange={mockOnChange}
           filterConfig={defaultFilterConfig}
@@ -179,7 +191,7 @@ describe('FilterPanel', () => {
     });
 
     it('should handle data with no valid months', () => {
-      const invalidData = [{ month: '' }, { month: null as any }, { month: undefined as any }];
+      const invalidData = [{ month: '' }, { month: null as unknown as { month: string }[] }, { month: undefined as unknown as { month: string }[] }];
 
       render(
         <FilterPanel
@@ -197,7 +209,7 @@ describe('FilterPanel', () => {
       const dataWithFalsyMonths = [
         { month: '2024-01' },
         { month: '' },
-        { month: null as any },
+        { month: null as unknown as { month: string }[] },
         { month: '2024-03' },
       ];
 
@@ -436,7 +448,7 @@ describe('FilterPanel', () => {
     it('should handle non-array data', () => {
       render(
         <FilterPanel
-          data={'not-an-array' as any}
+          data={'not-an-array' as unknown as { month: string }[]}
           filters={defaultFilters}
           onChange={mockOnChange}
           filterConfig={defaultFilterConfig}
@@ -449,7 +461,7 @@ describe('FilterPanel', () => {
     it('should handle undefined data', () => {
       render(
         <FilterPanel
-          data={undefined as any}
+          data={undefined as unknown as { month: string }[]}
           filters={defaultFilters}
           onChange={mockOnChange}
           filterConfig={defaultFilterConfig}
@@ -495,7 +507,7 @@ describe('FilterPanel', () => {
 
       render(
         <FilterPanel
-          data={extendedData as any}
+          data={extendedData as unknown as { month: string }[]}
           filters={defaultFilters}
           onChange={mockOnChange}
           filterConfig={defaultFilterConfig}

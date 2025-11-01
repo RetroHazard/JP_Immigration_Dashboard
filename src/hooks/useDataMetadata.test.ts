@@ -26,13 +26,13 @@ describe('useDataMetadata', () => {
     });
 
     it('should return empty array for null data', () => {
-      const { result } = renderHook(() => useDataMetadata(null as any));
+      const { result } = renderHook(() => useDataMetadata(null as unknown as ImmigrationData[]));
 
       expect(result.current.uniqueMonths).toEqual([]);
     });
 
     it('should return empty array for undefined data', () => {
-      const { result } = renderHook(() => useDataMetadata(undefined as any));
+      const { result } = renderHook(() => useDataMetadata(undefined as unknown as ImmigrationData[]));
 
       expect(result.current.uniqueMonths).toEqual([]);
     });
@@ -184,7 +184,7 @@ describe('useDataMetadata', () => {
 
   describe('edge cases', () => {
     it('should handle non-array data gracefully', () => {
-      const { result } = renderHook(() => useDataMetadata('not-an-array' as any));
+      const { result } = renderHook(() => useDataMetadata('not-an-array' as unknown as ImmigrationData[]));
 
       expect(result.current.uniqueMonths).toEqual([]);
       expect(result.current.dateRange).toEqual({ min: '', max: '' });
@@ -192,7 +192,7 @@ describe('useDataMetadata', () => {
     });
 
     it('should handle array with objects missing month property', () => {
-      const invalidData = [{ bureau: '101170' }] as any;
+      const invalidData = [{ bureau: '101170' }] as unknown as ImmigrationData[];
 
       const { result } = renderHook(() => useDataMetadata(invalidData));
 
