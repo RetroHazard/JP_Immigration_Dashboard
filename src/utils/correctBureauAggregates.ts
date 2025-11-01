@@ -1,41 +1,24 @@
 // src/utils/correctBureauAggregates.ts
-// Non-mutating, O(1) access-time corrections for “管内” bureaus using bureau CODES.
+// Non-mutating, O(1) access-time corrections for "管内" bureaus using bureau CODES.
 // Works directly on the e-Stat DATA_INF.VALUE entries and never mutates the source.
 
+import type { BureauOption } from '../types/bureau';
+import type { EStatResponse, EStatValue } from '../types/estat';
 import { bureauOptions } from '../constants/bureauOptions';
 
-export type EStatValue = {
-  [k: string]: string | undefined; // "@tab", "@cat01", "@cat02", "@cat03", "@time", "$", etc.
-  "@cat03": string;                // bureau code
-  "@time": string;                 // time code (e.g., 2025000707)
-  "$"?: string;                    // numeric value as string
-};
+// For backwards compatibility, export EStatValue from the shared types
+export type { EStatValue } from '../types/estat';
 
-type ClassEntry = { "@code": string; "@name": string };
-type ClassObj = {
-  "@id": string;
-  "@name": string;
-  CLASS: ClassEntry | ClassEntry[];
-};
-
-export type EStatData = {
-  GET_STATS_DATA: {
-    STATISTICAL_DATA: {
-      CLASS_INF: {
-        CLASS_OBJ: ClassObj | ClassObj[];
-      };
-      DATA_INF: {
-        VALUE: EStatValue | EStatValue[];
-      };
-    };
-  };
-};
+// Simplified type alias for the e-Stat data structure
+export type EStatData = EStatResponse;
 
 // Use code mapping (see bureauOptions values)
 const AGGREGATE_MAPPING: Record<string, string[]> = Object.fromEntries(
   bureauOptions
-    .filter((b: any) => Array.isArray(b.children) && b.children.length)
-    .map((b) => [b.value, b.children as string[]])
+    .filter((b: BureauOption): b is BureauOption & { children: string[] } =>
+      Array.isArray(b.children) && b.children.length > 0
+    )
+    .map((b) => [b.value, b.children])
 );
 
 export function makeCorrectedAccessor(data: EStatData) {

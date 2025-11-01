@@ -1,14 +1,20 @@
 // src/hooks/useDataMetadata.ts
 import { useMemo } from 'react';
 
-import type { ImmigrationData } from './useImmigrationData';
+/**
+ * Type representing any data with a month field
+ */
+interface DataWithMonth {
+  month: string;
+  [key: string]: unknown;
+}
 
 /**
  * Custom hook to extract metadata from immigration data
  * Memoizes expensive operations like unique month extraction
  * Only recomputes when data changes, not when filters change
  */
-export const useDataMetadata = (data: ImmigrationData[]) => {
+export const useDataMetadata = <T extends DataWithMonth>(data: T[]) => {
   // Extract unique months sorted chronologically
   const uniqueMonths = useMemo(() => {
     if (!data || !Array.isArray(data) || data.length === 0) return [];

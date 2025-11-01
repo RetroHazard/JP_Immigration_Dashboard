@@ -15,7 +15,7 @@ interface FilterPanelProps {
 }
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChange, filterConfig }) => {
-  const { dateRange, uniqueMonths } = useDataMetadata(data as any);
+  const { dateRange, uniqueMonths } = useDataMetadata(data);
 
   // Log debug messages for edge cases
   if (!data || !Array.isArray(data) || data.length === 0) {

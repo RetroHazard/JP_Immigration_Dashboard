@@ -26,6 +26,16 @@ interface TooltipInfo {
   mousePosition: [number, number];
 }
 
+interface MarkerTooltipInfo {
+  name: string;
+  short: string;
+  coordinates: [number, number];
+}
+
+// Type for TopoJSON geography data
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type GeographyData = any; // TopoJSON structure is complex and varies
+
 // Calculate color based on density
 const adjustColor = (originalColor: string, density: number, minDensity: number, maxDensity: number): string => {
   if (!originalColor) return 'rgba(221, 221, 221, 0.8)';
@@ -86,10 +96,10 @@ const adjustColor = (originalColor: string, density: number, minDensity: number,
 };
 
 export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ isDarkMode }) => {
-  const [geographyData, setGeographyData] = useState<any>(null);
+  const [geographyData, setGeographyData] = useState<GeographyData>(null);
   const [isMapLoading, setIsMapLoading] = useState<boolean>(true);
   const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
-  const [markerTooltip, setMarkerTooltip] = useState<any>(null);
+  const [markerTooltip, setMarkerTooltip] = useState<MarkerTooltipInfo | null>(null);
   const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
     coordinates: [136, 36],
     zoom: 1,

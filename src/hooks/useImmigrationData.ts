@@ -31,14 +31,15 @@ export const useImmigrationData = () => {
         } else {
           setError('No data available');
         }
-      } catch (error: any) {
-        setError(error.message);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error occurred';
+        setError(message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData().catch((error: any) => {
+    fetchData().catch((error: unknown) => {
       logger.error('Unexpected error in fetchData:', error);
       setError('Failed to fetch data');
     });

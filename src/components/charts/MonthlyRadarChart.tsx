@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 
+import type { TooltipItem } from 'chart.js';
 import { Chart as ChartJS, Filler, Legend, LineElement, PointElement, RadialLinearScale, Tooltip } from 'chart.js';
 import type React from 'react';
 import { Radar } from 'react-chartjs-2';
@@ -124,9 +125,9 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => {
+          label: (context: TooltipItem<'radar'>) => {
             const label = context.dataset.label || '';
-            const value = context.raw.toFixed(1);
+            const value = (context.raw as number).toFixed(1);
             return `${label}: ${value}%`;
           },
         },

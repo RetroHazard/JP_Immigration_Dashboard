@@ -1,6 +1,7 @@
 // src/components/charts/BureauDistributionRingChart.tsx
 import { useMemo, useState } from 'react';
 
+import type { LegendItem, ScriptableContext, TooltipItem } from 'chart.js';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
 import type React from 'react';
 import { Doughnut } from 'react-chartjs-2';
@@ -64,11 +65,11 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
     cutout: '50%',
     elements: {
       arc: {
-        backgroundColor: (ctx: any) => {
+        backgroundColor: (ctx: ScriptableContext<'doughnut'>) => {
           const bureau = bureauOptions.find((b) => b.value === bureauData[ctx.dataIndex]?.id);
           return bureau?.background || 'rgba(100, 116, 139, 0.4)'; // Fallback to Slate
         },
-        borderColor: (ctx: any) => {
+        borderColor: (ctx: ScriptableContext<'doughnut'>) => {
           const bureau = bureauOptions.find((b) => b.value === bureauData[ctx.dataIndex]?.id);
           return bureau?.border || 'rgba(100, 116, 139, 1)'; // Fallback to Slate
         },
@@ -80,12 +81,12 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
         position: 'left' as const,
         labels: {
           color: isDarkMode ? '#fff' : '#000',
-          filter: (item: any) => item.text !== '0',
+          filter: (item: LegendItem) => item.text !== '0',
         },
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => {
+          label: (context: TooltipItem<'doughnut'>) => {
             const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
             const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
             return `${context.label}: ${percentage}%`;
