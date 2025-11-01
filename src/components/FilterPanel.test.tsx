@@ -3,6 +3,17 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { FilterPanel } from './FilterPanel';
+import { logger } from '../utils/logger';
+
+// Mock the logger module
+jest.mock('../utils/logger', () => ({
+  logger: {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
 
 // Mock FilterInput component
 jest.mock('./common/FilterInput', () => ({
@@ -47,7 +58,6 @@ describe('FilterPanel', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -139,8 +149,6 @@ describe('FilterPanel', () => {
     });
 
     it('should handle empty data array', () => {
-      const consoleLogSpy = jest.spyOn(console, 'log');
-
       render(
         <FilterPanel
           data={[]}
@@ -150,7 +158,7 @@ describe('FilterPanel', () => {
         />
       );
 
-      expect(consoleLogSpy).toHaveBeenCalledWith('No valid data provided');
+      expect(logger.debug).toHaveBeenCalledWith('No valid data provided');
       // Empty data should show empty date strings
       const dateNote = screen.getByText(/Data is available from/);
       expect(dateNote).toBeInTheDocument();
@@ -158,8 +166,6 @@ describe('FilterPanel', () => {
     });
 
     it('should handle null data', () => {
-      const consoleLogSpy = jest.spyOn(console, 'log');
-
       render(
         <FilterPanel
           data={null as any}
@@ -169,12 +175,11 @@ describe('FilterPanel', () => {
         />
       );
 
-      expect(consoleLogSpy).toHaveBeenCalledWith('No valid data provided');
+      expect(logger.debug).toHaveBeenCalledWith('No valid data provided');
     });
 
     it('should handle data with no valid months', () => {
       const invalidData = [{ month: '' }, { month: null as any }, { month: undefined as any }];
-      const consoleLogSpy = jest.spyOn(console, 'log');
 
       render(
         <FilterPanel
@@ -185,7 +190,7 @@ describe('FilterPanel', () => {
         />
       );
 
-      expect(consoleLogSpy).toHaveBeenCalledWith('No valid months found in data');
+      expect(logger.debug).toHaveBeenCalledWith('No valid months found in data');
     });
 
     it('should filter out falsy month values', () => {
@@ -429,8 +434,6 @@ describe('FilterPanel', () => {
 
   describe('edge cases', () => {
     it('should handle non-array data', () => {
-      const consoleLogSpy = jest.spyOn(console, 'log');
-
       render(
         <FilterPanel
           data={'not-an-array' as any}
@@ -440,12 +443,10 @@ describe('FilterPanel', () => {
         />
       );
 
-      expect(consoleLogSpy).toHaveBeenCalledWith('No valid data provided');
+      expect(logger.debug).toHaveBeenCalledWith('No valid data provided');
     });
 
     it('should handle undefined data', () => {
-      const consoleLogSpy = jest.spyOn(console, 'log');
-
       render(
         <FilterPanel
           data={undefined as any}
@@ -455,7 +456,7 @@ describe('FilterPanel', () => {
         />
       );
 
-      expect(consoleLogSpy).toHaveBeenCalledWith('No valid data provided');
+      expect(logger.debug).toHaveBeenCalledWith('No valid data provided');
     });
 
     it('should memoize date range calculation', () => {

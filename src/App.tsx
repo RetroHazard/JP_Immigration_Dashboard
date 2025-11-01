@@ -141,7 +141,11 @@ const App: React.FC = () => {
               </div>
 
               <div className={`mobile-drawer-trigger ${isDrawerOpen ? 'translate-x-[300px]' : ''}`}>
-                <button onClick={() => setIsDrawerOpen(!isDrawerOpen)} className="clip-tapered-btn">
+                <button
+                  onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+                  aria-label={isDrawerOpen ? 'Close estimator drawer' : 'Open estimator drawer'}
+                  className="clip-tapered-btn"
+                >
                   <div className="flex origin-center flex-col items-center">
                     <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300 dark:text-gray-700" />
                     <span className="mobile-drawer-label">estimator</span>
@@ -196,6 +200,7 @@ const App: React.FC = () => {
                       {CHART_COMPONENTS.map((chart, index) => (
                         <button
                           key={chart.name}
+                          aria-label={chart.name}
                           onClick={() => setActiveChartIndex(index)}
                           className={`rounded-t-lg px-4 py-2 ${
                             activeChartIndex === index

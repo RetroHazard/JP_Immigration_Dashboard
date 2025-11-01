@@ -40,7 +40,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
       <label className="filter-label">{label}</label>
       {type === 'select' ? (
         <div className={`${disabled ? 'pointer-events-none opacity-50' : ''}`}>
-          <select className="filter-select" aria-label={value} value={value} onChange={handleChange}>
+          <select className="filter-select" aria-label={label} value={value} onChange={handleChange}>
             {includeDefaultOption && <option value="">{defaultOptionLabel}</option>}
             {filteredOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -54,6 +54,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
           type={type}
           placeholder="YYYY-MM"
           className="filter-select"
+          aria-label={label}
           value={value}
           onChange={handleChange}
           min={min}
