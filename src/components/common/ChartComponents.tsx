@@ -1,13 +1,41 @@
 // src/components/common/ChartComponents.tsx
+import { lazy } from 'react';
+
 import type React from 'react';
 
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
-import { BureauDistributionRingChart } from '../charts/BureauDistributionRingChart';
-import { BureauPerformanceBubbleChart } from '../charts/BureauPerformanceBubbleChart';
-import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineChart';
-import { GeographicDistributionChart } from '../charts/GeographicDistributionChart';
-import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
-import { MonthlyRadarChart } from '../charts/MonthlyRadarChart';
+
+// Lazy load chart components for code splitting - reduces initial bundle size
+const BureauDistributionRingChart = lazy(() =>
+  import('../charts/BureauDistributionRingChart').then((module) => ({
+    default: module.BureauDistributionRingChart,
+  }))
+);
+const BureauPerformanceBubbleChart = lazy(() =>
+  import('../charts/BureauPerformanceBubbleChart').then((module) => ({
+    default: module.BureauPerformanceBubbleChart,
+  }))
+);
+const CategorySubmissionsLineChart = lazy(() =>
+  import('../charts/CategorySubmissionsLineChart').then((module) => ({
+    default: module.CategorySubmissionsLineChart,
+  }))
+);
+const GeographicDistributionChart = lazy(() =>
+  import('../charts/GeographicDistributionChart').then((module) => ({
+    default: module.GeographicDistributionChart,
+  }))
+);
+const IntakeProcessingBarChart = lazy(() =>
+  import('../charts/IntakeProcessingBarChart').then((module) => ({
+    default: module.IntakeProcessingBarChart,
+  }))
+);
+const MonthlyRadarChart = lazy(() =>
+  import('../charts/MonthlyRadarChart').then((module) => ({
+    default: module.MonthlyRadarChart,
+  }))
+);
 
 export interface ImmigrationChartData {
   data: ImmigrationData[];

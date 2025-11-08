@@ -25,6 +25,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        {/* Preconnect to external domains for faster resource loading */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        {/* Iconify may fetch icons from CDN - preconnect for faster icon loading */}
+        <link rel="preconnect" href="https://api.iconify.design" />
+        <link rel="dns-prefetch" href="https://api.iconify.design" />
+      </head>
       <body>
         <div id="root">{children}</div>
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? ''} />
