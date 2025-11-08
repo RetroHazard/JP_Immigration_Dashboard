@@ -1049,11 +1049,49 @@ self.addEventListener('fetch', (event) => {
 4. **Option 4** (Web Worker) - Keep main thread responsive during parsing
 5. **Option 5** (Service Worker) - Progressive enhancement for offline support
 
-**Combined Impact:**
+---
+
+**⚠️ A/B Test Results - Options 1 & 3 INSUFFICIENT (November 2025):**
+
+Options 1 and 3 were implemented and tested via Lighthouse audits. **Both approaches failed to meet Core Web Vitals targets:**
+
+| Test Results | Option 1 (Brotli) | Option 3 (Data Splitting) | Required Target | Status |
+|--------------|-------------------|---------------------------|-----------------|--------|
+| **Performance Score** | 61 | 63 | 90+ | ❌ FAIL (30-32% below) |
+| **LCP** | 4.8s | 4.4s | <2.5s | ❌ FAIL (76-92% over) |
+| **TBT** | 420ms | 460ms | <200ms | ❌ FAIL (110-130% over) |
+| **CLS** | 0.212 | 0.212 | <0.1 | ❌ FAIL (112% over) |
+| **TTI** | 4.8s | 4.4s | <3.8s | ❌ FAIL (16-26% over) |
+
+**Key Findings:**
+- **Option 1** achieved 97.8% compression (4.26 MB → 0.09 MB) but decompression blocked main thread
+- **Option 3** achieved 80% initial load reduction (0.83 MB) with progressive loading but still too slow
+- Both options reduced file size significantly but **did not address root causes:**
+  - Main thread blocking during data parsing/transformation (~3.3-3.4s)
+  - Chart.js initialization overhead
+  - JavaScript execution time
+  - Layout thrashing / forced reflows
+
+**Conclusion:** **Data file size is NOT the primary bottleneck.** The real issues are:
+1. **Main thread work** (3.3-3.4s parsing/transforming data)
+2. **JavaScript execution time** (Chart.js, React rendering)
+3. **Layout operations** (synchronous DOM reads/writes)
+
+**Branches:**
+- `perf/option1-brotli-compression` (commit a937e2c)
+- `perf/option3-data-splitting` (commit e123f80)
+- Detailed analysis in `docs/AB_TEST_RESULTS.md` (on option3 branch)
+
+**Recommendation:** Focus on **Option 4 (Web Worker)** to offload data transformation from main thread, combined with Chart.js optimization and reducing unnecessary React re-renders.
+
+---
+
+**Combined Impact (Theoretical - Not Validated):**
 - First visit: 4.3MB → ~600KB compressed → ~100KB recent data only
 - Repeat visits: IndexedDB cache = 0ms load time
 - All visits: Main thread responsive (Web Worker parsing)
 - Offline support: Service Worker caching
+- **Note:** Based on test results, file size optimizations alone are insufficient
 
 **Issues Identified:**
 
