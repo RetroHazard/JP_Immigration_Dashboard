@@ -1051,63 +1051,82 @@ self.addEventListener('fetch', (event) => {
 
 ---
 
-**⚠️ A/B/C Test Results - ALL OPTIONS INSUFFICIENT (November 2025):**
+**⚠️ Complete A/B/C/D/E Test Results - ALL OPTIONS INSUFFICIENT (November 2025):**
 
-Options 1, 3, and 4 were implemented and tested via Lighthouse audits. **All approaches failed to meet Core Web Vitals targets, but Option 4 shows significant improvement:**
+All 5 optimization options were implemented and tested via Lighthouse audits. **All approaches failed to meet Core Web Vitals targets, but Option 4 shows significant improvement:**
 
-| Test Results | Option 1 (Brotli) | Option 3 (Data Split) | Option 4 (Web Worker) ⭐ | Target | Status |
-|--------------|-------------------|-----------------------|-------------------------|--------|--------|
-| **Performance Score** | 61 | 63 | **71** (+16% vs Opt 1) | 90+ | ❌ FAIL (21% below) |
-| **LCP** | 4.8s | 4.4s | **4.3s** (best) | <2.5s | ❌ FAIL (72% over) |
-| **TBT** | 420ms | 460ms | **210ms** (50% ↓!) | <200ms | ❌ FAIL (5% over!) |
-| **CLS** | 0.212 | 0.212 | **0.208** | <0.1 | ❌ FAIL (108% over) |
-| **TTI** | 4.8s | 4.4s | **4.3s** (best) | <3.8s | ❌ FAIL (13% over) |
-| **Total Size** | 598 KiB | 509 KiB | **500 KiB** (best) | - | ✅ BEST |
-| **Main Thread** | 3.3s | 3.4s | **3.2s** (reduced) | - | ✅ Improved |
+### Performance Comparison Table
 
-**Key Findings:**
+| Test Results | Option 1 | Option 2 | Option 3 | Option 4 ⭐ | Option 5 | Target | Best |
+|--------------|----------|----------|----------|-----------|----------|--------|------|
+| **Performance Score** | 61 | 63 | 63 | **71** | 64 | 90+ | Option 4 (+16%) |
+| **LCP** | 4.8s | 4.3s | 4.4s | **4.3s** | 4.3s | <2.5s | Option 4 |
+| **TBT** | 420ms | 440ms | 460ms | **210ms** | 430ms | <200ms | Option 4 (50% ↓) |
+| **CLS** | 0.212 | 0.212 | 0.212 | **0.208** | 0.212 | <0.1 | Option 4 |
+| **TTI** | 4.8s | 4.3s | 4.4s | **4.3s** | 4.3s | <3.8s | Option 4 |
+| **Total Size** | 598 KiB | 501 KiB | 509 KiB | **500 KiB** | 501 KiB | - | Option 4 |
+| **Main Thread** | 3.3s | 3.4s | 3.4s | **3.2s** | 3.6s | - | Option 4 |
 
-*Option 1 (Brotli Compression):*
-- Achieved 97.8% compression (4.26 MB → 0.09 MB)
-- BUT: Decompression blocked main thread
-- TBT: 420ms (110% over target)
+### Implementation Details
 
-*Option 3 (Data Splitting):*
-- Achieved 80% initial load reduction (0.83 MB recent data)
-- Progressive loading pattern
-- BUT: Still slow transformation on main thread
-- TBT: 460ms (130% over target)
+**Option 1: Brotli Compression** (Score: 61)
+- Build-time Brotli compression: 4.26 MB → 0.09 MB (97.8% reduction)
+- Browser decompression using DecompressionStream API
+- **Issue:** Decompression blocks main thread
+- Branch: `perf/option1-brotli-compression` (commit a937e2c)
 
-*Option 4 (Web Worker):* ⭐ **BEST RESULT**
+**Option 2: IndexedDB Caching** (Score: 63)
+- Caches transformed data locally for repeat visits
+- 24-hour TTL, instant load on return
+- **Caveat:** Lighthouse tests first visit only (repeat visit performance not measured)
+- Branch: `perf/option2-indexeddb` (commit 675ac98)
+
+**Option 3: Data Splitting** (Score: 63)
+- Split into recent (0.83 MB, 12 months) + historical (3.24 MB)
+- Progressive loading: recent first, historical in background
+- **Issue:** Still slow transformation on main thread
+- Branch: `perf/option3-data-splitting` (commit e123f80)
+
+**Option 4: Web Worker** ⭐ **BEST RESULT** (Score: 71)
+- Offloads data transformation to background thread
 - **50% TBT reduction** (460ms → 210ms, now only 5% over target!)
-- **+16% performance score** (61 → 71)
-- **Smallest total size** (500 KiB)
-- **All 343 tests passing** with automatic fallback for SSR/old browsers
-- Main thread freed from data transformation
+- **+16% performance score improvement**
+- Smallest total size (500 KiB)
+- Main thread freed from blocking work
+- All 343 tests passing with SSR/browser fallback
+- Branch: `perf/option4-web-worker` (commit f85fbd4) ⭐ **RECOMMENDED**
 
-**Conclusion:**
+**Option 5: Service Worker** (Score: 64)
+- Stale-while-revalidate caching strategy
+- Caches data file, serves from cache on repeat visits
+- **Caveat:** Lighthouse tests first visit only (cache benefits not measured)
+- Branch: `perf/option5-service-worker` (commit 7e28c20)
 
-✅ **Web Workers significantly improved TBT** (now only 5% over target vs 110-130% over)
-✅ **Best overall performance** across all metrics
-❌ **Still insufficient** to pass Core Web Vitals - additional optimizations needed
+### Key Findings
 
-**Root causes still present:**
-1. LCP bottleneck (72% over target) - likely Chart.js initialization and rendering
-2. CLS issues (108% over target) - layout thrashing, missing size reservations
-3. Remaining TBT (5% over target) - very close, minor optimizations needed
+✅ **Option 4 (Web Worker) is the clear winner** for first-visit performance
+✅ **Options 2 & 5** benefit repeat visits but show no improvement in Lighthouse (first visit)
+❌ **All options still fail Core Web Vitals** - additional optimizations required
 
-**Branches:**
-- `perf/option1-brotli-compression` (commit a937e2c)
-- `perf/option3-data-splitting` (commit e123f80)
-- `perf/option4-web-worker` (commit f85fbd4) ⭐ **RECOMMENDED BASE**
-- Detailed analysis in `docs/AB_TEST_RESULTS.md` (on option3 branch)
+**Remaining Issues:**
+1. **LCP: 4.3s** (target <2.5s, 72% over) - Chart.js initialization/rendering bottleneck
+2. **TBT: 210ms** (target <200ms, 5% over) - Very close! Minor optimizations needed
+3. **CLS: 0.208** (target <0.1, 108% over) - Layout shifts, missing size reservations
 
-**Next Steps:**
-1. **Use Option 4 as base** (best performance, proper architecture)
-2. **Defer Chart.js initialization** until charts are visible (lazy rendering)
-3. **Fix CLS issues** (reserve space for charts, optimize layout)
-4. **Profile remaining bottlenecks** (Chrome DevTools Performance tab)
-5. Consider **combining Option 4 + Option 3** (Web Worker + Data Splitting)
+### Recommendations
+
+**Immediate:**
+1. **Deploy Option 4** as base (best first-visit performance)
+2. **Combine with Option 2 or 5** for repeat-visit optimization
+3. **Defer Chart.js initialization** until charts visible (Intersection Observer)
+4. **Fix CLS** - reserve space for charts before loading
+5. **Profile with Chrome DevTools** to identify remaining bottlenecks
+
+**Future Optimizations:**
+- Combine Options 3 + 4 (Data Splitting + Web Worker)
+- Add Options 2 or 5 for repeat-visit caching
+- Lazy-render charts (don't initialize until tab visible)
+- Optimize Chart.js config (reduce animation complexity)
 
 ---
 
