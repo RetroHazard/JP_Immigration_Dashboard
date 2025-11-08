@@ -1,5 +1,5 @@
 // App.tsx
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import type React from 'react';
 import { Icon } from '@iconify/react';
@@ -213,10 +213,12 @@ const App: React.FC = () => {
                       ))}
                     </div>
                     <ErrorBoundary>
-                      {(() => {
-                        const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
-                        return <ChartComponent data={data ?? []} filters={filters} isDarkMode={isDarkMode} />;
-                      })()}
+                      <Suspense fallback={<LoadingSpinner icon="line-md:loading-twotone-loop" message="Loading chart..." />}>
+                        {(() => {
+                          const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
+                          return <ChartComponent data={data ?? []} filters={filters} isDarkMode={isDarkMode} />;
+                        })()}
+                      </Suspense>
                     </ErrorBoundary>
                   </div>
                 </div>
