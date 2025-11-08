@@ -853,11 +853,207 @@ Resource Hints:
 **Critical Data File Size:**
 - `public/datastore/statData.json` is 4.3MB (uncompressed)
 - This is likely the primary LCP bottleneck
-- Potential solutions:
-  - Enable gzip/brotli compression on GitHub Pages
-  - Split data by time period (load recent months first)
-  - Use more efficient data format (Protocol Buffers, MessagePack)
-  - Implement progressive data loading
+- **Constraint:** SSG/CSR only (GitHub Pages), no source file modifications
+
+**Optimization Options (Ordered by Impact):**
+
+#### Option 1: Pre-compress Data at Build Time (Highest Impact)
+**Expected Impact:** 4.3MB → ~500-800KB (80-85% reduction)
+**Effort:** Low
+**Implementation:**
+- Add build script to create Brotli-compressed version (`.br` file)
+- Use `DecompressionStream` API in browser to decompress at runtime
+- Fallback to uncompressed version for older browsers
+- No source file modification required
+
+**Code:**
+```bash
+# Add to package.json scripts
+"compress-data": "node scripts/compress-data.js"
+```
+
+```typescript
+// scripts/compress-data.js
+const fs = require('fs');
+const zlib = require('zlib');
+
+const input = fs.readFileSync('public/datastore/statData.json');
+const compressed = zlib.brotliCompressSync(input, {
+  params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 }
+});
+fs.writeFileSync('public/datastore/statData.json.br', compressed);
+```
+
+```typescript
+// src/utils/loadLocalData.ts - Use DecompressionStream API
+const response = await fetch('/datastore/statData.json.br');
+const decompressedStream = response.body?.pipeThrough(new DecompressionStream('br'));
+const data = await new Response(decompressedStream).json();
+```
+
+**Pros:** Massive file size reduction, browser-native decompression
+**Cons:** Requires modern browser (fallback available)
+
+---
+
+#### Option 2: IndexedDB Caching (Avoid Re-parsing)
+**Expected Impact:** Instant load on repeat visits (0ms vs 500ms+ JSON parsing)
+**Effort:** Medium
+**Implementation:**
+- Cache parsed JSON in IndexedDB after first load
+- Check cache on subsequent visits (24-hour TTL)
+- Skip network fetch and JSON parsing entirely
+
+**Code:**
+```typescript
+// Install: npm install idb
+import { openDB } from 'idb';
+
+const getCachedData = async (key: string) => {
+  const db = await openDB('immigration-data-cache', 1);
+  const cached = await db.get('json-cache', key);
+
+  if (cached && cached.timestamp > Date.now() - 24 * 60 * 60 * 1000) {
+    return cached.data; // Valid cache
+  }
+  return null;
+};
+
+// In loadLocalData()
+const cached = await getCachedData('statData');
+if (cached) return cached;
+
+// Otherwise fetch, parse, and cache
+const data = await response.json();
+await setCachedData('statData', data);
+```
+
+**Pros:** Eliminates network request and parsing on repeat visits
+**Cons:** Only helps returning visitors, adds ~3KB library
+
+---
+
+#### Option 3: Split Data by Time Period (Progressive Loading)
+**Expected Impact:** First meaningful paint with ~360KB instead of 4.3MB
+**Effort:** Medium
+**Implementation:**
+- Build script creates `statData-recent.json` (last 12 months)
+- Build script creates `statData-historical.json` (older data)
+- Load recent data first, show UI immediately
+- Load historical data in background
+
+**Code:**
+```typescript
+// scripts/split-data.js
+const data = JSON.parse(fs.readFileSync('public/datastore/statData.json'));
+const values = data.GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE;
+
+const cutoffMonth = '2024-01'; // Last 12 months
+const recent = values.filter(v => v['@time'] >= cutoffMonth);
+const historical = values.filter(v => v['@time'] < cutoffMonth);
+
+// Create two separate files
+fs.writeFileSync('public/datastore/statData-recent.json',
+  JSON.stringify({...data, GET_STATS_DATA: {..., VALUE: recent}}));
+```
+
+```typescript
+// src/hooks/useImmigrationData.ts
+const recentData = await loadRecentData();
+setData(transformData(recentData));
+setLoading(false); // Page is interactive!
+
+// Background load
+const historicalData = await loadHistoricalData();
+setData([...recentData, ...transformData(historicalData)]);
+```
+
+**Pros:** Fast initial load, progressive enhancement
+**Cons:** Requires careful state management, more complex
+
+---
+
+#### Option 4: Web Worker for JSON Parsing (Keep Main Thread Responsive)
+**Expected Impact:** Improves TTI/TBT metrics, main thread stays responsive
+**Effort:** Medium
+**Implementation:**
+- Move JSON parsing and data transformation to Web Worker
+- Main thread remains responsive during processing
+- Post transformed data back to main thread
+
+**Code:**
+```typescript
+// public/workers/data-parser.worker.js
+self.addEventListener('message', async (e) => {
+  const response = await fetch(e.data.url);
+  const data = await response.json();
+  const transformed = transformData(data); // Heavy work here
+  self.postMessage({ type: 'DATA_READY', data: transformed });
+});
+
+// src/hooks/useImmigrationData.ts
+const worker = new Worker('/workers/data-parser.worker.js');
+worker.onmessage = (e) => {
+  if (e.data.type === 'DATA_READY') {
+    setData(e.data.data);
+    setLoading(false);
+  }
+};
+worker.postMessage({ type: 'PARSE_DATA', url: '/datastore/statData.json' });
+```
+
+**Pros:** Main thread stays responsive, better perceived performance
+**Cons:** Can't use on older browsers without polyfill
+
+---
+
+#### Option 5: Service Worker (Progressive Enhancement)
+**Expected Impact:** Near-instant load on repeat visits, offline support
+**Effort:** Medium-High
+**Implementation:**
+- Cache data file using Service Worker
+- Stale-while-revalidate strategy
+- Pre-cache on first visit
+- Update cache in background
+
+**Code:**
+```typescript
+// public/sw.js
+self.addEventListener('fetch', (event) => {
+  if (event.request.url.includes('/datastore/')) {
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        // Return cache immediately, update in background
+        if (response) {
+          fetch(event.request).then(fresh => {
+            caches.open('data-v1').then(cache => cache.put(event.request, fresh));
+          });
+          return response;
+        }
+        return fetch(event.request);
+      })
+    );
+  }
+});
+```
+
+**Pros:** Offline support, instant repeat visits, automatic updates
+**Cons:** Complex lifecycle management, requires HTTPS (works on localhost)
+
+---
+
+**Recommended Implementation Order:**
+1. **Option 1** (Compression) - Biggest immediate impact (80% size reduction)
+2. **Option 2** (IndexedDB) - Eliminates re-parsing on repeat visits
+3. **Option 3** (Data Splitting) - Load recent data first for faster interactivity
+4. **Option 4** (Web Worker) - Keep main thread responsive during parsing
+5. **Option 5** (Service Worker) - Progressive enhancement for offline support
+
+**Combined Impact:**
+- First visit: 4.3MB → ~600KB compressed → ~100KB recent data only
+- Repeat visits: IndexedDB cache = 0ms load time
+- All visits: Main thread responsive (Web Worker parsing)
+- Offline support: Service Worker caching
 
 **Issues Identified:**
 
