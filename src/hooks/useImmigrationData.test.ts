@@ -5,15 +5,19 @@ import { mockEStatResponse } from '../__mocks__/mockEStatData';
 import { mockImmigrationData } from '../__mocks__/mockImmigrationData';
 import type { EStatResponse } from '../types/estat';
 import { transformData } from '../utils/dataTransform';
+import { getCachedData, setCachedData } from '../utils/indexedDBCache';
 import { loadLocalData } from '../utils/loadLocalData';
 import { useImmigrationData } from './useImmigrationData';
 
 // Mock the utility functions
 jest.mock('../utils/loadLocalData');
 jest.mock('../utils/dataTransform');
+jest.mock('../utils/indexedDBCache');
 
 const mockedLoadLocalData = loadLocalData as jest.MockedFunction<typeof loadLocalData>;
 const mockedTransformData = transformData as jest.MockedFunction<typeof transformData>;
+const mockedGetCachedData = getCachedData as jest.MockedFunction<typeof getCachedData>;
+const mockedSetCachedData = setCachedData as jest.MockedFunction<typeof setCachedData>;
 
 describe('useImmigrationData', () => {
   beforeEach(() => {
@@ -21,6 +25,15 @@ describe('useImmigrationData', () => {
     jest.clearAllMocks();
     // Suppress console.error for expected errors
     jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Disable Web Worker in test environment (tests will use fallback path)
+    // This allows existing tests to work without modification
+    // @ts-expect-error - Setting to undefined to test fallback behavior
+    global.Worker = undefined;
+
+    // Default: no cache hit (cache miss scenario)
+    mockedGetCachedData.mockResolvedValue(null);
+    mockedSetCachedData.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -39,7 +52,7 @@ describe('useImmigrationData', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('should load and transform data successfully', async () => {
+    it('should load and transform data successfully (fallback mode)', async () => {
       mockedLoadLocalData.mockResolvedValue(mockEStatResponse);
       mockedTransformData.mockReturnValue(mockImmigrationData);
 
@@ -53,6 +66,8 @@ describe('useImmigrationData', () => {
       expect(result.current.error).toBeNull();
       expect(mockedLoadLocalData).toHaveBeenCalledTimes(1);
       expect(mockedTransformData).toHaveBeenCalledWith(mockEStatResponse);
+      // Should cache the transformed data
+      expect(mockedSetCachedData).toHaveBeenCalledWith('immigration-transformed-data', mockImmigrationData);
     });
 
     it('should handle empty transformed data', async () => {
@@ -471,6 +486,110 @@ describe('useImmigrationData', () => {
 
       expect(result.current.data).toBeNull();
       expect(result.current.error).toBe('Complete failure');
+    });
+  });
+
+  describe('hybrid optimization strategy', () => {
+    it('should load from IndexedDB cache on cache hit', async () => {
+      // Simulate cache hit scenario
+      mockedGetCachedData.mockResolvedValue(mockImmigrationData);
+
+      const { result } = renderHook(() => useImmigrationData());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Should load from cache instantly
+      expect(result.current.data).toEqual(mockImmigrationData);
+      expect(result.current.error).toBeNull();
+
+      // Should NOT fetch or transform data
+      expect(mockedLoadLocalData).not.toHaveBeenCalled();
+      expect(mockedTransformData).not.toHaveBeenCalled();
+    });
+
+    it('should use Web Worker on cache miss (when Worker available)', async () => {
+      mockedLoadLocalData.mockResolvedValue(mockEStatResponse);
+
+      // Mock Worker API for this test
+      let workerOnMessage: ((e: MessageEvent) => void) | null = null;
+      global.Worker = jest.fn().mockImplementation(() => ({
+        postMessage: jest.fn(),
+        terminate: jest.fn(),
+        set onmessage(handler: (e: MessageEvent) => void) {
+          workerOnMessage = handler;
+          // Simulate worker completing transformation
+          setTimeout(() => {
+            workerOnMessage?.({
+              data: {
+                type: 'TRANSFORM_COMPLETE',
+                data: mockImmigrationData,
+                id: 0,
+              },
+            } as MessageEvent);
+          }, 10);
+        },
+        get onmessage() {
+          return workerOnMessage;
+        },
+        onerror: null,
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+        onmessageerror: null,
+      })) as unknown as typeof Worker;
+
+      const { result } = renderHook(() => useImmigrationData());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual(mockImmigrationData);
+      expect(result.current.error).toBeNull();
+      expect(mockedLoadLocalData).toHaveBeenCalledTimes(1);
+      // Should cache the transformed data
+      expect(mockedSetCachedData).toHaveBeenCalledWith('immigration-transformed-data', mockImmigrationData);
+    });
+
+    it('should fallback to synchronous transformation when Worker unavailable', async () => {
+      mockedLoadLocalData.mockResolvedValue(mockEStatResponse);
+      mockedTransformData.mockReturnValue(mockImmigrationData);
+
+      const { result } = renderHook(() => useImmigrationData());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual(mockImmigrationData);
+      expect(mockedTransformData).toHaveBeenCalledWith(mockEStatResponse);
+      // Should still cache even in fallback mode
+      expect(mockedSetCachedData).toHaveBeenCalledWith('immigration-transformed-data', mockImmigrationData);
+    });
+
+    it('should cleanup worker on unmount', async () => {
+      mockedLoadLocalData.mockResolvedValue(mockEStatResponse);
+
+      const terminateMock = jest.fn();
+      global.Worker = jest.fn().mockImplementation(() => ({
+        postMessage: jest.fn(),
+        terminate: terminateMock,
+        onmessage: null,
+        onerror: null,
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+        onmessageerror: null,
+      })) as unknown as typeof Worker;
+
+      const { unmount } = renderHook(() => useImmigrationData());
+
+      unmount();
+
+      // Worker should be terminated on unmount
+      expect(terminateMock).toHaveBeenCalled();
     });
   });
 });
