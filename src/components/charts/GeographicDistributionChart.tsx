@@ -245,7 +245,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
       </div>
 
       <div className="map-container">
-        {isMapLoading ? (
+        {isMapLoading || !geographyData ? (
           <LoadingSpinner icon="svg-spinners:blocks-wave" message="Loading Map Data..." />
         ) : (
           <ComposableMap projection="geoMercator" projectionConfig={{ scale: 1000, center: [136, 36] }}>
