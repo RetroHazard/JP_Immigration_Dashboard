@@ -30,10 +30,6 @@ interface TooltipInfo {
 // MarkerTooltipInfo is the same as BureauOption
 type MarkerTooltipInfo = BureauOption;
 
-// Type for TopoJSON geography data
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type GeographyData = any; // TopoJSON structure is complex and varies
-
 // Calculate color based on density
 const adjustColor = (originalColor: string, density: number, minDensity: number, maxDensity: number): string => {
   if (!originalColor) return 'rgba(221, 221, 221, 0.8)';
@@ -92,7 +88,7 @@ const adjustColor = (originalColor: string, density: number, minDensity: number,
 };
 
 export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ isDarkMode }) => {
-  const [geographyData, setGeographyData] = useState<GeographyData>(null);
+  const [geographyData, setGeographyData] = useState<object | null>(null);
   const [isMapLoading, setIsMapLoading] = useState<boolean>(true);
   const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
   const [markerTooltip, setMarkerTooltip] = useState<MarkerTooltipInfo | null>(null);
