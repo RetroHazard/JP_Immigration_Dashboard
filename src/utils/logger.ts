@@ -4,13 +4,11 @@
 
 const isDev = process.env.NODE_ENV === 'development';
 
+// Use unknown[] instead of any[] for variadic console methods
+// This is type-safe because we're just forwarding args to console methods
 export const logger = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  error: (...args: any[]) => isDev && console.error(...args),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  warn: (...args: any[]) => isDev && console.warn(...args),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  info: (...args: any[]) => isDev && console.info(...args),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  debug: (...args: any[]) => isDev && console.log(...args),
+  error: (...args: unknown[]) => isDev && console.error(...args),
+  warn: (...args: unknown[]) => isDev && console.warn(...args),
+  info: (...args: unknown[]) => isDev && console.info(...args),
+  debug: (...args: unknown[]) => isDev && console.log(...args),
 };
