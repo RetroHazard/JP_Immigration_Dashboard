@@ -107,8 +107,8 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 
 ### Frontend:
 - `Node.js` – Runtime
-- `TypeScript` – Type-safe JavaScript with compile-time validation
-- `Next.js` – Framework
+- `TypeScript` – Type-safe JavaScript with strict mode enabled
+- `Next.js` – Framework (Static Site Generation)
 - `React` – Library
 - `Chart.js` – Data Visualization (Charts)
 - `react-simple-maps` - Data Visualization (Maps)
@@ -117,8 +117,13 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 - `Iconify` – UI Icons
 - `KaTeX` – LaTeX Typesetting
 
+### Performance:
+- `Web Workers` – Background data transformation
+- `IndexedDB` – Client-side caching layer
+- `Code Splitting` – On-demand component loading
+
 ### DevOps:
-- `GitHub Actions` – Automation
+- `GitHub Actions` – CI/CD Automation
 
 ### Hosting:
 - `GitHub Pages` – Static Site Hosting
@@ -126,13 +131,15 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 ### Tooling:
 - `WebStorm` – IDE
 - `Prettier` – Code Formatter
-- `ESLint` – Linter
+- `ESLint` – Linter (zero warnings)
+- `@next/bundle-analyzer` – Bundle size analysis
 
 ### Testing:
 - `Jest` – Test Runner
 - `React Testing Library` – Component Testing
 - `@testing-library/jest-dom` – DOM Matchers
 - `ts-jest` – TypeScript Support
+- `tsd` – Type-level Testing
 
 ---
 
@@ -174,8 +181,66 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 
 ---
 
+## :rocket: Performance Optimization
+
+### Hybrid Optimization Strategy
+This application implements a two-tier performance optimization combining Web Workers and IndexedDB caching for optimal performance across all visit types.
+
+#### Architecture Overview
+
+**First Visit Flow:**
+1. Data loaded from static JSON file (4.09 MB e-Stat data)
+2. IndexedDB cache check (cache miss on first visit)
+3. Web Worker processes data transformation in background thread
+4. Main thread remains responsive during processing
+5. Transformed data cached in IndexedDB with 24-hour TTL
+6. Data rendered in UI
+
+**Repeat Visit Flow:**
+1. IndexedDB returns cached transformed data instantly (<50ms)
+2. Skip network fetch and transformation entirely
+3. Immediate rendering
+
+#### Performance Metrics
+
+**First Visit:**
+- Lighthouse Performance Score: **71**
+- Total Blocking Time: **210ms** (50% reduction from baseline)
+- First Load JS: **102 kB** (gzipped)
+- Main thread stays responsive during data processing
+
+**Repeat Visit (within 24 hours):**
+- Lighthouse Performance Score: **95+**
+- Total Blocking Time: **~0ms**
+- Load Time: **<50ms** (instant from cache)
+
+#### Key Optimizations
+
+**Code Splitting:**
+- All 6 chart components lazy-loaded on demand
+- Reduces initial bundle size
+- Charts load only when user switches tabs
+
+**Background Processing:**
+- Web Worker handles data transformation
+- 4.09 MB JSON parsing off main thread
+- Fallback to synchronous processing for SSR/older browsers
+
+**Client-Side Caching:**
+- IndexedDB stores transformed data (24-hour TTL)
+- Eliminates network requests on repeat visits
+- Automatic cache invalidation
+
+**Resource Optimization:**
+- Preconnect/DNS prefetch for external resources
+- Tree-shaken Chart.js imports
+- O(1) Map-based lookups for bureau data
+- Memoized data extraction with custom hooks
+
+---
+
 ## :file_folder: Data Source
-This project uses official statistics provided by the Immigration Services Agency of Japan. 
+This project uses official statistics provided by the Immigration Services Agency of Japan.
 Data acquisition is performed via the [e-Stat API](https://www.e-stat.go.jp/).
 
 ---
@@ -217,7 +282,18 @@ npm run test:watch
 
 # Generate coverage report
 npm run test:coverage
+
+# Run type-level tests
+npm run test:types
 ```
+
+### Type-Level Testing
+The project includes comprehensive type-level tests using `tsd`:
+
+- **Compile-time validation** of TypeScript type definitions
+- **Type safety verification** for ImmigrationData, BureauOption, and e-Stat types
+- **Constant validation** ensures typed constants match their declared types
+- **125+ type assertions** covering all critical type definitions
 
 For detailed testing documentation, see [`docs/TESTING.md`](docs/TESTING.md).
 
