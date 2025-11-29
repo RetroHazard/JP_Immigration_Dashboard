@@ -1,6 +1,10 @@
 name: Data Watcher
 on:
   workflow_dispatch:
+  schedule:
+    # Runs daily at 1:05 AM UTC (10:05 AM JST) from the 23rd-28th of each month
+    # e-Stat typically releases data on the 25th (weekdays only)
+    - cron: '5 1 23-28 * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,6 +26,12 @@ jobs:
       DATA_PATH: public/datastore/statData.json
 
     steps:
+      - name: Log execution info
+        run: |
+          echo "🔍 Data Watcher triggered at $(date)"
+          echo "📅 Current date: $(date +'%Y-%m-%d %H:%M:%S %Z')"
+          echo "🌏 JST time: $(TZ='Asia/Tokyo' date +'%Y-%m-%d %H:%M:%S %Z')"
+
       - name: Set environment variable for CURRENT_MONTH
         run: echo "CURRENT_MONTH=$(date +'%Y-%m')" >> "$GITHUB_ENV"
 
@@ -50,6 +60,7 @@ jobs:
 
       - name: Validate and compare data
         id: data-diff
+        continue-on-error: true
         run: |
           if [ ! -f "$DATA_PATH" ]; then
             echo "::error::Download failed"
@@ -62,7 +73,8 @@ jobs:
 
           # Check if previous data exists
           if [ ! -f "$prev_file" ]; then
-            echo "No previous data, changes detected"
+            echo "::notice::No previous data found, treating as new data"
+            echo "changes_detected=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -72,14 +84,32 @@ jobs:
           # Extract previous dates
           prev_survey=$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.SURVEY_DATE' "$prev_file")
 
+          echo "📊 Previous SURVEY_DATE: $prev_survey"
+          echo "📊 Current SURVEY_DATE: $current_survey"
+
           # Compare dates
           if [ "$current_survey" != "$prev_survey" ]; then
-            echo "SURVEY_DATE changed, proceeding"
+            echo "::notice::✅ SURVEY_DATE changed from $prev_survey to $current_survey"
+            echo "changes_detected=true" >> "$GITHUB_OUTPUT"
             exit 0
           else
-            echo "No changes in SURVEY_DATE"
+            echo "::notice::⏭️ No changes detected in SURVEY_DATE (still $current_survey)"
+            echo "changes_detected=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
+
+      - name: Mark workflow as successful
+        if: steps.data-diff.outcome == 'failure' && steps.data-diff.outputs.changes_detected == 'false'
+        run: |
+          echo "::notice::Workflow completed successfully - no data changes detected"
+          exit 0
+
+      - name: Refresh cache to prevent expiration
+        if: steps.data-diff.outcome == 'failure' && steps.data-diff.outputs.changes_detected == 'false'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.DATA_PATH }}
+          key: estat-data-${{ hashFiles(env.DATA_PATH) }}
 
       - name: Cache new data
         if: steps.data-diff.outcome == 'success'
@@ -117,9 +147,24 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            console.log('🚀 Triggering build workflow due to new data...');
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'build.yaml',
               ref: 'main'
-            })
+            });
+            console.log('✅ Build workflow triggered successfully');
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ "${{ steps.data-diff.outcome }}" == "success" ]; then
+            echo "### ✅ New Data Detected!" >> $GITHUB_STEP_SUMMARY
+            echo "Build workflow has been triggered automatically." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⏭️ No Changes Detected" >> $GITHUB_STEP_SUMMARY
+            echo "Data has not changed since last check. No build triggered." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Checked at:** $(TZ='Asia/Tokyo' date +'%Y-%m-%d %H:%M:%S JST')" >> $GITHUB_STEP_SUMMARY
