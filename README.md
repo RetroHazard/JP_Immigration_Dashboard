@@ -153,7 +153,8 @@ Each chart is designed to provide clear insights while allowing flexibility thro
         - Tokyo Regional Immigration Bureau (東京出入国在留管理局管内) is inclusive of Shinagawa, Yokohama, Narita Airport, and Haneda Airport.
           - Yokohama's Branch is responsible for the Kanagawa area.
           - The statistics provided for Yokohama, Narita, and Haneda, are removed from the Tokyo Regional Bureau, so that each can be represented uniquely.
-        
+          - Tokyo Regional Immigration Bureau is now represented as 'Shinagawa' in the UI. 
+
         - Nagoya Regional Immigration Bureau (名古屋出入国在留管理局管内) is inclusive of Nagoya, and Chubu Airport.
           - The statistics provided for Chubu Airport are removed from the Nagoya Regional Bureau, so that each can be represented uniquely.
         
@@ -237,11 +238,6 @@ This application implements a two-tier performance optimization combining Web Wo
 - O(1) Map-based lookups for bureau data
 - Memoized data extraction with custom hooks
 
----
-
-## :file_folder: Data Source
-This project uses official statistics provided by the Immigration Services Agency of Japan.
-Data acquisition is performed via the [e-Stat API](https://www.e-stat.go.jp/).
 
 ---
 
@@ -272,21 +268,6 @@ The project leverages TypeScript's type system for compile-time safety:
 - **IntelliSense support** for all code values with IDE autocomplete
 - **Compile-time validation** catches invalid codes during development
 
-### Running Tests
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Generate coverage report
-npm run test:coverage
-
-# Run type-level tests
-npm run test:types
-```
-
 ### Type-Level Testing
 The project includes comprehensive type-level tests using `tsd`:
 
@@ -296,6 +277,12 @@ The project includes comprehensive type-level tests using `tsd`:
 - **125+ type assertions** covering all critical type definitions
 
 For detailed testing documentation, see [`docs/TESTING.md`](docs/TESTING.md).
+
+---
+
+## :file_folder: Data Source
+This project uses official statistics provided by the Immigration Services Agency of Japan.
+Data acquisition is performed via the [e-Stat API](https://www.e-stat.go.jp/).
 
 ---
 
