@@ -192,3 +192,4 @@ cython_debug/
 
 # Claude Code settings
 .claude/
+CLAUDE.md
