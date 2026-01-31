@@ -90,7 +90,7 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
     });
   }, [filteredData]);
 
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     scales: {
@@ -131,7 +131,7 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
       },
       legend: { display: false },
     },
-  };
+  }), [isDarkMode]);
 
   return (
     <div className="card-content">

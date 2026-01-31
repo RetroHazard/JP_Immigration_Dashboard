@@ -1,5 +1,5 @@
 // src/components/charts/CategorySubmissionsLineChart.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   CategoryScale,
@@ -127,7 +127,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     setChartData(processedData);
   }, [data, filters, monthRange, showAllMonths]);
 
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     scales: {
@@ -187,7 +187,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
         },
       },
     },
-  };
+  }), [isDarkMode, chartData]);
 
   return (
     <div className="card-content">

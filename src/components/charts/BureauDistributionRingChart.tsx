@@ -59,7 +59,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
   );
 
   // Chart options with percentage tooltip
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     cutout: '50%',
@@ -94,7 +94,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
         },
       },
     },
-  };
+  }), [isDarkMode, bureauData]);
 
   return (
     <div className="card-content">

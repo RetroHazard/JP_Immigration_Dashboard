@@ -100,7 +100,7 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
   // Auto-adjust scale with 10% buffer
   const scaleMax = Math.ceil(maxValue * 1.1);
 
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     scales: {
@@ -134,7 +134,7 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
         },
       },
     },
-  };
+  }), [isDarkMode, scaleMax]);
 
   return (
     <div className="card-content">
