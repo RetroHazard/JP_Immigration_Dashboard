@@ -54,8 +54,13 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
     }
 
     const monthlyStats = months.map((month) => {
-      // Data is pre-filtered by bureau and type in App.tsx, only need to filter by month
-      const monthData = data.filter((entry) => entry.month === month);
+      // Data is pre-filtered by type in App.tsx
+      // When bureau filter is 'all', use only nationwide bureau (100000)
+      const monthData = data.filter((entry) => {
+        const matchesMonth = entry.month === month;
+        const matchesBureau = filters.bureau === 'all' ? entry.bureau === '100000' : true;
+        return matchesMonth && matchesBureau;
+      });
 
       return {
         month,

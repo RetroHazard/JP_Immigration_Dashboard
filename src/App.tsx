@@ -56,9 +56,9 @@ const App: React.FC = () => {
     if (!data) return [];
 
     return data.filter((entry) => {
-      // Bureau filter: 'all' means nationwide (100000), otherwise use specific bureau
-      const matchesBureau =
-        filters.bureau === 'all' ? entry.bureau === '100000' : entry.bureau === filters.bureau;
+      // Bureau filter: 'all' means include ALL bureaus, specific value filters to that bureau
+      // Note: Charts that want only nationwide (100000) when 'all' is selected must filter themselves
+      const matchesBureau = filters.bureau === 'all' || entry.bureau === filters.bureau;
 
       // Type filter: 'all' means include all types, otherwise match specific type
       const matchesType = filters.type === 'all' || entry.type === filters.type;
