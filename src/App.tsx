@@ -1,5 +1,5 @@
 // App.tsx
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import type React from 'react';
 import { Icon } from '@iconify/react';
@@ -43,12 +43,12 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const newTheme = !isDarkMode ? 'dark' : 'light';
     setIsDarkMode(!isDarkMode);
     localStorage.setItem('theme', newTheme);
     document.documentElement.classList.toggle('dark');
-  };
+  }, [isDarkMode]);
 
   if (loading) {
     return <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Crunching Immigration Data..." />;

@@ -1,5 +1,5 @@
 // src/components/FilterPanel.tsx
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type React from 'react';
 
@@ -35,7 +35,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChang
     };
   }, [data]);
 
-  const formatDateString = (dateStr: string) => {
+  const formatDateString = useCallback((dateStr: string) => {
     if (!dateStr) return '';
 
     const [year, month] = dateStr.split('-');
@@ -45,7 +45,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChang
       month: 'long',
       year: 'numeric',
     });
-  };
+  }, []);
 
   return (
     <div className="base-container">

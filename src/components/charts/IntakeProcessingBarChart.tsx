@@ -1,5 +1,5 @@
 // src/components/charts/IntakeProcessingBarChart.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 import type React from 'react';
@@ -109,7 +109,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
     setChartData(processedData);
   }, [data, filters, monthRange, showAllMonths]);
 
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     scales: {
@@ -168,7 +168,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
         },
       },
     },
-  };
+  }), [isDarkMode, chartData]);
 
   return (
     <div className="card-content">

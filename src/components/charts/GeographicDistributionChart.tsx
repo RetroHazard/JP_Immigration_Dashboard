@@ -128,16 +128,27 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
 
   // Loading Indication
   useEffect(() => {
-    fetch(geoUrl)
+    const abortController = new AbortController();
+
+    fetch(geoUrl, { signal: abortController.signal })
       .then((response) => response.json())
       .then((data) => {
         setGeographyData(data);
         setIsMapLoading(false);
       })
       .catch((error) => {
+        if (error.name === 'AbortError') {
+          console.log('Map data fetch aborted');
+          return;
+        }
         console.error('Error loading map data:', error);
         setIsMapLoading(false);
       });
+
+    // Cleanup function to abort fetch if component unmounts
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
   // Zoom controls
