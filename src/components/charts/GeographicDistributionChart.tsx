@@ -203,18 +203,30 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
     return [bureauMap, prefectureMap];
   }, []);
 
-  // Style calculations
+  // Pre-calculate all prefecture colors (47 prefectures, calculated once instead of on every render)
+  const prefectureColors = useMemo(() => {
+    return japanPrefectures.reduce(
+      (acc, prefecture) => {
+        const bureau = bureauColorMap[prefecture.bureau];
+        if (!bureau) {
+          acc[prefecture.name] = '#DDD';
+          return acc;
+        }
+
+        const range = bureauDensityRanges[prefecture.bureau];
+        acc[prefecture.name] = range
+          ? adjustColor(bureau.background, parseFloat(prefecture.density), range.min, range.max)
+          : bureau.background;
+
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+  }, [bureauColorMap, bureauDensityRanges]);
+
+  // O(1) lookup for fill colors
   const getFillColor = (prefectureName: string): string => {
-    const prefecture = prefectureMap[prefectureName];
-    if (!prefecture) return '#DDD';
-
-    const bureau = bureauColorMap[prefecture.bureau];
-    if (!bureau) return '#DDD';
-
-    const range = bureauDensityRanges[prefecture.bureau];
-    return range
-      ? adjustColor(bureau.background, parseFloat(prefecture.density), range.min, range.max)
-      : bureau.background;
+    return prefectureColors[prefectureName] || '#DDD';
   };
 
   // Calculate Bureau Regional Statistics
