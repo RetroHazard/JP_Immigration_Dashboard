@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import type React from 'react';
 import { Icon } from '@iconify/react';
 
+import { ActiveChart } from './components/ActiveChart';
 import { CHART_COMPONENTS } from './components/common/ChartComponents';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
 import { EstimationCard } from './components/EstimationCard';
@@ -18,7 +19,7 @@ interface Filters {
 }
 
 const App: React.FC = () => {
-  const { data, loading } = useImmigrationData();
+  const { data, loading, error } = useImmigrationData();
   const [filters, setFilters] = useState<Filters>({
     bureau: 'all',
     type: 'all',
@@ -51,6 +52,23 @@ const App: React.FC = () => {
 
   if (loading) {
     return <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Crunching Immigration Data..." />;
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
+          <h1 className="mb-4 text-2xl font-bold text-red-600">Error Loading Data</h1>
+          <p className="mb-4 text-gray-700 dark:text-gray-300">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -130,10 +148,12 @@ const App: React.FC = () => {
                       </button>
                     ))}
                   </div>
-                  {(() => {
-                    const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
-                    return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
-                  })()}
+                  <ActiveChart
+                    activeChartIndex={activeChartIndex}
+                    data={data}
+                    filters={filters}
+                    isDarkMode={isDarkMode}
+                  />
                 </div>
               </div>
 
@@ -202,10 +222,12 @@ const App: React.FC = () => {
                         </button>
                       ))}
                     </div>
-                    {(() => {
-                      const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
-                      return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
-                    })()}
+                    <ActiveChart
+                      activeChartIndex={activeChartIndex}
+                      data={data}
+                      filters={filters}
+                      isDarkMode={isDarkMode}
+                    />
                   </div>
                 </div>
               </div>

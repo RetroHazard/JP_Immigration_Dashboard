@@ -2,6 +2,7 @@
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 
+import { ErrorBoundary } from '../../components/common/ErrorBoundary';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 
 const App = dynamic(() => import('../../App'), {
@@ -11,8 +12,10 @@ const App = dynamic(() => import('../../App'), {
 
 export function ClientWrapper() {
   return (
-    <Suspense fallback={<LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading Dashboard..." />}>
-      <App />
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense fallback={<LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading Dashboard..." />}>
+        <App />
+      </Suspense>
+    </ErrorBoundary>
   );
 }
