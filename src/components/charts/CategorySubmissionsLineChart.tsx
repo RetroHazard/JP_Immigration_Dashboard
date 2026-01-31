@@ -46,13 +46,8 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     }
 
     const monthlyStats = months.map((month) => {
-      const monthData = data.filter((entry) => {
-        const matchesMonth = entry.month === month;
-        if (filters.bureau === 'all') {
-          return entry.bureau === '100000' && entry.status === '103000' && matchesMonth;
-        }
-        return entry.bureau === filters.bureau && entry.status === '103000' && matchesMonth;
-      });
+      // Data is pre-filtered by bureau in App.tsx, only need to filter by month and status
+      const monthData = data.filter((entry) => entry.month === month && entry.status === '103000');
       return {
         month,
         statusAcquisition: monthData.reduce((sum, entry) => (entry.type === '10' ? entry.value : sum), 0),

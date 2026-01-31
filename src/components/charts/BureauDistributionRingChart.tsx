@@ -10,7 +10,7 @@ import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
+export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data, isDarkMode }) => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('1');
 
   // Get sorted list of unique months
@@ -26,13 +26,10 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
     return sortedMonths.slice(-period);
   }, [selectedPeriod, sortedMonths]);
 
-  // Filter data for selected months and type
+  // Filter data for selected months (type is pre-filtered in App.tsx)
   const filteredData = useMemo(
-    () =>
-      data.filter(
-        (entry) => selectedMonths.includes(entry.month) && (filters.type === 'all' || entry.type === filters.type)
-      ),
-    [data, selectedMonths, filters.type]
+    () => data.filter((entry) => selectedMonths.includes(entry.month)),
+    [data, selectedMonths]
   );
 
   // Calculate bureau data with aggregated values

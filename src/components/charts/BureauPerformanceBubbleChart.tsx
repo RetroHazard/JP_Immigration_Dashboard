@@ -11,7 +11,7 @@ import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
 
-export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
+export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data, isDarkMode }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('1');
 
   const sortedMonths = useMemo(() => {
@@ -26,14 +26,11 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
   }, [selectedPeriod, sortedMonths]);
 
   const filteredData = useMemo(() => {
+    // Data is pre-filtered by bureau and type in App.tsx, only filter by month and status
     return data.filter(
-      (entry) =>
-        selectedMonths.includes(entry.month) &&
-        (filters.bureau === 'all' || entry.bureau === filters.bureau) &&
-        (filters.type === 'all' || entry.type === filters.type) &&
-        ['103000', '300000'].includes(entry.status)
+      (entry) => selectedMonths.includes(entry.month) && ['103000', '300000'].includes(entry.status)
     );
-  }, [data, selectedMonths, filters.bureau, filters.type]);
+  }, [data, selectedMonths]);
 
   const chartData = useMemo(() => {
     const bureaus = bureauOptions.filter((b) => b.value !== 'all');

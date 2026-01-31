@@ -1,5 +1,5 @@
 // App.tsx
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type React from 'react';
 import { Icon } from '@iconify/react';
@@ -49,6 +49,23 @@ const App: React.FC = () => {
     localStorage.setItem('theme', newTheme);
     document.documentElement.classList.toggle('dark');
   }, [isDarkMode]);
+
+  // Centralized filtering: filter data once instead of in each chart component
+  // This eliminates 6× duplicate filtering on every filter change
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+
+    return data.filter((entry) => {
+      // Bureau filter: 'all' means nationwide (100000), otherwise use specific bureau
+      const matchesBureau =
+        filters.bureau === 'all' ? entry.bureau === '100000' : entry.bureau === filters.bureau;
+
+      // Type filter: 'all' means include all types, otherwise match specific type
+      const matchesType = filters.type === 'all' || entry.type === filters.type;
+
+      return matchesBureau && matchesType;
+    });
+  }, [data, filters.bureau, filters.type]);
 
   if (loading) {
     return <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Crunching Immigration Data..." />;
@@ -150,7 +167,7 @@ const App: React.FC = () => {
                   </div>
                   <ActiveChart
                     activeChartIndex={activeChartIndex}
-                    data={data}
+                    data={filteredData}
                     filters={filters}
                     isDarkMode={isDarkMode}
                   />
@@ -224,7 +241,7 @@ const App: React.FC = () => {
                     </div>
                     <ActiveChart
                       activeChartIndex={activeChartIndex}
-                      data={data}
+                      data={filteredData}
                       filters={filters}
                       isDarkMode={isDarkMode}
                     />
