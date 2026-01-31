@@ -1,60 +1,13 @@
 // src/components/common/ChartComponents.tsx
-import dynamic from 'next/dynamic';
-
 import type React from 'react';
 
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
-import { LoadingSpinner } from './LoadingSpinner';
-
-// Dynamic imports for code splitting - reduces initial bundle size
-const IntakeProcessingBarChart = dynamic(
-  () => import('../charts/IntakeProcessingBarChart').then((mod) => ({ default: mod.IntakeProcessingBarChart })),
-  {
-    ssr: false,
-    loading: () => <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading chart..." />,
-  }
-);
-
-const CategorySubmissionsLineChart = dynamic(
-  () => import('../charts/CategorySubmissionsLineChart').then((mod) => ({ default: mod.CategorySubmissionsLineChart })),
-  {
-    ssr: false,
-    loading: () => <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading chart..." />,
-  }
-);
-
-const BureauDistributionRingChart = dynamic(
-  () => import('../charts/BureauDistributionRingChart').then((mod) => ({ default: mod.BureauDistributionRingChart })),
-  {
-    ssr: false,
-    loading: () => <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading chart..." />,
-  }
-);
-
-const BureauPerformanceBubbleChart = dynamic(
-  () =>
-    import('../charts/BureauPerformanceBubbleChart').then((mod) => ({ default: mod.BureauPerformanceBubbleChart })),
-  {
-    ssr: false,
-    loading: () => <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading chart..." />,
-  }
-);
-
-const MonthlyRadarChart = dynamic(
-  () => import('../charts/MonthlyRadarChart').then((mod) => ({ default: mod.MonthlyRadarChart })),
-  {
-    ssr: false,
-    loading: () => <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading chart..." />,
-  }
-);
-
-const GeographicDistributionChart = dynamic(
-  () => import('../charts/GeographicDistributionChart').then((mod) => ({ default: mod.GeographicDistributionChart })),
-  {
-    ssr: false,
-    loading: () => <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading chart..." />,
-  }
-);
+import { BureauDistributionRingChart } from '../charts/BureauDistributionRingChart';
+import { BureauPerformanceBubbleChart } from '../charts/BureauPerformanceBubbleChart';
+import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineChart';
+import { GeographicDistributionChart } from '../charts/GeographicDistributionChart';
+import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
+import { MonthlyRadarChart } from '../charts/MonthlyRadarChart';
 
 export interface ImmigrationChartData {
   data: ImmigrationData[];
