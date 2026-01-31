@@ -140,6 +140,32 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
               })}
             </p>
 
+            {estimatedDate.details.dataQuality === 'low' && (
+              <div className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                <div className="flex items-start gap-2">
+                  <Icon icon="material-symbols:warning-outline" className="mt-0.5 shrink-0 text-base" />
+                  <div>
+                    <strong>Estimated with limited data:</strong> Your application date is beyond available data. This
+                    estimate is based on simulated processing rates from {estimatedDate.details.monthsUsed} month
+                    {estimatedDate.details.monthsUsed === 1 ? '' : 's'} of historical data and may be less accurate.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {estimatedDate.details.isPastDue && (
+              <div className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                <div className="flex items-start gap-2">
+                  <Icon icon="material-symbols:error-outline" className="mt-0.5 shrink-0 text-base" />
+                  <div>
+                    <strong>Possibly past due:</strong> Based on expected processing rates, completion of this
+                    application may be past due. If you have not yet received additional requests and/or a decision on
+                    this application, please contact the bureau for more information.
+                  </div>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={() => setShowDetails(!showDetails)}
               className="mt-3 flex items-center text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-500"
@@ -213,15 +239,6 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                     </div>
                   </FormulaTooltip>
                 </div>
-                {estimatedDate.details.isPastDue && (
-                  <>
-                    <div className="mt-2 text-xs italic text-amber-600 dark:text-amber-500">
-                      Based on expected processing rates, completion of this application may be past due. If you have
-                      not yet received additional requests and/or a decision on this application, please contact the
-                      bureau for more information.
-                    </div>
-                  </>
-                )}
               </div>
             )}
 

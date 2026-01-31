@@ -104,6 +104,22 @@ export function makeCorrectedAccessor(data: EStatData) {
     }
 
     const corrected = base - subtotal;
+
+    // Validate that correction doesn't produce negative values
+    if (corrected < 0) {
+      console.warn(
+        `⚠️  Bureau deaggregation produced negative value`,
+        `\n  Bureau: ${bureau}`,
+        `\n  Coordinate: ${key}`,
+        `\n  Base value: ${base}`,
+        `\n  Branch subtotal: ${subtotal}`,
+        `\n  Corrected (negative): ${corrected}`,
+        `\n  → Falling back to uncorrected base value`
+      );
+      memo.set(key, base); // Fallback to uncorrected
+      return base;
+    }
+
     memo.set(key, corrected);
     return corrected;
   }
