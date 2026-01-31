@@ -1,7 +1,9 @@
 # Implementation TODO List - Code Review Findings
 
 **Generated:** 2026-01-25
-**Total Issues:** 37 (4 Critical, 12 High, 15 Medium, 6 Low)
+**Last Updated:** 2026-01-31
+**Total Issues:** 26 (5 Critical, 10 High, 5 Medium, 6 Low)
+**Completed:** 14/26 (54%)
 
 This TODO list organizes all code review findings into actionable tasks prioritized by severity and impact. Each task includes file locations, specific changes needed, and verification steps.
 
@@ -11,23 +13,25 @@ This TODO list organizes all code review findings into actionable tasks prioriti
 
 ### Data Accuracy & Validation
 
-- [ ] **D1: Add negative value validation in bureau deaggregation**
+- [x] **D1: Add negative value validation in bureau deaggregation**
   - **File:** `src/utils/correctBureauAggregates.ts:106`
   - **Changes:**
     - Add validation check after `const corrected = base - subtotal;`
     - Log warning and return uncorrected value if negative
     - See CODE_REVIEW_FINDINGS.md D1 for implementation
   - **Verification:** Run validation script on production data, confirm no negatives
+  - **Status:** ✅ COMPLETED
 
-- [ ] **D2: Improve NaN fallback logging**
+- [x] **D2: Improve NaN fallback logging**
   - **File:** `src/utils/dataTransform.ts:56-57`
   - **Changes:**
     - Add warning log when NaN fallback occurs
     - Track which coordinates produce NaN corrections
     - See CODE_REVIEW_FINDINGS.md D2 for implementation
   - **Verification:** Ensure no silent NaN fallbacks in production data
+  - **Status:** ✅ COMPLETED
 
-- [ ] **D3: Add minimum data validation for estimation**
+- [x] **D3: Add minimum data validation for estimation**
   - **File:** `src/utils/calculateEstimates.ts:64`
   - **Changes:**
     - Check minimum 3 months of data before estimation
@@ -35,8 +39,9 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - Add UI warning when < 6 months available
     - See CODE_REVIEW_FINDINGS.md D3 for implementation
   - **Verification:** Test with 1, 3, 5, and 6+ months of data
+  - **Status:** ✅ COMPLETED
 
-- [ ] **D4: Add infinite loop protection**
+- [x] **D4: Add infinite loop protection**
   - **File:** `src/utils/calculateEstimates.ts:176-183`
   - **Changes:**
     - Add MAX_MONTHS_TO_SIMULATE = 60 constant
@@ -44,8 +49,9 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - Return null if limit exceeded with error log
     - See CODE_REVIEW_FINDINGS.md D4 for implementation
   - **Verification:** Test with invalid application dates (far future)
+  - **Status:** ✅ COMPLETED
 
-- [ ] **D5: Add month format validation**
+- [x] **D5: Add month format validation**
   - **File:** `src/utils/dataTransform.ts:38`
   - **Changes:**
     - Create validateAndParseMonth function
@@ -53,6 +59,7 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - Validate month range (01-12)
     - See CODE_REVIEW_FINDINGS.md D5 for implementation
   - **Verification:** Test with malformed @time values
+  - **Status:** ✅ COMPLETED
 
 ---
 
@@ -60,7 +67,7 @@ This TODO list organizes all code review findings into actionable tasks prioriti
 
 ### Bundle Size Optimization
 
-- [ ] **P1: Implement dynamic imports for charts**
+- [ ] **P1: Implement dynamic imports for charts** ⚠️ REVERTED
   - **Files:** `src/components/common/ChartComponents.tsx`, all 6 chart components
   - **Changes:**
     - Use Next.js `dynamic()` for all chart components
@@ -68,6 +75,8 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - See CODE_REVIEW_FINDINGS.md P1 for implementation
   - **Expected Impact:** -150KB bundle, faster FCP
   - **Verification:** Build and compare bundle sizes before/after
+  - **Status:** ⚠️ REVERTED - User feedback: "very small optimization at an unnecessary cost to user experience"
+  - **Note:** Bundle size reduction was not worth the loading spinners and delayed interactivity
 
 - [ ] **P10: Lazy load KaTeX library**
   - **File:** `src/components/EstimationCard.tsx:5,16`
@@ -81,7 +90,7 @@ This TODO list organizes all code review findings into actionable tasks prioriti
 
 ### Render Performance
 
-- [ ] **P2: Extract anonymous IIFE to separate component**
+- [x] **P2: Extract anonymous IIFE to separate component**
   - **File:** `src/App.tsx:133-136, 205-208`
   - **Changes:**
     - Create new `src/components/ActiveChart.tsx`
@@ -90,8 +99,9 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - See CODE_REVIEW_FINDINGS.md P2 for implementation
   - **Expected Impact:** Eliminate unnecessary chart re-renders
   - **Verification:** Use React DevTools Profiler to verify no re-renders when filters don't change
+  - **Status:** ✅ COMPLETED
 
-- [ ] **P3: Memoize chart options objects**
+- [x] **P3: Memoize chart options objects**
   - **Files:** All 6 chart components (e.g., `IntakeProcessingBarChart.tsx:112`)
   - **Changes:**
     - Wrap options object in useMemo
@@ -100,8 +110,9 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - See CODE_REVIEW_FINDINGS.md P3 for implementation
   - **Expected Impact:** Faster theme toggle, no unnecessary Chart.js reconfiguration
   - **Verification:** Test theme toggle is smooth, no chart reinitialization
+  - **Status:** ✅ COMPLETED - Applied to all 5 Chart.js charts
 
-- [ ] **P4: Memoize prefecture color calculations**
+- [x] **P4: Memoize prefecture color calculations**
   - **File:** `src/components/charts/GeographicDistributionChart.tsx:30-86, 196-207`
   - **Changes:**
     - Create prefectureColors useMemo
@@ -110,8 +121,9 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - See CODE_REVIEW_FINDINGS.md P4 for implementation
   - **Expected Impact:** 47× → 1× color calculations, smoother map interactions
   - **Verification:** Test map pan/zoom performance
+  - **Status:** ✅ COMPLETED
 
-- [ ] **P5: Filter data once at App.tsx level**
+- [x] **P5: Filter data once at App.tsx level**
   - **Files:** `src/App.tsx`, all 6 chart components
   - **Changes:**
     - Add filteredData useMemo in App.tsx
@@ -120,8 +132,9 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - See CODE_REVIEW_FINDINGS.md P5 for implementation
   - **Expected Impact:** 6× → 1× data filtering
   - **Verification:** Test filtering still works correctly in all charts
+  - **Status:** ✅ COMPLETED - Fixed to properly support bureau breakdown charts
 
-- [ ] **P6: Extract StatCard component**
+- [x] **P6: Extract StatCard component**
   - **File:** `src/components/StatsSummary.tsx:82-121`
   - **Changes:**
     - Create new `src/components/common/StatCard.tsx`
@@ -130,6 +143,7 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - See CODE_REVIEW_FINDINGS.md P6 for implementation
   - **Expected Impact:** Faster stats renders, better code organization
   - **Verification:** Stats display correctly on all filter changes
+  - **Status:** ✅ COMPLETED
 
 - [ ] **P9: Add React.memo to all chart components**
   - **Files:** All 6 chart components
@@ -143,7 +157,7 @@ This TODO list organizes all code review findings into actionable tasks prioriti
 
 ### Data Processing
 
-- [ ] **P11: Optimize stats calculation to single reduce**
+- [x] **P11: Optimize stats calculation to single reduce**
   - **File:** `src/components/StatsSummary.tsx:48-59`
   - **Changes:**
     - Replace 6 separate reduces with single reduce
@@ -151,6 +165,7 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - See CODE_REVIEW_FINDINGS.md P11 for implementation
   - **Expected Impact:** 6× → 1× array iteration
   - **Verification:** Stats calculations produce same results
+  - **Status:** ✅ COMPLETED
 
 - [ ] **P12: Derive chartData instead of using state**
   - **File:** `src/components/charts/IntakeProcessingBarChart.tsx:16-32, 109`
@@ -168,7 +183,7 @@ This TODO list organizes all code review findings into actionable tasks prioriti
 
 ### Hooks & Component Patterns
 
-- [ ] **P7: Add useCallback to stable functions**
+- [x] **P7: Add useCallback to stable functions**
   - **Files:** `src/App.tsx:45`, `src/components/FilterPanel.tsx:38`
   - **Changes:**
     - Wrap toggleTheme with useCallback
@@ -176,8 +191,9 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - See CODE_REVIEW_FINDINGS.md P7 for implementation
   - **Expected Impact:** Prevent unnecessary child re-renders
   - **Verification:** Test theme toggle, date formatting still work
+  - **Status:** ✅ COMPLETED
 
-- [ ] **P8: Add AbortController for fetch cleanup**
+- [x] **P8: Add AbortController for fetch cleanup**
   - **File:** `src/components/charts/GeographicDistributionChart.tsx:130-141`
   - **Changes:**
     - Create AbortController in useEffect
@@ -186,10 +202,11 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - See CODE_REVIEW_FINDINGS.md P8 for implementation
   - **Expected Impact:** No memory leak warnings
   - **Verification:** Test rapid chart switching, no console warnings
+  - **Status:** ✅ COMPLETED
 
 ### Error Handling
 
-- [ ] **R2: Add error boundaries**
+- [x] **R2: Add error boundaries**
   - **Files:** Create `src/components/common/ErrorBoundary.tsx`, update `src/App.tsx`
   - **Changes:**
     - Create ErrorBoundary component
@@ -198,6 +215,7 @@ This TODO list organizes all code review findings into actionable tasks prioriti
     - See CODE_REVIEW_FINDINGS.md R2 for implementation
   - **Expected Impact:** Graceful error handling, no white screens
   - **Verification:** Throw test error, verify fallback UI displays
+  - **Status:** ✅ COMPLETED
 
 - [ ] **R3: Display error state to users**
   - **File:** `src/App.tsx:21`
@@ -433,12 +451,40 @@ After Phase 2, compare:
 
 ## 📊 Progress Tracking
 
-**Phase 1 (Critical):** ☐ 0/5 complete
-**Phase 2 (High):** ☐ 0/10 complete
-**Phase 3 (Medium):** ☐ 0/6 complete
+**Phase 1 (Critical):** ✅ 5/5 complete (100%)
+**Phase 2 (High):** 🔄 6/10 complete (60%)
+**Phase 3 (Medium):** 🔄 3/5 complete (60%)
 **Phase 4 (Low):** ☐ 0/6 complete (3 optional)
 
-**Overall Progress:** ☐ 0/37 issues resolved
+**Overall Progress:** 🔄 14/26 issues resolved (54%)
+
+### Completed Items Summary
+
+**Phase 1 - All Critical Data Accuracy Issues:** ✅
+- D1: Bureau deaggregation negative value validation
+- D2: NaN fallback logging
+- D3: Estimation minimum data validation
+- D4: Infinite loop protection
+- D5: Month format validation
+
+**Phase 2 - High Priority Performance:**
+- P2: Extract ActiveChart component with React.memo
+- P3: Memoize chart options (5 charts)
+- P4: Memoize prefecture color calculations
+- P5: Centralized data filtering
+- P6: Extract StatCard component
+- P11: Single reduce for stats calculation
+
+**Phase 3 - Medium Priority Best Practices:**
+- P7: useCallback for stable functions
+- P8: AbortController for fetch cleanup
+- R2: Error boundaries
+
+**Remaining High Priority Items:**
+- P1: Dynamic imports for charts (REVERTED per user request)
+- P9: React.memo for all chart components
+- P10: Lazy load KaTeX library
+- P12: Derive chartData with useMemo
 
 ---
 
