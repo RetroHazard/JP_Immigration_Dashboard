@@ -5,11 +5,15 @@ import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title
 import type React from 'react';
 import { Bar } from 'react-chartjs-2';
 
+import { STATUS_CODES } from '../../constants/statusCodes';
+import { useTheme } from '../../contexts/ThemeContext';
+import { filterData, getAllMonths } from '../../hooks/useFilteredData';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
+export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters }) => {
+  const { isDarkMode } = useTheme();
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
 
@@ -34,13 +38,12 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
   useEffect(() => {
     if (!data) return;
 
-    // Get the most recent month from the data
-    const endMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+    // Get all months from data using helper
+    const allMonths = getAllMonths(data);
+    if (allMonths.length === 0) return;
 
-    // Get all months from data
-    const allMonths = [...new Set(data.map((entry) => entry.month))].sort();
-
-    // Find index of the most recent month
+    // Get the most recent month
+    const endMonth = allMonths[allMonths.length - 1];
     const endIndex = allMonths.indexOf(endMonth);
     if (endIndex === -1) return;
 
@@ -54,19 +57,20 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
     }
 
     const monthlyStats = months.map((month) => {
-      // Data is pre-filtered by type in App.tsx
-      // When bureau filter is 'all', use only nationwide bureau (100000)
-      const monthData = data.filter((entry) => {
-        const matchesMonth = entry.month === month;
-        const matchesBureau = filters.bureau === 'all' ? entry.bureau === '100000' : true;
-        return matchesMonth && matchesBureau;
+      // Use shared filter function for consistent filtering
+      // Data is already pre-filtered by type and bureau in App.tsx
+      // We just need to filter by month and handle 'all' bureau case
+      const monthData = filterData(data, {
+        month,
+        bureau: filters.bureau,
+        type: filters.type,
       });
 
       return {
         month,
-        totalApplications: monthData.reduce((sum, entry) => (entry.status === '102000' ? sum + entry.value : sum), 0), // 受理_旧受 (Previously Received)
-        processed: monthData.reduce((sum, entry) => (entry.status === '300000' ? sum + entry.value : sum), 0), // 処理済み (Processed)
-        newApplications: monthData.reduce((sum, entry) => (entry.status === '103000' ? sum + entry.value : sum), 0), // 受理_新受 (Newly Received)
+        totalApplications: monthData.reduce((sum, entry) => (entry.status === STATUS_CODES.OLD_APPLICATIONS ? sum + entry.value : sum), 0), // 受理_旧受 (Previously Received)
+        processed: monthData.reduce((sum, entry) => (entry.status === STATUS_CODES.PROCESSED ? sum + entry.value : sum), 0), // 処理済み (Processed)
+        newApplications: monthData.reduce((sum, entry) => (entry.status === STATUS_CODES.NEW_APPLICATIONS ? sum + entry.value : sum), 0), // 受理_新受 (Newly Received)
       };
     });
 

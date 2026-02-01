@@ -17,14 +17,12 @@ interface FilterPanelProps {
 export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChange, filterConfig }) => {
   const dateRange = useMemo(() => {
     if (!data || !Array.isArray(data) || data.length === 0) {
-      console.log('No valid data provided');
       return { min: '', max: '' };
     }
 
     const months = [...new Set(data.map((entry) => entry.month))].filter(Boolean);
 
     if (months.length === 0) {
-      console.log('No valid months found in data');
       return { min: '', max: '' };
     }
 

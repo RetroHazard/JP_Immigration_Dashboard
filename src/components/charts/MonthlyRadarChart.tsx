@@ -6,11 +6,13 @@ import { Radar } from 'react-chartjs-2';
 
 import { applicationOptions } from '../../constants/applicationOptions';
 import { bureauOptions } from '../../constants/bureauOptions';
+import { useTheme } from '../../contexts/ThemeContext';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
-export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
+export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filters }) => {
+  const { isDarkMode } = useTheme();
   const [selectedPeriod, setSelectedPeriod] = useState('1');
 
   // Get sorted list of unique months

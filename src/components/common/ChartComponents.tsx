@@ -15,7 +15,6 @@ export interface ImmigrationChartData {
     bureau: string;
     type: string;
   };
-  isDarkMode: boolean;
 }
 
 interface ChartComponent {

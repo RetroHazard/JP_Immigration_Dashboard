@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 
 import type React from 'react';
 
+import { STATUS_CODES } from '../constants/statusCodes';
+import { getLatestMonth, useFilteredData } from '../hooks/useFilteredData';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { getBureauLabel } from '../utils/getBureauData';
 import { StatCard } from './common/StatCard';
@@ -13,44 +15,39 @@ interface StatsSummaryProps {
 }
 
 export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => {
+  // Get the most recent month from data
+  const selectedMonth = getLatestMonth(data);
+
+  // Use shared filter hook with month filter
+  const filteredData = useFilteredData(data, {
+    bureau: filters.bureau,
+    type: filters.type,
+    month: selectedMonth || undefined,
+  });
+
   const stats = useMemo(() => {
-    if (!data) return null;
-
-    // Use the most recent month
-    const selectedMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
-
-    // Filter data based on all filters including month
-    const filteredData = data.filter((entry) => {
-      const matchesMonth = entry.month === selectedMonth;
-      const matchesType = filters.type === 'all' || entry.type === filters.type;
-
-      if (filters.bureau === 'all') {
-        return entry.bureau === '100000' && matchesMonth && matchesType;
-      }
-
-      return entry.bureau === filters.bureau && matchesMonth && matchesType;
-    });
+    if (!filteredData || filteredData.length === 0) return null;
 
     // Optimize: single reduce instead of 6 separate iterations
     const { oldApplications, newApplications, processed, granted, denied, other } = filteredData.reduce(
       (acc, entry) => {
         switch (entry.status) {
-          case '102000':
+          case STATUS_CODES.OLD_APPLICATIONS:
             acc.oldApplications += entry.value;
             break;
-          case '103000':
+          case STATUS_CODES.NEW_APPLICATIONS:
             acc.newApplications += entry.value;
             break;
-          case '300000':
+          case STATUS_CODES.PROCESSED:
             acc.processed += entry.value;
             break;
-          case '301000':
+          case STATUS_CODES.GRANTED:
             acc.granted += entry.value;
             break;
-          case '302000':
+          case STATUS_CODES.DENIED:
             acc.denied += entry.value;
             break;
-          case '305000':
+          case STATUS_CODES.OTHER:
             acc.other += entry.value;
             break;
         }
@@ -71,7 +68,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       pending,
       approvalRate: processed ? ((granted / processed) * 100).toFixed(1) : 0,
     };
-  }, [data, filters]);
+  }, [filteredData]);
 
   if (!stats) return null;
 

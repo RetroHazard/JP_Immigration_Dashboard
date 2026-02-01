@@ -8,7 +8,9 @@ import Tippy from '@tippyjs/react';
 
 import { bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
+import { useTheme } from '../../contexts/ThemeContext';
 import { nonAirportBureaus } from '../../utils/getBureauData';
+import { logger } from '../../utils/logger';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 
@@ -85,7 +87,8 @@ const adjustColor = (originalColor: string, density: number, minDensity: number,
   return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${originalAlpha})`;
 };
 
-export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ isDarkMode }) => {
+export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () => {
+  const { isDarkMode } = useTheme();
   const [geographyData, setGeographyData] = useState<any>(null);
   const [isMapLoading, setIsMapLoading] = useState<boolean>(true);
   const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
@@ -138,10 +141,10 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
       })
       .catch((error) => {
         if (error.name === 'AbortError') {
-          console.log('Map data fetch aborted');
+          logger.log('Map data fetch aborted');
           return;
         }
-        console.error('Error loading map data:', error);
+        logger.error('Error loading map data:', error);
         setIsMapLoading(false);
       });
 

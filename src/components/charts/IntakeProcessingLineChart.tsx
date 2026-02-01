@@ -15,11 +15,14 @@ import {
 import type React from 'react';
 import { Line } from 'react-chartjs-2';
 
+import { STATUS_CODES } from '../../constants/statusCodes';
+import { useTheme } from '../../contexts/ThemeContext';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Filler, Legend);
 
-export const IntakeProcessingLineChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
+export const IntakeProcessingLineChart: React.FC<ImmigrationChartData> = ({ data, filters }) => {
+  const { isDarkMode } = useTheme();
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
@@ -51,15 +54,15 @@ export const IntakeProcessingLineChart: React.FC<ImmigrationChartData> = ({ data
         const matchesMonth = entry.month === month;
         const matchesType = filters.type === 'all' || entry.type === filters.type;
         if (filters.bureau === 'all') {
-          return entry.bureau === '100000' && matchesMonth && matchesType;
+          return entry.bureau === STATUS_CODES.NATIONWIDE_BUREAU && matchesMonth && matchesType;
         }
         return entry.bureau === filters.bureau && matchesMonth && matchesType;
       });
       return {
         month,
-        totalApplications: monthData.reduce((sum, entry) => (entry.status === '102000' ? sum + entry.value : sum), 0),
-        processed: monthData.reduce((sum, entry) => (entry.status === '300000' ? sum + entry.value : sum), 0),
-        newApplications: monthData.reduce((sum, entry) => (entry.status === '103000' ? sum + entry.value : sum), 0),
+        totalApplications: monthData.reduce((sum, entry) => (entry.status === STATUS_CODES.OLD_APPLICATIONS ? sum + entry.value : sum), 0),
+        processed: monthData.reduce((sum, entry) => (entry.status === STATUS_CODES.PROCESSED ? sum + entry.value : sum), 0),
+        newApplications: monthData.reduce((sum, entry) => (entry.status === STATUS_CODES.NEW_APPLICATIONS ? sum + entry.value : sum), 0),
       };
     });
 

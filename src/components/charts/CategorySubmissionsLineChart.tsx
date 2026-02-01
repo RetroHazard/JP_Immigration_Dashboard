@@ -14,11 +14,15 @@ import {
 import type React from 'react';
 import { Line } from 'react-chartjs-2';
 
+import { STATUS_CODES } from '../../constants/statusCodes';
+import { useTheme } from '../../contexts/ThemeContext';
+import { filterData, getAllMonths } from '../../hooks/useFilteredData';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
 
-export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
+export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters }) => {
+  const { isDarkMode } = useTheme();
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
@@ -26,11 +30,12 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
   useEffect(() => {
     if (!data) return;
 
-    // Get the most recent month from the data
-    const endMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+    // Get all months from data using helper
+    const allMonths = getAllMonths(data);
+    if (allMonths.length === 0) return;
 
-    // Get all months from data
-    const allMonths = [...new Set(data.map((entry) => entry.month))].sort();
+    // Get the most recent month
+    const endMonth = allMonths[allMonths.length - 1];
 
     // Find index of the most recent month
     const endIndex = allMonths.indexOf(endMonth);
@@ -46,13 +51,12 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     }
 
     const monthlyStats = months.map((month) => {
-      // Data is pre-filtered by type in App.tsx
-      // When bureau filter is 'all', use only nationwide bureau (100000)
-      const monthData = data.filter((entry) => {
-        const matchesMonth = entry.month === month;
-        const matchesStatus = entry.status === '103000';
-        const matchesBureau = filters.bureau === 'all' ? entry.bureau === '100000' : true;
-        return matchesMonth && matchesStatus && matchesBureau;
+      // Use shared filter function for consistent filtering
+      const monthData = filterData(data, {
+        month,
+        bureau: filters.bureau,
+        type: filters.type,
+        status: STATUS_CODES.NEW_APPLICATIONS,
       });
       return {
         month,

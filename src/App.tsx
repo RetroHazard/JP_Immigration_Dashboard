@@ -1,15 +1,14 @@
 // App.tsx
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import type React from 'react';
 import { Icon } from '@iconify/react';
 
-import { ActiveChart } from './components/ActiveChart';
-import { CHART_COMPONENTS } from './components/common/ChartComponents';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
-import { EstimationCard } from './components/EstimationCard';
-import { FilterPanel } from './components/FilterPanel';
+import { DesktopLayout } from './components/layouts/DesktopLayout';
+import { MobileLayout } from './components/layouts/MobileLayout';
 import { StatsSummary } from './components/StatsSummary';
+import { useTheme } from './contexts/ThemeContext';
 import { useImmigrationData } from './hooks/useImmigrationData';
 import buildInfo from './buildInfo';
 
@@ -20,6 +19,7 @@ interface Filters {
 
 const App: React.FC = () => {
   const { data, loading, error } = useImmigrationData();
+  const { isDarkMode, toggleTheme } = useTheme();
   const [filters, setFilters] = useState<Filters>({
     bureau: 'all',
     type: 'all',
@@ -27,28 +27,7 @@ const App: React.FC = () => {
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEstimationExpanded, setIsEstimationExpanded] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeChartIndex, setActiveChartIndex] = useState(0);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const systemIsDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    if (savedTheme) {
-      setIsDarkMode(savedTheme === 'dark');
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    } else {
-      setIsDarkMode(systemIsDark);
-      document.documentElement.classList.toggle('dark', systemIsDark);
-    }
-  }, []);
-
-  const toggleTheme = useCallback(() => {
-    const newTheme = !isDarkMode ? 'dark' : 'light';
-    setIsDarkMode(!isDarkMode);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark');
-  }, [isDarkMode]);
 
   // Centralized filtering: filter data once instead of in each chart component
   // This eliminates 6× duplicate filtering on every filter change
@@ -57,7 +36,7 @@ const App: React.FC = () => {
 
     return data.filter((entry) => {
       // Bureau filter: 'all' means include ALL bureaus, specific value filters to that bureau
-      // Note: Charts that want only nationwide (100000) when 'all' is selected must filter themselves
+      // Note: Charts that want only nationwide (NATIONWIDE_BUREAU) when 'all' is selected must filter themselves
       const matchesBureau = filters.bureau === 'all' || entry.bureau === filters.bureau;
 
       // Type filter: 'all' means include all types, otherwise match specific type
@@ -133,142 +112,29 @@ const App: React.FC = () => {
       <main className="marginals flex-1 py-8">
         {!loading && (
           <>
-            {(CHART_COMPONENTS[activeChartIndex].filters.bureau ||
-              CHART_COMPONENTS[activeChartIndex].filters.appType) && (
-              <div className="section-block mb-4 grid grid-cols-1 sm:hidden">
-                <FilterPanel
-                  data={data}
-                  filters={filters}
-                  onChange={setFilters}
-                  filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
-                />
-              </div>
-            )}
-
             {/* Mobile Layout */}
-            <div className="relative sm:hidden">
-              <div className="section-block grid grid-cols-1">
-                <div className="base-container">
-                  <div className="mb-2 flex justify-between space-x-1 border-b dark:border-gray-500">
-                    {CHART_COMPONENTS.map((chart, index) => (
-                      <button
-                        key={chart.name}
-                        aria-label={chart.name}
-                        onClick={() => setActiveChartIndex(index)}
-                        className={`rounded-t-lg px-4 py-2 ${
-                          activeChartIndex === index
-                            ? 'bg-blue-500 text-gray-100 dark:bg-gray-300 dark:text-gray-600'
-                            : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-500 dark:hover:bg-gray-400'
-                        }`}
-                      >
-                        <Icon icon={chart.icon} />
-                      </button>
-                    ))}
-                  </div>
-                  <ActiveChart
-                    activeChartIndex={activeChartIndex}
-                    data={filteredData}
-                    filters={filters}
-                    isDarkMode={isDarkMode}
-                  />
-                </div>
-              </div>
-
-              <div className={`mobile-drawer-trigger ${isDrawerOpen ? 'translate-x-[300px]' : ''}`}>
-                <button onClick={() => setIsDrawerOpen(!isDrawerOpen)} className="clip-tapered-btn">
-                  <div className="flex origin-center flex-col items-center">
-                    <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300 dark:text-gray-700" />
-                    <span className="mobile-drawer-label">estimator</span>
-                    <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300 dark:text-gray-700" />
-                  </div>
-                </button>
-              </div>
-
-              {isDrawerOpen && (
-                <>
-                  <div className="mobile-drawer-overlay transition-slow" onClick={() => setIsDrawerOpen(false)} />
-                  <div className="mobile-drawer-content transition-slow">
-                    <EstimationCard
-                      variant="drawer"
-                      data={data}
-                      isExpanded={null}
-                      onClose={() => setIsDrawerOpen(false)}
-                      onCollapse={null}
-                    />
-                  </div>
-                </>
-              )}
-            </div>
+            <MobileLayout
+              data={data}
+              filteredData={filteredData}
+              filters={filters}
+              onFilterChange={setFilters}
+              activeChartIndex={activeChartIndex}
+              onActiveChartChange={setActiveChartIndex}
+              isDrawerOpen={isDrawerOpen}
+              onDrawerToggle={() => setIsDrawerOpen(!isDrawerOpen)}
+            />
 
             {/* Desktop Layout */}
-            <div className="section-block hidden h-full grid-cols-12 sm:grid sm:gap-3 md:gap-4 lg:gap-5">
-              {/* Left main content column */}
-              <div
-                className={`transition-slow flex h-full flex-col ${
-                  isEstimationExpanded ? 'main-collapsed' : 'main-expanded'
-                }`}
-              >
-                {/* Filter row */}
-                {(CHART_COMPONENTS[activeChartIndex].filters.bureau ||
-                  CHART_COMPONENTS[activeChartIndex].filters.appType) && (
-                  <div className="shrink-0 sm:mb-4 md:mb-5 lg:mb-6">
-                    <FilterPanel
-                      data={data}
-                      filters={filters}
-                      onChange={setFilters}
-                      filterConfig={CHART_COMPONENTS[activeChartIndex].filters}
-                    />
-                  </div>
-                )}
-
-                {/* Chart row */}
-                <div className="grow">
-                  <div className="base-container h-full">
-                    <div className="mb-4 flex space-x-2 overflow-x-auto border-b dark:border-gray-500">
-                      {CHART_COMPONENTS.map((chart, index) => (
-                        <button
-                          key={chart.name}
-                          onClick={() => setActiveChartIndex(index)}
-                          className={`rounded-t-lg px-4 py-2 ${
-                            activeChartIndex === index
-                              ? 'bg-blue-500 text-gray-100 dark:bg-gray-300 dark:text-gray-600'
-                              : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-500 dark:hover:bg-gray-400'
-                          }`}
-                        >
-                          <Icon icon={chart.icon} />
-                        </button>
-                      ))}
-                    </div>
-                    <ActiveChart
-                      activeChartIndex={activeChartIndex}
-                      data={filteredData}
-                      filters={filters}
-                      isDarkMode={isDarkMode}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Right estimator column */}
-              <div
-                className={`transition-slow h-full ${
-                  isEstimationExpanded ? 'estimator-expanded' : 'estimator-collapsed'
-                }`}
-              >
-                <div
-                  className="h-full cursor-pointer rounded-lg bg-white shadow-lg dark:bg-gray-700"
-                  onClick={() => !isEstimationExpanded && setIsEstimationExpanded(true)}
-                >
-                  <EstimationCard
-                    variant="expandable"
-                    data={data}
-                    isExpanded={isEstimationExpanded}
-                    onClose={null}
-                    onCollapse={() => setIsEstimationExpanded(false)}
-                  />
-                </div>
-              </div>
-            </div>
+            <DesktopLayout
+              data={data}
+              filteredData={filteredData}
+              filters={filters}
+              onFilterChange={setFilters}
+              activeChartIndex={activeChartIndex}
+              onActiveChartChange={setActiveChartIndex}
+              isEstimationExpanded={isEstimationExpanded}
+              onEstimationToggle={setIsEstimationExpanded}
+            />
 
             <StatsSummary data={data} filters={filters} />
           </>

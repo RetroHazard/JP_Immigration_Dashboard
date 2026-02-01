@@ -10,7 +10,6 @@ interface ActiveChartProps {
   activeChartIndex: number;
   data: ImmigrationData[];
   filters: { bureau: string; type: string };
-  isDarkMode: boolean;
 }
 
 /**
@@ -18,9 +17,9 @@ interface ActiveChartProps {
  * Prevents unnecessary re-renders when unrelated state changes.
  */
 export const ActiveChart = memo<ActiveChartProps>(
-  ({ activeChartIndex, data, filters, isDarkMode }) => {
+  ({ activeChartIndex, data, filters }) => {
     const ChartComponent = CHART_COMPONENTS[activeChartIndex].component;
-    return <ChartComponent data={data} filters={filters} isDarkMode={isDarkMode} />;
+    return <ChartComponent data={data} filters={filters} />;
   },
   (prevProps, nextProps) => {
     // Custom comparison: only re-render if these specific props change
@@ -28,8 +27,7 @@ export const ActiveChart = memo<ActiveChartProps>(
       prevProps.activeChartIndex === nextProps.activeChartIndex &&
       prevProps.data === nextProps.data &&
       prevProps.filters.bureau === nextProps.filters.bureau &&
-      prevProps.filters.type === nextProps.filters.type &&
-      prevProps.isDarkMode === nextProps.isDarkMode
+      prevProps.filters.type === nextProps.filters.type
     );
   }
 );
