@@ -2,13 +2,11 @@
 import { memo } from 'react';
 
 import type React from 'react';
+import { FloatingArrow, FloatingPortal } from '@floating-ui/react';
 import { Icon } from '@iconify/react';
-import Tippy from '@tippyjs/react';
 
 import { applicationOptions } from '../../constants/applicationOptions';
-
-import 'tippy.js/dist/tippy.css';
-import 'tippy.js/animations/shift-away.css';
+import { useTooltip } from '../../hooks/useTooltip';
 
 interface StatCardProps {
   title: string;
@@ -29,24 +27,29 @@ const StatCardComponent: React.FC<StatCardProps> = ({ title, shortTitle, subtitl
   const appTypeLabel = filterType && filterType !== 'all' ? getApplicationTypeLabel(filterType) : '';
   const combinedSubtitle = appTypeLabel ? `${subtitle} (${appTypeLabel})` : subtitle;
 
+  // FloatingUI tooltip configuration
+  const {
+    isOpen,
+    arrowRef,
+    refs,
+    floatingStyles,
+    context,
+    getReferenceProps,
+    getFloatingProps,
+  } = useTooltip({
+    placement: 'top',
+    showDelay: 300,
+    hideDelay: 0,
+    showArrow: true,
+  });
+
   return (
-    <Tippy
-      className="sm:pointer-events-none sm:hidden"
-      content={
-        <div className="flex flex-col gap-1 text-center">
-          <div className="font-semibold">{title}</div>
-          <div className="font-light">{combinedSubtitle}</div>
-          <div className="mt-1 font-bold">{value}</div>
-        </div>
-      }
-      animation="shift-away"
-      placement="top"
-      arrow={true}
-      theme="stat-tooltip"
-      delay={[300, 0]}
-      touch={true}
-    >
-      <div className="stat-card">
+    <>
+      <div
+        ref={refs.setReference}
+        {...getReferenceProps()}
+        className="stat-card"
+      >
         <div className="group relative">
           {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
           <div className={`${color} dark:${color.replace('500', '600')} stat-badge`}>
@@ -62,7 +65,31 @@ const StatCardComponent: React.FC<StatCardProps> = ({ title, shortTitle, subtitl
           <div className="stat-value">{value}</div>
         </div>
       </div>
-    </Tippy>
+
+      {/* Tooltip - only visible on mobile with touch */}
+      {isOpen && (
+        <FloatingPortal>
+          <div
+            ref={refs.setFloating}
+            style={floatingStyles}
+            {...getFloatingProps()}
+            className="floating-tooltip sm:pointer-events-none sm:hidden"
+            data-status={isOpen ? 'open' : 'closed'}
+          >
+            <div className="flex flex-col gap-1 text-center">
+              <div className="font-semibold">{title}</div>
+              <div className="font-light">{combinedSubtitle}</div>
+              <div className="mt-1 font-bold">{value}</div>
+            </div>
+            <FloatingArrow
+              ref={arrowRef}
+              context={context}
+              className="fill-gray-600 dark:fill-gray-300"
+            />
+          </div>
+        </FloatingPortal>
+      )}
+    </>
   );
 };
 

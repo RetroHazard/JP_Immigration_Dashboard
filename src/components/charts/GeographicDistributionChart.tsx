@@ -4,18 +4,31 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FeatureCollection } from 'geojson';
 import type React from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
+import {
+  arrow,
+  autoUpdate,
+  flip,
+  FloatingArrow,
+  FloatingPortal,
+  offset,
+  safePolygon,
+  shift,
+  useDismiss,
+  useFloating,
+  useHover,
+  useInteractions,
+  useRole,
+} from '@floating-ui/react';
 import { Icon } from '@iconify/react';
-import Tippy from '@tippyjs/react';
 
 import { type BureauOption,bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useFollowCursorTooltip } from '../../hooks/useFollowCursorTooltip';
 import { nonAirportBureaus } from '../../utils/getBureauData';
 import { logger } from '../../utils/logger';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { LoadingSpinner } from '../common/LoadingSpinner';
-
-import 'tippy.js/dist/tippy.css';
 
 const geoUrl = '/static/japan.topo.json';
 
@@ -94,6 +107,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
   const [isMapLoading, setIsMapLoading] = useState<boolean>(true);
   const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
   const [markerTooltip, setMarkerTooltip] = useState<BureauOption | null>(null);
+  const [markerElement, setMarkerElement] = useState<Element | null>(null);
   const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
     coordinates: [136, 36],
     zoom: 1,
@@ -101,34 +115,43 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
   const geographyRefs = useRef<Map<string, SVGPathElement>>(new Map());
   const markerRefs = useRef<Map<string, SVGGElement>>(new Map());
 
-  const getReferenceClientRect = () => {
-    if (!tooltipInfo || !tooltipInfo.mousePosition) {
-      return {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        toJSON: () => ({}),
-      } as DOMRect;
-    }
+  // Prefecture tooltip (follow cursor)
+  const prefectureTooltip = useFollowCursorTooltip({
+    placement: 'top',
+    offset: 8,
+    showArrow: true,
+  });
 
-    const rect = tooltipInfo.mousePosition;
-    return {
-      x: rect[0],
-      y: rect[1],
-      width: 0,
-      height: 0,
-      top: rect[1],
-      left: rect[0],
-      right: rect[0],
-      bottom: rect[1],
-      toJSON: () => ({}),
-    } as DOMRect;
-  };
+  // Bureau marker tooltip (interactive)
+  const markerArrowRef = useRef(null);
+  const markerFloating = useFloating({
+    open: !!markerTooltip,
+    onOpenChange: (open) => {
+      if (!open) setMarkerTooltip(null);
+    },
+    placement: 'top',
+    strategy: 'absolute',
+    whileElementsMounted: autoUpdate,
+    elements: {
+      reference: markerElement,
+    },
+    middleware: [
+      offset(15),
+      flip({ padding: 8 }),
+      shift({ padding: 8 }),
+      arrow({ element: markerArrowRef }),
+    ],
+  });
+
+  const markerHover = useHover(markerFloating.context, {
+    delay: { open: 300, close: 50 },
+    handleClose: safePolygon(),
+  });
+  const markerDismiss = useDismiss(markerFloating.context);
+  const markerRole = useRole(markerFloating.context, { role: 'tooltip' });
+
+  const { getReferenceProps: getMarkerReferenceProps, getFloatingProps: getMarkerFloatingProps } =
+    useInteractions([markerHover, markerDismiss, markerRole]);
 
   // Loading Indication
   useEffect(() => {
@@ -294,6 +317,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
                         strokeWidth={0.075}
                         onMouseMove={(event) => {
                           if (!prefecture) return;
+                          prefectureTooltip.setMousePosition({ x: event.clientX, y: event.clientY });
                           setTooltipInfo({
                             name: geo.properties.name,
                             name_ja: geo.properties.name_ja,
@@ -304,7 +328,10 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
                             mousePosition: [event.clientX, event.clientY],
                           });
                         }}
-                        onMouseLeave={() => setTooltipInfo(null)}
+                        onMouseLeave={() => {
+                          prefectureTooltip.setMousePosition(null);
+                          setTooltipInfo(null);
+                        }}
                         ref={(node) => {
                           if (node instanceof SVGPathElement) {
                             geographyRefs.current.set(geo.properties.name, node);
@@ -340,9 +367,12 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
                   return (
                     <Marker key={bureau.value} coordinates={bureau.coordinates}>
                       <g
+                        {...getMarkerReferenceProps()}
                         transform={`translate(-${iconSize / 2}, -${iconSize / 2})`}
-                        onMouseEnter={() => setMarkerTooltip(bureau)}
-                        onMouseLeave={() => setMarkerTooltip(null)}
+                        onMouseEnter={(e) => {
+                          setMarkerElement(e.currentTarget);
+                          setMarkerTooltip(bureau);
+                        }}
                         ref={(node) => {
                           if (node instanceof SVGGElement) {
                             markerRefs.current.set(bureau.value, node);
@@ -366,10 +396,14 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
           </ComposableMap>
         )}
         {/* Prefecture Tooltips */}
-        <Tippy
-          visible={!!tooltipInfo}
-          content={
-            tooltipInfo && (
+        {tooltipInfo && prefectureTooltip.mousePosition && (
+          <FloatingPortal>
+            <div
+              ref={prefectureTooltip.refs.setFloating}
+              style={prefectureTooltip.floatingStyles}
+              className="floating-tooltip"
+              data-status="open"
+            >
               <div>
                 <div className="font-semibold">
                   {tooltipInfo.name} ({tooltipInfo.name_ja})
@@ -379,95 +413,63 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
                 <div>Area: {tooltipInfo.area}</div>
                 <div>Density Rating: {tooltipInfo.density}</div>
               </div>
-            )
-          }
-          placement="auto"
-          arrow={true}
-          animation="shift-away"
-          theme="stat-tooltip"
-          delay={[300, 50]}
-          followCursor={true}
-          getReferenceClientRect={getReferenceClientRect}
-          popperOptions={{
-            modifiers: [
-              {
-                name: 'preventOverflow',
-                options: {
-                  padding: 8,
-                  boundariesElement: 'viewport',
-                },
-              },
-            ],
-          }}
-        />
+              <FloatingArrow
+                ref={prefectureTooltip.arrowRef}
+                context={prefectureTooltip.context}
+                className="fill-gray-600 dark:fill-gray-300"
+              />
+            </div>
+          </FloatingPortal>
+        )}
         {/* Bureau Tooltips */}
-        <Tippy
-          visible={!!markerTooltip}
-          content={
-            markerTooltip && (
-              <>
-                <div
-                  className={`mb-1 flex items-center gap-2 font-semibold ${
-                    nonAirportBureaus.find((b) => b.value === markerTooltip.value)
-                      ? 'border-b border-gray-500 pb-1'
-                      : ''
-                  }`}
-                >
-                  {nonAirportBureaus.find((b) => b.value === markerTooltip.value) && (
-                    <div
-                      className="size-3 rounded-full border border-white dark:border-black"
-                      style={{ backgroundColor: markerTooltip.background }}
-                    />
-                  )}
-                  {nonAirportBureaus.find((b) => b.value === markerTooltip.value)
-                    ? `${markerTooltip.label} Regional Immigration Bureau`
-                    : markerTooltip.label}
-                </div>
+        {markerTooltip && (
+          <FloatingPortal>
+            <div
+              ref={markerFloating.refs.setFloating}
+              style={markerFloating.floatingStyles}
+              {...getMarkerFloatingProps()}
+              className="floating-tooltip"
+              data-status="open"
+            >
+              <div
+                className={`mb-1 flex items-center gap-2 font-semibold ${
+                  nonAirportBureaus.find((b) => b.value === markerTooltip.value)
+                    ? 'border-b border-gray-500 pb-1'
+                    : ''
+                }`}
+              >
                 {nonAirportBureaus.find((b) => b.value === markerTooltip.value) && (
-                  <div className="flex-row p-0.5">
-                    <div>
-                      Population of Service Area: {bureauStats[markerTooltip.value]?.population.toLocaleString()}
-                    </div>
-                    <div>Total Service Area: {bureauStats[markerTooltip.value]?.area.toLocaleString()} km²</div>
-                    <div>
-                      Density of Service Area:{' '}
-                      {(bureauStats[markerTooltip.value]?.population / bureauStats[markerTooltip.value]?.area).toFixed(
-                        2
-                      )}
-                    </div>
-                  </div>
+                  <div
+                    className="size-3 rounded-full border border-white dark:border-black"
+                    style={{ backgroundColor: markerTooltip.background }}
+                  />
                 )}
-              </>
-            )
-          }
-          placement="top"
-          arrow={true}
-          animation="shift-away"
-          theme="stat-tooltip"
-          delay={[300, 50]}
-          onClickOutside={() => setMarkerTooltip(null)}
-          interactive={true}
-          hideOnClick={false}
-          appendTo={document.body}
-          reference={markerRefs.current.get(markerTooltip?.value)}
-          popperOptions={{
-            modifiers: [
-              {
-                name: 'offset',
-                options: {
-                  offset: [0, 15],
-                },
-              },
-              {
-                name: 'preventOverflow',
-                options: {
-                  padding: 8,
-                  boundariesElement: 'viewport',
-                },
-              },
-            ],
-          }}
-        />
+                {nonAirportBureaus.find((b) => b.value === markerTooltip.value)
+                  ? `${markerTooltip.label} Regional Immigration Bureau`
+                  : markerTooltip.label}
+              </div>
+              {nonAirportBureaus.find((b) => b.value === markerTooltip.value) && (
+                <div className="flex-row p-0.5">
+                  <div>
+                    Population of Service Area: {bureauStats[markerTooltip.value]?.population.toLocaleString()}
+                  </div>
+                  <div>Total Service Area: {bureauStats[markerTooltip.value]?.area.toLocaleString()} km²</div>
+                  <div>
+                    Density of Service Area:{' '}
+                    {(bureauStats[markerTooltip.value]?.population / bureauStats[markerTooltip.value]?.area).toFixed(
+                      2
+                    )}
+                  </div>
+                </div>
+              )}
+              <FloatingArrow
+                ref={markerArrowRef}
+                context={markerFloating.context}
+                className="fill-gray-600 dark:fill-gray-300"
+              />
+            </div>
+          </FloatingPortal>
+        )}
       </div>
     </div>
   );

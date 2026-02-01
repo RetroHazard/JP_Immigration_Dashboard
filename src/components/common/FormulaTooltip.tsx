@@ -1,10 +1,24 @@
 // components/common/FormulaTooltip.tsx
+import { useRef, useState } from 'react';
+
 import type React from 'react';
 import { InlineMath } from 'react-katex';
-import Tippy, { useSingleton } from '@tippyjs/react';
+import {
+  arrow,
+  autoUpdate,
+  flip,
+  FloatingArrow,
+  FloatingPortal,
+  offset,
+  safePolygon,
+  shift,
+  useDismiss,
+  useFloating,
+  useHover,
+  useInteractions,
+  useRole,
+} from '@floating-ui/react';
 
-import 'tippy.js/dist/tippy.css';
-import 'tippy.js/animations/shift-away.css';
 import 'katex/dist/katex.min.css';
 
 interface VariableExplanations {
@@ -31,42 +45,74 @@ export const variableExplanations: VariableExplanations = {
 };
 
 export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ variables, children }) => {
-  const [source, target] = useSingleton({});
+  const [isOpen, setIsOpen] = useState(false);
+  const [referenceElement, setReferenceElement] = useState<HTMLElement | null>(null);
+  const arrowRef = useRef(null);
+
+  const { refs, floatingStyles, context } = useFloating({
+    open: isOpen,
+    onOpenChange: setIsOpen,
+    placement: 'left',
+    whileElementsMounted: autoUpdate,
+    elements: { reference: referenceElement },
+    middleware: [
+      offset(8),
+      flip({ padding: 8 }),
+      shift({ padding: 8 }),
+      arrow({ element: arrowRef }),
+    ],
+  });
+
+  const hover = useHover(context, {
+    delay: { open: 300, close: 50 },
+    handleClose: safePolygon(),
+  });
+  const dismiss = useDismiss(context);
+  const role = useRole(context, { role: 'tooltip' });
+
+  const { getReferenceProps, getFloatingProps } = useInteractions([hover, dismiss, role]);
 
   return (
     <>
-      <Tippy
-        singleton={source}
-        appendTo={document.body}
-        placement="auto"
-        arrow={true}
-        animation="shift-away"
-        theme="stat-tooltip"
-        delay={[300, 50]}
-        interactive={true}
-        allowHTML={true}
-        hideOnClick={true}
-        zIndex={999}
-      />
-
-      <Tippy
-        singleton={target}
-        content={
-          <div className="space-y-2 p-2">
-            {Object.entries(variables).map(([symbol, explanation]) => (
-              <div key={symbol} className="flex flex-col">
-                <div className="flex items-baseline">
-                  <InlineMath>{`${symbol}:`}</InlineMath>
-                  <div className="mt-1 text-xs font-semibold">{explanation.title}</div>
-                </div>
-                <div className="mb-1 text-xxs font-normal">{explanation.description}</div>
-              </div>
-            ))}
-          </div>
-        }
+      <span
+        ref={(node) => {
+          setReferenceElement(node);
+          refs.setReference(node);
+        }}
+        {...getReferenceProps()}
+        className="cursor-help"
       >
-        <span className="cursor-help">{children}</span>
-      </Tippy>
+        {children}
+      </span>
+
+      {isOpen && (
+        <FloatingPortal>
+          <div
+            ref={refs.setFloating}
+            style={{ ...floatingStyles, zIndex: 999 }}
+            {...getFloatingProps()}
+            className="floating-tooltip"
+            data-status="open"
+          >
+            <div className="space-y-2 p-2">
+              {Object.entries(variables).map(([symbol, explanation]) => (
+                <div key={symbol} className="flex flex-col">
+                  <div className="flex items-baseline">
+                    <InlineMath>{`${symbol}:`}</InlineMath>
+                    <div className="mt-1 text-xs font-semibold">{explanation.title}</div>
+                  </div>
+                  <div className="mb-1 text-xxs font-normal">{explanation.description}</div>
+                </div>
+              ))}
+            </div>
+            <FloatingArrow
+              ref={arrowRef}
+              context={context}
+              className="fill-gray-600 dark:fill-gray-300"
+            />
+          </div>
+        </FloatingPortal>
+      )}
     </>
   );
 };
