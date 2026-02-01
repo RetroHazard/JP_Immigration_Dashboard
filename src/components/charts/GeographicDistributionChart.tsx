@@ -1,14 +1,17 @@
 // src/components/charts/GeographicDistributionChart.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import type { FeatureCollection } from 'geojson';
 import type React from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
 import { Icon } from '@iconify/react';
 import Tippy from '@tippyjs/react';
 
-import { bureauOptions } from '../../constants/bureauOptions';
+import { type BureauOption,bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
+import { useTheme } from '../../contexts/ThemeContext';
 import { nonAirportBureaus } from '../../utils/getBureauData';
+import { logger } from '../../utils/logger';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 
@@ -85,11 +88,12 @@ const adjustColor = (originalColor: string, density: number, minDensity: number,
   return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${originalAlpha})`;
 };
 
-export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ isDarkMode }) => {
-  const [geographyData, setGeographyData] = useState<any>(null);
+export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () => {
+  const { isDarkMode } = useTheme();
+  const [geographyData, setGeographyData] = useState<FeatureCollection | null>(null);
   const [isMapLoading, setIsMapLoading] = useState<boolean>(true);
   const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
-  const [markerTooltip, setMarkerTooltip] = useState<any>(null);
+  const [markerTooltip, setMarkerTooltip] = useState<BureauOption | null>(null);
   const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
     coordinates: [136, 36],
     zoom: 1,
@@ -128,16 +132,27 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
 
   // Loading Indication
   useEffect(() => {
-    fetch(geoUrl)
+    const abortController = new AbortController();
+
+    fetch(geoUrl, { signal: abortController.signal })
       .then((response) => response.json())
       .then((data) => {
         setGeographyData(data);
         setIsMapLoading(false);
       })
       .catch((error) => {
-        console.error('Error loading map data:', error);
+        if (error.name === 'AbortError') {
+          logger.log('Map data fetch aborted');
+          return;
+        }
+        logger.error('Error loading map data:', error);
         setIsMapLoading(false);
       });
+
+    // Cleanup function to abort fetch if component unmounts
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
   // Zoom controls
@@ -192,18 +207,30 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = ({ is
     return [bureauMap, prefectureMap];
   }, []);
 
-  // Style calculations
+  // Pre-calculate all prefecture colors (47 prefectures, calculated once instead of on every render)
+  const prefectureColors = useMemo(() => {
+    return japanPrefectures.reduce(
+      (acc, prefecture) => {
+        const bureau = bureauColorMap[prefecture.bureau];
+        if (!bureau) {
+          acc[prefecture.name] = '#DDD';
+          return acc;
+        }
+
+        const range = bureauDensityRanges[prefecture.bureau];
+        acc[prefecture.name] = range
+          ? adjustColor(bureau.background, parseFloat(prefecture.density), range.min, range.max)
+          : bureau.background;
+
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+  }, [bureauColorMap, bureauDensityRanges]);
+
+  // O(1) lookup for fill colors
   const getFillColor = (prefectureName: string): string => {
-    const prefecture = prefectureMap[prefectureName];
-    if (!prefecture) return '#DDD';
-
-    const bureau = bureauColorMap[prefecture.bureau];
-    if (!bureau) return '#DDD';
-
-    const range = bureauDensityRanges[prefecture.bureau];
-    return range
-      ? adjustColor(bureau.background, parseFloat(prefecture.density), range.min, range.max)
-      : bureau.background;
+    return prefectureColors[prefectureName] || '#DDD';
   };
 
   // Calculate Bureau Regional Statistics

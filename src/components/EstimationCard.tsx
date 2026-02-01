@@ -1,8 +1,7 @@
 // src/components/EstimationCard.tsx
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import type React from 'react';
-import { BlockMath } from 'react-katex';
 import { Icon } from '@iconify/react';
 
 import { applicationOptions } from '../constants/applicationOptions';
@@ -12,8 +11,6 @@ import { calculateEstimatedDate } from '../utils/calculateEstimates';
 import { nonAirportBureaus } from '../utils/getBureauData';
 import { FilterInput } from './common/FilterInput';
 import { FormulaTooltip, variableExplanations } from './common/FormulaTooltip';
-
-import 'katex/dist/katex.min.css';
 
 interface EstimationCardProps {
   data: ImmigrationData[];
@@ -42,6 +39,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
     applicationDate: '',
   });
   const [showDetails, setShowDetails] = useState(false);
+  const [BlockMath, setBlockMath] = useState<React.ComponentType<{ math: string }> | null>(null);
 
   const estimatedDate: EstimatedDateResult | null = useMemo(
     () => calculateEstimatedDate(data, applicationDetails),
@@ -62,6 +60,24 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
       max: currentDate, // Allow selection up to current date
     };
   }, [data]);
+
+  // Lazy load KaTeX library only when user wants to see formulas
+  useEffect(() => {
+    if (showDetails && !BlockMath) {
+      // Dynamically load KaTeX CSS from CDN
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
+      link.integrity = 'sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV';
+      link.crossOrigin = 'anonymous';
+      document.head.appendChild(link);
+
+      // Dynamically import BlockMath component
+      import('react-katex').then((module) => {
+        setBlockMath(() => module.BlockMath);
+      });
+    }
+  }, [showDetails, BlockMath]);
 
   if (variant === 'expandable' && !isExpanded) {
     return (
@@ -140,6 +156,32 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
               })}
             </p>
 
+            {estimatedDate.details.dataQuality === 'low' && (
+              <div className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                <div className="flex items-start gap-2">
+                  <Icon icon="material-symbols:warning-outline" className="mt-0.5 shrink-0 text-base" />
+                  <div>
+                    <strong>Estimated with limited data:</strong> Your application date is beyond available data. This
+                    estimate is based on simulated processing rates from {estimatedDate.details.monthsUsed} month
+                    {estimatedDate.details.monthsUsed === 1 ? '' : 's'} of historical data and may be less accurate.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {estimatedDate.details.isPastDue && (
+              <div className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                <div className="flex items-start gap-2">
+                  <Icon icon="material-symbols:error-outline" className="mt-0.5 shrink-0 text-base" />
+                  <div>
+                    <strong>Possibly past due:</strong> Based on expected processing rates, completion of this
+                    application may be past due. If you have not yet received additional requests and/or a decision on
+                    this application, please contact the bureau for more information.
+                  </div>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={() => setShowDetails(!showDetails)}
               className="mt-3 flex items-center text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-500"
@@ -153,8 +195,14 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
 
             {showDetails && (
               <div className="mt-2.5 space-y-1 border-t pt-3 text-xs dark:border-gray-500">
-                <div className="rounded-xl bg-gray-100 p-2.5 text-xxs text-gray-600 shadow-lg dark:bg-gray-600 dark:text-gray-200">
-                  <FormulaTooltip
+                {!BlockMath ? (
+                  <div className="flex items-center justify-center py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <Icon icon="eos-icons:loading" className="mr-2 text-lg" />
+                    Loading formulas...
+                  </div>
+                ) : (
+                  <div className="rounded-xl bg-gray-100 p-2.5 text-xxs text-gray-600 shadow-lg dark:bg-gray-600 dark:text-gray-200">
+                    <FormulaTooltip
                     variables={{
                       'D_{\\text{rem}}': variableExplanations['D_rem'],
                       'Q_{\\text{pos}}': variableExplanations['Q_pos'],
@@ -213,14 +261,6 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                     </div>
                   </FormulaTooltip>
                 </div>
-                {estimatedDate.details.isPastDue && (
-                  <>
-                    <div className="mt-2 text-xs italic text-amber-600 dark:text-amber-500">
-                      Based on expected processing rates, completion of this application may be past due. If you have
-                      not yet received additional requests and/or a decision on this application, please contact the
-                      bureau for more information.
-                    </div>
-                  </>
                 )}
               </div>
             )}

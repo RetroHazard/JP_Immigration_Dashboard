@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 
 import { transformData } from '../utils/dataTransform';
 import { loadLocalData } from '../utils/loadLocalData';
+import { logger } from '../utils/logger';
 
 export interface ImmigrationData {
   month: string;
@@ -27,15 +28,15 @@ export const useImmigrationData = () => {
         } else {
           setError('No data available');
         }
-      } catch (error: any) {
-        setError(error.message);
+      } catch (error: unknown) {
+        setError(error instanceof Error ? error.message : 'Unknown error occurred');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData().catch((error: any) => {
-      console.error('Unexpected error in fetchData:', error);
+    fetchData().catch((error: unknown) => {
+      logger.error('Unexpected error in fetchData:', error);
       setError('Failed to fetch data');
     });
   }, []);

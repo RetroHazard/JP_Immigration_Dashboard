@@ -1,5 +1,5 @@
 // src/components/charts/CategorySubmissionsLineChart.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   CategoryScale,
@@ -10,15 +10,20 @@ import {
   PointElement,
   Title,
   Tooltip,
+  type TooltipItem,
 } from 'chart.js';
 import type React from 'react';
 import { Line } from 'react-chartjs-2';
 
+import { STATUS_CODES } from '../../constants/statusCodes';
+import { useTheme } from '../../contexts/ThemeContext';
+import { filterData, getAllMonths } from '../../hooks/useFilteredData';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
 
-export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
+export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters }) => {
+  const { isDarkMode } = useTheme();
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
@@ -26,11 +31,12 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
   useEffect(() => {
     if (!data) return;
 
-    // Get the most recent month from the data
-    const endMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+    // Get all months from data using helper
+    const allMonths = getAllMonths(data);
+    if (allMonths.length === 0) return;
 
-    // Get all months from data
-    const allMonths = [...new Set(data.map((entry) => entry.month))].sort();
+    // Get the most recent month
+    const endMonth = allMonths[allMonths.length - 1];
 
     // Find index of the most recent month
     const endIndex = allMonths.indexOf(endMonth);
@@ -46,12 +52,12 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     }
 
     const monthlyStats = months.map((month) => {
-      const monthData = data.filter((entry) => {
-        const matchesMonth = entry.month === month;
-        if (filters.bureau === 'all') {
-          return entry.bureau === '100000' && entry.status === '103000' && matchesMonth;
-        }
-        return entry.bureau === filters.bureau && entry.status === '103000' && matchesMonth;
+      // Use shared filter function for consistent filtering
+      const monthData = filterData(data, {
+        month,
+        bureau: filters.bureau,
+        type: filters.type,
+        status: STATUS_CODES.NEW_APPLICATIONS,
       });
       return {
         month,
@@ -127,7 +133,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     setChartData(processedData);
   }, [data, filters, monthRange, showAllMonths]);
 
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     scales: {
@@ -181,13 +187,13 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
       tooltip: {
         mode: 'index' as const,
         callbacks: {
-          label: (context: any) => {
+          label: (context: TooltipItem<'line'>) => {
             return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
           },
         },
       },
     },
-  };
+  }), [isDarkMode, chartData]);
 
   return (
     <div className="card-content">

@@ -1,16 +1,19 @@
 // src/components/charts/BureauDistributionRingChart.tsx
 import { useMemo, useState } from 'react';
 
-import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
+import { ArcElement, Chart as ChartJS, Legend, type LegendItem, type ScriptableContext, Tooltip, type TooltipItem } from 'chart.js';
 import type React from 'react';
 import { Doughnut } from 'react-chartjs-2';
 
 import { bureauOptions } from '../../constants/bureauOptions';
+import { STATUS_CODES } from '../../constants/statusCodes';
+import { useTheme } from '../../contexts/ThemeContext';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
+export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data }) => {
+  const { isDarkMode } = useTheme();
   const [selectedPeriod, setSelectedPeriod] = useState<string>('1');
 
   // Get sorted list of unique months
@@ -26,13 +29,10 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
     return sortedMonths.slice(-period);
   }, [selectedPeriod, sortedMonths]);
 
-  // Filter data for selected months and type
+  // Filter data for selected months (type is pre-filtered in App.tsx)
   const filteredData = useMemo(
-    () =>
-      data.filter(
-        (entry) => selectedMonths.includes(entry.month) && (filters.type === 'all' || entry.type === filters.type)
-      ),
-    [data, selectedMonths, filters.type]
+    () => data.filter((entry) => selectedMonths.includes(entry.month)),
+    [data, selectedMonths]
   );
 
   // Calculate bureau data with aggregated values
@@ -46,9 +46,9 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
           value: filteredData
             .filter((d) => d.bureau === bureau.value)
             .reduce((sum, d) => {
-              if (d.status === '102000' || d.status === '103000') {
+              if (d.status === STATUS_CODES.OLD_APPLICATIONS || d.status === STATUS_CODES.NEW_APPLICATIONS) {
                 return sum + d.value;
-              } else if (d.status === '300000') {
+              } else if (d.status === STATUS_CODES.PROCESSED) {
                 return sum + d.value;
               }
               return sum;
@@ -59,17 +59,17 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
   );
 
   // Chart options with percentage tooltip
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     cutout: '50%',
     elements: {
       arc: {
-        backgroundColor: (ctx: any) => {
+        backgroundColor: (ctx: ScriptableContext<'doughnut'>) => {
           const bureau = bureauOptions.find((b) => b.value === bureauData[ctx.dataIndex]?.id);
           return bureau?.background || 'rgba(100, 116, 139, 0.4)'; // Fallback to Slate
         },
-        borderColor: (ctx: any) => {
+        borderColor: (ctx: ScriptableContext<'doughnut'>) => {
           const bureau = bureauOptions.find((b) => b.value === bureauData[ctx.dataIndex]?.id);
           return bureau?.border || 'rgba(100, 116, 139, 1)'; // Fallback to Slate
         },
@@ -81,12 +81,12 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
         position: 'left' as const,
         labels: {
           color: isDarkMode ? '#fff' : '#000',
-          filter: (item: any) => item.text !== '0',
+          filter: (item: LegendItem) => item.text !== '0',
         },
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => {
+          label: (context: TooltipItem<'doughnut'>) => {
             const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
             const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
             return `${context.label}: ${percentage}%`;
@@ -94,7 +94,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
         },
       },
     },
-  };
+  }), [isDarkMode, bureauData]);
 
   return (
     <div className="card-content">

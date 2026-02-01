@@ -1,17 +1,29 @@
 // src/components/charts/BureauPerformanceBubbleChart.tsx
 import { useMemo, useState } from 'react';
 
-import { Chart as ChartJS, Legend, LinearScale, PointElement, Title, Tooltip } from 'chart.js';
+import { Chart as ChartJS, Legend, LinearScale, PointElement, Title, Tooltip, type TooltipItem } from 'chart.js';
 import type React from 'react';
 import { Bubble } from 'react-chartjs-2';
 
 import { applicationOptions } from '../../constants/applicationOptions';
 import { bureauOptions } from '../../constants/bureauOptions';
+import { STATUS_CODES } from '../../constants/statusCodes';
+import { useTheme } from '../../contexts/ThemeContext';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
 
-export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
+interface BubbleDataPoint {
+  x: number;
+  y: number;
+  r: number;
+  label: string;
+  processed: number;
+  bureau: string;
+}
+
+export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data }) => {
+  const { isDarkMode } = useTheme();
   const [selectedPeriod, setSelectedPeriod] = useState('1');
 
   const sortedMonths = useMemo(() => {
@@ -26,14 +38,12 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
   }, [selectedPeriod, sortedMonths]);
 
   const filteredData = useMemo(() => {
+    // Data is pre-filtered by bureau and type in App.tsx, only filter by month and status
+    const relevantStatuses = [STATUS_CODES.NEW_APPLICATIONS, STATUS_CODES.PROCESSED] as string[];
     return data.filter(
-      (entry) =>
-        selectedMonths.includes(entry.month) &&
-        (filters.bureau === 'all' || entry.bureau === filters.bureau) &&
-        (filters.type === 'all' || entry.type === filters.type) &&
-        ['103000', '300000'].includes(entry.status)
+      (entry) => selectedMonths.includes(entry.month) && relevantStatuses.includes(entry.status)
     );
-  }, [data, selectedMonths, filters.bureau, filters.type]);
+  }, [data, selectedMonths]);
 
   const chartData = useMemo(() => {
     const bureaus = bureauOptions.filter((b) => b.value !== 'all');
@@ -45,7 +55,7 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
       appTypes.forEach((type) => {
         const processed = filteredData
           .filter((d) => d.bureau === bureau.value && d.type === type.value)
-          .filter((d) => d.status === '300000')
+          .filter((d) => d.status === STATUS_CODES.PROCESSED)
           .reduce((sum, d) => sum + d.value, 0);
         if (processed > maxProcessed) maxProcessed = processed;
       });
@@ -60,11 +70,11 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
           const bureauTypeData = filteredData.filter((d) => d.bureau === bureau.value && d.type === type.value);
 
           const totalReceived = bureauTypeData
-            .filter((d) => d.status === '103000')
+            .filter((d) => d.status === STATUS_CODES.NEW_APPLICATIONS)
             .reduce((sum, d) => sum + d.value, 0);
 
           const totalProcessed = bureauTypeData
-            .filter((d) => d.status === '300000')
+            .filter((d) => d.status === STATUS_CODES.PROCESSED)
             .reduce((sum, d) => sum + d.value, 0);
 
           const efficiency = totalReceived > 0 ? (totalProcessed / totalReceived) * 100 : 0;
@@ -90,7 +100,7 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
     });
   }, [filteredData]);
 
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     scales: {
@@ -118,8 +128,8 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
     plugins: {
       tooltip: {
         callbacks: {
-          label(context: any) {
-            const raw = context.raw || {};
+          label(context: TooltipItem<'bubble'>) {
+            const raw = context.raw as BubbleDataPoint;
             return [
               `${raw.bureau} - ${raw.label}`, // Use bureau from raw data
               `Received: ${raw.x.toLocaleString()}`,
@@ -131,7 +141,7 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
       },
       legend: { display: false },
     },
-  };
+  }), [isDarkMode]);
 
   return (
     <div className="card-content">

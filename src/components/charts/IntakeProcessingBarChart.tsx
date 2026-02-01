@@ -1,17 +1,36 @@
 // src/components/charts/IntakeProcessingBarChart.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
+import {
+  BarElement,
+  CategoryScale,
+  type Chart,
+  Chart as ChartJS,
+  type ChartEvent,
+  Legend,
+  type LegendElement,
+  type LegendItem,
+  LinearScale,
+  type Scale,
+  Title,
+  Tooltip,
+  type TooltipItem,
+} from 'chart.js';
 import type React from 'react';
 import { Bar } from 'react-chartjs-2';
 
+import { STATUS_CODES } from '../../constants/statusCodes';
+import { useTheme } from '../../contexts/ThemeContext';
+import { filterData, getAllMonths } from '../../hooks/useFilteredData';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
+export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters }) => {
+  const { isDarkMode } = useTheme();
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
+  const chartRef = useRef<Chart<'bar'>>(null);
 
   const [chartData, setChartData] = useState({
     labels: [],
@@ -34,13 +53,12 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
   useEffect(() => {
     if (!data) return;
 
-    // Get the most recent month from the data
-    const endMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
+    // Get all months from data using helper
+    const allMonths = getAllMonths(data);
+    if (allMonths.length === 0) return;
 
-    // Get all months from data
-    const allMonths = [...new Set(data.map((entry) => entry.month))].sort();
-
-    // Find index of the most recent month
+    // Get the most recent month
+    const endMonth = allMonths[allMonths.length - 1];
     const endIndex = allMonths.indexOf(endMonth);
     if (endIndex === -1) return;
 
@@ -54,21 +72,20 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
     }
 
     const monthlyStats = months.map((month) => {
-      const monthData = data.filter((entry) => {
-        const matchesMonth = entry.month === month;
-        const matchesType = filters.type === 'all' || entry.type === filters.type;
-
-        if (filters.bureau === 'all') {
-          return entry.bureau === '100000' && matchesMonth && matchesType;
-        }
-        return entry.bureau === filters.bureau && matchesMonth && matchesType;
+      // Use shared filter function for consistent filtering
+      // Data is already pre-filtered by type and bureau in App.tsx
+      // We just need to filter by month and handle 'all' bureau case
+      const monthData = filterData(data, {
+        month,
+        bureau: filters.bureau,
+        type: filters.type,
       });
 
       return {
         month,
-        totalApplications: monthData.reduce((sum, entry) => (entry.status === '102000' ? sum + entry.value : sum), 0), // 受理_旧受 (Previously Received)
-        processed: monthData.reduce((sum, entry) => (entry.status === '300000' ? sum + entry.value : sum), 0), // 処理済み (Processed)
-        newApplications: monthData.reduce((sum, entry) => (entry.status === '103000' ? sum + entry.value : sum), 0), // 受理_新受 (Newly Received)
+        totalApplications: monthData.reduce((sum, entry) => (entry.status === STATUS_CODES.OLD_APPLICATIONS ? sum + entry.value : sum), 0), // 受理_旧受 (Previously Received)
+        processed: monthData.reduce((sum, entry) => (entry.status === STATUS_CODES.PROCESSED ? sum + entry.value : sum), 0), // 処理済み (Processed)
+        newApplications: monthData.reduce((sum, entry) => (entry.status === STATUS_CODES.NEW_APPLICATIONS ? sum + entry.value : sum), 0), // 受理_新受 (Newly Received)
       };
     });
 
@@ -109,7 +126,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
     setChartData(processedData);
   }, [data, filters, monthRange, showAllMonths]);
 
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     scales: {
@@ -134,13 +151,14 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           color: isDarkMode ? '#fff' : '#000',
         },
         ticks: {
-          suggestedMin: Math.min(...chartData.datasets.map((dataset) => Math.min(...dataset.data))),
-          suggestedMax: Math.max(...chartData.datasets.map((dataset) => Math.max(...dataset.data))),
           color: isDarkMode ? '#fff' : '#000',
         },
-        afterBuildTicks: (axis) => {
-          axis.chart.scales.y2.options.min = axis.min;
-          axis.chart.scales.y2.options.max = axis.max;
+        afterDataLimits: (axis: Scale) => {
+          // Synchronize y2 with y after data limits are calculated
+          if (axis.chart.scales.y2) {
+            axis.chart.scales.y2.min = axis.min;
+            axis.chart.scales.y2.max = axis.max;
+          }
         },
         grid: {
           color: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
@@ -158,17 +176,30 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           padding: 10,
           color: isDarkMode ? '#fff' : '#000',
         },
+        onClick: (e: ChartEvent, legendItem: LegendItem, legend: LegendElement<'bar'>) => {
+          const chart = legend.chart;
+          const index = legendItem.datasetIndex;
+
+          if (index === undefined) return;
+
+          // Toggle dataset visibility
+          const meta = chart.getDatasetMeta(index);
+          meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
+
+          // Force chart update to trigger scale recalculation with animation
+          chart.update();
+        },
       },
       tooltip: {
         mode: 'index' as const,
         callbacks: {
-          label: (context) => {
+          label: (context: TooltipItem<'bar'>) => {
             return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
           },
         },
       },
     },
-  };
+  }), [isDarkMode]);
 
   return (
     <div className="card-content">
@@ -196,7 +227,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
       </div>
 
       <div className="chart-container">
-        <Bar data={chartData} options={options} />
+        <Bar ref={chartRef} data={chartData} options={options} />
       </div>
     </div>
   );

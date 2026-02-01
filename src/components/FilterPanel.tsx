@@ -1,5 +1,5 @@
 // src/components/FilterPanel.tsx
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type React from 'react';
 
@@ -17,14 +17,12 @@ interface FilterPanelProps {
 export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChange, filterConfig }) => {
   const dateRange = useMemo(() => {
     if (!data || !Array.isArray(data) || data.length === 0) {
-      console.log('No valid data provided');
       return { min: '', max: '' };
     }
 
     const months = [...new Set(data.map((entry) => entry.month))].filter(Boolean);
 
     if (months.length === 0) {
-      console.log('No valid months found in data');
       return { min: '', max: '' };
     }
 
@@ -35,7 +33,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChang
     };
   }, [data]);
 
-  const formatDateString = (dateStr: string) => {
+  const formatDateString = useCallback((dateStr: string) => {
     if (!dateStr) return '';
 
     const [year, month] = dateStr.split('-');
@@ -45,7 +43,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChang
       month: 'long',
       year: 'numeric',
     });
-  };
+  }, []);
 
   return (
     <div className="base-container">

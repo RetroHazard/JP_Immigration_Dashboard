@@ -2,7 +2,7 @@
 // Non-mutating, O(1) access-time corrections for “管内” bureaus using bureau CODES.
 // Works directly on the e-Stat DATA_INF.VALUE entries and never mutates the source.
 
-import { bureauOptions } from '../constants/bureauOptions';
+import { type BureauOption,bureauOptions } from '../constants/bureauOptions';
 
 export type EStatValue = {
   [k: string]: string | undefined; // "@tab", "@cat01", "@cat02", "@cat03", "@time", "$", etc.
@@ -34,7 +34,7 @@ export type EStatData = {
 // Use code mapping (see bureauOptions values)
 const AGGREGATE_MAPPING: Record<string, string[]> = Object.fromEntries(
   bureauOptions
-    .filter((b: any) => Array.isArray(b.children) && b.children.length)
+    .filter((b: BureauOption) => Array.isArray(b.children) && b.children.length)
     .map((b) => [b.value, b.children as string[]])
 );
 
@@ -104,6 +104,22 @@ export function makeCorrectedAccessor(data: EStatData) {
     }
 
     const corrected = base - subtotal;
+
+    // Validate that correction doesn't produce negative values
+    if (corrected < 0) {
+      console.warn(
+        `⚠️  Bureau deaggregation produced negative value`,
+        `\n  Bureau: ${bureau}`,
+        `\n  Coordinate: ${key}`,
+        `\n  Base value: ${base}`,
+        `\n  Branch subtotal: ${subtotal}`,
+        `\n  Corrected (negative): ${corrected}`,
+        `\n  → Falling back to uncorrected base value`
+      );
+      memo.set(key, base); // Fallback to uncorrected
+      return base;
+    }
+
     memo.set(key, corrected);
     return corrected;
   }

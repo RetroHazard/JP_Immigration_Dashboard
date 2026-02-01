@@ -2,61 +2,59 @@
 import { useMemo } from 'react';
 
 import type React from 'react';
-import { Icon } from '@iconify/react';
-import Tippy from '@tippyjs/react';
 
-import { applicationOptions } from '../constants/applicationOptions';
+import { STATUS_CODES } from '../constants/statusCodes';
+import { getLatestMonth, useFilteredData } from '../hooks/useFilteredData';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { getBureauLabel } from '../utils/getBureauData';
-
-import 'tippy.js/dist/tippy.css';
-import 'tippy.js/animations/shift-away.css';
+import { StatCard } from './common/StatCard';
 
 interface StatsSummaryProps {
   data: ImmigrationData[];
   filters: { month?: string; type: string; bureau: string };
 }
 
-interface StatCardProps {
-  title: string;
-  shortTitle: string;
-  subtitle: string;
-  value: string | number;
-  color: string;
-  icon: string;
-}
-
 export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => {
+  // Get the most recent month from data
+  const selectedMonth = getLatestMonth(data);
+
+  // Use shared filter hook with month filter
+  const filteredData = useFilteredData(data, {
+    bureau: filters.bureau,
+    type: filters.type,
+    month: selectedMonth || undefined,
+  });
+
   const stats = useMemo(() => {
-    if (!data) return null;
+    if (!filteredData || filteredData.length === 0) return null;
 
-    // Use the most recent month
-    const selectedMonth = [...new Set(data.map((entry) => entry.month))].sort().reverse()[0];
-
-    // Filter data based on all filters including month
-    const filteredData = data.filter((entry) => {
-      const matchesMonth = entry.month === selectedMonth;
-      const matchesType = filters.type === 'all' || entry.type === filters.type;
-
-      if (filters.bureau === 'all') {
-        return entry.bureau === '100000' && matchesMonth && matchesType;
-      }
-
-      return entry.bureau === filters.bureau && matchesMonth && matchesType;
-    });
-
-    const oldApplications = filteredData.reduce(
-      (sum, entry) => (entry.status === '102000' ? sum + entry.value : sum),
-      0
+    // Optimize: single reduce instead of 6 separate iterations
+    const { oldApplications, newApplications, processed, granted, denied, other } = filteredData.reduce(
+      (acc, entry) => {
+        switch (entry.status) {
+          case STATUS_CODES.OLD_APPLICATIONS:
+            acc.oldApplications += entry.value;
+            break;
+          case STATUS_CODES.NEW_APPLICATIONS:
+            acc.newApplications += entry.value;
+            break;
+          case STATUS_CODES.PROCESSED:
+            acc.processed += entry.value;
+            break;
+          case STATUS_CODES.GRANTED:
+            acc.granted += entry.value;
+            break;
+          case STATUS_CODES.DENIED:
+            acc.denied += entry.value;
+            break;
+          case STATUS_CODES.OTHER:
+            acc.other += entry.value;
+            break;
+        }
+        return acc;
+      },
+      { oldApplications: 0, newApplications: 0, processed: 0, granted: 0, denied: 0, other: 0 }
     );
-    const newApplications = filteredData.reduce(
-      (sum, entry) => (entry.status === '103000' ? sum + entry.value : sum),
-      0
-    );
-    const processed = filteredData.reduce((sum, entry) => (entry.status === '300000' ? sum + entry.value : sum), 0);
-    const granted = filteredData.reduce((sum, entry) => (entry.status === '301000' ? sum + entry.value : sum), 0);
-    const denied = filteredData.reduce((sum, entry) => (entry.status === '302000' ? sum + entry.value : sum), 0);
-    const other = filteredData.reduce((sum, entry) => (entry.status === '305000' ? sum + entry.value : sum), 0);
 
     const totalApplications = oldApplications + newApplications;
     const pending = totalApplications - processed + other;
@@ -70,55 +68,9 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       pending,
       approvalRate: processed ? ((granted / processed) * 100).toFixed(1) : 0,
     };
-  }, [data, filters]);
+  }, [filteredData]);
 
   if (!stats) return null;
-
-  const getApplicationTypeLabel = (type: string) => {
-    const appType = applicationOptions.find((option) => option.value === type);
-    return appType ? appType.short : '';
-  };
-
-  const StatCard: React.FC<StatCardProps> = ({ title, shortTitle, subtitle, value, color, icon }) => {
-    const appTypeLabel = filters.type !== 'all' ? getApplicationTypeLabel(filters.type) : '';
-    const combinedSubtitle = appTypeLabel ? `${subtitle} (${appTypeLabel})` : subtitle;
-
-    return (
-      <Tippy
-        className="sm:pointer-events-none sm:hidden"
-        content={
-          <div className="flex flex-col gap-1 text-center">
-            <div className="font-semibold">{title}</div>
-            <div className="font-light">{combinedSubtitle}</div>
-            <div className="mt-1 font-bold">{value}</div>
-          </div>
-        }
-        animation="shift-away"
-        placement="top"
-        arrow={true}
-        theme="stat-tooltip"
-        delay={[300, 0]}
-        touch={true}
-      >
-        <div className="stat-card">
-          <div className="group relative">
-            {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
-            <div className={`${color} dark:${color.replace('500', '600')} stat-badge`}>
-              <div className="stat-icon-text">
-                <Icon icon={icon} />
-              </div>
-            </div>
-          </div>
-          <div className="stat-details">
-            <div className="stat-title">{title}</div>
-            <div className="stat-short-title">{shortTitle}</div>
-            <div className="stat-subtitle">{combinedSubtitle}</div>
-            <div className="stat-value">{value}</div>
-          </div>
-        </div>
-      </Tippy>
-    );
-  };
 
   return (
     <div className="stat-container">
@@ -129,6 +81,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         value={stats.totalApplications.toLocaleString()}
         color="bg-blue-500"
         icon="material-symbols:file-copy-outline-rounded"
+        filterType={filters.type}
       />
       <StatCard
         title="Pending"
@@ -137,6 +90,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         value={stats.pending.toLocaleString()}
         color="bg-yellow-500"
         icon="material-symbols:pending-actions-rounded"
+        filterType={filters.type}
       />
       <StatCard
         title="Granted"
@@ -145,6 +99,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         value={stats.granted.toLocaleString()}
         color="bg-green-500"
         icon="material-symbols:order-approve-rounded"
+        filterType={filters.type}
       />
       <StatCard
         title="Denied"
@@ -153,6 +108,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         value={stats.denied.toLocaleString()}
         color="bg-red-500"
         icon="material-symbols:cancel-outline-rounded"
+        filterType={filters.type}
       />
       <StatCard
         title="Approval Rate"
@@ -161,6 +117,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         value={`${stats.approvalRate}%`}
         color="bg-gray-500"
         icon="material-symbols:percent-rounded"
+        filterType={filters.type}
       />
     </div>
   );

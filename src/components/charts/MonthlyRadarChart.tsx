@@ -1,16 +1,18 @@
 import { useMemo, useState } from 'react';
 
-import { Chart as ChartJS, Filler, Legend, LineElement, PointElement, RadialLinearScale, Tooltip } from 'chart.js';
+import { Chart as ChartJS, Filler, Legend, LineElement, PointElement, RadialLinearScale, Tooltip, type TooltipItem } from 'chart.js';
 import type React from 'react';
 import { Radar } from 'react-chartjs-2';
 
 import { applicationOptions } from '../../constants/applicationOptions';
 import { bureauOptions } from '../../constants/bureauOptions';
+import { useTheme } from '../../contexts/ThemeContext';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
-export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filters, isDarkMode }) => {
+export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filters }) => {
+  const { isDarkMode } = useTheme();
   const [selectedPeriod, setSelectedPeriod] = useState('1');
 
   // Get sorted list of unique months
@@ -26,13 +28,10 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
     return sortedMonths.slice(-period);
   }, [selectedPeriod, sortedMonths]);
 
-  // Filter data for selected months and bureau
+  // Filter data for selected months (bureau is pre-filtered in App.tsx)
   const filteredData = useMemo(
-    () =>
-      data.filter(
-        (entry) => selectedMonths.includes(entry.month) && (filters.bureau === 'all' || entry.bureau === filters.bureau)
-      ),
-    [data, selectedMonths, filters.bureau]
+    () => data.filter((entry) => selectedMonths.includes(entry.month)),
+    [data, selectedMonths]
   );
 
   // Calculate percentages for each bureau/type combination
@@ -100,7 +99,7 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
   // Auto-adjust scale with 10% buffer
   const scaleMax = Math.ceil(maxValue * 1.1);
 
-  const options = {
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     scales: {
@@ -126,15 +125,15 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => {
+          label: (context: TooltipItem<'radar'>) => {
             const label = context.dataset.label || '';
-            const value = context.raw.toFixed(1);
+            const value = (context.raw as number).toFixed(1);
             return `${label}: ${value}%`;
           },
         },
       },
     },
-  };
+  }), [isDarkMode, scaleMax]);
 
   return (
     <div className="card-content">

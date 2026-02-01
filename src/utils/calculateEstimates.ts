@@ -1,4 +1,5 @@
 // src/utils/calculateEstimates.ts
+import { STATUS_CODES } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 
 interface ApplicationDetails {
@@ -17,6 +18,8 @@ interface CalculationDetails {
   appDay: number;
   totalProcessed: number;
   totalDays: number;
+  dataQuality: 'high' | 'low';
+  monthsUsed: number;
   modelVariables: {
     C_prev: number;
     N_app: number;
@@ -60,8 +63,27 @@ export const calculateEstimatedDate = (
   const months = [...new Set(filteredData.map((entry) => entry.month))].sort();
   const lastAvailableMonth = months[months.length - 1];
 
-  // Always use the most recent 6 months for rate calculations
-  const selectedMonths = months.slice(-6);
+  // Data quality validation: require minimum 3 months, optimal is 6
+  const MIN_MONTHS_REQUIRED = 3;
+  const OPTIMAL_MONTHS = 6;
+
+  if (months.length < MIN_MONTHS_REQUIRED) {
+    console.warn(
+      `⚠️  Insufficient data for estimation`,
+      `\n  Bureau: ${bureau}`,
+      `\n  Type: ${type}`,
+      `\n  Months available: ${months.length}`,
+      `\n  Minimum required: ${MIN_MONTHS_REQUIRED}`,
+      `\n  → Cannot generate reliable estimate`
+    );
+    return null;
+  }
+
+  // Use the most recent data available (up to 6 months)
+  const selectedMonths = months.slice(-OPTIMAL_MONTHS);
+
+  // Data quality will be determined later based on application date context
+  // (whether we have actual data for the application period)
 
   // --------------------------------------------
   // Helper Functions
@@ -88,8 +110,8 @@ export const calculateEstimatedDate = (
   // Core Rate Calculations
   // --------------------------------------------
   // Calculate daily processing rates
-  const totalNew = sumByStatus('103000', (m) => selectedMonths.includes(m));
-  const totalProcessed = sumByStatus('300000', (m) => selectedMonths.includes(m));
+  const totalNew = sumByStatus(STATUS_CODES.NEW_APPLICATIONS, (m) => selectedMonths.includes(m));
+  const totalProcessed = sumByStatus(STATUS_CODES.PROCESSED, (m) => selectedMonths.includes(m));
   const totalDays = selectedMonths.reduce((sum, month) => sum + getDaysInMonth(month), 0);
 
   const dailyProcessed = totalProcessed / totalDays;
@@ -109,21 +131,52 @@ export const calculateEstimatedDate = (
   const prevMonth = formatMonth(prevMonthDate);
 
   // --------------------------------------------
-  // Available Data Detection
+  // Available Data Detection & Quality Assessment
   // --------------------------------------------
   const hasActualAppMonth = months.includes(applicationMonth);
   const hasActualPrevMonth = months.includes(prevMonth);
+
+  // Calculate how far we're estimating beyond available data
+  const lastAvailableDate = new Date(lastAvailableMonth + '-01');
+  const appMonthDate = new Date(applicationMonth + '-01');
+  const monthsBeyondData = hasActualAppMonth
+    ? 0
+    : Math.max(0, (appMonthDate.getFullYear() - lastAvailableDate.getFullYear()) * 12
+        + (appMonthDate.getMonth() - lastAvailableDate.getMonth()));
+
+  // Determine data quality based on application date context
+  // - 'high': Application date has actual data (within our dataset)
+  // - 'low': Application date is beyond available data (requires simulation)
+  const dataQuality = hasActualAppMonth && monthsBeyondData === 0
+    ? 'high'
+    : 'low';
+
+  if (dataQuality === 'low') {
+    const reason = !hasActualAppMonth
+      ? `application date is ${monthsBeyondData} month${monthsBeyondData === 1 ? '' : 's'} beyond available data`
+      : `insufficient historical data (${selectedMonths.length} months)`;
+
+    console.warn(
+      `⚠️  Estimate quality reduced`,
+      `\n  Bureau: ${bureau}`,
+      `\n  Type: ${type}`,
+      `\n  Application date: ${applicationMonth}`,
+      `\n  Last available data: ${lastAvailableMonth}`,
+      `\n  Reason: ${reason}`,
+      `\n  → Estimate is based on simulation rather than actual data`
+    );
+  }
 
   // --------------------------------------------
   // Queue Position Calculations
   // --------------------------------------------
   // Current queue state calculations
-  const lastAvailableDate = new Date(
+  const lastAvailableDateEnd = new Date(
     Date.UTC(parseInt(lastAvailableMonth.split('-')[0]), parseInt(lastAvailableMonth.split('-')[1]) - 1, 1)
   );
-  lastAvailableDate.setMonth(lastAvailableDate.getMonth() + 1);
-  lastAvailableDate.setDate(0);
-  const predictionDays = getDaysBetweenDates(lastAvailableDate, new Date());
+  lastAvailableDateEnd.setMonth(lastAvailableDateEnd.getMonth() + 1);
+  lastAvailableDateEnd.setDate(0);
+  const predictionDays = getDaysBetweenDates(lastAvailableDateEnd, new Date());
 
   // Processed applications estimation
   let processedInAppMonth = 0;
@@ -132,7 +185,7 @@ export const calculateEstimatedDate = (
     processedInAppMonth = dailyProcessed * (daysInMonth - appDay);
   }
 
-  const confirmedProcessed = sumByStatus('300000', (m) => m > applicationMonth) + processedInAppMonth;
+  const confirmedProcessed = sumByStatus(STATUS_CODES.PROCESSED, (m) => m > applicationMonth) + processedInAppMonth;
 
   // --------------------------------------------
   // Predictive Calculations
@@ -156,7 +209,7 @@ export const calculateEstimatedDate = (
   // --------------------------------------------
   let carriedOver = 0;
   if (hasActualPrevMonth) {
-    carriedOver = getMonthData(prevMonth, '100000') - getMonthData(prevMonth, '300000');
+    carriedOver = getMonthData(prevMonth, STATUS_CODES.TOTAL_APPLICATIONS) - getMonthData(prevMonth, STATUS_CODES.PROCESSED);
   } else {
     const availableMonths = months.filter((m) => m < applicationMonth);
     if (availableMonths.length) {
@@ -164,7 +217,7 @@ export const calculateEstimatedDate = (
 
       // Calculate initial carriedOver from the last available month
       let simulatedCarriedOver =
-        getMonthData(lastAvailableMonth, '100000') - getMonthData(lastAvailableMonth, '300000');
+        getMonthData(lastAvailableMonth, STATUS_CODES.TOTAL_APPLICATIONS) - getMonthData(lastAvailableMonth, STATUS_CODES.PROCESSED);
 
       // Calculate the exact number of full months between the last available month and application month
       const lastAvailableDate = new Date(lastAvailableMonth + '-01');
@@ -173,7 +226,27 @@ export const calculateEstimatedDate = (
       const currentMonthDate = new Date(lastAvailableDate);
       currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); // Start from next month
 
+      // Infinite loop protection: maximum 5 years of simulation
+      const MAX_MONTHS_TO_SIMULATE = 60;
+      let monthsSimulated = 0;
+
       while (currentMonthDate < appMonthDate) {
+        monthsSimulated++;
+
+        // Safety check to prevent infinite loops
+        if (monthsSimulated > MAX_MONTHS_TO_SIMULATE) {
+          console.error(
+            `⚠️  Carryover simulation exceeded maximum iterations`,
+            `\n  Bureau: ${bureau}`,
+            `\n  Type: ${type}`,
+            `\n  Application month: ${applicationMonth}`,
+            `\n  Last available month: ${lastAvailableMonth}`,
+            `\n  Months simulated: ${monthsSimulated}`,
+            `\n  → Aborting estimation (possible date error)`
+          );
+          return null;
+        }
+
         const daysInMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0).getDate();
 
         const netChange = (dailyNew - dailyProcessed) * daysInMonth;
@@ -189,8 +262,8 @@ export const calculateEstimatedDate = (
   // Received/processed by application date
   let receivedByAppDate: number, processedByAppDate: number;
   if (hasActualAppMonth) {
-    const receivedInMonth = getMonthData(applicationMonth, '103000');
-    const processedInMonth = getMonthData(applicationMonth, '300000');
+    const receivedInMonth = getMonthData(applicationMonth, STATUS_CODES.NEW_APPLICATIONS);
+    const processedInMonth = getMonthData(applicationMonth, STATUS_CODES.PROCESSED);
     const daysInMonth = getDaysInMonth(applicationMonth);
 
     receivedByAppDate = (receivedInMonth / daysInMonth) * appDay;
@@ -226,6 +299,8 @@ export const calculateEstimatedDate = (
     appDay,
     totalProcessed,
     totalDays,
+    dataQuality,
+    monthsUsed: selectedMonths.length,
     modelVariables: {
       C_prev: Number(carriedOver), // Applications carried forward from the previous month.
       N_app: Number(receivedByAppDate), // Estimated applications received prior to submission time.

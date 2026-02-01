@@ -1,6 +1,6 @@
 // src/constants/bureauOptions.ts
 
-interface BureauOption {
+export interface BureauOption {
   value: string;
   label: string;
   short: string;
