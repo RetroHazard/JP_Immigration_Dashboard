@@ -117,7 +117,7 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 - `@nivo/treemap` – Hierarchical Visualizations
 - `react-simple-maps` – Geographic Visualizations
 - `d3-scale` – Data scaling utilities
-- `Tippy.js` – Tooltips
+- `FloatingUI` – Tooltips and Popovers
 - `KaTeX` – Mathematical Notation Rendering
 - `Tailwind CSS` – Utility-first Styling
 - `@iconify/react` – Icon Components
