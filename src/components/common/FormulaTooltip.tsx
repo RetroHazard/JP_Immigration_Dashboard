@@ -52,7 +52,7 @@ export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ variables, child
   const { refs, floatingStyles, context } = useFloating({
     open: isOpen,
     onOpenChange: setIsOpen,
-    placement: 'top',
+    placement: 'left',
     whileElementsMounted: autoUpdate,
     elements: { reference: referenceElement },
     middleware: [
