@@ -1,7 +1,7 @@
 // src/components/charts/BureauPerformanceBubbleChart.tsx
 import { useMemo, useState } from 'react';
 
-import { Chart as ChartJS, Legend, LinearScale, PointElement, Title, Tooltip } from 'chart.js';
+import { Chart as ChartJS, Legend, LinearScale, PointElement, Title, Tooltip, type TooltipItem } from 'chart.js';
 import type React from 'react';
 import { Bubble } from 'react-chartjs-2';
 
@@ -12,6 +12,15 @@ import { useTheme } from '../../contexts/ThemeContext';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
+
+interface BubbleDataPoint {
+  x: number;
+  y: number;
+  r: number;
+  label: string;
+  processed: number;
+  bureau: string;
+}
 
 export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data }) => {
   const { isDarkMode } = useTheme();
@@ -119,8 +128,8 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
     plugins: {
       tooltip: {
         callbacks: {
-          label(context: any) {
-            const raw = context.raw || {};
+          label(context: TooltipItem<'bubble'>) {
+            const raw = context.raw as BubbleDataPoint;
             return [
               `${raw.bureau} - ${raw.label}`, // Use bureau from raw data
               `Received: ${raw.x.toLocaleString()}`,

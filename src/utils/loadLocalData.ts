@@ -1,7 +1,8 @@
 // src/utils/loadLocalData.ts
+import type { RawData } from './dataTransform';
 import { logger } from './logger';
 
-export const loadLocalData = async (): Promise<any> => {
+export const loadLocalData = async (): Promise<RawData | null> => {
   try {
     const response = await fetch('/datastore/statData.json');
 

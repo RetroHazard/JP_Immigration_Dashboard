@@ -1,12 +1,13 @@
 // src/components/charts/GeographicDistributionChart.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import type { FeatureCollection } from 'geojson';
 import type React from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
 import { Icon } from '@iconify/react';
 import Tippy from '@tippyjs/react';
 
-import { bureauOptions } from '../../constants/bureauOptions';
+import { type BureauOption,bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
 import { useTheme } from '../../contexts/ThemeContext';
 import { nonAirportBureaus } from '../../utils/getBureauData';
@@ -89,10 +90,10 @@ const adjustColor = (originalColor: string, density: number, minDensity: number,
 
 export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () => {
   const { isDarkMode } = useTheme();
-  const [geographyData, setGeographyData] = useState<any>(null);
+  const [geographyData, setGeographyData] = useState<FeatureCollection | null>(null);
   const [isMapLoading, setIsMapLoading] = useState<boolean>(true);
   const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
-  const [markerTooltip, setMarkerTooltip] = useState<any>(null);
+  const [markerTooltip, setMarkerTooltip] = useState<BureauOption | null>(null);
   const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
     coordinates: [136, 36],
     zoom: 1,

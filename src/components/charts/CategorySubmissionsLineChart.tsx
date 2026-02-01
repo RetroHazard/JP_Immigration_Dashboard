@@ -10,6 +10,7 @@ import {
   PointElement,
   Title,
   Tooltip,
+  type TooltipItem,
 } from 'chart.js';
 import type React from 'react';
 import { Line } from 'react-chartjs-2';
@@ -186,7 +187,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
       tooltip: {
         mode: 'index' as const,
         callbacks: {
-          label: (context: any) => {
+          label: (context: TooltipItem<'line'>) => {
             return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
           },
         },

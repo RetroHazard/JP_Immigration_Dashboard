@@ -2,7 +2,7 @@
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { type EStatData, type EStatValue, makeCorrectedAccessor } from './correctBureauAggregates';
 
-interface RawDataEntry {
+export interface RawDataEntry {
   '@time': string;
   '@cat03': string;
   '@cat02': string;
@@ -10,7 +10,7 @@ interface RawDataEntry {
   '@cat01': string;
 }
 
-interface RawData {
+export interface RawData {
   GET_STATS_DATA: {
     STATISTICAL_DATA: {
       DATA_INF: {
