@@ -41,7 +41,6 @@ const StatCardComponent: React.FC<StatCardProps> = ({ title, shortTitle, subtitl
     showDelay: 300,
     hideDelay: 0,
     showArrow: true,
-    touch: true,
   });
 
   return (

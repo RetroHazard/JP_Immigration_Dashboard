@@ -23,7 +23,6 @@ export interface TooltipOptions {
   hideDelay?: number;
   interactive?: boolean;
   showArrow?: boolean;
-  touch?: boolean;
 }
 
 export const useTooltip = (options: TooltipOptions = {}) => {
@@ -33,7 +32,6 @@ export const useTooltip = (options: TooltipOptions = {}) => {
     showDelay = 300,
     hideDelay = 0,
     showArrow = true,
-    touch = false,
   } = options;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -61,7 +59,6 @@ export const useTooltip = (options: TooltipOptions = {}) => {
       close: hideDelay,
     },
     move: false,
-    enabled: !touch,
   });
 
   const focus = useFocus(context);
