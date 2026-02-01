@@ -9,19 +9,25 @@
     }
 }
 
-/* Tippy.js */
+/* FloatingUI Tooltip Styles */
 
-.tippy-box[data-theme~='stat-tooltip'] {
-    @apply bg-gray-600 text-white text-xs px-2 py-1 shadow-xl rounded-md dark:bg-gray-300 dark:text-gray-600;
+.floating-tooltip {
+    @apply bg-gray-600 text-white text-xs px-2 py-1 shadow-xl rounded-md
+           dark:bg-gray-300 dark:text-gray-600;
+    z-index: 999;
+    max-width: 300px;
+    transition: opacity 200ms ease-in-out, transform 200ms ease-in-out;
 }
 
-.tippy-box[data-theme~='stat-tooltip'] > .tippy-arrow {
-    @apply text-gray-600 dark:text-gray-300;
+.floating-tooltip[data-status='open'] {
+    opacity: 1;
 }
 
-.tippy-box[data-theme~='stat-tooltip'] > .tippy-backdrop {
-    @apply bg-gray-600 dark:bg-gray-300;
+.floating-tooltip[data-status='closed'] {
+    opacity: 0;
 }
+
+/* Arrow styling is handled by FloatingUI's FloatingArrow component */
 
 @layer components {
     /* Base Components */
