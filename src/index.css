@@ -16,7 +16,7 @@
            dark:bg-gray-300 dark:text-gray-600;
     z-index: 999;
     max-width: 300px;
-    transition: opacity 200ms ease-in-out, transform 200ms ease-in-out;
+    transition: opacity 200ms ease-in-out;
 }
 
 .floating-tooltip[data-status='open'] {
