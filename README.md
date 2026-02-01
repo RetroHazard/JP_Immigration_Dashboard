@@ -1,6 +1,8 @@
 # Japan Immigration Statistics Dashboard
 [![Version](https://img.shields.io/badge/version-0.5.6-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 [![Build and Deploy to GitHub Pages](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/build.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/build.yaml) [![Data Watcher](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml)
 
 ## Overview
