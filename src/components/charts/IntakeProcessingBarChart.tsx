@@ -1,7 +1,21 @@
 // src/components/charts/IntakeProcessingBarChart.tsx
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, type Scale, Title, Tooltip, type TooltipItem } from 'chart.js';
+import {
+  BarElement,
+  CategoryScale,
+  type Chart,
+  Chart as ChartJS,
+  type ChartEvent,
+  Legend,
+  type LegendElement,
+  type LegendItem,
+  LinearScale,
+  type Scale,
+  Title,
+  Tooltip,
+  type TooltipItem,
+} from 'chart.js';
 import type React from 'react';
 import { Bar } from 'react-chartjs-2';
 
@@ -16,6 +30,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
   const { isDarkMode } = useTheme();
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
+  const chartRef = useRef<Chart<'bar'>>(null);
 
   const [chartData, setChartData] = useState({
     labels: [],
@@ -136,13 +151,14 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           color: isDarkMode ? '#fff' : '#000',
         },
         ticks: {
-          suggestedMin: Math.min(...chartData.datasets.map((dataset) => Math.min(...dataset.data))),
-          suggestedMax: Math.max(...chartData.datasets.map((dataset) => Math.max(...dataset.data))),
           color: isDarkMode ? '#fff' : '#000',
         },
-        afterBuildTicks: (axis: Scale) => {
-          axis.chart.scales.y2.options.min = axis.min;
-          axis.chart.scales.y2.options.max = axis.max;
+        afterDataLimits: (axis: Scale) => {
+          // Synchronize y2 with y after data limits are calculated
+          if (axis.chart.scales.y2) {
+            axis.chart.scales.y2.min = axis.min;
+            axis.chart.scales.y2.max = axis.max;
+          }
         },
         grid: {
           color: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
@@ -160,6 +176,19 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           padding: 10,
           color: isDarkMode ? '#fff' : '#000',
         },
+        onClick: (e: ChartEvent, legendItem: LegendItem, legend: LegendElement<'bar'>) => {
+          const chart = legend.chart;
+          const index = legendItem.datasetIndex;
+
+          if (index === undefined) return;
+
+          // Toggle dataset visibility
+          const meta = chart.getDatasetMeta(index);
+          meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
+
+          // Force chart update to trigger scale recalculation with animation
+          chart.update();
+        },
       },
       tooltip: {
         mode: 'index' as const,
@@ -170,7 +199,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
         },
       },
     },
-  }), [isDarkMode, chartData]);
+  }), [isDarkMode]);
 
   return (
     <div className="card-content">
@@ -198,7 +227,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
       </div>
 
       <div className="chart-container">
-        <Bar data={chartData} options={options} />
+        <Bar ref={chartRef} data={chartData} options={options} />
       </div>
     </div>
   );
