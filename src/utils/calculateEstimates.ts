@@ -1,6 +1,7 @@
 // src/utils/calculateEstimates.ts
 import { STATUS_CODES } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
+import { logger } from './logger';
 
 interface ApplicationDetails {
   bureau: string;
@@ -68,7 +69,7 @@ export const calculateEstimatedDate = (
   const OPTIMAL_MONTHS = 6;
 
   if (months.length < MIN_MONTHS_REQUIRED) {
-    console.warn(
+    logger.warn(
       `⚠️  Insufficient data for estimation`,
       `\n  Bureau: ${bureau}`,
       `\n  Type: ${type}`,
@@ -156,7 +157,7 @@ export const calculateEstimatedDate = (
       ? `application date is ${monthsBeyondData} month${monthsBeyondData === 1 ? '' : 's'} beyond available data`
       : `insufficient historical data (${selectedMonths.length} months)`;
 
-    console.warn(
+    logger.warn(
       `⚠️  Estimate quality reduced`,
       `\n  Bureau: ${bureau}`,
       `\n  Type: ${type}`,
@@ -235,7 +236,7 @@ export const calculateEstimatedDate = (
 
         // Safety check to prevent infinite loops
         if (monthsSimulated > MAX_MONTHS_TO_SIMULATE) {
-          console.error(
+          logger.error(
             `⚠️  Carryover simulation exceeded maximum iterations`,
             `\n  Bureau: ${bureau}`,
             `\n  Type: ${type}`,

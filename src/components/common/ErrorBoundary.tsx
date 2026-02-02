@@ -1,6 +1,8 @@
 // src/components/common/ErrorBoundary.tsx
 import React from 'react';
 
+import { logger } from '../../utils/logger';
+
 interface ErrorBoundaryProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
@@ -27,8 +29,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log error details to console
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Log error details using environment-aware logger
+    logger.error('ErrorBoundary caught an error:', error, errorInfo);
 
     // You can also log to an error reporting service here
     // Example: logErrorToService(error, errorInfo);

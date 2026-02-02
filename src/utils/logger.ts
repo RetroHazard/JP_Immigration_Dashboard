@@ -2,7 +2,7 @@
 
 /**
  * Logging utility that only outputs in development mode
- * console.warn and console.error are always enabled for production debugging
+ * Keeps console clean in production builds
  */
 export const logger = {
   /**
@@ -15,17 +15,21 @@ export const logger = {
   },
 
   /**
-   * Log warning messages (always enabled)
+   * Log warning messages (development only)
    */
   warn: (message: string, ...args: unknown[]) => {
-    console.warn(message, ...args);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(message, ...args);
+    }
   },
 
   /**
-   * Log error messages (always enabled)
+   * Log error messages (development only)
    */
   error: (message: string, ...args: unknown[]) => {
-    console.error(message, ...args);
+    if (process.env.NODE_ENV === 'development') {
+      console.error(message, ...args);
+    }
   },
 
   /**
