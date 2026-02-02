@@ -1,6 +1,6 @@
 {
   "name": "jp_immigration_dashboard",
-  "version": "0.5.8",
+  "version": "0.6.1",
   "homepage": "https://dashboard.retrohazard.jp",
   "private": true,
   "overrides": {
@@ -70,5 +70,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "optionalDependencies": {
+    "@next/swc-darwin-arm64": "npm:null@*"
   }
 }

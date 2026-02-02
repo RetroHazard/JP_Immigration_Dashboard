@@ -1,5 +1,5 @@
 # Japan Immigration Statistics Dashboard
-[![Version](https://img.shields.io/badge/version-0.5.6-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
+[![Version](https://img.shields.io/badge/version-0.6.1-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -232,6 +232,9 @@ The dashboard automatically monitors and updates immigration statistics from the
 - **Static Export:** Next.js configured for SPA output (`output: 'export'`)
 - **Custom Build Directory:** Outputs to `build/` for GitHub Pages compatibility
 - **Build Metadata:** Automatic version and timestamp injection via `react-build-info`
+
+### Security
+- **Dependency Overrides:** `d3-color` is pinned to v3.1.0+ to address CVE-2024-41235 (ReDoS vulnerability in v2.x used by `@nivo/treemap`)
 
 ---
 

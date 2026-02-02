@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import type React from 'react';
 import { Icon } from '@iconify/react';
 
+import { CHART_COMPONENTS } from './components/common/ChartComponents';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
 import { DesktopLayout } from './components/layouts/DesktopLayout';
 import { MobileLayout } from './components/layouts/MobileLayout';
@@ -29,22 +30,30 @@ const App: React.FC = () => {
   const [isEstimationExpanded, setIsEstimationExpanded] = useState(false);
   const [activeChartIndex, setActiveChartIndex] = useState(0);
 
+  // Get current chart's filter configuration
+  const currentChartFilters = CHART_COMPONENTS[activeChartIndex].filters;
+
   // Centralized filtering: filter data once instead of in each chart component
   // This eliminates 6× duplicate filtering on every filter change
+  // For filters the current chart doesn't support, treat as 'all' (no filtering)
   const filteredData = useMemo(() => {
     if (!data) return [];
+
+    // Determine effective filter values based on chart support
+    const effectiveBureau = currentChartFilters.bureau ? filters.bureau : 'all';
+    const effectiveType = currentChartFilters.appType ? filters.type : 'all';
 
     return data.filter((entry) => {
       // Bureau filter: 'all' means include ALL bureaus, specific value filters to that bureau
       // Note: Charts that want only nationwide (NATIONWIDE_BUREAU) when 'all' is selected must filter themselves
-      const matchesBureau = filters.bureau === 'all' || entry.bureau === filters.bureau;
+      const matchesBureau = effectiveBureau === 'all' || entry.bureau === effectiveBureau;
 
       // Type filter: 'all' means include all types, otherwise match specific type
-      const matchesType = filters.type === 'all' || entry.type === filters.type;
+      const matchesType = effectiveType === 'all' || entry.type === effectiveType;
 
       return matchesBureau && matchesType;
     });
-  }, [data, filters.bureau, filters.type]);
+  }, [data, filters.bureau, filters.type, currentChartFilters.bureau, currentChartFilters.appType]);
 
   if (loading) {
     return <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Crunching Immigration Data..." />;

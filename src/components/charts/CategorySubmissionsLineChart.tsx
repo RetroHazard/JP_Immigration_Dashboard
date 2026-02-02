@@ -53,10 +53,10 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
 
     const monthlyStats = months.map((month) => {
       // Use shared filter function for consistent filtering
+      // Note: type filter is intentionally omitted - this chart shows ALL types as separate lines
       const monthData = filterData(data, {
         month,
         bureau: filters.bureau,
-        type: filters.type,
         status: STATUS_CODES.NEW_APPLICATIONS,
       });
       return {
