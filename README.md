@@ -233,9 +233,6 @@ The dashboard automatically monitors and updates immigration statistics from the
 - **Custom Build Directory:** Outputs to `build/` for GitHub Pages compatibility
 - **Build Metadata:** Automatic version and timestamp injection via `react-build-info`
 
-### Security
-- **Dependency Overrides:** `d3-color` is pinned to v3.1.0+ to address CVE-2024-41235 (ReDoS vulnerability in v2.x used by `@nivo/treemap`)
-
 ---
 
 ## :handshake: Contributing
