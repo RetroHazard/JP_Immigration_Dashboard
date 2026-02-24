@@ -2,9 +2,9 @@ name: Data Watcher
 on:
   workflow_dispatch:
   schedule:
-    # Runs daily at 1:05 AM UTC (10:05 AM JST) from the 23rd-28th of each month
-    # e-Stat typically releases data on the 25th (weekdays only)
-    - cron: '5 1 23-28 * *'
+    # Runs daily at 1:05 AM UTC (10:05 AM JST)
+    # Keeps the cache alive and catches any mid-month data corrections from e-Stat
+    - cron: '5 1 * * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -34,6 +34,9 @@ jobs:
 
       - name: Set environment variable for CURRENT_MONTH
         run: echo "CURRENT_MONTH=$(date +'%Y-%m')" >> "$GITHUB_ENV"
+
+      - name: Set date cache key
+        run: echo "DATE_CACHE_KEY=estat-data-$(date +'%Y%m%d')" >> "$GITHUB_ENV"
 
       - name: Restore previous data
         uses: actions/cache@v4
@@ -73,9 +76,9 @@ jobs:
 
           # Check if previous data exists
           if [ ! -f "$prev_file" ]; then
-            echo "::notice::No previous data found, treating as new data"
-            echo "changes_detected=true" >> "$GITHUB_OUTPUT"
-            exit 0
+            echo "::notice::No previous data found - cache likely expired. Saving fresh copy without triggering build."
+            echo "changes_detected=false" >> "$GITHUB_OUTPUT"
+            exit 1
           fi
 
           # Extract current dates
@@ -104,12 +107,30 @@ jobs:
           echo "::notice::Workflow completed successfully - no data changes detected"
           exit 0
 
+      - name: Clean stale caches before refresh
+        if: steps.data-diff.outcome == 'failure' && steps.data-diff.outputs.changes_detected == 'false'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data } = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              key: 'estat-data-'
+            });
+            for (const cache of data.actions_caches) {
+              await github.rest.actions.deleteActionsCacheById({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                cache_id: cache.id
+              });
+            }
+
       - name: Refresh cache to prevent expiration
         if: steps.data-diff.outcome == 'failure' && steps.data-diff.outputs.changes_detected == 'false'
         uses: actions/cache/save@v4
         with:
           path: ${{ env.DATA_PATH }}
-          key: estat-data-${{ hashFiles(env.DATA_PATH) }}
+          key: ${{ env.DATE_CACHE_KEY }}
 
       - name: Cache new data
         if: steps.data-diff.outcome == 'success'
