@@ -1,8 +1,11 @@
 // src/components/EstimationCard.tsx
+'use client';
+
 import { useEffect, useMemo, useState } from 'react';
 
 import type React from 'react';
 import { Icon } from '@iconify/react';
+import { useSearchParams } from 'next/navigation';
 
 import { applicationOptions } from '../constants/applicationOptions';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
@@ -26,6 +29,16 @@ interface ApplicationDetails {
   applicationDate: string;
 }
 
+const useUrlDetails: () => ApplicationDetails = () => {
+    const searchParams = useSearchParams();
+
+    return {
+      bureau: searchParams.get("bureau") || "",
+      type: searchParams.get("type") || "",
+      applicationDate: searchParams.get("applicationDate") || "",
+    };
+}
+
 export const EstimationCard: React.FC<EstimationCardProps> = ({
   data,
   variant = 'drawer',
@@ -33,11 +46,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
   onCollapse,
   onClose,
 }) => {
-  const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails>({
-    bureau: '',
-    type: '',
-    applicationDate: '',
-  });
+  const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails>(useUrlDetails());
   const [showDetails, setShowDetails] = useState(false);
   const [BlockMath, setBlockMath] = useState<React.ComponentType<{ math: string }> | null>(null);
 
