@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import type React from 'react';
 import { Icon } from '@iconify/react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 import { applicationOptions } from '../constants/applicationOptions';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
@@ -38,6 +38,49 @@ const useUrlDetails: () => ApplicationDetails = () => {
       applicationDate: searchParams.get("applicationDate") || "",
     };
 }
+
+const ShareButton = ({appDetails} : {appDetails: ApplicationDetails}) => {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    const [copied, setCopied] = useState(false);
+
+    const doShare = async () => {
+        // Mutable copy of the search params.
+        const mutableParams = new URLSearchParams(searchParams.toString());
+
+        mutableParams.set("bureau", appDetails.bureau);
+        mutableParams.set("type", appDetails.type);
+        mutableParams.set("applicationDate", appDetails.applicationDate);
+
+        const newRelativePath = `${pathname}?${mutableParams.toString()}`;
+        router.push(newRelativePath, { scroll: false });
+
+        try {
+            const fullUrl = `${window.location.origin}${newRelativePath}`;
+            await navigator.clipboard.writeText(fullUrl);
+
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy URL: ', err);
+        }
+    };
+
+    return (
+        <button
+          className="mt-3 flex items-center text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-500"
+          onClick={doShare}
+        >
+          <Icon
+            icon={copied ? 'material-symbols:check' : 'material-symbols:link'}
+            className="mr-1"
+          />
+          {copied ? 'Copied' : 'Permalink to these filters'}
+        </button>
+    );
+};
 
 export const EstimationCard: React.FC<EstimationCardProps> = ({
   data,
@@ -143,6 +186,8 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
               max={dateRange.max}
               onChange={(value) => setApplicationDetails({ ...applicationDetails, applicationDate: value })}
             />
+
+            <ShareButton appDetails={applicationDetails}/>
           </>
         )}
 
