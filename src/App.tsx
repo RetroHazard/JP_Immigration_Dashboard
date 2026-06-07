@@ -27,7 +27,7 @@ const App: React.FC = () => {
   });
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isEstimationExpanded, setIsEstimationExpanded] = useState(false);
+  const [isEstimationExpanded, setIsEstimationExpanded] = useState(true);
   const [activeChartIndex, setActiveChartIndex] = useState(0);
 
   // Get current chart's filter configuration
