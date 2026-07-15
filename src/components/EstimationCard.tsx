@@ -1,5 +1,6 @@
 // src/components/EstimationCard.tsx
 import { useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type React from 'react';
 import { Icon } from '@iconify/react';
@@ -9,6 +10,8 @@ import type { ImmigrationData } from '../hooks/useImmigrationData';
 import type { EstimatedDateResult } from '../utils/calculateEstimates';
 import { calculateEstimatedDate } from '../utils/calculateEstimates';
 import { nonAirportBureaus } from '../utils/getBureauData';
+import type { ApplicationDetails } from '../utils/urlApplicationDetails';
+import { getApplicationDetailsFromParams } from '../utils/urlApplicationDetails';
 import { FilterInput } from './common/FilterInput';
 import { FormulaTooltip, variableExplanations } from './common/FormulaTooltip';
 
@@ -20,11 +23,55 @@ interface EstimationCardProps {
   onClose?: () => void;
 }
 
-interface ApplicationDetails {
-  bureau: string;
-  type: string;
-  applicationDate: string;
+interface ShareButtonProps {
+  appDetails: ApplicationDetails;
 }
+
+const ShareButton: React.FC<ShareButtonProps> = ({ appDetails }) => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [copied, setCopied] = useState(false);
+
+  const doShare = async () => {
+    // Mutable copy of the search params.
+    const mutableParams = new URLSearchParams(searchParams.toString());
+
+    // Only keep params with a selected value, so sharing a partially-filled form
+    // doesn't leave empty bureau/type/applicationDate params in the URL.
+    Object.entries(appDetails).forEach(([key, value]) => {
+      if (value) {
+        mutableParams.set(key, value);
+      } else {
+        mutableParams.delete(key);
+      }
+    });
+
+    const newRelativePath = `${pathname}?${mutableParams.toString()}`;
+    router.push(newRelativePath, { scroll: false });
+
+    try {
+      const fullUrl = `${window.location.origin}${newRelativePath}`;
+      await navigator.clipboard.writeText(fullUrl);
+
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy URL: ', err);
+    }
+  };
+
+  return (
+    <button
+      className="mt-3 flex items-center text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-500"
+      onClick={doShare}
+    >
+      <Icon icon={copied ? 'material-symbols:check' : 'material-symbols:link'} className="mr-1" />
+      {copied ? 'Copied' : 'Permalink to these filters'}
+    </button>
+  );
+};
 
 export const EstimationCard: React.FC<EstimationCardProps> = ({
   data,
@@ -33,11 +80,10 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
   onCollapse,
   onClose,
 }) => {
-  const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails>({
-    bureau: '',
-    type: '',
-    applicationDate: '',
-  });
+  const searchParams = useSearchParams();
+  const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails>(() =>
+    getApplicationDetailsFromParams(searchParams)
+  );
   const [showDetails, setShowDetails] = useState(false);
   const [BlockMath, setBlockMath] = useState<React.ComponentType<{ math: string }> | null>(null);
 
@@ -134,6 +180,8 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
               max={dateRange.max}
               onChange={(value) => setApplicationDetails({ ...applicationDetails, applicationDate: value })}
             />
+
+            <ShareButton appDetails={applicationDetails} />
           </>
         )}
 
