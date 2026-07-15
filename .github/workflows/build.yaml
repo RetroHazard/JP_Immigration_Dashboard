@@ -30,7 +30,30 @@ jobs:
         run: npm ci
 
       - name: Security Audit
+        id: audit
+        continue-on-error: true
         run: npm audit --audit-level=moderate
+
+      - name: Trigger Vulnerability Remediation
+        if: steps.audit.outcome == 'failure'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            console.log('🔒 npm audit detected vulnerabilities. Triggering remediation workflow...');
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'remediate-vulnerabilities.yaml',
+              ref: 'main',
+              inputs: {
+                trigger_ref: context.ref
+              }
+            });
+            console.log('✅ Remediation workflow triggered');
+
+      - name: Fail build if vulnerabilities detected
+        if: steps.audit.outcome == 'failure'
+        run: exit 1
 
       - name: Lockfile Shaker
         run: npm install
