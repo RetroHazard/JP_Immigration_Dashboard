@@ -60,9 +60,11 @@ export const transformData = (rawData: RawData): ImmigrationData[] => {
   }
 
   const values = normalizeValues(rawData);
-  const { getCorrectedValue } = makeCorrectedAccessor(rawData as unknown as EStatData);
+  const { getCorrectedValue, isBranchDataIncomplete } = makeCorrectedAccessor(rawData as unknown as EStatData);
 
-  return values.map((entry) => {
+  const result: ImmigrationData[] = [];
+
+  for (const entry of values) {
     // Validate and parse month with proper error handling
     const month = validateAndParseMonth(entry['@time']);
 
@@ -74,6 +76,24 @@ export const transformData = (rawData: RawData): ImmigrationData[] => {
         (coord as any)[k] = (entry as any)[k];
       }
     });
+
+    if (isBranchDataIncomplete(coord)) {
+      // This is an aggregate bureau (e.g. Osaka) for a period where a branch
+      // office (e.g. Kobe) hasn't published its own figures yet. The parent
+      // total still includes the branch's applications, so it can't be
+      // safely deaggregated. Skip it for now rather than showing an inflated
+      // value that would silently drop once the branch catches up -
+      // downstream consumers already treat "no data for this month" as
+      // pending/estimate-only.
+      console.warn(
+        `⚠️  Skipping aggregate bureau entry pending branch data`,
+        `\n  Month: ${month}`,
+        `\n  Bureau: ${entry['@cat03']}`,
+        `\n  Type: ${entry['@cat02']}`,
+        `\n  Status: ${entry['@cat01']}`
+      );
+      continue;
+    }
 
     const corrected = getCorrectedValue(coord);
     const original = parseInt(entry['$']);
@@ -94,12 +114,14 @@ export const transformData = (rawData: RawData): ImmigrationData[] => {
       finalValue = corrected;
     }
 
-    return {
+    result.push({
       month,
       bureau: entry['@cat03'],
       type: entry['@cat02'],
       value: finalValue,
       status: entry['@cat01'],
-    };
-  });
+    });
+  }
+
+  return result;
 };

@@ -32,6 +32,9 @@ jobs:
       - name: Lockfile Shaker
         run: npm install
 
+      - name: Run Tests
+        run: npm test
+
       - name: Create Datastore Directory
         run: mkdir -p public/datastore
 
