@@ -249,6 +249,7 @@ Contributions are welcome! Here's how to get started:
 - Write TypeScript with proper types (no `any` types allowed)
 - Test your changes across different screen sizes (mobile + desktop)
 - Ensure all ESLint checks pass (`npm run lint`)
+- Ensure all tests pass (`npm test`)
 - Update documentation if adding new features or changing behavior
 
 ### Pull Request Process
@@ -256,7 +257,8 @@ Contributions are welcome! Here's how to get started:
 2. Update the README.md if your changes affect documentation
 3. Provide clear, descriptive commit messages
 4. Reference any related issues in your PR description
-5. Be responsive to code review feedback
+5. If your PR is from a fork, enable **"Allow edits by maintainers"** so maintainers can push fixups directly instead of requiring a superseding PR
+6. Be responsive to code review feedback
 
 ### Code of Conduct
 Be respectful, constructive, and collaborative. We're all here to improve immigration data accessibility.
