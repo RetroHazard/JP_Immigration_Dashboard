@@ -764,6 +764,59 @@ test('FilterPanel filters data when selection changes', () => {
 
 **Reason:** Difficult to test in CI without real data, and most logic is unit-testable.
 
+## Security & Dependency Management
+
+### Dependency Pinning Strategy
+
+**Critical dependencies are pinned to exact versions:**
+
+- **Next.js ecosystem:** `next`, `@next/third-parties`, `@next/eslint-plugin-next`, `eslint-config-next`
+- **React framework:** `react`, `react-dom`
+- **Type safety:** `typescript`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`
+- **Code quality:** `eslint`
+
+**Benefits:**
+- **Reproducibility** — Same versions across all environments (local + CI/CD)
+- **Stability** — No unexpected minor/patch updates breaking functionality
+- **Security** — Controlled updates for security-critical packages
+- **Consistency** — Team and CI work with identical dependency versions
+
+**Non-critical dependencies** use caret ranges (`^`) to allow patch updates automatically.
+
+### Security Audits in CI
+
+A security audit step runs in the build workflow:
+
+```yaml
+- name: Security Audit
+  run: npm audit --audit-level=moderate
+```
+
+The build **fails** if any moderate-severity or higher vulnerabilities are detected.
+
+**Response Protocol:**
+1. Developer runs `npm audit` locally to identify vulnerabilities
+2. Address with `npm audit fix` or manual package updates
+3. Test thoroughly before merging
+4. Document security fixes in commit messages and CHANGELOG
+
+### Handling Vulnerabilities
+
+**Transitive Dependencies:** Some vulnerabilities may be in packages that dependencies depend on:
+
+```bash
+npm audit --json | jq '.vulnerabilities'  # See all issues
+npm ls vulnerable-package                  # See where it's required
+npm audit fix                              # Auto-fix if available
+npm install parent-package@latest          # Update parent if needed
+```
+
+**Known Vulnerabilities:** If a vulnerability exists but no fix is available yet:
+1. Document in a code comment with the CVE number
+2. Track in GitHub issues
+3. Monitor for updates
+4. Use `npm audit --force` only as a temporary measure with justification
+
 ## Future Architecture Improvements
 
 1. **Testing** — Increase test coverage for edge cases
@@ -771,6 +824,7 @@ test('FilterPanel filters data when selection changes', () => {
 3. **Accessibility** — More ARIA labels and keyboard navigation
 4. **Documentation** — Inline code comments for complex logic
 5. **Caching** — Service Worker for offline support
+6. **Dependencies** — Automated dependency update checks (Dependabot)
 
 ## Glossary
 

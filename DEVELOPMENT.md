@@ -336,18 +336,67 @@ npm test -- --watch
 npm test -- src/utils/__tests__/calculations.test.ts
 ```
 
-### Updating Dependencies
+### Managing Dependencies
+
+#### Dependency Pinning Strategy
+
+Critical dependencies (Next.js, React, TypeScript, ESLint) are **pinned to exact versions** to ensure:
+- **Stability** — Consistent behavior across all environments
+- **Reproducibility** — Same versions in CI/CD and local development
+- **Security** — Controlled updates for security-critical packages
+
+Pinned packages:
+- `next`, `react`, `react-dom` — Core framework stability
+- `@next/third-parties`, `@next/eslint-plugin-next`, `eslint-config-next` — Next.js ecosystem
+- `typescript`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser` — Type safety
+- `eslint` — Code quality enforcement
+
+Unpinned packages (using `^`) allow patch and minor updates for utilities and non-critical dependencies.
+
+#### Security Audits
+
+A security audit runs automatically in CI:
+
+```bash
+# Run security audit locally
+npm audit
+
+# Run audit with moderate severity threshold (CI setting)
+npm audit --audit-level=moderate
+
+# Fix vulnerabilities automatically
+npm audit fix
+
+# Interactive fix (choose which vulnerabilities to address)
+npm audit fix --force
+```
+
+The CI workflow (`build.yaml`) fails if any moderate-severity or higher vulnerabilities are found.
+
+#### Updating Dependencies
 
 ```bash
 # Check for outdated packages
 npm outdated
 
-# Update to latest versions (with caution)
+# View dependency tree
+npm ls
+
+# Update to latest versions (respects pinning strategy)
 npm update
 
 # Update a specific package
 npm install package-name@latest
+
+# For pinned packages, explicitly update (may require careful testing)
+npm install next@latest
 ```
+
+**Before updating critical dependencies:**
+1. Test thoroughly locally (`npm run dev` + manual testing)
+2. Run the full test suite (`npm test`)
+3. Run security audit (`npm audit`)
+4. Commit with clear message explaining why the update was needed
 
 ## Troubleshooting
 
@@ -431,6 +480,44 @@ git stash
 git checkout main
 git pull origin main
 git checkout -b feature/new-branch
+```
+
+### Security Audit Failures
+
+```bash
+# View vulnerabilities in detail
+npm audit
+
+# See which packages have vulnerabilities
+npm audit --json | jq '.vulnerabilities'
+
+# Fix auto-fixable vulnerabilities
+npm audit fix
+
+# If npm audit fix doesn't resolve all issues, manually update the affected package
+npm install vulnerable-package@latest
+
+# After fixing, verify the audit passes
+npm audit --audit-level=moderate
+```
+
+**Note:** The CI build fails if any moderate-severity or higher vulnerabilities are detected. Always run `npm audit` before pushing changes.
+
+### Dependency Conflicts
+
+```bash
+# If package installations conflict with pinned versions
+npm ci  # Uses exact versions from package-lock.json
+
+# Clear and reinstall if CI doesn't work
+rm -rf node_modules package-lock.json
+npm install
+
+# Check for dependency resolution issues
+npm ls
+
+# Force resolution of peer dependency conflicts
+npm install --force
 ```
 
 ## Additional Resources
