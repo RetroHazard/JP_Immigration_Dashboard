@@ -14,6 +14,7 @@ import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { getApplicationDetailsFromParams } from '../utils/urlApplicationDetails';
 import { FilterInput } from './common/FilterInput';
 import { FormulaTooltip, variableExplanations } from './common/FormulaTooltip';
+import { IconTooltip } from './common/IconTooltip';
 
 interface EstimationCardProps {
   data: ImmigrationData[];
@@ -63,13 +64,19 @@ const ShareButton: React.FC<ShareButtonProps> = ({ appDetails }) => {
   };
 
   return (
-    <button
-      className="mt-3 flex items-center text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-500"
-      onClick={doShare}
-    >
-      <Icon icon={copied ? 'material-symbols:check' : 'material-symbols:link'} className="mr-1" />
-      {copied ? 'Copied' : 'Permalink to these filters'}
-    </button>
+    <IconTooltip label={copied ? 'Copied!' : 'Copy a permalink to these filters'}>
+      <button
+        onClick={doShare}
+        aria-label="Copy a permalink to these filters"
+        className={`flex size-7 items-center justify-center rounded-full transition-colors ${
+          copied
+            ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300'
+            : 'text-gray-500 hover:bg-gray-100 hover:text-indigo-600 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-indigo-300'
+        }`}
+      >
+        <Icon icon={copied ? 'material-symbols:check' : 'material-symbols:link'} className="text-base" />
+      </button>
+    </IconTooltip>
   );
 };
 
@@ -142,11 +149,17 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
 
   return (
     <div className="estimator-container">
-      <div className="flex-between border-b p-2 dark:border-gray-500">
-        <h2 className="section-title">Processing Time Estimator</h2>
-        <button onClick={variant === 'drawer' ? onClose : onCollapse} className="p-2 text-gray-500 hover:text-gray-700">
-          <Icon icon={variant === 'drawer' ? 'ci:close-md' : 'ci:chevron-right-duo'} className="flashing-chevron" />
-        </button>
+      <div className="flex-between gap-2 border-b p-2 dark:border-gray-500">
+        <h2 className="section-title min-w-0 truncate">Processing Time Estimator</h2>
+        <div className="flex shrink-0 items-center gap-1">
+          {!showDetails && <ShareButton appDetails={applicationDetails} />}
+          <button
+            onClick={variant === 'drawer' ? onClose : onCollapse}
+            className="p-2 text-gray-500 hover:text-gray-700"
+          >
+            <Icon icon={variant === 'drawer' ? 'ci:close-md' : 'ci:chevron-right-duo'} className="flashing-chevron" />
+          </button>
+        </div>
       </div>
       <div className="card-content-padded flex-1">
         {!showDetails && (
@@ -180,13 +193,17 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
               max={dateRange.max}
               onChange={(value) => setApplicationDetails({ ...applicationDetails, applicationDate: value })}
             />
-
-            <ShareButton appDetails={applicationDetails} />
           </>
         )}
 
         {estimatedDate && (
-          <div className="card-base-gray">
+          <div
+            className={`card-base-gray border-t-4 ${
+              estimatedDate.details.isPastDue
+                ? 'border-amber-400 dark:border-amber-500'
+                : 'border-indigo-400 dark:border-indigo-500'
+            }`}
+          >
             <div className="text-center text-lg font-medium text-gray-900 dark:text-gray-200">
               Estimated Completion Date
             </div>
@@ -251,33 +268,33 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                 ) : (
                   <div className="rounded-xl bg-gray-100 p-2.5 text-xxs text-gray-600 shadow-lg dark:bg-gray-600 dark:text-gray-200">
                     <FormulaTooltip
-                    variables={{
-                      'D_{\\text{rem}}': variableExplanations['D_rem'],
-                      'Q_{\\text{pos}}': variableExplanations['Q_pos'],
-                      'R_{\\text{daily}}': variableExplanations['R_daily'],
-                    }}
-                  >
-                    <div className="mt-2 border-b border-gray-300 text-xxs">
-                      <BlockMath
-                        math={`
+                      variables={{
+                        'D_{\\text{rem}}': variableExplanations['D_rem'],
+                        'Q_{\\text{pos}}': variableExplanations['Q_pos'],
+                        'R_{\\text{daily}}': variableExplanations['R_daily'],
+                      }}
+                    >
+                      <div className="mt-2 border-b border-gray-300 text-xxs">
+                        <BlockMath
+                          math={`
                         \\begin{aligned}
                         &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${estimatedDate.details.modelVariables.Q_pos.toFixed()}}}{${estimatedDate.details.modelVariables.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${estimatedDate.details.modelVariables.D_rem.toFixed()} \\ \\text{d} \\\\
                         \\end{aligned}
                       `}
-                      />
-                    </div>
-                  </FormulaTooltip>
-                  <FormulaTooltip
-                    variables={{
-                      'C_{\\text{proc}}': variableExplanations['C_proc'],
-                      'E_{\\text{proc}}': variableExplanations['E_proc'],
-                      '\\sum P': variableExplanations['Sigma_P'],
-                      '\\sum D': variableExplanations['Sigma_D'],
-                    }}
-                  >
-                    <div className="mt-2 border-b border-gray-300 text-xxs">
-                      <BlockMath
-                        math={`
+                        />
+                      </div>
+                    </FormulaTooltip>
+                    <FormulaTooltip
+                      variables={{
+                        'C_{\\text{proc}}': variableExplanations['C_proc'],
+                        'E_{\\text{proc}}': variableExplanations['E_proc'],
+                        '\\sum P': variableExplanations['Sigma_P'],
+                        '\\sum D': variableExplanations['Sigma_D'],
+                      }}
+                    >
+                      <div className="mt-2 border-b border-gray-300 text-xxs">
+                        <BlockMath
+                          math={`
                         \\begin{aligned}
                         &\\text{where}\\
                         \\begin{cases}
@@ -287,28 +304,28 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                         \\end{cases}
                         \\end{aligned}
                       `}
-                      />
-                    </div>
-                  </FormulaTooltip>
-                  <FormulaTooltip
-                    variables={{
-                      'Q_{\\text{app}}': variableExplanations['Q_app'],
-                      'C_{\\text{prev}}': variableExplanations['C_prev'],
-                      'N_{\\text{app}}': variableExplanations['N_app'],
-                      'P_{\\text{app}}': variableExplanations['P_app'],
-                    }}
-                  >
-                    <div className="mt-2 border-gray-300 text-xxs">
-                      <BlockMath
-                        math={`
+                        />
+                      </div>
+                    </FormulaTooltip>
+                    <FormulaTooltip
+                      variables={{
+                        'Q_{\\text{app}}': variableExplanations['Q_app'],
+                        'C_{\\text{prev}}': variableExplanations['C_prev'],
+                        'N_{\\text{app}}': variableExplanations['N_app'],
+                        'P_{\\text{app}}': variableExplanations['P_app'],
+                      }}
+                    >
+                      <div className="mt-2 border-gray-300 text-xxs">
+                        <BlockMath
+                          math={`
                         \\begin{aligned}
                         &Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${estimatedDate.details.modelVariables.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${estimatedDate.details.modelVariables.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${estimatedDate.details.modelVariables.P_app.toFixed()}} \\\\
                         \\end{aligned}
                       `}
-                      />
-                    </div>
-                  </FormulaTooltip>
-                </div>
+                        />
+                      </div>
+                    </FormulaTooltip>
+                  </div>
                 )}
               </div>
             )}
