@@ -13,6 +13,34 @@ reported by the Immigration Services Agency of Japan.
 
 ---
 
+## :rocket: Quick Start
+
+### View the Dashboard
+Visit the live dashboard at **https://dashboard.retrohazard.jp**
+
+### Develop Locally
+
+```bash
+# Clone and setup
+git clone https://github.com/RetroHazard/JP_Immigration_Dashboard.git
+cd JP_Immigration_Dashboard
+npm install
+
+# Start development server
+npm run dev
+# Open http://localhost:3000
+```
+
+For detailed setup instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
+
+### Documentation
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** — Complete development guide (setup, running locally, troubleshooting)
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** — Technical architecture and design patterns
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — Contribution guidelines and development workflow
+- **[CHANGELOG.md](CHANGELOG.md)** — Version history and release notes
+
+---
+
 ## :sparkles: Features
 
 ### :bar_chart: Data Visualization
@@ -237,31 +265,14 @@ The dashboard automatically monitors and updates immigration statistics from the
 
 ## :handshake: Contributing
 
-Contributions are welcome! Here's how to get started:
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Complete contribution guidelines
+- Development workflow
+- Coding standards and best practices
+- Testing requirements
+- Pull request process
 
-### Before Contributing
-1. Check existing [issues](https://github.com/RetroHazard/JP_Immigration_Dashboard/issues) and [pull requests](https://github.com/RetroHazard/JP_Immigration_Dashboard/pulls)
-2. For major changes, open an issue first to discuss your proposal
-3. Fork the repository and create a feature branch from `main`
-
-### Development Guidelines
-- Follow existing code style (Prettier + ESLint configured)
-- Write TypeScript with proper types (no `any` types allowed)
-- Test your changes across different screen sizes (mobile + desktop)
-- Ensure all ESLint checks pass (`npm run lint`)
-- Ensure all tests pass (`npm test`)
-- Update documentation if adding new features or changing behavior
-
-### Pull Request Process
-1. Ensure your code builds successfully (`npm run build`)
-2. Update the README.md if your changes affect documentation
-3. Provide clear, descriptive commit messages
-4. Reference any related issues in your PR description
-5. If your PR is from a fork, enable **"Allow edits by maintainers"** so maintainers can push fixups directly instead of requiring a superseding PR
-6. Be responsive to code review feedback
-
-### Code of Conduct
-Be respectful, constructive, and collaborative. We're all here to improve immigration data accessibility.
+For questions or to discuss major changes, open an [issue](https://github.com/RetroHazard/JP_Immigration_Dashboard/issues) or [discussion](https://github.com/RetroHazard/JP_Immigration_Dashboard/discussions).
 
 ---
 
