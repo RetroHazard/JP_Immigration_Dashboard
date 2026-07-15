@@ -6,7 +6,11 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
-- **v0.6.2**: Added a Changelog modal, opened from the version link in the header.
+- **v0.8.0**: Added a Changelog modal, opened from the version link in the header.
+- **v0.7.0**: Added a permalink button to the Processing Time Estimator —
+  - Share a filled-out estimate (bureau, application type, and date) via a copyable link
+  - Opening a permalink automatically expands the estimator with those filters pre-filled
+  ([#45](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/45))
 
 ### Fixed
 
