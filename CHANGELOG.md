@@ -4,6 +4,10 @@ All notable changes to the Japan Immigration Bureaus Statistics Dashboard are do
 
 ## 2026-07
 
+### Added
+
+- **v0.6.2**: Added a Changelog modal, opened from the version link in the header, sourced from this file.
+
 ### Fixed
 
 - Corrected an issue where aggregate bureaus (Osaka, Fukuoka, Nagoya, Shinagawa) could briefly report inflated processing figures when a branch office (e.g. Kobe) hadn't yet published its data for a period — that period is now treated as unpublished instead of silently "correcting" itself a day later. ([#44](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/44))
