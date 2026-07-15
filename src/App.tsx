@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import type React from 'react';
 import { Icon } from '@iconify/react';
 
+import { ChangelogModal } from './components/ChangelogModal';
 import { CHART_COMPONENTS } from './components/common/ChartComponents';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
 import { DesktopLayout } from './components/layouts/DesktopLayout';
@@ -34,6 +35,7 @@ const App: React.FC = () => {
   // Only auto-expand the estimator when a permalink has pre-filled it; otherwise stay collapsed by default.
   const [isEstimationExpanded, setIsEstimationExpanded] = useState(() => hasPermalinkParams(searchParams));
   const [activeChartIndex, setActiveChartIndex] = useState(0);
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
   // Get current chart's filter configuration
   const currentChartFilters = CHART_COMPONENTS[activeChartIndex].filters;
@@ -98,7 +100,14 @@ const App: React.FC = () => {
             </div>
             <div className="flex items-center gap-1 lg:gap-5">
               <div className="flex-col-end">
-                <span className="build-info">Version: {buildInfo.buildVersion}</span>
+                <button
+                  onClick={() => setIsChangelogOpen(true)}
+                  aria-label="View changelog"
+                  className="build-info hyperlink flex items-center gap-1"
+                >
+                  <Icon icon="ph:clock-counter-clockwise" className="size-3 lg:size-3.5" />
+                  Version: {buildInfo.buildVersion}
+                </button>
                 <span className="build-info">Last Updated:</span>
                 <span className="build-info">
                   {new Date(buildInfo.buildDate).toLocaleDateString('en-US', {
@@ -182,6 +191,8 @@ const App: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      <ChangelogModal isOpen={isChangelogOpen} onClose={() => setIsChangelogOpen(false)} />
     </div>
   );
 };

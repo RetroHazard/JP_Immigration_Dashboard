@@ -189,3 +189,4 @@ cython_debug/
 .idea
 /public/datastore/**
 /src/buildInfo.js
+/public/CHANGELOG.md
