@@ -1,6 +1,6 @@
 {
   "name": "jp_immigration_dashboard",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "homepage": "https://dashboard.retrohazard.jp",
   "private": true,
   "overrides": {
@@ -49,9 +49,9 @@
   },
   "scripts": {
     "lint": "next lint",
-    "start": "react-build-info && next build && npx serve@latest ./build",
-    "build": "react-build-info && next build",
-    "dev": "react-build-info && next dev --turbopack",
+    "start": "react-build-info && node scripts/sync-changelog.js && next build && npx serve@latest ./build",
+    "build": "react-build-info && node scripts/sync-changelog.js && next build",
+    "dev": "react-build-info && node scripts/sync-changelog.js && next dev --turbopack",
     "test": "vitest run",
     "postinstall": "node -e \"(process.env.npm_command != 'ci') && require('lockfile-shaker/lib/bin.js')\""
   },
