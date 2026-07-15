@@ -1,5 +1,6 @@
 // App.tsx
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import type React from 'react';
 import { Icon } from '@iconify/react';
@@ -11,6 +12,7 @@ import { MobileLayout } from './components/layouts/MobileLayout';
 import { StatsSummary } from './components/StatsSummary';
 import { useTheme } from './contexts/ThemeContext';
 import { useImmigrationData } from './hooks/useImmigrationData';
+import { hasPermalinkParams } from './utils/urlApplicationDetails';
 import buildInfo from './buildInfo';
 
 interface Filters {
@@ -26,8 +28,11 @@ const App: React.FC = () => {
     type: 'all',
   });
 
+  const searchParams = useSearchParams();
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isEstimationExpanded, setIsEstimationExpanded] = useState(false);
+  // Only auto-expand the estimator when a permalink has pre-filled it; otherwise stay collapsed by default.
+  const [isEstimationExpanded, setIsEstimationExpanded] = useState(() => hasPermalinkParams(searchParams));
   const [activeChartIndex, setActiveChartIndex] = useState(0);
 
   // Get current chart's filter configuration
