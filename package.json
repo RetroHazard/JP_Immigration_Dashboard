@@ -44,13 +44,15 @@
     "prettier-plugin-tailwindcss": "^0.6.14",
     "react-build-info": "^0.0.3",
     "tailwindcss": "^3.4.17",
-    "typescript": "5.7.3"
+    "typescript": "5.7.3",
+    "vitest": "^4.1.10"
   },
   "scripts": {
     "lint": "next lint",
     "start": "react-build-info && next build && npx serve@latest ./build",
     "build": "react-build-info && next build",
     "dev": "react-build-info && next dev --turbopack",
+    "test": "vitest run",
     "postinstall": "node -e \"(process.env.npm_command != 'ci') && require('lockfile-shaker/lib/bin.js')\""
   },
   "eslintConfig": {

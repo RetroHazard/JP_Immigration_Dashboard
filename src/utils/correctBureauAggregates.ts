@@ -67,6 +67,10 @@ export function makeCorrectedAccessor(data: EStatData) {
   // Memoize corrected results
   const memo = new Map<string, number>();
 
+  // Tracks coords where an aggregate bureau's correction was skipped because
+  // one or more branch offices haven't published data for that period yet.
+  const incomplete = new Set<string>();
+
   /**
    * Returns the corrected numeric value for coord:
    *  - For aggregate bureaus in AGGREGATE_MAPPING, subtracts branch totals
@@ -100,7 +104,20 @@ export function makeCorrectedAccessor(data: EStatData) {
       const brVal = index.get(brKey);
       if (typeof brVal === "number" && !Number.isNaN(brVal)) {
         subtotal += brVal;
+      } else {
+        // A branch office has no entry for this exact time period, meaning
+        // e-Stat hasn't published its breakdown yet even though the parent
+        // aggregate (which still includes the branch's applications) is
+        // already available. Deaggregating now would understate the branch
+        // subtraction and return an inflated figure that silently drops once
+        // the branch catches up — surface it as incomplete instead.
+        incomplete.add(key);
       }
+    }
+
+    if (incomplete.has(key)) {
+      memo.set(key, NaN);
+      return NaN;
     }
 
     const corrected = base - subtotal;
@@ -128,6 +145,16 @@ export function makeCorrectedAccessor(data: EStatData) {
     getCorrectedValue,
     isAggregateBureauCode: (code: string) => code in AGGREGATE_MAPPING,
     getBranchCodes: (code: string) => AGGREGATE_MAPPING[code] ?? [],
+    // True when coord is an aggregate bureau whose deaggregation could not be
+    // completed because at least one branch office had no published entry
+    // for this exact time period. Callers should treat this data point as
+    // not-yet-available rather than falling back to the raw (branch-inclusive)
+    // value, which would otherwise appear to silently drop once the branch's
+    // figures are published.
+    isBranchDataIncomplete: (coord: Partial<EStatValue>): boolean => {
+      getCorrectedValue(coord);
+      return incomplete.has(toKey(coord));
+    },
     dimKeys,
   };
 }
