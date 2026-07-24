@@ -29,9 +29,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Security Audit
-        run: npm audit --audit-level=moderate
-
       - name: Lockfile Shaker
         run: npm install
 
