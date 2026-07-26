@@ -91,9 +91,9 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
               <EstimationCard
                 variant="drawer"
                 data={data}
-                isExpanded={null}
+                isExpanded={undefined}
                 onClose={onDrawerToggle}
-                onCollapse={null}
+                onCollapse={undefined}
               />
             </div>
           </>

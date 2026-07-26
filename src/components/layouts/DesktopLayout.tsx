@@ -91,7 +91,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
             variant="expandable"
             data={data}
             isExpanded={isEstimationExpanded}
-            onClose={null}
+            onClose={undefined}
             onCollapse={() => onEstimationToggle(false)}
           />
         </div>

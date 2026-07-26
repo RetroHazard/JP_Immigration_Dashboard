@@ -57,13 +57,11 @@ const adjustColor = (originalColor: string, density: number, minDensity: number,
   // Convert to HSL
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  let h,
-    s,
-    l = (max + min) / 2;
+  let h = 0;
+  let s = 0;
+  let l = (max + min) / 2;
 
-  if (max === min) {
-    h = s = 0;
-  } else {
+  if (max !== min) {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
@@ -242,8 +240,8 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
 
         const range = bureauDensityRanges[prefecture.bureau];
         acc[prefecture.name] = range
-          ? adjustColor(bureau.background, parseFloat(prefecture.density), range.min, range.max)
-          : bureau.background;
+          ? adjustColor(bureau.background ?? '#DDD', parseFloat(prefecture.density), range.min, range.max)
+          : (bureau.background ?? '#DDD');
 
         return acc;
       },
@@ -303,7 +301,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
               maxZoom={32}
               minZoom={2}
             >
-              <Geographies geography={geographyData}>
+              <Geographies geography={geographyData ?? undefined}>
                 {({ geographies }) =>
                   geographies.map((geo) => {
                     const prefecture = prefectureMap[geo.properties.name];

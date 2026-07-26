@@ -83,6 +83,10 @@ const App: React.FC = () => {
     );
   }
 
+  if (!data) {
+    return <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Crunching Immigration Data..." />;
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
       <nav className="header-block">
