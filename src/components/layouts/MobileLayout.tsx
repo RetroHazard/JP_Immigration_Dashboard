@@ -48,7 +48,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
       <div className="relative sm:hidden">
         <div className="section-block grid grid-cols-1">
           <div className="base-container">
-            <div className="mb-2 flex justify-between space-x-1 border-b dark:border-gray-500">
+            <div className="mb-2 flex justify-between space-x-1 border-b border-border">
               {CHART_COMPONENTS.map((chart, index) => (
                 <button
                   key={chart.name}
@@ -56,8 +56,8 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
                   onClick={() => onActiveChartChange(index)}
                   className={`rounded-t-lg px-4 py-2 ${
                     activeChartIndex === index
-                      ? 'bg-blue-500 text-gray-100 dark:bg-gray-300 dark:text-gray-600'
-                      : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-500 dark:hover:bg-gray-400'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                   }`}
                 >
                   <Icon icon={chart.icon} />
@@ -76,9 +76,9 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
         <div className={`mobile-drawer-trigger ${isDrawerOpen ? 'translate-x-[300px]' : ''}`}>
           <button onClick={onDrawerToggle} className="clip-tapered-btn">
             <div className="flex origin-center flex-col items-center">
-              <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300 dark:text-gray-700" />
+              <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-primary-foreground/80" />
               <span className="mobile-drawer-label">estimator</span>
-              <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-gray-300 dark:text-gray-700" />
+              <Icon icon="ci:chevron-left-duo" className="flashing-chevron text-primary-foreground/80" />
             </div>
           </button>
         </div>

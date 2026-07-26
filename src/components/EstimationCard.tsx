@@ -1,8 +1,9 @@
 // src/components/EstimationCard.tsx
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type React from 'react';
+import { BlockMath } from 'react-katex';
 import { Icon } from '@iconify/react';
 
 import { applicationOptions } from '../constants/applicationOptions';
@@ -70,8 +71,8 @@ const ShareButton: React.FC<ShareButtonProps> = ({ appDetails }) => {
         aria-label="Copy a permalink to these filters"
         className={`flex size-7 items-center justify-center rounded-full transition-colors ${
           copied
-            ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300'
-            : 'text-gray-500 hover:bg-gray-100 hover:text-indigo-600 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-indigo-300'
+            ? 'bg-primary/15 text-primary'
+            : 'text-muted-foreground hover:bg-muted hover:text-primary'
         }`}
       >
         <Icon icon={copied ? 'material-symbols:check' : 'material-symbols:link'} className="text-base" />
@@ -92,7 +93,6 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
     getApplicationDetailsFromParams(searchParams)
   );
   const [showDetails, setShowDetails] = useState(false);
-  const [BlockMath, setBlockMath] = useState<React.ComponentType<{ math: string }> | null>(null);
 
   const estimatedDate: EstimatedDateResult | null = useMemo(
     () => calculateEstimatedDate(data, applicationDetails),
@@ -114,30 +114,12 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
     };
   }, [data]);
 
-  // Lazy load KaTeX library only when user wants to see formulas
-  useEffect(() => {
-    if (showDetails && !BlockMath) {
-      // Dynamically load KaTeX CSS from CDN
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
-      link.integrity = 'sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV';
-      link.crossOrigin = 'anonymous';
-      document.head.appendChild(link);
-
-      // Dynamically import BlockMath component
-      import('react-katex').then((module) => {
-        setBlockMath(() => module.BlockMath);
-      });
-    }
-  }, [showDetails, BlockMath]);
-
   if (variant === 'expandable' && !isExpanded) {
     return (
       <div className="flex h-full cursor-pointer flex-col items-center justify-between p-5" onClick={onCollapse}>
         <Icon icon="ci:chevron-left-duo" className="flashing-chevron" />
         <div
-          className="section-title whitespace-nowrap text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-600"
+          className="section-title whitespace-nowrap text-muted-foreground hover:text-foreground"
           style={{ writingMode: 'vertical-rl' }}
         >
           <h2>Processing Time Estimator</h2>
@@ -149,13 +131,13 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
 
   return (
     <div className="estimator-container">
-      <div className="flex-between gap-2 border-b p-2 dark:border-gray-500">
+      <div className="flex-between gap-2 border-b border-border p-2">
         <h2 className="section-title min-w-0 truncate">Processing Time Estimator</h2>
         <div className="flex shrink-0 items-center gap-1">
           {!showDetails && <ShareButton appDetails={applicationDetails} />}
           <button
             onClick={variant === 'drawer' ? onClose : onCollapse}
-            className="p-2 text-gray-500 hover:text-gray-700"
+            className="p-2 text-muted-foreground hover:text-foreground"
           >
             <Icon icon={variant === 'drawer' ? 'ci:close-md' : 'ci:chevron-right-duo'} className="flashing-chevron" />
           </button>
@@ -200,18 +182,18 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
           <div
             className={`card-base-gray border-t-4 ${
               estimatedDate.details.isPastDue
-                ? 'border-amber-400 dark:border-amber-500'
-                : 'border-indigo-400 dark:border-indigo-500'
+                ? 'border-warning'
+                : 'border-primary'
             }`}
           >
-            <div className="text-center text-lg font-medium text-gray-900 dark:text-gray-200">
+            <div className="text-center text-lg font-medium text-foreground">
               Estimated Completion Date
             </div>
             <p
               className={`mt-2 text-center text-2xl font-bold ${
                 estimatedDate.details.isPastDue
-                  ? 'text-amber-600 dark:text-amber-500'
-                  : 'text-indigo-600 dark:text-indigo-500'
+                  ? 'text-warning'
+                  : 'text-primary'
               }`}
             >
               {estimatedDate.estimatedDate.toLocaleDateString('en-US', {
@@ -222,7 +204,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
             </p>
 
             {estimatedDate.details.dataQuality === 'low' && (
-              <div className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+              <div className="mt-2 rounded-md bg-warning/10 px-3 py-2 text-xs text-warning">
                 <div className="flex items-start gap-2">
                   <Icon icon="material-symbols:warning-outline" className="mt-0.5 shrink-0 text-base" />
                   <div>
@@ -235,7 +217,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
             )}
 
             {estimatedDate.details.isPastDue && (
-              <div className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-900/30 dark:text-red-300">
+              <div className="mt-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
                 <div className="flex items-start gap-2">
                   <Icon icon="material-symbols:error-outline" className="mt-0.5 shrink-0 text-base" />
                   <div>
@@ -249,7 +231,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
 
             <button
               onClick={() => setShowDetails(!showDetails)}
-              className="mt-3 flex items-center text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-500"
+              className="mt-3 flex items-center text-sm text-primary hover:opacity-80"
             >
               <Icon
                 icon={showDetails ? 'material-symbols:settings' : 'material-symbols:info-outline'}
@@ -259,14 +241,8 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
             </button>
 
             {showDetails && (
-              <div className="mt-2.5 space-y-1 border-t pt-3 text-xs dark:border-gray-500">
-                {!BlockMath ? (
-                  <div className="flex items-center justify-center py-4 text-sm text-gray-500 dark:text-gray-400">
-                    <Icon icon="eos-icons:loading" className="mr-2 text-lg" />
-                    Loading formulas...
-                  </div>
-                ) : (
-                  <div className="rounded-xl bg-gray-100 p-2.5 text-xxs text-gray-600 shadow-lg dark:bg-gray-600 dark:text-gray-200">
+              <div className="mt-2.5 space-y-1 border-t border-border pt-3 text-xs">
+                <div className="rounded-xl bg-muted p-2.5 text-xxs text-secondary-foreground shadow-soft">
                     <FormulaTooltip
                       variables={{
                         'D_{\\text{rem}}': variableExplanations['D_rem'],
@@ -274,7 +250,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                         'R_{\\text{daily}}': variableExplanations['R_daily'],
                       }}
                     >
-                      <div className="mt-2 border-b border-gray-300 text-xxs">
+                      <div className="mt-2 border-b border-border text-xxs">
                         <BlockMath
                           math={`
                         \\begin{aligned}
@@ -292,7 +268,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                         '\\sum D': variableExplanations['Sigma_D'],
                       }}
                     >
-                      <div className="mt-2 border-b border-gray-300 text-xxs">
+                      <div className="mt-2 border-b border-border text-xxs">
                         <BlockMath
                           math={`
                         \\begin{aligned}
@@ -315,7 +291,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                         'P_{\\text{app}}': variableExplanations['P_app'],
                       }}
                     >
-                      <div className="mt-2 border-gray-300 text-xxs">
+                      <div className="mt-2 text-xxs">
                         <BlockMath
                           math={`
                         \\begin{aligned}
@@ -325,12 +301,11 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                         />
                       </div>
                     </FormulaTooltip>
-                  </div>
-                )}
+                </div>
               </div>
             )}
 
-            <p className="mt-4 text-xxs italic text-gray-500 dark:text-gray-200 sm:text-xs">
+            <p className="mt-4 text-xxs italic text-muted-foreground sm:text-xs">
               *This is an{' '}
               <strong>
                 <u>estimate</u>

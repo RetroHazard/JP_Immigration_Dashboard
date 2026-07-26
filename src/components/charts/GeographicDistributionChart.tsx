@@ -414,7 +414,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
               <FloatingArrow
                 ref={prefectureTooltip.arrowRef}
                 context={prefectureTooltip.context}
-                className="fill-gray-600 dark:fill-gray-300"
+                className="fill-foreground"
               />
             </div>
           </FloatingPortal>
@@ -432,7 +432,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
               <div
                 className={`mb-1 flex items-center gap-2 font-semibold ${
                   nonAirportBureaus.find((b) => b.value === markerTooltip.value)
-                    ? 'border-b border-gray-500 pb-1'
+                    ? 'border-b border-border pb-1'
                     : ''
                 }`}
               >
@@ -463,7 +463,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
               <FloatingArrow
                 ref={markerArrowRef}
                 context={markerFloating.context}
-                className="fill-gray-600 dark:fill-gray-300"
+                className="fill-foreground"
               />
             </div>
           </FloatingPortal>

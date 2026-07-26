@@ -6,6 +6,9 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 
 import '../index.css';
 
+import '@fontsource-variable/inter';
+import '@fontsource-variable/noto-sans-jp';
+
 export const metadata: Metadata = {
   title: 'Dashboard | Japan Immigration Bureau Statistics',
   description:
@@ -24,7 +27,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning: next-themes stamps the theme class on <html>
+    // before hydration, which intentionally differs from the server markup.
+    <html lang="en" suppressHydrationWarning>
       <body>
         <div id="root">{children}</div>
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (

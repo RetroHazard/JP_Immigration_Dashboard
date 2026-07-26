@@ -53,15 +53,15 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
         {/* Chart row */}
         <div className="grow">
           <div className="base-container h-full">
-            <div className="mb-4 flex space-x-2 overflow-x-auto border-b dark:border-gray-500">
+            <div className="mb-4 flex space-x-2 overflow-x-auto border-b border-border">
               {CHART_COMPONENTS.map((chart, index) => (
                 <button
                   key={chart.name}
                   onClick={() => onActiveChartChange(index)}
                   className={`rounded-t-lg px-4 py-2 ${
                     activeChartIndex === index
-                      ? 'bg-blue-500 text-gray-100 dark:bg-gray-300 dark:text-gray-600'
-                      : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-500 dark:hover:bg-gray-400'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                   }`}
                 >
                   <Icon icon={chart.icon} />
@@ -84,7 +84,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
         }`}
       >
         <div
-          className="h-full cursor-pointer rounded-lg bg-white shadow-lg dark:bg-gray-700"
+          className="h-full cursor-pointer rounded-xl border border-border bg-card shadow-soft"
           onClick={() => !isEstimationExpanded && onEstimationToggle(true)}
         >
           <EstimationCard
