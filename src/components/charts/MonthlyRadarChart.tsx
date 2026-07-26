@@ -7,6 +7,7 @@ import { Radar } from 'react-chartjs-2';
 import { applicationOptions } from '../../constants/applicationOptions';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { useTheme } from '../../contexts/ThemeContext';
+import { breakdownScopeFromFilter, selectData } from '../../utils/selectors';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
@@ -28,10 +29,13 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
     return sortedMonths.slice(-period);
   }, [selectedPeriod, sortedMonths]);
 
-  // Filter data for selected months (bureau is pre-filtered in App.tsx)
+  // Per-bureau breakdown ('all' = every bureau, aggregate row excluded)
   const filteredData = useMemo(
-    () => data.filter((entry) => selectedMonths.includes(entry.month)),
-    [data, selectedMonths]
+    () =>
+      selectData(data, { scope: breakdownScopeFromFilter(filters.bureau) }).filter((entry) =>
+        selectedMonths.includes(entry.month)
+      ),
+    [data, filters.bureau, selectedMonths]
   );
 
   // Calculate percentages for each bureau/type combination

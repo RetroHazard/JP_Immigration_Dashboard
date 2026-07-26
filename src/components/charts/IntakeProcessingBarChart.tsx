@@ -22,7 +22,7 @@ import { Bar } from 'react-chartjs-2';
 
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useTheme } from '../../contexts/ThemeContext';
-import { filterData, getAllMonths } from '../../hooks/useFilteredData';
+import { bureauScopeFromFilter, getAllMonths, selectData } from '../../utils/selectors';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -73,12 +73,10 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
     }
 
     const monthlyStats = months.map((month) => {
-      // Use shared filter function for consistent filtering
-      // Data is already pre-filtered by type and bureau in App.tsx
-      // We just need to filter by month and handle 'all' bureau case
-      const monthData = filterData(data, {
+      // 'all' bureau = the official nationwide aggregate row
+      const monthData = selectData(data, {
         month,
-        bureau: filters.bureau,
+        scope: bureauScopeFromFilter(filters.bureau),
         type: filters.type,
       });
 

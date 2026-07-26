@@ -191,3 +191,4 @@ cython_debug/
 /src/buildInfo.js
 /public/CHANGELOG.md
 tsconfig.tsbuildinfo
+/public/data/

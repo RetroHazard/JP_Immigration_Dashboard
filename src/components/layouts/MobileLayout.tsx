@@ -10,8 +10,8 @@ import { FilterPanel } from '../FilterPanel';
 
 interface MobileLayoutProps {
   data: ImmigrationData[];
-  filteredData: ImmigrationData[];
   filters: { bureau: string; type: string };
+  effectiveFilters: { bureau: string; type: string };
   onFilterChange: (filters: { bureau: string; type: string }) => void;
   activeChartIndex: number;
   onActiveChartChange: (index: number) => void;
@@ -21,8 +21,8 @@ interface MobileLayoutProps {
 
 export const MobileLayout: React.FC<MobileLayoutProps> = ({
   data,
-  filteredData,
   filters,
+  effectiveFilters,
   onFilterChange,
   activeChartIndex,
   onActiveChartChange,
@@ -66,8 +66,8 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
             </div>
             <ActiveChart
               activeChartIndex={activeChartIndex}
-              data={filteredData}
-              filters={filters}
+              data={data}
+              filters={effectiveFilters}
             />
           </div>
         </div>

@@ -18,7 +18,7 @@ import { Line } from 'react-chartjs-2';
 
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useTheme } from '../../contexts/ThemeContext';
-import { filterData, getAllMonths } from '../../hooks/useFilteredData';
+import { bureauScopeFromFilter, getAllMonths, selectData } from '../../utils/selectors';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
@@ -53,11 +53,11 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     }
 
     const monthlyStats = months.map((month) => {
-      // Use shared filter function for consistent filtering
-      // Note: type filter is intentionally omitted - this chart shows ALL types as separate lines
-      const monthData = filterData(data, {
+      // Type filter intentionally omitted - this chart shows ALL types as separate lines.
+      // 'all' bureau = the official nationwide aggregate row.
+      const monthData = selectData(data, {
         month,
-        bureau: filters.bureau,
+        scope: bureauScopeFromFilter(filters.bureau),
         status: STATUS_CODES.NEW_APPLICATIONS,
       });
       return {
