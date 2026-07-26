@@ -25,6 +25,7 @@ import { applicationOptions } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
 import { useTheme } from '../contexts/ThemeContext';
 import type { DashboardMeta, ImmigrationData } from '../hooks/useImmigrationData';
+import { useLocale } from '../i18n/LocaleContext';
 import { prefersReducedMotion, useAnimeScope } from '../lib/motion';
 import { getBureauLabel } from '../utils/getBureauData';
 import type { ChartRange } from '../utils/selectors';
@@ -34,6 +35,7 @@ import { CHART_COMPONENTS, CHART_KEYS } from './common/ChartComponents';
 import { PeriodSelector } from './common/PeriodSelector';
 import { ActiveChart } from './ActiveChart';
 import { ChangelogModal } from './ChangelogModal';
+import { ChartDataTable } from './ChartDataTable';
 import { EstimationCard } from './EstimationCard';
 import { FilterPanel } from './FilterPanel';
 import { StatsSummary } from './StatsSummary';
@@ -50,6 +52,7 @@ interface DashboardShellProps {
 
 export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) => {
   const { isDarkMode, toggleTheme } = useTheme();
+  const { locale, setLocale, t } = useLocale();
   const searchParams = useSearchParams();
 
   // --- URL state (shareable): active chart, global filters, time range ---
@@ -127,7 +130,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
         href="#main-content"
         className="sr-only rounded-md bg-primary px-3 py-2 text-primary-foreground focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50"
       >
-        Skip to content
+        {t('app.skipToContent')}
       </a>
 
       <nav className="header-block">
@@ -141,15 +144,32 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                 JP
               </div>
               <div className="min-w-0">
-                <h1 className="truncate text-sm font-bold leading-tight md:text-base">
-                  Japan Immigration Statistics
-                </h1>
-                <p className="truncate text-xxs text-muted-foreground sm:text-xs">
-                  Bureau processing data, updated daily from e-Stat
-                </p>
+                <h1 className="truncate text-sm font-bold leading-tight md:text-base">{t('app.title')}</h1>
+                <p className="truncate text-xxs text-muted-foreground sm:text-xs">{t('app.subtitle')}</p>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
+              <div
+                className="hidden overflow-hidden rounded-full border border-border text-xs sm:flex"
+                role="group"
+                aria-label="Language"
+              >
+                <button
+                  onClick={() => setLocale('en')}
+                  aria-pressed={locale === 'en'}
+                  className={`px-2.5 py-1.5 transition-colors ${locale === 'en' ? 'bg-primary text-primary-foreground' : 'text-secondary-foreground hover:bg-muted'}`}
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => setLocale('ja')}
+                  aria-pressed={locale === 'ja'}
+                  lang="ja"
+                  className={`px-2.5 py-1.5 transition-colors ${locale === 'ja' ? 'bg-primary text-primary-foreground' : 'text-secondary-foreground hover:bg-muted'}`}
+                >
+                  日本語
+                </button>
+              </div>
               <button
                 onClick={() => setIsChangelogOpen(true)}
                 className="hidden items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-secondary-foreground transition-colors hover:bg-muted sm:flex"
@@ -236,6 +256,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                             />
                           </div>
                         )}
+                        <ChartDataTable data={data} filters={effectiveFilters} range={range} />
                       </>
                     )}
                   </div>
@@ -243,6 +264,12 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               ))}
             </Tabs>
 
+            <p className="sr-only" aria-live="polite">
+              Showing {activeChart.label} for {getBureauLabel(effectiveFilters.bureau)}
+              {effectiveFilters.type !== 'all'
+                ? `, ${applicationOptions.find((option) => option.value === effectiveFilters.type)?.label ?? ''}`
+                : ''}
+            </p>
             <StatsSummary data={data} filters={effectiveFilters} />
           </div>
 
@@ -274,7 +301,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
       <footer className="footer-block mt-auto">
         <div className="marginals">
           <div className="footer-text">
-            Official statistics provided by the Immigration Services Agency of Japan
+            {t('footer.attribution')}
             <br />
             Data acquisition provided by{' '}
             <a href="https://www.e-stat.go.jp/" target="_blank" rel="noreferrer" className="hyperlink">

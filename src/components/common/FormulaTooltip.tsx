@@ -1,23 +1,14 @@
 // components/common/FormulaTooltip.tsx
-import { useRef, useState } from 'react';
+// Variable explanations for the estimator formulas. A click/tap-toggled
+// popover replaces the old hover-only tooltip, which was unreachable on
+// touch devices - exactly where the estimator sheet lives.
+'use client';
 
+import { CircleHelp } from 'lucide-react';
 import type React from 'react';
 import { InlineMath } from 'react-katex';
-import {
-  arrow,
-  autoUpdate,
-  flip,
-  FloatingArrow,
-  FloatingPortal,
-  offset,
-  safePolygon,
-  shift,
-  useDismiss,
-  useFloating,
-  useHover,
-  useInteractions,
-  useRole,
-} from '@floating-ui/react';
+
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 import 'katex/dist/katex.min.css';
 
@@ -44,75 +35,35 @@ export const variableExplanations: VariableExplanations = {
   P_app: { title: 'Processed Applications', description: 'Estimated applications processed prior to submission.' },
 };
 
-export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ variables, children }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [referenceElement, setReferenceElement] = useState<HTMLElement | null>(null);
-  const arrowRef = useRef(null);
-
-  const { refs, floatingStyles, context } = useFloating({
-    open: isOpen,
-    onOpenChange: setIsOpen,
-    placement: 'left',
-    whileElementsMounted: autoUpdate,
-    elements: { reference: referenceElement },
-    middleware: [
-      offset(8),
-      flip({ padding: 8 }),
-      shift({ padding: 8 }),
-      arrow({ element: arrowRef }),
-    ],
-  });
-
-  const hover = useHover(context, {
-    delay: { open: 300, close: 50 },
-    handleClose: safePolygon(),
-  });
-  const dismiss = useDismiss(context);
-  const role = useRole(context, { role: 'tooltip' });
-
-  const { getReferenceProps, getFloatingProps } = useInteractions([hover, dismiss, role]);
-
-  return (
-    <>
-      <span
-        ref={(node) => {
-          setReferenceElement(node);
-          refs.setReference(node);
-        }}
-        {...getReferenceProps()}
-        className="cursor-help"
-      >
-        {children}
-      </span>
-
-      {isOpen && (
-        <FloatingPortal>
-          <div
-            ref={refs.setFloating}
-            style={{ ...floatingStyles, zIndex: 999 }}
-            {...getFloatingProps()}
-            className="floating-tooltip"
-            data-status="open"
+export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ variables, children }) => (
+  <div className="relative">
+    <div className="absolute right-0 top-0">
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            aria-label="Explain the variables in this formula"
+            className="flex size-5 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
           >
-            <div className="space-y-2 p-2">
-              {Object.entries(variables).map(([symbol, explanation]) => (
-                <div key={symbol} className="flex flex-col">
-                  <div className="flex items-baseline">
-                    <InlineMath>{`${symbol}:`}</InlineMath>
-                    <div className="mt-1 text-xs font-semibold">{explanation.title}</div>
-                  </div>
-                  <div className="mb-1 text-xxs font-normal">{explanation.description}</div>
-                </div>
-              ))}
-            </div>
-            <FloatingArrow
-              ref={arrowRef}
-              context={context}
-              className="fill-foreground"
-            />
-          </div>
-        </FloatingPortal>
-      )}
-    </>
-  );
-};
+            <CircleHelp className="size-3.5" aria-hidden="true" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent side="left" align="start" className="w-72 p-3">
+          <ul className="space-y-2 text-xs">
+            {Object.entries(variables).map(([symbol, explanation]) => (
+              <li key={symbol} className="flex gap-2">
+                <span className="shrink-0 font-semibold">
+                  <InlineMath math={symbol} />
+                </span>
+                <span>
+                  <span className="font-medium">{explanation.title}</span>
+                  <span className="text-muted-foreground"> — {explanation.description}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </PopoverContent>
+      </Popover>
+    </div>
+    {children}
+  </div>
+);
