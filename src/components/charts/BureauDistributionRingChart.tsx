@@ -8,11 +8,12 @@ import { Doughnut } from 'react-chartjs-2';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useTheme } from '../../contexts/ThemeContext';
+import { selectData } from '../../utils/selectors';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data }) => {
+export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data, filters }) => {
   const { isDarkMode } = useTheme();
   const [selectedPeriod, setSelectedPeriod] = useState<string>('1');
 
@@ -29,10 +30,14 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
     return sortedMonths.slice(-period);
   }, [selectedPeriod, sortedMonths]);
 
-  // Filter data for selected months (type is pre-filtered in App.tsx)
+  // Per-bureau breakdown: exclude the nationwide aggregate row, apply the
+  // active type filter, and keep only the selected months.
   const filteredData = useMemo(
-    () => data.filter((entry) => selectedMonths.includes(entry.month)),
-    [data, selectedMonths]
+    () =>
+      selectData(data, { scope: { kind: 'eachBureau' }, type: filters.type }).filter((entry) =>
+        selectedMonths.includes(entry.month)
+      ),
+    [data, filters.type, selectedMonths]
   );
 
   // Calculate bureau data with aggregated values

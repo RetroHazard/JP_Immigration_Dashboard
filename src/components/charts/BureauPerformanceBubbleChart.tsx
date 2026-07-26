@@ -9,6 +9,7 @@ import { applicationOptions } from '../../constants/applicationOptions';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useTheme } from '../../contexts/ThemeContext';
+import { breakdownScopeFromFilter, selectData } from '../../utils/selectors';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
@@ -22,7 +23,7 @@ interface BubbleDataPoint {
   bureau: string;
 }
 
-export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data }) => {
+export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data, filters }) => {
   const { isDarkMode } = useTheme();
   const [selectedPeriod, setSelectedPeriod] = useState('1');
 
@@ -38,12 +39,13 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
   }, [selectedPeriod, sortedMonths]);
 
   const filteredData = useMemo(() => {
-    // Data is pre-filtered by bureau and type in App.tsx, only filter by month and status
+    // Per-bureau breakdown ('all' = every bureau, aggregate row excluded),
+    // honoring the active bureau/type filters.
     const relevantStatuses = [STATUS_CODES.NEW_APPLICATIONS, STATUS_CODES.PROCESSED] as string[];
-    return data.filter(
+    return selectData(data, { scope: breakdownScopeFromFilter(filters.bureau), type: filters.type }).filter(
       (entry) => selectedMonths.includes(entry.month) && relevantStatuses.includes(entry.status)
     );
-  }, [data, selectedMonths]);
+  }, [data, filters.bureau, filters.type, selectedMonths]);
 
   const chartData = useMemo(() => {
     const bureaus = bureauOptions.filter((b) => b.value !== 'all');

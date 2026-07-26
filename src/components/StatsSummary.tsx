@@ -4,9 +4,9 @@ import { useMemo } from 'react';
 import type React from 'react';
 
 import { STATUS_CODES } from '../constants/statusCodes';
-import { getLatestMonth, useFilteredData } from '../hooks/useFilteredData';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { getBureauLabel } from '../utils/getBureauData';
+import { bureauScopeFromFilter, getLatestMonth, useSelectedData } from '../utils/selectors';
 import { StatCard } from './common/StatCard';
 
 interface StatsSummaryProps {
@@ -19,8 +19,8 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
   const selectedMonth = getLatestMonth(data);
 
   // Use shared filter hook with month filter
-  const filteredData = useFilteredData(data, {
-    bureau: filters.bureau,
+  const filteredData = useSelectedData(data, {
+    scope: bureauScopeFromFilter(filters.bureau),
     type: filters.type,
     month: selectedMonth || undefined,
   });

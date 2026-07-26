@@ -71,16 +71,18 @@
     "prettier-plugin-tailwindcss": "^0.6.14",
     "react-build-info": "^0.0.3",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.1",
     "typescript": "^5.9.2",
     "vitest": "^4.1.10"
   },
   "scripts": {
     "lint": "next lint",
     "start": "react-build-info && node scripts/sync-changelog.js && next build && npx serve@latest ./build",
-    "build": "react-build-info && node scripts/sync-changelog.js && next build",
+    "build": "react-build-info && node scripts/sync-changelog.js && tsx scripts/transform-data.mts && next build && node scripts/strip-raw-data.mjs",
     "dev": "react-build-info && node scripts/sync-changelog.js && next dev --turbopack",
     "test": "vitest run",
-    "postinstall": "node -e \"(process.env.npm_command != 'ci') && require('lockfile-shaker/lib/bin.js')\""
+    "postinstall": "node -e \"(process.env.npm_command != 'ci') && require('lockfile-shaker/lib/bin.js')\"",
+    "predev": "tsx scripts/transform-data.mts"
   },
   "eslintConfig": {
     "extends": [
