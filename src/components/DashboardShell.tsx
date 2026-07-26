@@ -8,9 +8,10 @@
 // - chart tab, filters, and time range are all URL state (shareable links)
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
+import { animate, stagger } from 'animejs';
 import { Calculator, History, Moon, Sun } from 'lucide-react';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 import type React from 'react';
@@ -24,6 +25,7 @@ import { applicationOptions } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
 import { useTheme } from '../contexts/ThemeContext';
 import type { DashboardMeta, ImmigrationData } from '../hooks/useImmigrationData';
+import { prefersReducedMotion, useAnimeScope } from '../lib/motion';
 import { getBureauLabel } from '../utils/getBureauData';
 import type { ChartRange } from '../utils/selectors';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
@@ -91,8 +93,36 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
   const [isEstimatorSheetOpen, setIsEstimatorSheetOpen] = useState(() => isEstimatorPermalink(searchParams));
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
+  // One-time entrance: header cards cascade in.
+  const motionRoot = useAnimeScope<HTMLDivElement>(() => {
+    animate('[data-animate="card"]', {
+      opacity: [0, 1],
+      translateY: [14, 0],
+      delay: stagger(70),
+      duration: 550,
+      ease: 'out(3)',
+    });
+  }, []);
+
+  // Cross-fade the chart panel when switching tabs (not on first paint).
+  const hasMounted = useRef(false);
+  useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+    if (prefersReducedMotion()) return;
+    const panel = motionRoot.current?.querySelector('[data-chart-panel]');
+    if (!panel) return;
+    const animation = animate(panel, { opacity: [0, 1], translateY: [10, 0], duration: 380, ease: 'out(2)' });
+    return () => {
+      animation.cancel();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartKey]);
+
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div ref={motionRoot} className="flex min-h-screen flex-col bg-background">
       <a
         href="#main-content"
         className="sr-only rounded-md bg-primary px-3 py-2 text-primary-foreground focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50"
@@ -144,6 +174,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">
           {/* Main column */}
           <div className="flex min-w-0 flex-col gap-4">
+            <div data-animate="card">
             <FilterPanel
               data={data}
               filters={{ bureau, type }}
@@ -156,6 +187,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               compare={compare}
               onCompareChange={(next) => void setCompare(next)}
             />
+            </div>
 
             <Tabs value={activeChart.key} onValueChange={(key) => void setChartKey(key)}>
               <div className="overflow-x-auto pb-1">
@@ -170,7 +202,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               </div>
               {CHART_COMPONENTS.map((chart, index) => (
                 <TabsContent key={chart.key} value={chart.key} className="mt-2">
-                  <div className="base-container">
+                  <div className="base-container" data-chart-panel data-animate="card">
                     <div className="mb-1 flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <h2 className="section-title">{chart.label}</h2>
@@ -215,7 +247,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
           </div>
 
           {/* Estimator: permanent sidebar on desktop */}
-          <aside className="sticky top-4 hidden lg:block">
+          <aside className="sticky top-4 hidden lg:block" data-animate="card">
             <EstimationCard data={data} details={estimatorDetails} onDetailsChange={setEstimatorDetails} />
           </aside>
         </div>

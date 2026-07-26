@@ -63,6 +63,9 @@ const statsForRows = (rows: ImmigrationData[]): MonthStats => {
   };
 };
 
+const formatInt = (value: number) => Math.round(value).toLocaleString('en-US');
+const formatPercent = (value: number) => `${value.toFixed(1)}%`;
+
 const deltaOf = (current: number, previous: number | undefined, direction: StatDelta extends null ? never : NonNullable<StatDelta>['direction']): StatDelta =>
   previous === undefined || previous === 0 ? null : { percent: ((current - previous) / previous) * 100, direction };
 
@@ -94,7 +97,8 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       <StatCard
         title="Total Applications"
         subtitle={subtitle}
-        value={latest.totalApplications.toLocaleString()}
+        value={latest.totalApplications}
+        formatValue={formatInt}
         color="blue"
         icon={FileStack}
         delta={deltaOf(latest.totalApplications, previous?.totalApplications, 'neutral')}
@@ -103,7 +107,8 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       <StatCard
         title="Pending"
         subtitle={subtitle}
-        value={latest.pending.toLocaleString()}
+        value={latest.pending}
+        formatValue={formatInt}
         color="yellow"
         icon={Hourglass}
         delta={deltaOf(latest.pending, previous?.pending, 'up-warn')}
@@ -112,7 +117,8 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       <StatCard
         title="Granted"
         subtitle={subtitle}
-        value={latest.granted.toLocaleString()}
+        value={latest.granted}
+        formatValue={formatInt}
         color="green"
         icon={Stamp}
         delta={deltaOf(latest.granted, previous?.granted, 'up-good')}
@@ -121,7 +127,8 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       <StatCard
         title="Denied"
         subtitle={subtitle}
-        value={latest.denied.toLocaleString()}
+        value={latest.denied}
+        formatValue={formatInt}
         color="red"
         icon={CircleSlash}
         delta={deltaOf(latest.denied, previous?.denied, 'up-warn')}
@@ -130,7 +137,8 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       <StatCard
         title="Approval Rate"
         subtitle={subtitle}
-        value={`${latest.approvalRate.toFixed(1)}%`}
+        value={latest.approvalRate}
+        formatValue={formatPercent}
         color="gray"
         icon={Percent}
         delta={deltaOf(latest.approvalRate, previous?.approvalRate, 'up-good')}

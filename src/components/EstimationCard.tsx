@@ -5,15 +5,17 @@
 // that no longer hides the inputs.
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
+import { animate } from 'animejs';
 import { AlertTriangle, Check, ChevronDown, ChevronUp, Link as LinkIcon, OctagonAlert } from 'lucide-react';
 import type React from 'react';
 import { BlockMath } from 'react-katex';
 
 import { applicationOptions } from '../constants/applicationOptions';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
+import { prefersReducedMotion } from '../lib/motion';
 import type { EstimatedDateResult } from '../utils/calculateEstimates';
 import { calculateEstimatedDate } from '../utils/calculateEstimates';
 import { nonAirportBureaus } from '../utils/getBureauData';
@@ -79,11 +81,26 @@ const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails 
 
 export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, onDetailsChange }) => {
   const [showMath, setShowMath] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const estimatedDate: EstimatedDateResult | null = useMemo(
     () => calculateEstimatedDate(data, details),
     [data, details]
   );
+
+  const resultKey = estimatedDate ? estimatedDate.estimatedDate.getTime() : null;
+  useEffect(() => {
+    if (resultKey === null || prefersReducedMotion() || !resultRef.current) return;
+    const animation = animate(resultRef.current, {
+      opacity: [0.4, 1],
+      scale: [0.975, 1],
+      duration: 450,
+      ease: 'out(3)',
+    });
+    return () => {
+      animation.cancel();
+    };
+  }, [resultKey]);
 
   // Valid range for the application date input
   const dateRange = useMemo(() => {
@@ -141,6 +158,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, o
 
         {estimatedDate && (
           <div
+            ref={resultRef}
             className={`card-base-gray border-t-4 ${
               estimatedDate.details.isPastDue ? 'border-warning' : 'border-primary'
             }`}

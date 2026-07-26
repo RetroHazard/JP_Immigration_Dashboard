@@ -4,6 +4,8 @@ import { memo } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type React from 'react';
 
+import { useCountUp } from '../../lib/motion';
+
 type StatBadgeColor = 'blue' | 'yellow' | 'green' | 'red' | 'gray';
 
 // Tailwind needs complete class names at build time, so badge colors are a
@@ -26,7 +28,8 @@ export type StatDelta = {
 interface StatCardProps {
   title: string;
   subtitle: string;
-  value: string | number;
+  value: number;
+  formatValue: (value: number) => string;
   color: StatBadgeColor;
   icon: LucideIcon;
   delta?: StatDelta;
@@ -53,7 +56,17 @@ const Sparkline: React.FC<{ points: number[]; className?: string }> = ({ points,
   );
 };
 
-const StatCardComponent: React.FC<StatCardProps> = ({ title, subtitle, value, color, icon: Icon, delta, spark }) => {
+const StatCardComponent: React.FC<StatCardProps> = ({
+  title,
+  subtitle,
+  value,
+  formatValue,
+  color,
+  icon: Icon,
+  delta,
+  spark,
+}) => {
+  const valueRef = useCountUp(value, formatValue);
   const deltaClass =
     !delta || delta.direction === 'neutral'
       ? 'text-muted-foreground'
@@ -71,7 +84,9 @@ const StatCardComponent: React.FC<StatCardProps> = ({ title, subtitle, value, co
           <Icon className="size-3.5" aria-hidden="true" />
         </span>
       </div>
-      <span className="text-lg font-bold tabular-nums text-foreground md:text-2xl">{value}</span>
+      <span ref={valueRef} className="text-lg font-bold tabular-nums text-foreground md:text-2xl">
+        {formatValue(value)}
+      </span>
       <div className="flex items-end justify-between gap-2">
         <span className="min-w-0 flex-1">
           <span className={`block truncate text-xxs tabular-nums sm:text-xs ${deltaClass}`}>
