@@ -1,67 +1,23 @@
 // App.tsx
-import { useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-
 import type React from 'react';
-import { Icon } from '@iconify/react';
 
-import { ChangelogModal } from './components/ChangelogModal';
-import { CHART_COMPONENTS } from './components/common/ChartComponents';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
-import { DesktopLayout } from './components/layouts/DesktopLayout';
-import { MobileLayout } from './components/layouts/MobileLayout';
-import { StatsSummary } from './components/StatsSummary';
-import { useTheme } from './contexts/ThemeContext';
+import { DashboardShell } from './components/DashboardShell';
 import { useImmigrationData } from './hooks/useImmigrationData';
-import { hasPermalinkParams } from './utils/urlApplicationDetails';
-import buildInfo from './buildInfo';
-
-interface Filters {
-  bureau: string;
-  type: string;
-}
 
 const App: React.FC = () => {
-  const { data, loading, error } = useImmigrationData();
-  const { isDarkMode, toggleTheme } = useTheme();
-  const [filters, setFilters] = useState<Filters>({
-    bureau: 'all',
-    type: 'all',
-  });
-
-  const searchParams = useSearchParams();
-
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  // Only auto-expand the estimator when a permalink has pre-filled it; otherwise stay collapsed by default.
-  const [isEstimationExpanded, setIsEstimationExpanded] = useState(() => hasPermalinkParams(searchParams));
-  const [activeChartIndex, setActiveChartIndex] = useState(0);
-  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
-
-  // Get current chart's filter configuration
-  const currentChartFilters = CHART_COMPONENTS[activeChartIndex].filters;
-
-  // Filters the active chart doesn't support are neutralized to 'all'. Charts
-  // and the stats row select their own rows from the full dataset via
-  // utils/selectors (explicit BureauScope), so the chart, stat badges, and
-  // estimator always agree on what a filter value means.
-  const effectiveFilters = useMemo(
-    () => ({
-      bureau: currentChartFilters.bureau ? filters.bureau : 'all',
-      type: currentChartFilters.appType ? filters.type : 'all',
-    }),
-    [filters.bureau, filters.type, currentChartFilters.bureau, currentChartFilters.appType]
-  );
+  const { data, meta, loading, error } = useImmigrationData();
 
   if (loading) {
     return <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Crunching Immigration Data..." />;
   }
 
-  if (error) {
+  if (error || !data) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="rounded-xl border border-border bg-card p-8 shadow-soft">
           <h1 className="mb-4 text-2xl font-bold text-destructive">Error Loading Data</h1>
-          <p className="mb-4 text-secondary-foreground">{error}</p>
+          <p className="mb-4 text-secondary-foreground">{error ?? 'No data available'}</p>
           <button
             onClick={() => window.location.reload()}
             className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:opacity-90"
@@ -73,122 +29,7 @@ const App: React.FC = () => {
     );
   }
 
-  if (!data) {
-    return <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Crunching Immigration Data..." />;
-  }
-
-  return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <nav className="header-block">
-        <div className="marginals">
-          <div className="flex h-16 justify-between">
-            <div className="flex items-center">
-              <div className="flex flex-col items-start">
-                <h1 className="section-title">
-                  Japan
-                  <Icon icon="ph:line-vertical-light" className="vertical-align-sub inline-block align-middle" />
-                  Immigration Bureaus
-                </h1>
-                <h1 className="section-title">Statistics Dashboard</h1>
-              </div>
-            </div>
-            <div className="flex items-center gap-1 lg:gap-5">
-              <div className="flex-col-end">
-                <button
-                  onClick={() => setIsChangelogOpen(true)}
-                  aria-label="View changelog"
-                  className="build-info hyperlink flex items-center gap-1"
-                >
-                  <Icon icon="ph:clock-counter-clockwise" className="size-3 lg:size-3.5" />
-                  Version: {buildInfo.buildVersion}
-                </button>
-                <span className="build-info">Last Updated:</span>
-                <span className="build-info">
-                  {new Date(buildInfo.buildDate).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </span>
-              </div>
-              <button onClick={toggleTheme} className="theme-toggle" aria-label="Toggle theme">
-                <Icon
-                  icon={
-                    isDarkMode
-                      ? 'line-md:sunny-filled-loop-to-moon-filled-alt-loop-transition'
-                      : 'line-md:sunny-outline-loop'
-                  }
-                  className="theme-toggle-icon"
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="marginals flex-1 py-8">
-        {!loading && (
-          <>
-            {/* Mobile Layout */}
-            <MobileLayout
-              data={data}
-              filters={filters}
-              effectiveFilters={effectiveFilters}
-              onFilterChange={setFilters}
-              activeChartIndex={activeChartIndex}
-              onActiveChartChange={setActiveChartIndex}
-              isDrawerOpen={isDrawerOpen}
-              onDrawerToggle={() => setIsDrawerOpen(!isDrawerOpen)}
-            />
-
-            {/* Desktop Layout */}
-            <DesktopLayout
-              data={data}
-              filters={filters}
-              effectiveFilters={effectiveFilters}
-              onFilterChange={setFilters}
-              activeChartIndex={activeChartIndex}
-              onActiveChartChange={setActiveChartIndex}
-              isEstimationExpanded={isEstimationExpanded}
-              onEstimationToggle={setIsEstimationExpanded}
-            />
-
-            <StatsSummary data={data} filters={effectiveFilters} />
-          </>
-        )}
-      </main>
-
-      <footer className="footer-block mt-auto">
-        <div className="marginals">
-          <div className="footer-text">
-            Official Statistics provided by Immigration Services Agency of Japan
-            <br />
-            Data acquisition provided by e-Stat{' '}
-            <a href="https://www.e-stat.go.jp/" target="_blank" rel="noreferrer" aria-label="e-Stat Website">
-              <Icon icon="ri:link" className="hyperlink vertical-align-sub inline-block align-middle" />
-            </a>
-          </div>
-          <div className="footer-text-small">
-            Built using{' '}
-            <a href="https://react.dev" className="hyperlink" target="_blank" rel="noreferrer">
-              React
-            </a>{' '}
-            and{' '}
-            <a href="https://nextjs.org" className="hyperlink" target="_blank" rel="noreferrer">
-              Next.js
-            </a>{' '}
-            in 2025 by{' '}
-            <a href="https://github.com/RetroHazard" className="hyperlink" target="_blank" rel="noreferrer">
-              <Icon icon="openmoji:github" className="vertical-align-sub-more inline-block align-middle text-sm" />
-              RetroHazard
-            </a>
-          </div>
-        </div>
-      </footer>
-
-      <ChangelogModal isOpen={isChangelogOpen} onClose={() => setIsChangelogOpen(false)} />
-    </div>
-  );
+  return <DashboardShell data={data} meta={meta} />;
 };
 
 export default App;

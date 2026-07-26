@@ -2,6 +2,8 @@
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
+
 import { ErrorBoundary } from '../../components/common/ErrorBoundary';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ThemeProvider } from '../../contexts/ThemeContext';
@@ -13,12 +15,16 @@ const App = dynamic(() => import('../../App'), {
 
 export function ClientWrapper() {
   return (
-    <ThemeProvider>
-      <ErrorBoundary>
-        <Suspense fallback={<LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading Dashboard..." />}>
-          <App />
-        </Suspense>
-      </ErrorBoundary>
-    </ThemeProvider>
+    <NuqsAdapter>
+      <ThemeProvider>
+        <ErrorBoundary>
+          <Suspense
+            fallback={<LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading Dashboard..." />}
+          >
+            <App />
+          </Suspense>
+        </ErrorBoundary>
+      </ThemeProvider>
+    </NuqsAdapter>
   );
 }

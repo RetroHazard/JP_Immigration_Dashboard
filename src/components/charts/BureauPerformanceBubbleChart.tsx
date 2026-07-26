@@ -1,5 +1,5 @@
 // src/components/charts/BureauPerformanceBubbleChart.tsx
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { Chart as ChartJS, Legend, LinearScale, PointElement, Title, Tooltip, type TooltipItem } from 'chart.js';
 import type React from 'react';
@@ -9,7 +9,7 @@ import { applicationOptions } from '../../constants/applicationOptions';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useTheme } from '../../contexts/ThemeContext';
-import { breakdownScopeFromFilter, selectData } from '../../utils/selectors';
+import { breakdownScopeFromFilter, monthsForRange, selectData } from '../../utils/selectors';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
@@ -23,20 +23,15 @@ interface BubbleDataPoint {
   bureau: string;
 }
 
-export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data, filters }) => {
+export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { isDarkMode } = useTheme();
-  const [selectedPeriod, setSelectedPeriod] = useState('1');
 
   const sortedMonths = useMemo(() => {
     if (!data?.length) return [];
     return [...new Set(data.map((entry) => entry.month))].sort();
   }, [data]);
 
-  const selectedMonths = useMemo(() => {
-    if (selectedPeriod === 'all') return sortedMonths;
-    const period = parseInt(selectedPeriod, 10);
-    return sortedMonths.slice(-period);
-  }, [selectedPeriod, sortedMonths]);
+  const selectedMonths = useMemo(() => monthsForRange(sortedMonths, range), [range, sortedMonths]);
 
   const filteredData = useMemo(() => {
     // Per-bureau breakdown ('all' = every bureau, aggregate row excluded),
@@ -147,21 +142,6 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
 
   return (
     <div className="card-content">
-      <div className="mb-4 flex h-full items-center justify-between">
-        <div className="section-title">Processing Efficiency</div>
-        <select
-          className="chart-filter-select"
-          value={selectedPeriod}
-          onChange={(e) => setSelectedPeriod(e.target.value)}
-        >
-          <option value="1">Latest</option>
-          <option value="6">6 Months</option>
-          <option value="12">12 Months</option>
-          <option value="24">24 Months</option>
-          <option value="36">36 Months</option>
-          <option value="all">All Data</option>
-        </select>
-      </div>
       <div className="chart-container">
         <Bubble data={{ datasets: chartData }} options={options} />
       </div>

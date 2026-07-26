@@ -74,6 +74,15 @@ export const getLatestMonth = (data: ImmigrationData[]): string | null => {
   return months[months.length - 1] || null;
 };
 
+/** 'latest' = most recent month only; numbers = trailing N months; 'all' = full history */
+export type ChartRange = 'latest' | '6' | '12' | '24' | '36' | 'all';
+
+export const monthsForRange = (allMonths: string[], range: ChartRange): string[] => {
+  if (range === 'all') return allMonths;
+  if (range === 'latest') return allMonths.slice(-1);
+  return allMonths.slice(-parseInt(range, 10));
+};
+
 export const getAllMonths = (data: ImmigrationData[]): string[] => {
   if (!data || data.length === 0) return [];
   return [...new Set(data.map((entry) => entry.month))].sort();
