@@ -51,22 +51,22 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
       role="presentation"
     >
       <div
-        className="flex max-h-[80vh] w-full max-w-lg flex-col rounded-lg bg-white shadow-xl dark:bg-gray-700"
+        className="flex max-h-[80vh] w-full max-w-lg flex-col rounded-xl border border-border bg-card shadow-soft-lg"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Changelog"
       >
-        <div className="flex items-center justify-between border-b p-4 dark:border-gray-600">
+        <div className="flex items-center justify-between border-b border-border p-4">
           <h2 className="section-title">Changelog</h2>
           <button onClick={onClose} aria-label="Close changelog" className="theme-toggle-icon">
-            <Icon icon="ph:x-bold" className="size-5 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100" />
+            <Icon icon="ph:x-bold" className="size-5 text-muted-foreground hover:text-foreground" />
           </button>
         </div>
         <div className="card-content overflow-y-auto p-4">
-          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           {!error && markdown === null && (
-            <p className="text-sm text-gray-500 dark:text-gray-300">Loading...</p>
+            <p className="text-sm text-muted-foreground">Loading...</p>
           )}
           {!error && markdown !== null && <ChangelogContent markdown={markdown} />}
         </div>

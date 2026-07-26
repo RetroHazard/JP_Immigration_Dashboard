@@ -79,7 +79,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         shortTitle="Total"
         subtitle={getBureauLabel(filters.bureau)}
         value={stats.totalApplications.toLocaleString()}
-        color="bg-blue-500"
+        color="blue"
         icon="material-symbols:file-copy-outline-rounded"
         filterType={filters.type}
       />
@@ -88,7 +88,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         shortTitle="Pending"
         subtitle={getBureauLabel(filters.bureau)}
         value={stats.pending.toLocaleString()}
-        color="bg-yellow-500"
+        color="yellow"
         icon="material-symbols:pending-actions-rounded"
         filterType={filters.type}
       />
@@ -97,7 +97,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         shortTitle="Granted"
         subtitle={getBureauLabel(filters.bureau)}
         value={stats.granted.toLocaleString()}
-        color="bg-green-500"
+        color="green"
         icon="material-symbols:order-approve-rounded"
         filterType={filters.type}
       />
@@ -106,7 +106,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         shortTitle="Denied"
         subtitle={getBureauLabel(filters.bureau)}
         value={stats.denied.toLocaleString()}
-        color="bg-red-500"
+        color="red"
         icon="material-symbols:cancel-outline-rounded"
         filterType={filters.type}
       />
@@ -115,7 +115,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         shortTitle="APV. Rate"
         subtitle={getBureauLabel(filters.bureau)}
         value={`${stats.approvalRate}%`}
-        color="bg-gray-500"
+        color="gray"
         icon="material-symbols:percent-rounded"
         filterType={filters.type}
       />

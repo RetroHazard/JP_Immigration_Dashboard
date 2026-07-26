@@ -1,7 +1,7 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
   // Vendored Bklit UI sources keep upstream formatting for easy diffing
-  ignorePatterns: ['src/components/bklit/**'],
+  ignorePatterns: ['src/components/bklit/**', 'src/components/ui/**'],
   extends: [
     'eslint:recommended',
     'plugin:react/recommended',

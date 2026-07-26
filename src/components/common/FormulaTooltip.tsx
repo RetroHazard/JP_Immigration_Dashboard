@@ -108,7 +108,7 @@ export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ variables, child
             <FloatingArrow
               ref={arrowRef}
               context={context}
-              className="fill-gray-600 dark:fill-gray-300"
+              className="fill-foreground"
             />
           </div>
         </FloatingPortal>

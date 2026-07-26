@@ -1,5 +1,6 @@
-/* index.css */
+/* index.css — Civic Glass design system */
 @import 'tailwindcss';
+@import 'tw-animate-css';
 
 @plugin '@tailwindcss/forms';
 
@@ -7,11 +8,184 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme {
+/* ───────────────────────── Civic Glass tokens ─────────────────────────
+   Semantic palette: neutral ground, soft-depth white cards, one confident
+   indigo accent. Chart series colors are a colorblind-validated categorical
+   order (blue, orange, aqua, yellow, magenta); sequential scale is a single
+   blue ramp. Dark mode is a first-class selection, not an inversion. */
+:root {
+  --background: #f6f7f9;
+  --foreground: #191a1f;
+  --card: #ffffff;
+  --card-foreground: #191a1f;
+  --popover: #ffffff;
+  --popover-foreground: #191a1f;
+  --primary: #4f56d3;
+  --primary-foreground: #ffffff;
+  --secondary: #eef0f4;
+  --secondary-foreground: #4d5160;
+  --muted: #edeff3;
+  --muted-foreground: #6d7285;
+  --accent: #eceefb;
+  --accent-foreground: #3a3f96;
+  --destructive: #d03b3b;
+  --destructive-foreground: #ffffff;
+  --success: #006300;
+  --warning: #a05a00;
+  --border: #e5e7ee;
+  --input: #dcdfe8;
+  --ring: #4f56d3;
+  --radius: 0.75rem;
+
+  /* Chart series (categorical, fixed order) */
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+
+  /* Sequential scale for choropleths / binned data (01 = lowest) */
+  --chart-scale-01: #cde2fb;
+  --chart-scale-02: #9ec5f4;
+  --chart-scale-03: #6da7ec;
+  --chart-scale-04: #3987e5;
+  --chart-scale-05: #1c5cab;
+  --chart-scale-pattern-color: #e8f0fc;
+
+  /* Bklit chart component tokens */
+  --chart-background: var(--card);
+  --chart-foreground: #6d7285;
+  --chart-foreground-muted: #c6cad6;
+  --chart-line-primary: var(--chart-1);
+  --chart-line-secondary: var(--chart-2);
+  --chart-crosshair: #a8adbd;
+  --chart-grid: #e9ebf1;
+  --chart-brush-border: var(--chart-grid);
+  --chart-tooltip-background: var(--popover);
+  --chart-tooltip-foreground: var(--popover-foreground);
+  --chart-tooltip-muted: var(--muted-foreground);
+  --chart-indicator-color: #191a1f;
+  --chart-indicator-secondary-color: #ffffff;
+  --chart-marker-background: #eef0f4;
+  --chart-marker-border: #d8dbe5;
+  --chart-marker-foreground: #33363f;
+  --chart-marker-badge-background: #191a1f;
+  --chart-marker-badge-foreground: #f6f7f9;
+  --chart-segment-background: rgb(25 26 31 / 0.05);
+  --chart-segment-line: rgb(25 26 31 / 0.25);
+  --chart-label: #4d5160;
+  --legend: var(--card);
+  --legend-foreground: var(--foreground);
+  --legend-muted: var(--muted);
+  --legend-muted-foreground: var(--muted-foreground);
+  --legend-track: #e5e7ee;
+}
+
+.dark {
+  --background: #101116;
+  --foreground: #eef0f6;
+  --card: #17181f;
+  --card-foreground: #eef0f6;
+  --popover: #1b1c25;
+  --popover-foreground: #eef0f6;
+  --primary: #7b81e8;
+  --primary-foreground: #101116;
+  --secondary: #232532;
+  --secondary-foreground: #b3b8c9;
+  --muted: #21232e;
+  --muted-foreground: #8b91a5;
+  --accent: #252842;
+  --accent-foreground: #c3c7f5;
+  --destructive: #e66767;
+  --destructive-foreground: #101116;
+  --success: #35c06f;
+  --warning: #e0a83c;
+  --border: #262834;
+  --input: #30323f;
+  --ring: #7b81e8;
+
+  /* Chart series (dark steps of the same hues) */
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+
+  --chart-scale-01: #163a63;
+  --chart-scale-02: #1c5cab;
+  --chart-scale-03: #2a78d6;
+  --chart-scale-04: #5598e7;
+  --chart-scale-05: #9ec5f4;
+  --chart-scale-pattern-color: #1a2536;
+
+  --chart-background: var(--card);
+  --chart-foreground: #8b91a5;
+  --chart-foreground-muted: #3c3f4e;
+  --chart-crosshair: #5b6072;
+  --chart-grid: #262834;
+  --chart-brush-border: var(--chart-grid);
+  --chart-tooltip-background: var(--popover);
+  --chart-tooltip-foreground: var(--popover-foreground);
+  --chart-tooltip-muted: var(--muted-foreground);
+  --chart-indicator-color: #eef0f6;
+  --chart-indicator-secondary-color: #17181f;
+  --chart-marker-background: #232532;
+  --chart-marker-border: #383b4a;
+  --chart-marker-foreground: #d8dbe8;
+  --chart-marker-badge-background: #eef0f6;
+  --chart-marker-badge-foreground: #17181f;
+  --chart-segment-background: rgb(238 240 246 / 0.06);
+  --chart-segment-line: rgb(238 240 246 / 0.25);
+  --chart-label: #b3b8c9;
+  --legend: var(--card);
+  --legend-foreground: var(--foreground);
+  --legend-muted: var(--muted);
+  --legend-muted-foreground: var(--muted-foreground);
+  --legend-track: #2c2e3b;
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', 'Noto Sans JP Variable', system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans',
+    'Yu Gothic UI', sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-soft: 0 1px 2px rgb(20 22 40 / 0.05), 0 8px 24px -18px rgb(20 22 40 / 0.25);
+  --shadow-soft-lg: 0 2px 3px rgb(20 22 40 / 0.06), 0 14px 30px -16px rgb(20 22 40 / 0.3);
+
   --text-xxs: 0.625rem;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
-  --text-tiny: 0.875rem;
   --text-base: 1rem;
   --text-lg: 1.125rem;
   --text-xl: 1.25rem;
@@ -20,27 +194,33 @@
   --text-4xl: 2.25rem;
 }
 
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
+    border-color: var(--border, currentcolor);
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'cv11';
+  }
+
+  /* Data displays align digits */
+  .tabular-nums,
+  table {
+    font-variant-numeric: tabular-nums;
   }
 }
 
+/* ─────────────────── Legacy component classes (tokenized) ───────────────────
+   These back the pre-redesign layout and shrink as components migrate to
+   shadcn primitives. Colors all route through the Civic Glass tokens. */
+
 @utility base-container {
-  /* Base Components */
-  @apply w-full h-full p-3 bg-white rounded-lg shadow-lg dark:bg-gray-700
+  @apply w-full h-full p-3 bg-card rounded-xl border border-border shadow-soft
         sm:p-4
         md:p-5
         lg:p-6;
@@ -51,31 +231,29 @@
 }
 
 @utility build-info {
-  @apply text-xxs text-gray-500 text-nowrap dark:text-gray-300
+  @apply text-xxs text-muted-foreground text-nowrap
         sm:text-xs
         lg:text-sm;
 }
 
 @utility hyperlink {
-  @apply text-indigo-600 hover:text-indigo-500 dark:text-indigo-300 dark:hover:text-indigo-200;
+  @apply text-primary hover:opacity-80;
 }
 
 @utility theme-toggle {
-  /* Theme Toggle */
-  @apply flex items-center justify-center w-6 h-12 transition-colors bg-gray-300 border border-gray-800 rounded-full dark:bg-gray-600 dark:border-gray-200;
+  @apply flex items-center justify-center w-6 h-12 transition-colors bg-muted border border-input rounded-full hover:bg-accent;
 }
 
 @utility theme-toggle-icon {
-  @apply w-4 h-4 text-gray-600 dark:text-gray-300;
+  @apply w-4 h-4 text-secondary-foreground;
 }
 
 @utility header-block {
-  /* Layout Components */
-  @apply bg-white border-b shadow-md dark:bg-gray-700 dark:border-gray-600;
+  @apply bg-card border-b border-border shadow-xs;
 }
 
 @utility footer-block {
-  @apply bg-white border-t dark:bg-gray-700 dark:border-gray-600;
+  @apply bg-card border-t border-border;
 }
 
 @utility marginals {
@@ -85,23 +263,21 @@
 }
 
 @utility footer-text {
-  @apply mt-1 text-xxs text-center text-gray-500 text-pretty dark:text-gray-300
+  @apply mt-1 text-xxs text-center text-muted-foreground text-pretty
         sm:text-xs;
 }
 
 @utility footer-text-small {
-  @apply mt-1 mb-2 text-xxs text-center text-gray-500 text-pretty dark:text-gray-300;
+  @apply mt-1 mb-2 text-xxs text-center text-muted-foreground text-pretty;
 }
 
 @utility section-title {
-  /* Typography */
-  @apply text-sm font-semibold dark:text-gray-100
+  @apply text-sm font-semibold
         md:text-base
         lg:text-lg;
 }
 
 @utility flex-col-end {
-  /* Flex Layouts */
   @apply flex flex-col items-end p-2;
 }
 
@@ -110,18 +286,16 @@
 }
 
 @utility stat-container {
-  /* Stats Components */
   @apply grid grid-cols-5 gap-1 mt-4
         xl:w-full;
 }
 
 @utility card-base {
-  /* Card Components */
-  @apply p-4 bg-white rounded-lg shadow-lg;
+  @apply p-4 bg-card rounded-xl border border-border shadow-soft;
 }
 
 @utility card-base-gray {
-  @apply p-4 bg-gray-50 rounded-lg shadow-lg dark:bg-gray-700 drop-shadow-xl;
+  @apply p-4 bg-background rounded-xl border border-border shadow-soft;
 }
 
 @utility card-content {
@@ -136,7 +310,7 @@
 }
 
 @utility stat-card {
-  @apply w-fit p-2 mx-auto bg-white rounded-lg shadow-lg dark:bg-gray-700
+  @apply w-fit p-2 mx-auto bg-card rounded-lg border border-border shadow-soft
         sm:flex sm:items-start sm:justify-start sm:w-full sm:h-full sm:p-3 sm:scale-95 sm:overflow-x-clip sm:text-pretty
         md:items-center md:p-4 md:rounded-xl
         lg:rounded-2xl;
@@ -157,7 +331,6 @@
 }
 
 @utility stat-details {
-  /* Stat Text Elements */
   @apply hidden
         sm:flex sm:flex-col sm:ml-3 sm:h-full
         xl:ml-4;
@@ -165,31 +338,30 @@
 
 @utility stat-title {
   @apply hidden
-        lg:block lg:text-base lg:font-semibold lg:text-gray-500 lg:dark:text-gray-300;
+        lg:block lg:text-base lg:font-semibold lg:text-muted-foreground;
 }
 
 @utility stat-short-title {
   @apply hidden
-        sm:block sm:text-xs sm:font-semibold sm:text-gray-500 sm:text-nowrap sm:dark:text-gray-300
+        sm:block sm:text-xs sm:font-semibold sm:text-muted-foreground sm:text-nowrap
         md:text-sm
         lg:hidden;
 }
 
 @utility stat-subtitle {
   @apply hidden
-        md:block md:text-xs md:text-gray-400 md:dark:text-gray-300
+        md:block md:text-xs md:text-muted-foreground
         lg:text-sm;
 }
 
 @utility stat-value {
-  @apply hidden
-        sm:block sm:text-xs sm:font-semibold sm:text-gray-700 sm:dark:text-gray-200 sm:mt-auto
+  @apply hidden tabular-nums
+        sm:block sm:text-xs sm:font-semibold sm:text-secondary-foreground sm:mt-auto
         md:text-base
         lg:text-2xl;
 }
 
 @utility filter-block {
-  /* Filter Components */
   @apply grid grid-cols-2 gap-4
         sm:gap-3
         md:gap-6;
@@ -202,23 +374,22 @@
 }
 
 @utility filter-label {
-  @apply text-xs font-medium text-gray-700 dark:text-gray-300
+  @apply text-xs font-medium text-secondary-foreground
         sm:text-sm
         md:text-base md:font-semibold;
 }
 
 @utility filter-note {
-  @apply text-xxs italic text-gray-500 dark:text-gray-300
+  @apply text-xxs italic text-muted-foreground
         sm:text-xs
         md:text-sm md:text-pretty;
 }
 
 @utility input-box-colors {
-  @apply text-gray-700 bg-gray-100 border-gray-800 dark:text-gray-300 dark:bg-gray-600 dark:border-gray-500 focus:border-indigo-500 focus:ring-indigo-700 dark:focus:border-gray-300 dark:focus:ring-gray-500;
+  @apply text-foreground bg-card border-input focus:border-ring focus:ring-ring/40;
 }
 
 @utility chart-container {
-  /* Chart Components */
   @apply w-full min-h-[325px]
         sm:min-h-[400px];
 }
@@ -250,13 +421,12 @@
 }
 
 @utility estimator-container {
-  /* Estimation Components */
-  @apply flex flex-col h-full bg-white shadow-lg dark:bg-gray-700
-        sm:rounded-lg sm:p-3;
+  @apply flex flex-col h-full bg-card border border-border shadow-soft
+        sm:rounded-xl sm:p-3;
 }
 
 @utility flashing-chevron {
-  @apply text-lg text-gray-500 animate-pulse dark:text-gray-300
+  @apply text-lg text-muted-foreground animate-pulse motion-reduce:animate-none
         sm:text-3xl;
 }
 
@@ -273,7 +443,6 @@
 }
 
 @utility mobile-drawer-label {
-  /* Mobile Drawer */
   @apply p-2 my-3 text-sm rotate-90 whitespace-nowrap;
 }
 
@@ -283,7 +452,7 @@
 }
 
 @utility mobile-drawer-content {
-  @apply fixed top-0 right-0 z-50 h-full w-full max-w-[300px] bg-white shadow-xl transform transition-slow
+  @apply fixed top-0 right-0 z-50 h-full w-full max-w-[300px] bg-card shadow-xl transform transition-slow
         sm:hidden;
 }
 
@@ -293,8 +462,7 @@
 }
 
 @utility clip-tapered-btn {
-  /* Special Components */
-  @apply relative flex items-center justify-center h-[130px] w-[25px] overflow-visible bg-gray-700 text-white shadow-lg animate-pulse clip-path-tapered-btn hover:bg-gray-500 dark:bg-gray-300 dark:text-gray-700;
+  @apply relative flex items-center justify-center h-[130px] w-[25px] overflow-visible bg-primary text-primary-foreground shadow-lg animate-pulse motion-reduce:animate-none clip-path-tapered-btn hover:opacity-90;
 
   @media (width >= theme(--breakpoint-sm)) {
     @apply clip-path-tapered-btn-sm;
@@ -302,55 +470,34 @@
 }
 
 @utility zoom-button {
-  @apply h-8 w-8 flex items-center justify-center bg-gray-300 dark:bg-gray-500 rounded-full shadow-lg border border-gray-500 dark:border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors
+  @apply h-8 w-8 flex items-center justify-center bg-card rounded-full shadow-soft border border-border hover:bg-muted transition-colors
         sm:text-xl;
 }
 
 @utility vertical-align-sub {
-  @layer utilities {
-    /* Vertical Alignment */
-    vertical-align: -0.125em;
-  }
+  vertical-align: -0.125em;
 }
 
 @utility vertical-align-sub-more {
-  @layer utilities {
-    vertical-align: -0.225em;
-  }
+  vertical-align: -0.225em;
 }
 
 @utility clip-path-tapered-btn {
-  @layer utilities {
-    /* Clip Paths */
-    clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 80%);
-  }
+  clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 80%);
 }
 
 @utility clip-path-tapered-btn-sm {
-  @layer utilities {
-    clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 85%);
-  }
+  clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 85%);
 }
 
 @utility transition-slow {
-  @layer utilities {
-    /* Transitions */
-    @apply transition-all duration-500 ease-in-out;
-  }
-}
-
-@layer base {
-    body {
-        @apply bg-gray-50 text-gray-900 antialiased
-    }
+  @apply transition-all duration-500 ease-in-out;
 }
 
 @layer utilities {
-  /* FloatingUI Tooltip Styles */
-
+  /* FloatingUI tooltip skin (legacy; replaced by shadcn Tooltip in redesign) */
   .floating-tooltip {
-    @apply bg-gray-600 text-white text-xs px-2 py-1 shadow-xl rounded-md
-           dark:bg-gray-300 dark:text-gray-600;
+    @apply bg-foreground text-background text-xs px-2 py-1 shadow-md rounded-md;
     z-index: 999;
     max-width: 300px;
     transition: opacity 200ms ease-in-out;
@@ -363,31 +510,26 @@
   .floating-tooltip[data-status='closed'] {
     opacity: 0;
   }
-
-  /* Arrow styling is handled by FloatingUI's FloatingArrow component */
 }
 
-/* Custom Scrollbar */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-    @apply w-2
+  @apply w-2;
 }
 
 ::-webkit-scrollbar-track {
-    @apply bg-gray-100
-}
-
-.dark ::-webkit-scrollbar-track {
-    @apply bg-gray-800
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    @apply bg-gray-400 rounded-full
-}
-
-.dark ::-webkit-scrollbar-thumb {
-    @apply bg-gray-600
+  @apply bg-border rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-500
+  @apply bg-muted-foreground;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }

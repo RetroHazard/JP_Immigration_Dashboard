@@ -64,7 +64,7 @@ export const IconTooltip: React.FC<IconTooltipProps> = ({ label, children }) => 
             data-status="open"
           >
             {label}
-            <FloatingArrow ref={arrowRef} context={context} className="fill-gray-600 dark:fill-gray-300" />
+            <FloatingArrow ref={arrowRef} context={context} className="fill-foreground" />
           </div>
         </FloatingPortal>
       )}

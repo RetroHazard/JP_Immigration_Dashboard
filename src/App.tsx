@@ -68,13 +68,13 @@ const App: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
-          <h1 className="mb-4 text-2xl font-bold text-red-600">Error Loading Data</h1>
-          <p className="mb-4 text-gray-700 dark:text-gray-300">{error}</p>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="rounded-xl border border-border bg-card p-8 shadow-soft">
+          <h1 className="mb-4 text-2xl font-bold text-destructive">Error Loading Data</h1>
+          <p className="mb-4 text-secondary-foreground">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+            className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:opacity-90"
           >
             Retry
           </button>
@@ -88,7 +88,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen flex-col bg-background">
       <nav className="header-block">
         <div className="marginals">
           <div className="flex h-16 justify-between">

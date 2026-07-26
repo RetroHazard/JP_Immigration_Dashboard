@@ -8,12 +8,25 @@ import { Icon } from '@iconify/react';
 import { applicationOptions } from '../../constants/applicationOptions';
 import { useTooltip } from '../../hooks/useTooltip';
 
+type StatBadgeColor = 'blue' | 'yellow' | 'green' | 'red' | 'gray';
+
+// Tailwind needs complete class names at build time, so badge colors are a
+// static map onto the chart/status tokens (the old runtime `dark:${color}`
+// interpolation never generated its dark classes at all).
+const BADGE_CLASSES: Record<StatBadgeColor, string> = {
+  blue: 'bg-chart-1',
+  yellow: 'bg-chart-4',
+  green: 'bg-chart-3',
+  red: 'bg-destructive',
+  gray: 'bg-muted-foreground',
+};
+
 interface StatCardProps {
   title: string;
   shortTitle: string;
   subtitle: string;
   value: string | number;
-  color: string;
+  color: StatBadgeColor;
   icon: string;
   filterType?: string;
 }
@@ -51,7 +64,7 @@ const StatCardComponent: React.FC<StatCardProps> = ({ title, shortTitle, subtitl
         className="stat-card"
       >
         <div className="group relative">
-          <div className={`${color} dark:${color.replace('500', '600')} stat-badge`}>
+          <div className={`${BADGE_CLASSES[color]} stat-badge`}>
             <div className="stat-icon-text">
               <Icon icon={icon} />
             </div>
@@ -83,7 +96,7 @@ const StatCardComponent: React.FC<StatCardProps> = ({ title, shortTitle, subtitl
             <FloatingArrow
               ref={arrowRef}
               context={context}
-              className="fill-gray-600 dark:fill-gray-300"
+              className="fill-foreground"
             />
           </div>
         </FloatingPortal>
