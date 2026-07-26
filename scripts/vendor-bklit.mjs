@@ -7,7 +7,7 @@
  *
  * Usage: node vendor-bklit.mjs <clone-dir> <project-dir> <item> [item...]
  */
-import { cpSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
+import { cpSync, existsSync,mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 const [cloneDir, projectDir, ...items] = process.argv.slice(2);

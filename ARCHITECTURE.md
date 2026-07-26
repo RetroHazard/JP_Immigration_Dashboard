@@ -1,5 +1,7 @@
 # Architecture Guide
 
+> **Note:** The 2026 "Civic Glass" redesign replaced Chart.js/react-simple-maps with vendored Bklit UI (visx) charts, moved the e-Stat transform to build time, introduced URL-first state via nuqs, and consolidated UI primitives on shadcn/ui. Sections below are updated where they materially changed; diagrams reflect the current stack.
+
 Overview of the Japan Immigration Statistics Dashboard's architecture, design patterns, and key components.
 
 ## Table of Contents
@@ -57,7 +59,7 @@ graph LR
     HOOK["🪝 useImmigrationData<br/>Load & Parse"]
     FILTER["🔍 useFilteredData<br/>Filter by Selection"]
     CALC["⚙️ Chart Calculations<br/>Aggregate & Normalize"]
-    VIZ["📈 Visualization<br/>Chart.js / Nivo"]
+    VIZ["📈 Visualization<br/>Bklit UI (visx)"]
     
     DATA --> HOOK
     HOOK --> FILTER
@@ -136,12 +138,12 @@ graph TD
     FILTERED --> RADAR
     FILTERED --> MAP
     
-    STACK -.->|Render| VIZ1["Chart.js"]
-    LINE -.->|Render| VIZ2["Chart.js"]
-    RING -.->|Render| VIZ3["Nivo"]
-    BUBBLE -.->|Render| VIZ4["Chart.js"]
-    RADAR -.->|Render| VIZ5["Chart.js"]
-    MAP -.->|Render| VIZ6["react-simple-maps"]
+    STACK -.->|Render| VIZ1["Bklit UI (visx)"]
+    LINE -.->|Render| VIZ2["Bklit UI (visx)"]
+    RING -.->|Render| VIZ3["Bklit UI (visx)"]
+    BUBBLE -.->|Render| VIZ4["Bklit UI (visx)"]
+    RADAR -.->|Render| VIZ5["Bklit UI (visx)"]
+    MAP -.->|Render| VIZ6["Bklit Choropleth (visx)"]
 ```
 
 ## Component Architecture
@@ -200,12 +202,12 @@ Six independent visualization components:
 
 | Component | Library | Purpose |
 |-----------|---------|---------|
-| StackedBarChart | Chart.js | Intake/Processing trends |
-| MultiLineChart | Chart.js | Submission trends over time |
-| RingChart | Nivo | Application type distribution |
-| BubbleChart | Chart.js | Intake vs. Processing efficiency |
-| RadarChart | Chart.js | Category spread by bureau |
-| ChoroplethMap | react-simple-maps | Geographic distribution |
+| IntakeProcessingBarChart | Bklit ComposedChart | Intake/Processing trends |
+| CategorySubmissionsLineChart | Bklit LineChart | Submission trends over time |
+| BureauDistributionRingChart | Bklit PieChart | Bureau share of intake |
+| BureauPerformanceBubbleChart | Custom visx SVG | Intake vs. Processing efficiency |
+| MonthlyRadarChart | Bklit RadarChart | Category spread by bureau |
+| ChoroplethMap | Bklit Choropleth (visx) | Geographic distribution |
 
 Each chart:
 - Receives pre-filtered data as props
@@ -615,7 +617,7 @@ Raw Data
     ↓
 [Normalize] — Scale and format for visualization
     ↓
-[Render] — Use Chart.js/Nivo/react-simple-maps
+[Render] — Use Bklit UI (visx) chart components
     ↓
 [Interact] — Handle tooltips and events
 ```
@@ -682,10 +684,10 @@ graph TD
     STATE["📦 React Hooks Only<br/>No Redux/Zustand"]
     STATE_PROS["✅ Simple flow<br/>✅ Low learning curve<br/>✅ Small bundle<br/>✅ Sufficient performance"]
     
-    CHARTS["📊 Chart.js<br/>Over D3.js"]
-    CHARTS_PROS["✅ Simple API<br/>✅ Built-in charts<br/>✅ Less code<br/>✅ Good performance"]
+    CHARTS["📊 Bklit UI (visx)<br/>Over Chart.js"]
+    CHARTS_PROS["✅ Vendored source<br/>✅ Design-token theming<br/>✅ SVG accessibility<br/>✅ Composable API"]
     
-    NIVO["🌳 Nivo TreeMap<br/>For hierarchical data"]
+    NIVO["🌳 visx primitives<br/>For custom charts"]
     NIVO_PROS["✅ Purpose-built<br/>✅ Mobile-ready<br/>✅ Interactive<br/>✅ Less boilerplate"]
     
     STATIC --> STATIC_PROS
@@ -722,19 +724,12 @@ graph TD
 - **Bundle Size** — No Redux/Zustand overhead
 - **Performance** — React's built-in state is sufficient
 
-### Why Chart.js over D3?
+### Why Bklit UI (vendored) over Chart.js?
 
-- **Simpler API** — Easier to implement and maintain
-- **Good for Common Charts** — Stacked bars, lines, radar, bubble
-- **Less Code** — D3 requires more boilerplate
-- **Performance** — Efficient rendering for our use case
-
-### Why Nivo for TreeMap?
-
-- **Specialized** — Purpose-built for hierarchical data
-- **Responsive** — Handles mobile automatically
-- **Interactive** — Built-in tooltips and interactions
-- **Less Code** — Compared to building from scratch
+- **Design-token theming** — Every chart reads the same CSS variables as the rest of the UI, in both themes
+- **Vendored source** — Components are copied into the repo (shadcn registry model), so gaps are patched locally (e.g. responsive choropleth scale, Sankey value units)
+- **SVG rendering** — Text alternatives and styling that canvas can't offer
+- **Composable API** — Charts assemble from Grid/Axis/Series/Tooltip parts, so remixes stay small
 
 ## Testing Strategy
 
