@@ -75,7 +75,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
         role="img"
         aria-label="Donut chart of each bureau's share of received applications"
       >
-        <div className="max-w-[320px] flex-1">
+        <div className="aspect-square w-full max-w-[320px] sm:flex-1">
           <PieChart
             data={slices}
             innerRadius={62}
