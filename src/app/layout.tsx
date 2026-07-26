@@ -10,7 +10,7 @@ import '@fontsource-variable/inter';
 import '@fontsource-variable/noto-sans-jp';
 
 const description =
-  'Visa processing times, bureau workloads, and a queue-model estimator for your own application - built on official Immigration Services Agency statistics, updated daily from e-Stat.';
+  'Visa processing times, bureau workloads, and a queue-model estimator for your own application - built on official Immigration Services Agency statistics, updated whenever e-Stat releases new data (typically monthly).';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dashboard.retrohazard.jp'),
