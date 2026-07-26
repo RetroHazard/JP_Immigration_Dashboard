@@ -1,6 +1,7 @@
 // src/components/charts/IntakeProcessingBarChart.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import type { ChartData } from 'chart.js';
 import {
   BarElement,
   CategoryScale,
@@ -32,7 +33,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
   const [showAllMonths, setShowAllMonths] = useState(false);
   const chartRef = useRef<Chart<'bar'>>(null);
 
-  const [chartData, setChartData] = useState({
+  const [chartData, setChartData] = useState<ChartData<'bar', number[], string>>({
     labels: [],
     datasets: [
       {
@@ -183,8 +184,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           if (index === undefined) return;
 
           // Toggle dataset visibility
-          const meta = chart.getDatasetMeta(index);
-          meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
+          chart.setDatasetVisibility(index, !chart.isDatasetVisible(index));
 
           // Force chart update to trigger scale recalculation with animation
           chart.update();
@@ -194,7 +194,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
         mode: 'index' as const,
         callbacks: {
           label: (context: TooltipItem<'bar'>) => {
-            return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
+            return `${context.dataset.label}: ${(context.parsed.y ?? 0).toLocaleString()}`;
           },
         },
       },

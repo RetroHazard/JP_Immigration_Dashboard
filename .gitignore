@@ -190,3 +190,4 @@ cython_debug/
 /public/datastore/**
 /src/buildInfo.js
 /public/CHANGELOG.md
+tsconfig.tsbuildinfo

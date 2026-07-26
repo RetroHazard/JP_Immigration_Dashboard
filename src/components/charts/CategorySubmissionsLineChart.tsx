@@ -1,6 +1,7 @@
 // src/components/charts/CategorySubmissionsLineChart.tsx
 import { useEffect, useMemo, useState } from 'react';
 
+import type { ChartData } from 'chart.js';
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -26,7 +27,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
   const { isDarkMode } = useTheme();
   const [monthRange, setMonthRange] = useState(12);
   const [showAllMonths, setShowAllMonths] = useState(false);
-  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+  const [chartData, setChartData] = useState<ChartData<'line', number[], string>>({ labels: [], datasets: [] });
 
   useEffect(() => {
     if (!data) return;
@@ -188,7 +189,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
         mode: 'index' as const,
         callbacks: {
           label: (context: TooltipItem<'line'>) => {
-            return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
+            return `${context.dataset.label}: ${(context.parsed.y ?? 0).toLocaleString()}`;
           },
         },
       },

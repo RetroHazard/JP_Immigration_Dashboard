@@ -1,22 +1,20 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
+  // Vendored Bklit UI sources keep upstream formatting for easy diffing
+  ignorePatterns: ['src/components/bklit/**'],
   extends: [
     'eslint:recommended',
     'plugin:react/recommended',
     'plugin:react/jsx-runtime',
     'plugin:@typescript-eslint/recommended',
-    'plugin:tailwindcss/recommended',
     'next/core-web-vitals',
     'prettier',
     "plugin:@next/next/recommended",
   ],
-  plugins: ['@typescript-eslint', 'react', 'simple-import-sort', 'unused-imports', 'tailwindcss'],
+  plugins: ['@typescript-eslint', 'react', 'simple-import-sort', 'unused-imports'],
   settings: {
     react: {
       version: 'detect',
-    },
-    tailwindcss: {
-      callees: ['classnames', 'clsx'], // Detect Tailwind classes in these libraries if used
     },
   },
   rules: {

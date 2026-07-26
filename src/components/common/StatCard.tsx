@@ -51,7 +51,6 @@ const StatCardComponent: React.FC<StatCardProps> = ({ title, shortTitle, subtitl
         className="stat-card"
       >
         <div className="group relative">
-          {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
           <div className={`${color} dark:${color.replace('500', '600')} stat-badge`}>
             <div className="stat-icon-text">
               <Icon icon={icon} />
