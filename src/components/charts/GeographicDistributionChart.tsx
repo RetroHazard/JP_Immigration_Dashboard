@@ -1,471 +1,285 @@
 // src/components/charts/GeographicDistributionChart.tsx
-import { useEffect, useMemo, useRef, useState } from 'react';
+// Regional Map on Bklit's ChoroplethChart: prefectures shaded by population
+// density on the sequential scale tokens (with a legend - the old map had
+// none), bureau HQ / airport-office markers as constant-size HTML overlay
+// pins, built-in zoom/pan, and a proper tooltip for both layers.
+'use client';
 
-import type { FeatureCollection } from 'geojson';
+import { useEffect, useMemo, useState } from 'react';
+
+import type { FeatureCollection, Geometry } from 'geojson';
+import { Building2, Minus, Plane, Plus, RotateCcw } from 'lucide-react';
 import type React from 'react';
-import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
-import {
-  arrow,
-  autoUpdate,
-  flip,
-  FloatingArrow,
-  FloatingPortal,
-  offset,
-  safePolygon,
-  shift,
-  useDismiss,
-  useFloating,
-  useHover,
-  useInteractions,
-  useRole,
-} from '@floating-ui/react';
-import { Icon } from '@iconify/react';
+import { feature } from 'topojson-client';
+import type { Topology } from 'topojson-specification';
 
-import { type BureauOption,bureauOptions } from '../../constants/bureauOptions';
+import { bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
-import { useTheme } from '../../contexts/ThemeContext';
-import { useFollowCursorTooltip } from '../../hooks/useFollowCursorTooltip';
-import { nonAirportBureaus } from '../../utils/getBureauData';
 import { logger } from '../../utils/logger';
+import {
+  ChoroplethChart,
+  type ChoroplethFeature,
+  ChoroplethFeatureComponent,
+  type ChoroplethFeatureProperties,
+  ChoroplethTooltip,
+  useChoropleth,
+  useChoroplethZoom,
+} from '../bklit/charts/choropleth';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 
-const geoUrl = '/static/japan.topo.json';
+const SCALE_VARS = [
+  'var(--chart-scale-01)',
+  'var(--chart-scale-02)',
+  'var(--chart-scale-03)',
+  'var(--chart-scale-04)',
+  'var(--chart-scale-05)',
+];
+// Population density bin edges (people/km²), chosen for Japan's distribution
+const DENSITY_BINS = [100, 250, 500, 1500];
+const densityBin = (density: number) => DENSITY_BINS.filter((edge) => density >= edge).length;
 
-interface TooltipInfo {
-  name: string;
-  name_ja: string;
-  bureau: string;
-  population: string;
-  area: string;
-  density: string;
-  mousePosition: [number, number];
+const prefectureByName = new Map(japanPrefectures.map((prefecture) => [prefecture.name, prefecture]));
+const bureauByCode = new Map(bureauOptions.map((bureau) => [bureau.value, bureau]));
+
+interface MarkerInfo {
+  code: string;
+  label: string;
+  isAirport: boolean;
+  coordinates: [number, number];
+  population: number;
+  area: number;
 }
 
-// Calculate color based on density
-const adjustColor = (originalColor: string, density: number, minDensity: number, maxDensity: number): string => {
-  if (!originalColor) return 'rgba(221, 221, 221, 0.8)';
+const MARKERS: MarkerInfo[] = bureauOptions
+  .filter((bureau) => bureau.value !== 'all' && bureau.coordinates)
+  .map((bureau) => {
+    const served = japanPrefectures.filter((prefecture) => prefecture.bureau === bureau.value);
+    return {
+      code: bureau.value,
+      label: bureau.label,
+      isAirport: bureau.label.toLowerCase().includes('airport'),
+      coordinates: bureau.coordinates as [number, number],
+      population: served.reduce((sum, prefecture) => sum + prefecture.population, 0),
+      area: served.reduce((sum, prefecture) => sum + prefecture.area, 0),
+    };
+  });
 
-  // Parse color values
-  const colorParts = originalColor.replace(/ /g, '').match(/(\d+\.?\d*)/g) || [];
-  const [r, g, b] = colorParts.slice(0, 3).map((c) => parseInt(c) / 255);
-  const originalAlpha = colorParts[3] ? parseFloat(colorParts[3]) : 0.4;
+/** Bureau/airport pins: HTML overlay so they stay constant-size across zoom. */
+const BureauMarkers: React.FC = () => {
+  const { projectPoint, width, height } = useChoropleth();
+  const { zoom } = useChoroplethZoom();
+  const [hovered, setHovered] = useState<MarkerInfo | null>(null);
 
-  // Calculate density scale factor
-  const densityScale = maxDensity !== minDensity ? (density - minDensity) / (maxDensity - minDensity) : 0.5;
-
-  // Convert to HSL
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  let h = 0;
-  let s = 0;
-  let l = (max + min) / 2;
-
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r:
-        h = (g - b) / d + (g < b ? 6 : 0);
-        break;
-      case g:
-        h = (b - r) / d + 2;
-        break;
-      case b:
-        h = (r - g) / d + 4;
-        break;
-    }
-    h /= 6;
-  }
-
-  // Apply density-based adjustments
-  s = Math.min(s + densityScale * 0.8, 1); // Enhanced saturation
-  l = l * (1 - densityScale * 0.6); // Enhanced lightness
-
-  // Convert back to RGB
-  const hue2rgb = (p: number, q: number, t: number) => {
-    if (t < 0) t += 1;
-    if (t > 1) t -= 1;
-    if (t < 1 / 6) return p + (q - p) * 6 * t;
-    if (t < 1 / 2) return q;
-    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-    return p;
+  const transform = zoom?.transformMatrix;
+  const project = (coords: [number, number]): [number, number] | null => {
+    const point = projectPoint(coords);
+    if (!point) return null;
+    if (!transform) return point;
+    return [point[0] * transform.scaleX + transform.translateX, point[1] * transform.scaleY + transform.translateY];
   };
 
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  const rgb = [hue2rgb(p, q, h + 1 / 3), hue2rgb(p, q, h), hue2rgb(p, q, h - 1 / 3)].map((x) => Math.round(x * 255));
+  return (
+    <div className="pointer-events-none absolute inset-0">
+      {MARKERS.map((marker) => {
+        const point = project(marker.coordinates);
+        if (!point || point[0] < 0 || point[1] < 0 || point[0] > width || point[1] > height) return null;
+        const Icon = marker.isAirport ? Plane : Building2;
+        return (
+          <button
+            key={marker.code}
+            aria-label={`${marker.label} ${marker.isAirport ? 'airport office' : 'bureau'}`}
+            className={`pointer-events-auto absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border shadow-soft transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-ring ${
+              marker.isAirport
+                ? 'size-5 border-border bg-card text-secondary-foreground'
+                : 'size-6 border-primary/40 bg-primary text-primary-foreground'
+            }`}
+            style={{ left: point[0], top: point[1] }}
+            onMouseEnter={() => setHovered(marker)}
+            onMouseLeave={() => setHovered(null)}
+            onFocus={() => setHovered(marker)}
+            onBlur={() => setHovered(null)}
+          >
+            <Icon className={marker.isAirport ? 'size-3' : 'size-3.5'} aria-hidden="true" />
+          </button>
+        );
+      })}
+      {hovered && (
+        <div className="pointer-events-none absolute bottom-2 left-2 z-10 rounded-lg border border-border bg-popover/95 px-3 py-2 text-xs text-popover-foreground shadow-soft-lg backdrop-blur">
+          <div className="flex items-center gap-1.5 font-semibold">
+            {hovered.isAirport ? <Plane className="size-3.5" /> : <Building2 className="size-3.5" />}
+            {hovered.label}
+            {hovered.isAirport ? ' Airport Office' : ' Bureau'}
+          </div>
+          {hovered.population > 0 ? (
+            <div className="mt-1 grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 tabular-nums text-muted-foreground">
+              <span>Service population</span>
+              <span className="text-right text-popover-foreground">{hovered.population.toLocaleString()}</span>
+              <span>Service area</span>
+              <span className="text-right text-popover-foreground">{hovered.area.toLocaleString()} km²</span>
+              <span>Density</span>
+              <span className="text-right text-popover-foreground">
+                {(hovered.population / hovered.area).toFixed(1)} /km²
+              </span>
+            </div>
+          ) : (
+            <div className="mt-1 text-muted-foreground">Port-of-entry office</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
-  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${originalAlpha})`;
+/** Zoom controls using the chart's own zoom instance (labeled, iconized). */
+const ZoomControls: React.FC = () => {
+  const { zoom } = useChoroplethZoom();
+  if (!zoom) return null;
+  return (
+    <div className="absolute right-2 top-2 flex flex-col gap-1.5">
+      <button onClick={() => zoom.scale({ scaleX: 1.4, scaleY: 1.4 })} className="zoom-button" aria-label="Zoom in">
+        <Plus className="size-4" aria-hidden="true" />
+      </button>
+      <button
+        onClick={() => zoom.scale({ scaleX: 1 / 1.4, scaleY: 1 / 1.4 })}
+        className="zoom-button"
+        aria-label="Zoom out"
+      >
+        <Minus className="size-4" aria-hidden="true" />
+      </button>
+      <button onClick={() => zoom.reset()} className="zoom-button" aria-label="Reset view">
+        <RotateCcw className="size-4" aria-hidden="true" />
+      </button>
+    </div>
+  );
 };
 
 export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () => {
-  const { isDarkMode } = useTheme();
-  const [geographyData, setGeographyData] = useState<FeatureCollection | null>(null);
-  const [isMapLoading, setIsMapLoading] = useState<boolean>(true);
-  const [tooltipInfo, setTooltipInfo] = useState<TooltipInfo | null>(null);
-  const [markerTooltip, setMarkerTooltip] = useState<BureauOption | null>(null);
-  const [markerElement, setMarkerElement] = useState<Element | null>(null);
-  const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
-    coordinates: [136, 36],
-    zoom: 1,
-  });
-  const geographyRefs = useRef<Map<string, SVGPathElement>>(new Map());
-  const markerRefs = useRef<Map<string, SVGGElement>>(new Map());
+  const [features, setFeatures] = useState<FeatureCollection<Geometry, ChoroplethFeatureProperties> | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
-  // Prefecture tooltip (follow cursor)
-  const prefectureTooltip = useFollowCursorTooltip({
-    placement: 'top',
-    offset: 8,
-    showArrow: true,
-  });
-
-  // Bureau marker tooltip (interactive)
-  const markerArrowRef = useRef(null);
-  const markerFloating = useFloating({
-    open: !!markerTooltip,
-    onOpenChange: (open) => {
-      if (!open) setMarkerTooltip(null);
-    },
-    placement: 'top',
-    strategy: 'absolute',
-    whileElementsMounted: autoUpdate,
-    elements: {
-      reference: markerElement,
-    },
-    middleware: [
-      offset(15),
-      flip({ padding: 8 }),
-      shift({ padding: 8 }),
-      arrow({ element: markerArrowRef }),
-    ],
-  });
-
-  const markerHover = useHover(markerFloating.context, {
-    delay: { open: 300, close: 50 },
-    handleClose: safePolygon(),
-  });
-  const markerDismiss = useDismiss(markerFloating.context);
-  const markerRole = useRole(markerFloating.context, { role: 'tooltip' });
-
-  const { getReferenceProps: getMarkerReferenceProps, getFloatingProps: getMarkerFloatingProps } =
-    useInteractions([markerHover, markerDismiss, markerRole]);
-
-  // Loading Indication
   useEffect(() => {
-    const abortController = new AbortController();
-
-    fetch(geoUrl, { signal: abortController.signal })
-      .then((response) => response.json())
-      .then((data) => {
-        setGeographyData(data);
-        setIsMapLoading(false);
+    const controller = new AbortController();
+    fetch('/static/japan.topo.json', { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
       })
-      .catch((error) => {
-        if (error.name === 'AbortError') {
-          logger.log('Map data fetch aborted');
-          return;
-        }
+      .then((topology: Topology) => {
+        const japan = feature(topology, topology.objects.japan) as FeatureCollection<
+          Geometry,
+          ChoroplethFeatureProperties
+        >;
+        setFeatures(japan);
+      })
+      .catch((error: unknown) => {
+        if ((error as Error)?.name === 'AbortError') return;
         logger.error('Error loading map data:', error);
-        setIsMapLoading(false);
+        setLoadError(true);
       });
-
-    // Cleanup function to abort fetch if component unmounts
-    return () => {
-      abortController.abort();
-    };
+    return () => controller.abort();
   }, []);
 
-  // Zoom controls
-  const handleZoomIn = () => setPosition((pos) => ({ ...pos, zoom: Math.min(pos.zoom * 2, 32) }));
-  const handleZoomOut = () => setPosition((pos) => ({ ...pos, zoom: Math.max(pos.zoom / 1.5, 2) }));
-  const handleReset = () => setPosition({ coordinates: [136, 36], zoom: 2 });
+  const getFeatureColor = useMemo(
+    () => (geoFeature: ChoroplethFeature) => {
+      const prefecture = prefectureByName.get(String(geoFeature.properties?.name));
+      if (!prefecture) return 'var(--muted)';
+      return SCALE_VARS[densityBin(Number(prefecture.density))];
+    },
+    []
+  );
 
-  // Bureau density calculations
-  const bureauDensityRanges = useMemo(() => {
-    // First create the groups
-    const groups = japanPrefectures.reduce(
-      (acc, prefecture) => {
-        const bureau = prefecture.bureau;
-        acc[bureau] = acc[bureau] || [];
-        acc[bureau].push(parseFloat(prefecture.density));
-        return acc;
-      },
-      {} as Record<string, number[]>
+  if (loadError) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
+        Unable to load the map data. Try reloading the page.
+      </div>
     );
+  }
 
-    // Then process the ranges
-    return Object.entries(groups).reduce(
-      (acc, [bureau, densities]) => {
-        acc[bureau] = {
-          min: Math.min(...densities),
-          max: Math.max(...densities) || Math.min(...densities), // Fallback for single-value
-        };
-        return acc;
-      },
-      {} as Record<string, { min: number; max: number }>
+  if (!features) {
+    return (
+      <div className="map-container">
+        <LoadingSpinner icon="svg-spinners:blocks-wave" message="Loading Map Data..." />
+      </div>
     );
-  }, []);
-
-  // Prefecture and bureau data maps
-  const [bureauColorMap, prefectureMap] = useMemo(() => {
-    const bureauMap = bureauOptions.reduce(
-      (acc, bureau) => {
-        acc[bureau.value] = bureau;
-        return acc;
-      },
-      {} as Record<string, (typeof bureauOptions)[0]>
-    );
-
-    const prefectureMap = japanPrefectures.reduce(
-      (acc, prefecture) => {
-        acc[prefecture.name] = prefecture;
-        return acc;
-      },
-      {} as Record<string, (typeof japanPrefectures)[0]>
-    );
-
-    return [bureauMap, prefectureMap];
-  }, []);
-
-  // Pre-calculate all prefecture colors (47 prefectures, calculated once instead of on every render)
-  const prefectureColors = useMemo(() => {
-    return japanPrefectures.reduce(
-      (acc, prefecture) => {
-        const bureau = bureauColorMap[prefecture.bureau];
-        if (!bureau) {
-          acc[prefecture.name] = '#DDD';
-          return acc;
-        }
-
-        const range = bureauDensityRanges[prefecture.bureau];
-        acc[prefecture.name] = range
-          ? adjustColor(bureau.background ?? '#DDD', parseFloat(prefecture.density), range.min, range.max)
-          : (bureau.background ?? '#DDD');
-
-        return acc;
-      },
-      {} as Record<string, string>
-    );
-  }, [bureauColorMap, bureauDensityRanges]);
-
-  // O(1) lookup for fill colors
-  const getFillColor = (prefectureName: string): string => {
-    return prefectureColors[prefectureName] || '#DDD';
-  };
-
-  // Calculate Bureau Regional Statistics
-  const bureauStats = useMemo(() => {
-    const stats = {} as Record<string, { population: number; area: number; count: number }>;
-    bureauOptions.forEach((bureau) => {
-      if (bureau.value === 'all') return;
-      const prefectures = japanPrefectures.filter((p) => p.bureau === bureau.value);
-      stats[bureau.value] = prefectures.reduce(
-        (acc, p) => ({
-          population: acc.population + p.population,
-          area: acc.area + p.area,
-          count: acc.count + 1,
-        }),
-        { population: 0, area: 0, count: 0 }
-      );
-    });
-    return stats;
-  }, []);
+  }
 
   return (
     <div className="card-content">
-      <div className="mb-4 flex items-center justify-end gap-2">
-        <button onClick={handleZoomIn} className="zoom-button" aria-label="Zoom in">
-          +
-        </button>
-        <button onClick={handleZoomOut} className="zoom-button" aria-label="Zoom out">
-          –
-        </button>
-        <button onClick={handleReset} className="zoom-button" aria-label="Reset view">
-          ⟲
-        </button>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xxs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <span>Population density</span>
+          <span className="flex items-center gap-0.5" aria-hidden="true">
+            {SCALE_VARS.map((color) => (
+              <span key={color} className="h-2.5 w-5 first:rounded-l-sm last:rounded-r-sm" style={{ background: color }} />
+            ))}
+          </span>
+          <span>low → high /km²</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center gap-1">
+            <span className="flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <Building2 className="size-2.5" aria-hidden="true" />
+            </span>
+            Bureau
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="flex size-4 items-center justify-center rounded-full border border-border bg-card text-secondary-foreground">
+              <Plane className="size-2.5" aria-hidden="true" />
+            </span>
+            Airport office
+          </span>
+        </div>
       </div>
-
-      <div className="map-container">
-        {isMapLoading ? (
-          <LoadingSpinner icon="svg-spinners:blocks-wave" message="Loading Map Data..." />
-        ) : (
-          <ComposableMap projection="geoMercator" projectionConfig={{ scale: 1000, center: [136, 36] }}>
-            <ZoomableGroup
-              center={position.coordinates}
-              zoom={position.zoom}
-              onMoveEnd={({ coordinates, zoom }) => setPosition({ coordinates, zoom })}
-              maxZoom={32}
-              minZoom={2}
-            >
-              <Geographies geography={geographyData ?? undefined}>
-                {({ geographies }) =>
-                  geographies.map((geo) => {
-                    const prefecture = prefectureMap[geo.properties.name];
-
-                    return (
-                      <Geography
-                        key={geo.rsmKey}
-                        geography={geo}
-                        fill={getFillColor(geo.properties.name)}
-                        stroke={isDarkMode ? 'rgba(225, 225, 225, 0.75)' : 'rgba(30, 30, 30, 0.75)'}
-                        strokeWidth={0.075}
-                        onMouseMove={(event) => {
-                          if (!prefecture) return;
-                          prefectureTooltip.setMousePosition({ x: event.clientX, y: event.clientY });
-                          setTooltipInfo({
-                            name: geo.properties.name,
-                            name_ja: geo.properties.name_ja,
-                            bureau: bureauColorMap[prefecture.bureau]?.label,
-                            population: prefecture.population.toLocaleString(),
-                            area: `${prefecture.area.toLocaleString()} km²`,
-                            density: prefecture.density,
-                            mousePosition: [event.clientX, event.clientY],
-                          });
-                        }}
-                        onMouseLeave={() => {
-                          prefectureTooltip.setMousePosition(null);
-                          setTooltipInfo(null);
-                        }}
-                        ref={(node) => {
-                          if (node instanceof SVGPathElement) {
-                            geographyRefs.current.set(geo.properties.name, node);
-                          }
-                        }}
-                        style={{
-                          default: {
-                            outline: 'none',
-                            fillOpacity: 1,
-                            cursor: 'pointer',
-                          },
-                          hover: {
-                            outline: 'none',
-                            fillOpacity: 0.9,
-                          },
-                          pressed: {
-                            outline: 'none',
-                          },
-                        }}
-                      />
-                    );
-                  })
-                }
-              </Geographies>
-
-              {bureauOptions
-                .filter((b) => b.value !== 'all')
-                .map((bureau) => {
-                  const isAirport = !nonAirportBureaus.find((b) => b.value === bureau.value);
-                  const baseSize = Math.min(10, Math.max(1, 50 / position.zoom));
-                  const iconSize = isAirport ? baseSize * 0.85 : baseSize;
-
-                  return (
-                    <Marker key={bureau.value} coordinates={bureau.coordinates}>
-                      <g
-                        {...getMarkerReferenceProps()}
-                        transform={`translate(-${iconSize / 2}, -${iconSize / 2})`}
-                        onMouseEnter={(e) => {
-                          setMarkerElement(e.currentTarget);
-                          setMarkerTooltip(bureau);
-                        }}
-                        ref={(node) => {
-                          if (node instanceof SVGGElement) {
-                            markerRefs.current.set(bureau.value, node);
-                          }
-                        }}
-                        pointerEvents="bounding-box"
-                      >
-                        <Icon
-                          icon={isAirport ? 'material-symbols:multiple-airports-rounded' : 'f7:building-2-fill'}
-                          width={iconSize}
-                          height={iconSize}
-                          color={'rgba(225, 225, 225, 0.9)'}
-                          stroke={bureau.border}
-                          strokeWidth={0.75}
-                        />
-                      </g>
-                    </Marker>
-                  );
-                })}
-            </ZoomableGroup>
-          </ComposableMap>
-        )}
-        {/* Prefecture Tooltips */}
-        {tooltipInfo && prefectureTooltip.mousePosition && (
-          <FloatingPortal>
-            <div
-              ref={prefectureTooltip.refs.setFloating}
-              style={prefectureTooltip.floatingStyles}
-              className="floating-tooltip"
-              data-status="open"
-            >
-              <div>
+      <ChoroplethChart
+        data={features}
+        aspectRatio="16 / 11"
+        center={[136.8, 36.2]}
+        scale={(innerWidth) => innerWidth * 1.55}
+        zoomEnabled
+        zoomMin={0.8}
+        zoomMax={16}
+      >
+        <ChoroplethFeatureComponent
+          getFeatureColor={(geoFeature) => getFeatureColor(geoFeature)}
+          stroke="var(--card)"
+          strokeWidth={0.75}
+        />
+        <ChoroplethTooltip
+          content={({ feature: geoFeature }) => {
+            const name = String(geoFeature.properties?.name ?? '');
+            const prefecture = prefectureByName.get(name);
+            const bureau = prefecture ? bureauByCode.get(prefecture.bureau) : undefined;
+            return (
+              <div className="text-xs">
                 <div className="font-semibold">
-                  {tooltipInfo.name} ({tooltipInfo.name_ja})
+                  {name}
+                  {geoFeature.properties?.name_ja ? (
+                    <span className="ml-1.5 font-normal text-muted-foreground">
+                      {String(geoFeature.properties.name_ja)}
+                    </span>
+                  ) : null}
                 </div>
-                <div>Service Bureau: {tooltipInfo.bureau}</div>
-                <div>Population: {tooltipInfo.population}</div>
-                <div>Area: {tooltipInfo.area}</div>
-                <div>Density Rating: {tooltipInfo.density}</div>
-              </div>
-              <FloatingArrow
-                ref={prefectureTooltip.arrowRef}
-                context={prefectureTooltip.context}
-                className="fill-foreground"
-              />
-            </div>
-          </FloatingPortal>
-        )}
-        {/* Bureau Tooltips */}
-        {markerTooltip && (
-          <FloatingPortal>
-            <div
-              ref={markerFloating.refs.setFloating}
-              style={markerFloating.floatingStyles}
-              {...getMarkerFloatingProps()}
-              className="floating-tooltip"
-              data-status="open"
-            >
-              <div
-                className={`mb-1 flex items-center gap-2 font-semibold ${
-                  nonAirportBureaus.find((b) => b.value === markerTooltip.value)
-                    ? 'border-b border-border pb-1'
-                    : ''
-                }`}
-              >
-                {nonAirportBureaus.find((b) => b.value === markerTooltip.value) && (
-                  <div
-                    className="size-3 rounded-full border border-white dark:border-black"
-                    style={{ backgroundColor: markerTooltip.background }}
-                  />
+                {prefecture && (
+                  <div className="mt-1 grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 tabular-nums text-muted-foreground">
+                    <span>Service bureau</span>
+                    <span className="text-right">{bureau?.label ?? prefecture.bureau}</span>
+                    <span>Population</span>
+                    <span className="text-right">{prefecture.population.toLocaleString()}</span>
+                    <span>Area</span>
+                    <span className="text-right">{prefecture.area.toLocaleString()} km²</span>
+                    <span>Density</span>
+                    <span className="text-right">{prefecture.density} /km²</span>
+                  </div>
                 )}
-                {nonAirportBureaus.find((b) => b.value === markerTooltip.value)
-                  ? `${markerTooltip.label} Regional Immigration Bureau`
-                  : markerTooltip.label}
               </div>
-              {nonAirportBureaus.find((b) => b.value === markerTooltip.value) && (
-                <div className="flex-row p-0.5">
-                  <div>
-                    Population of Service Area: {bureauStats[markerTooltip.value]?.population.toLocaleString()}
-                  </div>
-                  <div>Total Service Area: {bureauStats[markerTooltip.value]?.area.toLocaleString()} km²</div>
-                  <div>
-                    Density of Service Area:{' '}
-                    {(bureauStats[markerTooltip.value]?.population / bureauStats[markerTooltip.value]?.area).toFixed(
-                      2
-                    )}
-                  </div>
-                </div>
-              )}
-              <FloatingArrow
-                ref={markerArrowRef}
-                context={markerFloating.context}
-                className="fill-foreground"
-              />
-            </div>
-          </FloatingPortal>
-        )}
-      </div>
+            );
+          }}
+        />
+        <BureauMarkers />
+        <ZoomControls />
+      </ChoroplethChart>
     </div>
   );
 };
