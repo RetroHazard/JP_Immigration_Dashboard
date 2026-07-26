@@ -1,73 +1,22 @@
 // src/components/common/IconTooltip.tsx
-import { useRef, useState } from 'react';
+// Thin wrapper over the shadcn/Radix Tooltip (replaces a bespoke Floating UI
+// implementation; keyboard focus support comes for free).
+'use client';
 
 import type React from 'react';
-import {
-  arrow,
-  autoUpdate,
-  flip,
-  FloatingArrow,
-  FloatingPortal,
-  offset,
-  shift,
-  useDismiss,
-  useFloating,
-  useHover,
-  useInteractions,
-  useRole,
-} from '@floating-ui/react';
+
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface IconTooltipProps {
   label: string;
   children: React.ReactNode;
 }
 
-export const IconTooltip: React.FC<IconTooltipProps> = ({ label, children }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [referenceElement, setReferenceElement] = useState<HTMLElement | null>(null);
-  const arrowRef = useRef(null);
-
-  const { refs, floatingStyles, context } = useFloating({
-    open: isOpen,
-    onOpenChange: setIsOpen,
-    placement: 'bottom',
-    whileElementsMounted: autoUpdate,
-    elements: { reference: referenceElement },
-    middleware: [offset(8), flip({ padding: 8 }), shift({ padding: 8 }), arrow({ element: arrowRef })],
-  });
-
-  const hover = useHover(context, { delay: { open: 300, close: 50 } });
-  const dismiss = useDismiss(context);
-  const role = useRole(context, { role: 'tooltip' });
-
-  const { getReferenceProps, getFloatingProps } = useInteractions([hover, dismiss, role]);
-
-  return (
-    <>
-      <span
-        ref={(node) => {
-          setReferenceElement(node);
-          refs.setReference(node);
-        }}
-        {...getReferenceProps()}
-      >
-        {children}
-      </span>
-
-      {isOpen && (
-        <FloatingPortal>
-          <div
-            ref={refs.setFloating}
-            style={{ ...floatingStyles, zIndex: 999 }}
-            {...getFloatingProps()}
-            className="floating-tooltip"
-            data-status="open"
-          >
-            {label}
-            <FloatingArrow ref={arrowRef} context={context} className="fill-foreground" />
-          </div>
-        </FloatingPortal>
-      )}
-    </>
-  );
-};
+export const IconTooltip: React.FC<IconTooltipProps> = ({ label, children }) => (
+  <Tooltip delayDuration={300}>
+    <TooltipTrigger asChild>
+      <span>{children}</span>
+    </TooltipTrigger>
+    <TooltipContent>{label}</TooltipContent>
+  </Tooltip>
+);
