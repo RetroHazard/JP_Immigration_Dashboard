@@ -43,8 +43,10 @@ export interface ChoroplethChartProps {
   revealSignature?: string;
   /** Aspect ratio as "width / height". Default: "16 / 9" */
   aspectRatio?: string;
-  /** Projection scale. If not provided, auto-calculated based on width */
-  scale?: number;
+  /** Projection scale. A function receives the inner width so responsive
+   *  region-fit scales are possible (local extension). If not provided,
+   *  auto-calculated based on width (world fit). */
+  scale?: number | ((innerWidth: number) => number);
   /** Center coordinates [longitude, latitude]. Default: [0, 20] */
   center?: [number, number];
   /** Translate offset [x, y]. If not provided, auto-calculated to center */
@@ -358,7 +360,7 @@ function ChoroplethChartInner({
   animationDuration: number;
   enterTransition?: Transition;
   revealSignature?: string;
-  scale?: number;
+  scale?: number | ((innerWidth: number) => number);
   center: [number, number];
   translate?: [number, number];
   zoomEnabled: boolean;
@@ -374,7 +376,7 @@ function ChoroplethChartInner({
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
-  const scale = scaleProp ?? (innerWidth / 630) * 100;
+  const scale = typeof scaleProp === 'function' ? scaleProp(innerWidth) : (scaleProp ?? (innerWidth / 630) * 100);
 
   const translate = translateProp ?? [
     innerWidth / 2 + margin.left,
