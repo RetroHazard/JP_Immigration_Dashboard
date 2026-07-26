@@ -3,7 +3,7 @@
 // and allowed time ranges per chart. The shell renders tabs, the card header,
 // and the period selector from this metadata; charts only plot.
 import type { LucideIcon } from 'lucide-react';
-import { BarChart3, ChartScatter, Globe2, LineChart as LineChartIcon, PieChart,Radar } from 'lucide-react';
+import { BarChart3, ChartScatter, GitFork, Globe2, LineChart as LineChartIcon, PieChart, Radar } from 'lucide-react';
 import type React from 'react';
 
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
@@ -14,6 +14,7 @@ import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineC
 import { GeographicDistributionChart } from '../charts/GeographicDistributionChart';
 import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
 import { MonthlyRadarChart } from '../charts/MonthlyRadarChart';
+import { OutcomesSankeyChart } from '../charts/OutcomesSankeyChart';
 
 export type { ChartRange };
 
@@ -90,6 +91,16 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
     filters: { bureau: true, appType: false },
     ranges: ['latest', '6', '12', '24', '36', 'all'],
     defaultRange: 'latest',
+  },
+  {
+    key: 'outcomes',
+    label: 'Outcomes',
+    description: 'Where applications end up: each type\u2019s flow into granted, denied, or other outcomes.',
+    icon: GitFork,
+    component: OutcomesSankeyChart,
+    filters: { bureau: true, appType: false },
+    ranges: ['latest', '6', '12', '24', '36', 'all'],
+    defaultRange: '12',
   },
   {
     key: 'map',

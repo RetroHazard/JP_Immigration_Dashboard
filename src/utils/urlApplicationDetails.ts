@@ -22,6 +22,12 @@ const isValidApplicationDate = (value: string): boolean =>
 export const hasPermalinkParams = (searchParams: URLSearchParams): boolean =>
   PERMALINK_PARAM_KEYS.some((key) => searchParams.has(key));
 
+// Only a link that pins an application date is an ESTIMATOR permalink; bare
+// ?bureau=/?type= params are global filters and shouldn't pop the estimator
+// sheet open on mobile.
+export const isEstimatorPermalink = (searchParams: URLSearchParams): boolean =>
+  searchParams.has('applicationDate');
+
 // Reads permalink params from the URL, dropping any value that doesn't match a real
 // bureau/type/date so an invalid or tampered link can't leave the estimator in a broken state.
 export const getApplicationDetailsFromParams = (searchParams: URLSearchParams): ApplicationDetails => {

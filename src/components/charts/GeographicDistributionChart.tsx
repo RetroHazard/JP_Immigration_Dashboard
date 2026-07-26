@@ -200,7 +200,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
   if (!features) {
     return (
       <div className="map-container">
-        <LoadingSpinner icon="svg-spinners:blocks-wave" message="Loading Map Data..." />
+        <LoadingSpinner fullScreen={false} message="Loading Map Data..." />
       </div>
     );
   }

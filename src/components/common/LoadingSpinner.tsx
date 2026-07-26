@@ -1,20 +1,22 @@
 // src/components/common/LoadingSpinner.tsx
-import { Icon } from '@iconify/react';
+import { Loader2 } from 'lucide-react';
 
 interface LoadingSpinnerProps {
-  icon: string;
   message: string;
-  className?: string;
+  /** Fill the viewport (app boot) or just the local container (map panel) */
+  fullScreen?: boolean;
 }
 
-export function LoadingSpinner({ icon, message }: LoadingSpinnerProps) {
+export function LoadingSpinner({ message, fullScreen = true }: LoadingSpinnerProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background transition-colors duration-300">
+    <div
+      className={`flex items-center justify-center bg-background transition-colors duration-300 ${
+        fullScreen ? 'min-h-screen' : 'h-full min-h-[250px]'
+      }`}
+    >
       <div className="flex flex-col items-center gap-4">
-        <Icon icon={icon} className="size-12 text-primary" aria-hidden="true" />
-        <span className="text-sm font-semibold text-secondary-foreground transition-all md:text-base lg:text-lg">
-          {message}
-        </span>
+        <Loader2 className="size-10 animate-spin text-primary motion-reduce:animate-none" aria-hidden="true" />
+        <span className="text-sm font-semibold text-secondary-foreground md:text-base">{message}</span>
       </div>
     </div>
   );
