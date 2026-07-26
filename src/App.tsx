@@ -9,7 +9,7 @@ const App: React.FC = () => {
   const { data, meta, loading, error } = useImmigrationData();
 
   if (loading) {
-    return <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Crunching Immigration Data..." />;
+    return <LoadingSpinner message="Crunching Immigration Data..." />;
   }
 
   if (error || !data) {

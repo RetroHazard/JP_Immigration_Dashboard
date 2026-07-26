@@ -34,6 +34,8 @@ export interface SankeyNodeProps {
   showLabels?: boolean;
   /** Show value labels under node names. Default: true */
   showValueLabels?: boolean;
+  /** Unit suffix for value labels. Default: "sessions" (local extension) */
+  valueUnit?: string;
   /**
    * Label reading direction for outside node labels.
    * - "horizontal": labels sit left/right of nodes (default).
@@ -167,6 +169,7 @@ interface AnimatedNodeProps {
   isLeftSide: boolean;
   showLabels: boolean;
   showValueLabels: boolean;
+  valueUnit: string;
   labelOrientation: SankeyLabelOrientation;
 }
 
@@ -212,6 +215,7 @@ function NodeLabel({
 }
 
 function AnimatedNode({
+  valueUnit,
   x,
   y,
   width,
@@ -296,7 +300,7 @@ function AnimatedNode({
               opacity={valueOpacity}
               transition={valueEnter}
             >
-              {intFmt(value)} sessions
+              {intFmt(value)} {valueUnit}
             </NodeLabel>
           ) : null}
         </>
@@ -311,6 +315,7 @@ export function SankeyNode({
   fadedOpacity = 0.4,
   showLabels = true,
   showValueLabels = true,
+  valueUnit = "sessions",
   labelOrientation = "horizontal",
   getNodeColor: getNodeColorProp,
 }: SankeyNodeProps) {
@@ -440,6 +445,7 @@ export function SankeyNode({
             key={`node-${node.name}`}
             labelOrientation={labelOrientation}
             name={node.name}
+            valueUnit={valueUnit}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             rx={lineCap}

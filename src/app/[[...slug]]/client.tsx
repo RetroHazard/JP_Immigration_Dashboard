@@ -10,7 +10,7 @@ import { ThemeProvider } from '../../contexts/ThemeContext';
 
 const App = dynamic(() => import('../../App'), {
   ssr: false,
-  loading: () => <LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading Dashboard..." />,
+  loading: () => <LoadingSpinner message="Loading Dashboard..." />,
 });
 
 export function ClientWrapper() {
@@ -19,7 +19,7 @@ export function ClientWrapper() {
       <ThemeProvider>
         <ErrorBoundary>
           <Suspense
-            fallback={<LoadingSpinner icon="svg-spinners:90-ring-with-bg" message="Loading Dashboard..." />}
+            fallback={<LoadingSpinner message="Loading Dashboard..." />}
           >
             <App />
           </Suspense>

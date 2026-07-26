@@ -24,9 +24,10 @@ import { applicationOptions } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
 import { useTheme } from '../contexts/ThemeContext';
 import type { DashboardMeta, ImmigrationData } from '../hooks/useImmigrationData';
+import { getBureauLabel } from '../utils/getBureauData';
 import type { ChartRange } from '../utils/selectors';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
-import { getApplicationDetailsFromParams, hasPermalinkParams } from '../utils/urlApplicationDetails';
+import { getApplicationDetailsFromParams, isEstimatorPermalink } from '../utils/urlApplicationDetails';
 import { CHART_COMPONENTS, CHART_KEYS } from './common/ChartComponents';
 import { PeriodSelector } from './common/PeriodSelector';
 import { ActiveChart } from './ActiveChart';
@@ -38,6 +39,7 @@ import { StatsSummary } from './StatsSummary';
 const BUREAU_VALUES = bureauOptions.map((option) => option.value);
 const TYPE_VALUES = applicationOptions.map((option) => option.value);
 const RANGE_VALUES: ChartRange[] = ['latest', '6', '12', '24', '36', 'all'];
+const COMPARE_VALUES = bureauOptions.filter((option) => option.value !== 'all').map((option) => option.value);
 
 interface DashboardShellProps {
   data: ImmigrationData[];
@@ -56,6 +58,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
   const [bureau, setBureau] = useQueryState('bureau', parseAsStringLiteral(BUREAU_VALUES).withDefault('all'));
   const [type, setType] = useQueryState('type', parseAsStringLiteral(TYPE_VALUES).withDefault('all'));
   const [rangeParam, setRangeParam] = useQueryState('range', parseAsStringLiteral(RANGE_VALUES));
+  const [compare, setCompare] = useQueryState('compare', parseAsStringLiteral(COMPARE_VALUES));
 
   const activeIndex = Math.max(
     0,
@@ -77,11 +80,15 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
     [activeChart.filters.bureau, activeChart.filters.appType, bureau, type]
   );
 
+  // Compare mode: a second bureau rendered as a small multiple below the
+  // chart, on every view that supports the bureau filter.
+  const compareBureau = activeChart.filters.bureau && compare && compare !== bureau ? compare : null;
+
   // --- Estimator state, lifted so the sidebar and the mobile sheet share it ---
   const [estimatorDetails, setEstimatorDetails] = useState<ApplicationDetails>(() =>
     getApplicationDetailsFromParams(searchParams)
   );
-  const [isEstimatorSheetOpen, setIsEstimatorSheetOpen] = useState(() => hasPermalinkParams(searchParams));
+  const [isEstimatorSheetOpen, setIsEstimatorSheetOpen] = useState(() => isEstimatorPermalink(searchParams));
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
   return (
@@ -146,6 +153,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               }}
               filterConfig={activeChart.filters}
               chartLabel={activeChart.label}
+              compare={compare}
+              onCompareChange={(next) => void setCompare(next)}
             />
 
             <Tabs value={activeChart.key} onValueChange={(key) => void setChartKey(key)}>
@@ -170,12 +179,32 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                       <PeriodSelector ranges={chart.ranges} value={range} onChange={(next) => void setRangeParam(next)} />
                     </div>
                     {index === activeIndex && (
-                      <ActiveChart
-                        activeChartIndex={activeIndex}
-                        data={data}
-                        filters={effectiveFilters}
-                        range={range}
-                      />
+                      <>
+                        {compareBureau && (
+                          <p className="mb-1 text-xs font-semibold text-secondary-foreground">
+                            {getBureauLabel(effectiveFilters.bureau)}
+                          </p>
+                        )}
+                        <ActiveChart
+                          activeChartIndex={activeIndex}
+                          data={data}
+                          filters={effectiveFilters}
+                          range={range}
+                        />
+                        {compareBureau && (
+                          <div className="mt-4 border-t border-border pt-3">
+                            <p className="mb-1 text-xs font-semibold text-secondary-foreground">
+                              {getBureauLabel(compareBureau)} <span className="font-normal text-muted-foreground">(comparison)</span>
+                            </p>
+                            <ActiveChart
+                              activeChartIndex={activeIndex}
+                              data={data}
+                              filters={{ bureau: compareBureau, type: effectiveFilters.type }}
+                              range={range}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </TabsContent>
