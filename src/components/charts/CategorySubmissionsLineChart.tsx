@@ -18,15 +18,13 @@ import { Line } from 'react-chartjs-2';
 
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useTheme } from '../../contexts/ThemeContext';
-import { bureauScopeFromFilter, getAllMonths, selectData } from '../../utils/selectors';
+import { bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
 
-export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters }) => {
+export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { isDarkMode } = useTheme();
-  const [monthRange, setMonthRange] = useState(12);
-  const [showAllMonths, setShowAllMonths] = useState(false);
   const [chartData, setChartData] = useState<ChartData<'line', number[], string>>({ labels: [], datasets: [] });
 
   useEffect(() => {
@@ -36,21 +34,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     const allMonths = getAllMonths(data);
     if (allMonths.length === 0) return;
 
-    // Get the most recent month
-    const endMonth = allMonths[allMonths.length - 1];
-
-    // Find index of the most recent month
-    const endIndex = allMonths.indexOf(endMonth);
-    if (endIndex === -1) return;
-
-    // Get months based on range
-    let months;
-    if (showAllMonths) {
-      months = allMonths;
-    } else {
-      const startIndex = Math.max(0, endIndex - (monthRange - 1));
-      months = allMonths.slice(startIndex, endIndex + 1);
-    }
+    const months = monthsForRange(allMonths, range);
 
     const monthlyStats = months.map((month) => {
       // Type filter intentionally omitted - this chart shows ALL types as separate lines.
@@ -132,7 +116,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     };
 
     setChartData(processedData);
-  }, [data, filters, monthRange, showAllMonths]);
+  }, [data, filters, range]);
 
   const options = useMemo(() => ({
     responsive: true,
@@ -198,28 +182,6 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
 
   return (
     <div className="card-content">
-      <div className="mb-4 flex h-full items-center justify-between">
-        <h2 className="section-title">Category Submissions</h2>
-        <select
-          className="chart-filter-select"
-          value={showAllMonths ? 'all' : monthRange}
-          onChange={(e) => {
-            const value = e.target.value;
-            if (value === 'all') {
-              setShowAllMonths(true);
-            } else {
-              setShowAllMonths(false);
-              setMonthRange(parseInt(value));
-            }
-          }}
-        >
-          <option value="6">6 Months</option>
-          <option value="12">12 Months</option>
-          <option value="24">24 Months</option>
-          <option value="36">36 Months</option>
-          <option value="all">All Data</option>
-        </select>
-      </div>
 
       <div className="chart-container">
         <Line data={chartData} options={options} />

@@ -1,5 +1,5 @@
 // src/components/charts/BureauDistributionRingChart.tsx
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { ArcElement, Chart as ChartJS, Legend, type LegendItem, type ScriptableContext, Tooltip, type TooltipItem } from 'chart.js';
 import type React from 'react';
@@ -8,14 +8,13 @@ import { Doughnut } from 'react-chartjs-2';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useTheme } from '../../contexts/ThemeContext';
-import { selectData } from '../../utils/selectors';
+import { monthsForRange, selectData } from '../../utils/selectors';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data, filters }) => {
+export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { isDarkMode } = useTheme();
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('1');
 
   // Get sorted list of unique months
   const sortedMonths = useMemo(() => {
@@ -24,11 +23,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
   }, [data]);
 
   // Determine months to include based on selected period
-  const selectedMonths = useMemo(() => {
-    if (selectedPeriod === 'all') return sortedMonths;
-    const period = parseInt(selectedPeriod, 10);
-    return sortedMonths.slice(-period);
-  }, [selectedPeriod, sortedMonths]);
+  const selectedMonths = useMemo(() => monthsForRange(sortedMonths, range), [range, sortedMonths]);
 
   // Per-bureau breakdown: exclude the nationwide aggregate row, apply the
   // active type filter, and keep only the selected months.
@@ -103,21 +98,6 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
 
   return (
     <div className="card-content">
-      <div className="mb-4 flex h-full items-center justify-between">
-        <div className="section-title">Bureau Distribution</div>
-        <select
-          className="chart-filter-select"
-          value={selectedPeriod}
-          onChange={(e) => setSelectedPeriod(e.target.value)}
-        >
-          <option value="1">Latest</option>
-          <option value="6">6 Months</option>
-          <option value="12">12 Months</option>
-          <option value="24">24 Months</option>
-          <option value="36">36 Months</option>
-          <option value="all">All Data</option>
-        </select>
-      </div>
       <div className="chart-container">
         <Doughnut
           data={{

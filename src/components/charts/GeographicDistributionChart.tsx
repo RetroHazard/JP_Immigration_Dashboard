@@ -274,19 +274,16 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
 
   return (
     <div className="card-content">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="section-title">Service Area Coverage/Density</div>
-        <div className="flex gap-2">
-          <button onClick={handleZoomIn} className="zoom-button">
-            +
-          </button>
-          <button onClick={handleZoomOut} className="zoom-button">
-            –
-          </button>
-          <button onClick={handleReset} className="zoom-button">
-            ⟲
-          </button>
-        </div>
+      <div className="mb-4 flex items-center justify-end gap-2">
+        <button onClick={handleZoomIn} className="zoom-button" aria-label="Zoom in">
+          +
+        </button>
+        <button onClick={handleZoomOut} className="zoom-button" aria-label="Zoom out">
+          –
+        </button>
+        <button onClick={handleReset} className="zoom-button" aria-label="Reset view">
+          ⟲
+        </button>
       </div>
 
       <div className="map-container">

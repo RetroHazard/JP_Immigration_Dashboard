@@ -12,9 +12,11 @@ interface FilterPanelProps {
   filters: { bureau: string; type: string };
   onChange: (filters: { bureau: string; type: string }) => void;
   filterConfig: { bureau: boolean; appType: boolean };
+  /** Canonical name of the active chart, used in the "not used by" note */
+  chartLabel: string;
 }
 
-export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChange, filterConfig }) => {
+export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChange, filterConfig, chartLabel }) => {
   const dateRange = useMemo(() => {
     if (!data || !Array.isArray(data) || data.length === 0) {
       return { min: '', max: '' };
@@ -55,6 +57,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChang
           value={filters.bureau}
           onChange={(value) => onChange({ ...filters, bureau: value })}
           disabled={!filterConfig.bureau}
+          disabledNote={`Not used by ${chartLabel} — it always shows every bureau.`}
         />
 
         <FilterInput
@@ -64,6 +67,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ data, filters, onChang
           value={filters.type}
           onChange={(value) => onChange({ ...filters, type: value })}
           disabled={!filterConfig.appType}
+          disabledNote={`Not used by ${chartLabel} — it always shows every application type.`}
         />
       </div>
       <div className="filter-note mt-2">
