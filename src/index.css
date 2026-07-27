@@ -55,6 +55,16 @@
   --chart-scale-05: #1c5cab;
   --chart-scale-pattern-color: #e8f0fc;
 
+  /* Category-mix hierarchy palette: indigo-anchored spread, one hue per
+     application type (indexed in applicationOptions order: ACQ, EXT, CHG,
+     ACT, RET, PR). Bureau children are derived as color-mix tints. */
+  --chart-mix-1: #48819e;
+  --chart-mix-2: #4f56d3;
+  --chart-mix-3: #2e7bd6;
+  --chart-mix-4: #15948f;
+  --chart-mix-5: #b84f8e;
+  --chart-mix-6: #8a4fc8;
+
   /* Bklit chart component tokens */
   --chart-background: var(--card);
   --chart-foreground: #6d7285;
@@ -123,6 +133,13 @@
   --chart-scale-04: #5598e7;
   --chart-scale-05: #9ec5f4;
   --chart-scale-pattern-color: #1a2536;
+
+  --chart-mix-1: #6fa8c6;
+  --chart-mix-2: #7b81e8;
+  --chart-mix-3: #5b9ce8;
+  --chart-mix-4: #2fb3ad;
+  --chart-mix-5: #d67ab0;
+  --chart-mix-6: #ab7ae0;
 
   --chart-background: var(--card);
   --chart-foreground: #8b91a5;
