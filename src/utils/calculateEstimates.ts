@@ -21,6 +21,8 @@ interface CalculationDetails {
   totalDays: number;
   dataQuality: 'high' | 'low';
   monthsUsed: number;
+  /** ± band on the remaining days, from month-to-month processing-rate variance */
+  uncertaintyDays: number;
   modelVariables: {
     C_prev: number;
     N_app: number;
@@ -288,6 +290,21 @@ export const calculateEstimatedDate = (
   estimatedDate.setDate(estimatedDate.getDate() + estimatedDays);
 
   // --------------------------------------------
+  // Uncertainty Band
+  // --------------------------------------------
+  // First-order error propagation on D = Q / R: a spread of sigma in the
+  // daily processing rate widens the estimate by |D| * (sigma / R), where
+  // sigma is the month-to-month standard deviation over the sampled window.
+  const monthlyRates = selectedMonths.map(
+    (month) => sumByStatus(STATUS_CODES.PROCESSED, (m) => m === month) / getDaysInMonth(month)
+  );
+  const meanRate = monthlyRates.reduce((sum, rate) => sum + rate, 0) / monthlyRates.length;
+  const rateStdDev = Math.sqrt(
+    monthlyRates.reduce((sum, rate) => sum + (rate - meanRate) ** 2, 0) / monthlyRates.length
+  );
+  const uncertaintyDays = meanRate > 0 ? Math.round(Math.abs(daysRemaining) * (rateStdDev / meanRate)) : 0;
+
+  // --------------------------------------------
   // Result Compilation
   // --------------------------------------------
   const calculationDetails: CalculationDetails = {
@@ -302,6 +319,7 @@ export const calculateEstimatedDate = (
     totalDays,
     dataQuality,
     monthsUsed: selectedMonths.length,
+    uncertaintyDays,
     modelVariables: {
       C_prev: Number(carriedOver), // Applications carried forward from the previous month.
       N_app: Number(receivedByAppDate), // Estimated applications received prior to submission time.
