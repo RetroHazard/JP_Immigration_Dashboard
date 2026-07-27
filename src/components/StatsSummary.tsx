@@ -78,7 +78,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
 
   if (monthly.length === 0) {
     return (
-      <div className="mt-4 rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+      <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
         No data for this combination of filters.
       </div>
     );
@@ -93,7 +93,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
   const spark = (pick: (m: MonthStats) => number) => monthly.map(pick);
 
   return (
-    <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3 xl:grid-cols-5">
       <StatCard
         title="Total Applications"
         subtitle={subtitle}

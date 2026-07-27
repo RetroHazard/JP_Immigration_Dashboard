@@ -191,6 +191,15 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
       </nav>
 
       <main id="main-content" className="marginals w-full flex-1 py-6 md:py-8">
+        <p className="sr-only" aria-live="polite">
+          Showing {activeChart.label} for {getBureauLabel(effectiveFilters.bureau)}
+          {effectiveFilters.type !== 'all'
+            ? `, ${applicationOptions.find((option) => option.value === effectiveFilters.type)?.label ?? ''}`
+            : ''}
+        </p>
+        <div className="mb-4" data-animate="card">
+          <StatsSummary data={data} filters={effectiveFilters} />
+        </div>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">
           {/* Main column */}
           <div className="flex min-w-0 flex-col gap-4">
@@ -264,13 +273,6 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               ))}
             </Tabs>
 
-            <p className="sr-only" aria-live="polite">
-              Showing {activeChart.label} for {getBureauLabel(effectiveFilters.bureau)}
-              {effectiveFilters.type !== 'all'
-                ? `, ${applicationOptions.find((option) => option.value === effectiveFilters.type)?.label ?? ''}`
-                : ''}
-            </p>
-            <StatsSummary data={data} filters={effectiveFilters} />
           </div>
 
           {/* Estimator: permanent sidebar on desktop */}
