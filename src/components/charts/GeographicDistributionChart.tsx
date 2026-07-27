@@ -260,7 +260,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
             const prefecture = prefectureByName.get(name);
             const bureau = prefecture ? bureauByCode.get(prefecture.bureau) : undefined;
             return (
-              <div className="text-xs">
+              <div className="px-3 py-2.5 text-xs">
                 <div className="font-semibold">
                   {name}
                   {geoFeature.properties?.name_ja ? (
