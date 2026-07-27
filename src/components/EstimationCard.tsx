@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { animate } from 'animejs';
-import { AlertTriangle, Check, ChevronDown, ChevronsRight, ChevronUp, Link as LinkIcon, OctagonAlert } from 'lucide-react';
+import { AlertTriangle, Check, ChevronRight, ChevronsRight, Link as LinkIcon, OctagonAlert } from 'lucide-react';
 import type React from 'react';
 import { BlockMath } from 'react-katex';
 
@@ -87,14 +87,37 @@ const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails 
   );
 };
 
+// "22 Sep 2026" - the compact date form the result panel uses.
+const formatResultDate = (date: Date) =>
+  `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })} ${date.getFullYear()}`;
+
+const formatUncertainty = (days: number): string | null => {
+  if (days < 1) return null;
+  if (days < 10) return `± ${days} day${days === 1 ? '' : 's'}`;
+  const weeks = Math.round(days / 7);
+  return `± ${weeks} week${weeks === 1 ? '' : 's'}`;
+};
+
 export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, onDetailsChange, onCollapse }) => {
   const [showMath, setShowMath] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+  const queueFillRef = useRef<HTMLDivElement>(null);
 
   const estimatedDate: EstimatedDateResult | null = useMemo(
     () => calculateEstimatedDate(data, details),
     [data, details]
   );
+
+  // How far through the original queue the application has moved: drives the
+  // queue-position bar. Past due (Q_pos <= 0) reads as a full bar.
+  const queue = useMemo(() => {
+    if (!estimatedDate) return null;
+    const { Q_pos, Q_app } = estimatedDate.details.modelVariables;
+    return {
+      ahead: Math.max(0, Math.round(Q_pos)),
+      progress: Q_app > 0 ? Math.min(1, Math.max(0, 1 - Q_pos / Q_app)) : 1,
+    };
+  }, [estimatedDate]);
 
   const resultKey = estimatedDate ? estimatedDate.estimatedDate.getTime() : null;
   useEffect(() => {
@@ -110,6 +133,21 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, o
     };
   }, [resultKey]);
 
+  useEffect(() => {
+    const fill = queueFillRef.current;
+    if (!fill || !queue) return;
+    const width = `${queue.progress * 100}%`;
+    if (prefersReducedMotion()) {
+      fill.style.width = width;
+      return;
+    }
+    fill.style.width = '0%';
+    const animation = animate(fill, { width, duration: 1100, ease: 'out(3)', delay: 150 });
+    return () => {
+      animation.cancel();
+    };
+  }, [queue]);
+
   // Valid range for the application date input
   const dateRange = useMemo(() => {
     if (!data || data.length === 0) return { min: '', max: '' };
@@ -119,6 +157,17 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, o
   }, [data]);
 
   const vars = estimatedDate?.details.modelVariables;
+
+  const resultNote = estimatedDate
+    ? [
+        formatUncertainty(estimatedDate.details.uncertaintyDays),
+        `based on ${estimatedDate.details.monthsUsed} month${
+          estimatedDate.details.monthsUsed === 1 ? '' : 's'
+        } of throughput`,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : '';
 
   return (
     <section aria-label="Processing Time Estimator" className="estimator-container">
@@ -140,9 +189,14 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, o
         </div>
       </div>
       <div className="card-content-padded flex-1">
+        <p className="text-xs text-muted-foreground">
+          Queue-model estimate from the last six months of bureau throughput.
+        </p>
+
         <FilterInput
           type="select"
           label="Immigration Bureau"
+          labelVariant="eyebrow"
           options={nonAirportBureaus}
           value={details.bureau}
           includeDefaultOption
@@ -153,6 +207,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, o
         <FilterInput
           type="select"
           label="Application Type"
+          labelVariant="eyebrow"
           options={applicationOptions}
           value={details.type}
           includeDefaultOption
@@ -164,6 +219,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, o
         <FilterInput
           type="date"
           label="Application Date"
+          labelVariant="eyebrow"
           value={details.applicationDate}
           min={dateRange.min}
           max={dateRange.max}
@@ -177,63 +233,83 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, o
           </p>
         )}
 
-        {estimatedDate && (
-          <div
-            ref={resultRef}
-            className={`card-base-gray border-t-4 ${
-              estimatedDate.details.isPastDue ? 'border-warning' : 'border-primary'
-            }`}
-          >
-            <div className="text-center text-sm font-medium text-muted-foreground">Estimated Completion Date</div>
-            <p
-              className={`mt-1 text-center text-2xl font-bold tabular-nums ${
-                estimatedDate.details.isPastDue ? 'text-warning' : 'text-primary'
+        {estimatedDate && queue && (
+          <div className="space-y-3">
+            <div
+              ref={resultRef}
+              className={`rounded-xl border p-4 shadow-soft ${
+                estimatedDate.details.isPastDue ? 'border-warning/40 bg-warning/10' : 'border-primary/25 bg-primary/5'
               }`}
             >
-              {estimatedDate.estimatedDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </p>
+              <div className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">
+                Estimated completion
+              </div>
+              <p
+                className={`mt-1 text-2xl font-bold tabular-nums ${
+                  estimatedDate.details.isPastDue ? 'text-warning' : 'text-foreground'
+                }`}
+              >
+                {formatResultDate(estimatedDate.estimatedDate)}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{resultNote}</p>
 
-            {estimatedDate.details.dataQuality === 'low' && (
-              <div className="mt-2 rounded-md bg-warning/10 px-3 py-2 text-xs text-warning">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                  <div>
-                    <strong>Estimated with limited data:</strong> Your application date is beyond available data. This
-                    estimate is based on simulated processing rates from {estimatedDate.details.monthsUsed} month
-                    {estimatedDate.details.monthsUsed === 1 ? '' : 's'} of historical data and may be less accurate.
+              {estimatedDate.details.dataQuality === 'low' && (
+                <div className="mt-3 rounded-md bg-warning/10 px-3 py-2 text-xs text-warning">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                    <div>
+                      <strong>Estimated with limited data:</strong> Your application date is beyond available data. This
+                      estimate is based on simulated processing rates from {estimatedDate.details.monthsUsed} month
+                      {estimatedDate.details.monthsUsed === 1 ? '' : 's'} of historical data and may be less accurate.
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {estimatedDate.details.isPastDue && (
-              <div className="mt-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
-                <div className="flex items-start gap-2">
-                  <OctagonAlert className="mt-0.5 size-4 shrink-0" />
-                  <div>
-                    <strong>Possibly past due:</strong> Based on expected processing rates, completion of this
-                    application may be past due. If you have not yet received additional requests and/or a decision on
-                    this application, please contact the bureau for more information.
+              {estimatedDate.details.isPastDue && (
+                <div className="mt-3 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                  <div className="flex items-start gap-2">
+                    <OctagonAlert className="mt-0.5 size-4 shrink-0" />
+                    <div>
+                      <strong>Possibly past due:</strong> Based on expected processing rates, completion of this
+                      application may be past due. If you have not yet received additional requests and/or a decision on
+                      this application, please contact the bureau for more information.
+                    </div>
                   </div>
                 </div>
+              )}
+
+              <div className="mt-4">
+                <div className="h-1.5 overflow-hidden rounded-full bg-border">
+                  <div
+                    ref={queueFillRef}
+                    className={`h-full rounded-full ${estimatedDate.details.isPastDue ? 'bg-warning' : 'bg-primary'}`}
+                    style={{ width: 0 }}
+                  />
+                </div>
+                <div className="mt-1.5 flex justify-between gap-2 text-xxs tabular-nums text-muted-foreground">
+                  <span>Queue position</span>
+                  <span>≈ {queue.ahead.toLocaleString('en-US')} ahead of you</span>
+                </div>
               </div>
-            )}
+            </div>
 
             <button
               onClick={() => setShowMath(!showMath)}
               aria-expanded={showMath}
-              className="mt-3 flex items-center gap-1 text-sm text-primary hover:opacity-80"
+              className="flex w-full items-center justify-between gap-2 border-t border-dashed border-border pt-3 text-xs hover:opacity-80"
             >
-              {showMath ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-              {showMath ? 'Hide the math' : 'Show the math'}
+              <span className="text-secondary-foreground">How is this calculated?</span>
+              <span className="flex items-center gap-0.5 text-muted-foreground">
+                {showMath ? 'Hide the math' : 'Show the math'}
+                <ChevronRight
+                  className={`size-3.5 transition-transform motion-reduce:transition-none ${showMath ? 'rotate-90' : ''}`}
+                />
+              </span>
             </button>
 
             {showMath && vars && (
-              <div className="mt-2.5 space-y-1 border-t border-border pt-3 text-xs">
+              <div className="space-y-1 text-xs">
                 <div className="rounded-xl bg-muted p-2.5 text-xxs text-secondary-foreground shadow-soft">
                   <FormulaTooltip
                     variables={{
@@ -297,7 +373,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, o
               </div>
             )}
 
-            <p className="mt-4 text-xxs italic text-muted-foreground sm:text-xs">
+            <p className="text-xxs italic text-muted-foreground sm:text-xs">
               *This is an{' '}
               <strong>
                 <u>estimate</u>

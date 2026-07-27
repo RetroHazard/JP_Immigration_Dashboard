@@ -16,6 +16,8 @@ interface FilterInputProps {
   includeDefaultOption?: boolean;
   defaultOptionLabel?: string;
   filterFn?: (option: { value: string; label: string }) => boolean;
+  /** 'eyebrow' renders the small uppercase label style used by the stat tiles */
+  labelVariant?: 'default' | 'eyebrow';
 }
 
 export const FilterInput: React.FC<FilterInputProps> = ({
@@ -30,6 +32,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
   includeDefaultOption = false,
   defaultOptionLabel = 'Select',
   filterFn = (x) => x,
+  labelVariant = 'default',
 }) => {
   const id = useId();
   const handleChange = (e: ChangeEvent<HTMLSelectElement | HTMLInputElement>) => onChange(e.target.value);
@@ -38,7 +41,14 @@ export const FilterInput: React.FC<FilterInputProps> = ({
 
   return (
     <div className="space-y-2">
-      <label className="filter-label" htmlFor={id}>
+      <label
+        className={
+          labelVariant === 'eyebrow'
+            ? 'text-xxs font-semibold uppercase tracking-wider text-muted-foreground sm:text-xs'
+            : 'filter-label'
+        }
+        htmlFor={id}
+      >
         {label}
       </label>
       {type === 'select' ? (
