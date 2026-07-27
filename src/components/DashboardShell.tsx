@@ -251,6 +251,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               compare={compare}
               compareEnabled={compareEnabled}
               onCompareChange={(next) => void setCompare(next)}
+              onReset={() => {
+                void setBureau(null);
+                void setType(null);
+                void setCompare(null);
+              }}
             />
             </div>
 
