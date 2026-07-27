@@ -48,6 +48,28 @@ export interface TooltipBoxProps {
   backgroundColor?: string;
 }
 
+// Local extension: after the horizontal flip, clamp the panel inside the
+// container on both axes. Upstream only flips X and clamps Y, so an anchor
+// near (or, under zoom/pan, beyond) the container edge pushed the panel into
+// the clipping card corner.
+function placeTooltip(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  containerWidth: number,
+  containerHeight: number,
+  offset: number
+) {
+  const flip = x + w + offset > containerWidth;
+  const rawLeft = flip ? x - offset - w : x + offset;
+  return {
+    flip,
+    left: Math.max(offset, Math.min(rawLeft, containerWidth - w - offset)),
+    top: Math.max(offset, Math.min(y - h / 2, containerHeight - h - offset)),
+  };
+}
+
 // Inner-only-on-visible so `useSpring` initializes at the cursor's actual x/y
 // instead of (0, 0) on first hover.
 export function TooltipBox(props: TooltipBoxProps) {
@@ -97,12 +119,11 @@ function TooltipBoxInner({
 
   const tw = tooltipWidthRef.current;
   const th = tooltipHeightRef.current;
-  const shouldFlipX = x + tw + offset > containerWidth;
-  const targetX = shouldFlipX ? x - offset - tw : x + offset;
-  const targetY = Math.max(
-    offset,
-    Math.min(y - th / 2, containerHeight - th - offset)
-  );
+  const {
+    flip: shouldFlipX,
+    left: targetX,
+    top: targetY,
+  } = placeTooltip(x, y, tw, th, containerWidth, containerHeight, offset);
 
   const animatedLeft = useSpring(targetX, effectiveSpring);
   const animatedTop = useSpring(targetY, effectiveSpring);
@@ -129,11 +150,14 @@ function TooltipBoxInner({
     }
     const w2 = tooltipWidthRef.current;
     const h2 = tooltipHeightRef.current;
-    const flip = x + w2 + offset > containerWidth;
-    const tx = flip ? x - offset - w2 : x + offset;
-    const ty = Math.max(
-      offset,
-      Math.min(y - h2 / 2, containerHeight - h2 - offset)
+    const { left: tx, top: ty } = placeTooltip(
+      x,
+      y,
+      w2,
+      h2,
+      containerWidth,
+      containerHeight,
+      offset
     );
     if (!animate) {
       setStaticPosition({ left: tx, top: ty });
