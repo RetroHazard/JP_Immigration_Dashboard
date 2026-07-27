@@ -15,6 +15,7 @@ import type { Topology } from 'topojson-specification';
 
 import { bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
+import { nonAirportBureaus } from '../../utils/getBureauData';
 import { logger } from '../../utils/logger';
 import {
   ChoroplethChart,
@@ -27,17 +28,20 @@ import {
 } from '../bklit/charts/choropleth';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { LoadingSpinner } from '../common/LoadingSpinner';
+import { SeriesLegend } from '../common/SeriesLegend';
 
-const SCALE_VARS = [
-  'var(--chart-scale-01)',
-  'var(--chart-scale-02)',
-  'var(--chart-scale-03)',
-  'var(--chart-scale-04)',
-  'var(--chart-scale-05)',
-];
 // Population density bin edges (people/km²), chosen for Japan's distribution
 const DENSITY_BINS = [100, 250, 500, 1500];
 const densityBin = (density: number) => DENSITY_BINS.filter((edge) => density >= edge).length;
+// Prefectures fill with their service bureau's flag color; density picks the
+// intensity step (alpha blends against the card background in both themes).
+const DENSITY_ALPHAS = [0.3, 0.45, 0.6, 0.78, 0.92];
+
+const withAlpha = (rgba: string, alpha: number) =>
+  rgba.replace(/rgba?\(([^)]+?)(?:,[^,)]*)?\)$/, (_match, channels: string) => {
+    const [r, g, b] = channels.split(',').map((channel) => channel.trim());
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  });
 
 const prefectureByName = new Map(japanPrefectures.map((prefecture) => [prefecture.name, prefecture]));
 const bureauByCode = new Map(bureauOptions.map((bureau) => [bureau.value, bureau]));
@@ -183,8 +187,9 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
   const getFeatureColor = useMemo(
     () => (geoFeature: ChoroplethFeature) => {
       const prefecture = prefectureByName.get(String(geoFeature.properties?.name));
-      if (!prefecture) return 'var(--muted)';
-      return SCALE_VARS[densityBin(Number(prefecture.density))];
+      const bureau = prefecture ? bureauByCode.get(prefecture.bureau) : undefined;
+      if (!prefecture || !bureau?.border) return 'var(--muted)';
+      return withAlpha(bureau.border, DENSITY_ALPHAS[densityBin(Number(prefecture.density))]);
     },
     []
   );
@@ -207,17 +212,16 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
 
   return (
     <div className="card-content">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xxs text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <span>Population density</span>
-          <span className="flex items-center gap-0.5" aria-hidden="true">
-            {SCALE_VARS.map((color) => (
-              <span key={color} className="h-2.5 w-5 first:rounded-l-sm last:rounded-r-sm" style={{ background: color }} />
-            ))}
-          </span>
-          <span>low → high /km²</span>
+      <div className="mb-2 flex flex-wrap items-start justify-between gap-x-4 gap-y-2 text-xxs text-muted-foreground">
+        <div className="min-w-0">
+          <SeriesLegend
+            items={nonAirportBureaus
+              .filter((bureau) => bureau.border)
+              .map((bureau) => ({ label: bureau.label, color: bureau.border as string }))}
+          />
+          <p className="mt-1">Color = service bureau · intensity = population density</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <span className="inline-flex items-center gap-1">
             <span className="flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <Building2 className="size-2.5" aria-hidden="true" />

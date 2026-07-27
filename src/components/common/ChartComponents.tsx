@@ -98,7 +98,7 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
     description: 'Where applications end up: each type\u2019s flow into granted, denied, or other outcomes.',
     icon: GitFork,
     component: OutcomesSankeyChart,
-    filters: { bureau: true, appType: false },
+    filters: { bureau: true, appType: true },
     ranges: ['latest', '6', '12', '24', '36', 'all'],
     defaultRange: '12',
   },

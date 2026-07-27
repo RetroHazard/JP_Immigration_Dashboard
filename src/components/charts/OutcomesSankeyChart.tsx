@@ -28,23 +28,27 @@ const OUTCOMES = [
 export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { sankeyData, approvalRate, processed } = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
-    const rows = selectData(data, { scope: bureauScopeFromFilter(filters.bureau) }).filter((entry) =>
-      months.includes(entry.month)
+    // Both the flows and the gauge respect the active type filter, so e.g.
+    // Permanent Residence shows its own (much lower) approval rate instead
+    // of being averaged away by high-volume extensions.
+    const rows = selectData(data, { scope: bureauScopeFromFilter(filters.bureau), type: filters.type }).filter(
+      (entry) => months.includes(entry.month)
     );
 
+    const activeTypes = filters.type === 'all' ? TYPES : TYPES.filter((type) => type.value === filters.type);
     const nodes = [
-      ...TYPES.map((type) => ({ name: type.label, category: 'source' as const })),
+      ...activeTypes.map((type) => ({ name: type.label, category: 'source' as const })),
       ...OUTCOMES.map((outcome) => ({ name: outcome.name, category: 'outcome' as const })),
     ];
     const links: { source: number; target: number; value: number }[] = [];
-    TYPES.forEach((type, typeIndex) => {
+    activeTypes.forEach((type, typeIndex) => {
       OUTCOMES.forEach((outcome, outcomeIndex) => {
         const value = rows.reduce(
           (sum, entry) => (entry.type === type.value && entry.status === outcome.status ? sum + entry.value : sum),
           0
         );
         if (value > 0) {
-          links.push({ source: typeIndex, target: TYPES.length + outcomeIndex, value });
+          links.push({ source: typeIndex, target: activeTypes.length + outcomeIndex, value });
         }
       });
     });
@@ -59,7 +63,7 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
       approvalRate: totalProcessed > 0 ? (granted / totalProcessed) * 100 : 0,
       processed: totalProcessed,
     };
-  }, [data, filters.bureau, range]);
+  }, [data, filters.bureau, filters.type, range]);
 
   if (sankeyData.links.length === 0) {
     return (
