@@ -15,14 +15,21 @@ import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { breakdownScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import type { ImmigrationChartData } from '../common/ChartComponents';
+import { SeriesLegend } from '../common/SeriesLegend';
 
 interface BubblePoint {
   code: string;
   label: string;
+  color: string;
   received: number;
   processed: number;
   rate: number;
 }
+
+// Bureau flag colors (same regional identity encoding as the map)
+const bureauColor = new Map(
+  bureauOptions.filter((bureau) => bureau.border).map((bureau) => [bureau.value, bureau.border as string])
+);
 
 const W = 720;
 const H = 380;
@@ -54,6 +61,7 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
         return {
           code: bureau.value,
           label: bureau.label,
+          color: bureauColor.get(bureau.value) ?? 'var(--chart-1)',
           received,
           processed,
           rate: received > 0 ? (processed / received) * 100 : 0,
@@ -90,8 +98,14 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
 
   return (
     <div className="card-content">
+      <SeriesLegend
+        className="mb-1.5"
+        items={[...points]
+          .sort((a, b) => b.received - a.received)
+          .map((point) => ({ label: point.label, color: point.color }))}
+      />
       <p className="mb-2 text-xxs text-muted-foreground">
-        Bubble size = applications processed over the selected period. Hover a bubble for details.
+        Color = bureau (matching the Regional Map) · bubble size = applications processed over the selected period.
       </p>
       <div className="relative">
         <svg
@@ -156,9 +170,9 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
               cx={xScale(point.received)}
               cy={yScale(point.rate)}
               r={rScale(point.processed)}
-              fill="var(--chart-1)"
-              fillOpacity={hovered?.code === point.code ? 0.75 : 0.4}
-              stroke="var(--chart-1)"
+              fill={point.color}
+              fillOpacity={hovered?.code === point.code ? 0.85 : 0.55}
+              stroke={point.color}
               strokeWidth={1.5}
               className="cursor-pointer transition-[fill-opacity]"
               onMouseEnter={() => setHovered(point)}

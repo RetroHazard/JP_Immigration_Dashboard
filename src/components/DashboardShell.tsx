@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { animate, stagger } from 'animejs';
-import { Calculator, History, Moon, Sun } from 'lucide-react';
+import { Calculator, ChevronsLeft, History, Moon, Sun } from 'lucide-react';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 import type React from 'react';
 
@@ -93,7 +93,23 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
   const [estimatorDetails, setEstimatorDetails] = useState<ApplicationDetails>(() =>
     getApplicationDetailsFromParams(searchParams)
   );
-  const [isEstimatorSheetOpen, setIsEstimatorSheetOpen] = useState(() => isEstimatorPermalink(searchParams));
+  // Auto-open the mobile sheet for estimator permalinks - but only below the
+  // desktop breakpoint, where the sidebar isn't visible (the sheet's portal
+  // is not constrained by its lg:hidden trigger bar).
+  const [isEstimatorSheetOpen, setIsEstimatorSheetOpen] = useState(
+    () =>
+      isEstimatorPermalink(searchParams) &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(max-width: 1023px)').matches
+  );
+  // Desktop sidebar collapse, remembered across visits
+  const [isEstimatorCollapsed, setIsEstimatorCollapsed] = useState(
+    () => typeof window !== 'undefined' && window.localStorage.getItem('estimator-collapsed') === '1'
+  );
+  const setEstimatorCollapsed = (collapsed: boolean) => {
+    setIsEstimatorCollapsed(collapsed);
+    window.localStorage.setItem('estimator-collapsed', collapsed ? '1' : '0');
+  };
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
   // One-time entrance: header cards cascade in.
@@ -200,7 +216,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
         <div className="mb-4" data-animate="card">
           <StatsSummary data={data} filters={effectiveFilters} />
         </div>
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">
+        <div
+          className={`grid gap-4 transition-[grid-template-columns] duration-300 lg:items-start ${
+            isEstimatorCollapsed ? 'lg:grid-cols-[minmax(0,1fr)_52px]' : 'lg:grid-cols-[minmax(0,1fr)_400px]'
+          }`}
+        >
           {/* Main column */}
           <div className="flex min-w-0 flex-col gap-4">
             <div data-animate="card">
@@ -274,9 +294,29 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
 
           </div>
 
-          {/* Estimator: permanent sidebar on desktop */}
+          {/* Estimator: collapsible sidebar on desktop */}
           <aside className="sticky top-4 hidden lg:block" data-animate="card">
-            <EstimationCard data={data} details={estimatorDetails} onDetailsChange={setEstimatorDetails} />
+            {isEstimatorCollapsed ? (
+              <button
+                onClick={() => setEstimatorCollapsed(false)}
+                aria-label="Expand the Processing Time Estimator"
+                aria-expanded={false}
+                className="flex w-full flex-col items-center gap-3 rounded-xl border border-border bg-card py-4 text-secondary-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <ChevronsLeft className="size-4" aria-hidden="true" />
+                <Calculator className="size-4 text-primary" aria-hidden="true" />
+                <span className="text-xs font-semibold" style={{ writingMode: 'vertical-rl' }}>
+                  Estimator
+                </span>
+              </button>
+            ) : (
+              <EstimationCard
+                data={data}
+                details={estimatorDetails}
+                onDetailsChange={setEstimatorDetails}
+                onCollapse={() => setEstimatorCollapsed(true)}
+              />
+            )}
           </aside>
         </div>
       </main>

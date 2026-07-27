@@ -1,11 +1,13 @@
 // src/components/charts/MonthlyRadarChart.tsx
 // Category Mix on Bklit's RadarChart: each bureau's workload as a share of
-// its own total. Nationwide view shows the top bureaus by volume WITH a
-// legend (the old chart plotted up to 14 unlabeled overlapping polygons).
+// its own total. The nationwide view has a bureau picker (chips) so any
+// combination of bureaus can be compared, with quick actions for the
+// default top-5 and excluding port-of-entry offices.
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
+import { Plane } from 'lucide-react';
 import type React from 'react';
 
 import { applicationOptions } from '../../constants/applicationOptions';
@@ -20,15 +22,30 @@ import { RadarLabels } from '../bklit/charts/radar-labels';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { SeriesLegend } from '../common/SeriesLegend';
 
-const MAX_BUREAUS = 5;
-const SERIES_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
+const AUTO_TOP = 5;
+// Readability cap: past six overlapping polygons the radar stops being legible
+const MAX_SELECTED = 6;
+const SERIES_COLORS = [
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
+  'var(--chart-6)',
+];
 
 const METRICS = applicationOptions
   .filter((option) => option.value !== 'all')
   .map((option) => ({ key: option.value, label: option.short }));
 
+const isAirport = (label: string) => label.toLowerCase().includes('airport');
+
 export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
-  const series = useMemo(() => {
+  // null = automatic top-N by volume (the default)
+  const [selectedCodes, setSelectedCodes] = useState<string[] | null>(null);
+
+  // Mix percentages for EVERY bureau with data in the window, volume-sorted.
+  const allStats = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
     const rows = selectData(data, {
       scope: breakdownScopeFromFilter(filters.bureau),
@@ -48,15 +65,47 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
           );
           values[metric.key] = total > 0 ? Number(((typeTotal / total) * 100).toFixed(1)) : 0;
         }
-        return { label: bureau.label, total, values };
+        return { code: bureau.value, label: bureau.label, total, values };
       })
       .filter((row) => row.total > 0)
-      .sort((a, b) => b.total - a.total)
-      .slice(0, MAX_BUREAUS)
-      .map((row, index) => ({ label: row.label, values: row.values, color: SERIES_COLORS[index] }));
+      .sort((a, b) => b.total - a.total);
   }, [data, filters.bureau, range]);
 
-  if (series.length === 0) {
+  const autoCodes = useMemo(() => allStats.slice(0, AUTO_TOP).map((row) => row.code), [allStats]);
+  const isSingleBureau = filters.bureau !== 'all';
+  const activeCodes = isSingleBureau ? [filters.bureau] : (selectedCodes ?? autoCodes);
+
+  const series = useMemo(
+    () =>
+      allStats
+        .filter((row) => activeCodes.includes(row.code))
+        .slice(0, MAX_SELECTED)
+        .map((row, index) => ({ label: row.label, values: row.values, color: SERIES_COLORS[index] })),
+    [allStats, activeCodes]
+  );
+
+  const toggleBureau = (code: string) => {
+    const base = selectedCodes ?? autoCodes;
+    const next = base.includes(code) ? base.filter((c) => c !== code) : [...base, code];
+    if (next.length === 0 || next.length > MAX_SELECTED) return;
+    setSelectedCodes(next);
+  };
+
+  const excludeAirports = () => {
+    const base = selectedCodes ?? autoCodes;
+    const next = base.filter((code) => {
+      const bureau = allStats.find((row) => row.code === code);
+      return bureau ? !isAirport(bureau.label) : true;
+    });
+    if (next.length > 0) setSelectedCodes(next);
+  };
+
+  const selectionHasAirports = activeCodes.some((code) => {
+    const bureau = allStats.find((row) => row.code === code);
+    return bureau ? isAirport(bureau.label) : false;
+  });
+
+  if (allStats.length === 0) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
         No data for this combination of filters.
@@ -66,15 +115,44 @@ export const MonthlyRadarChart: React.FC<ImmigrationChartData> = ({ data, filter
 
   return (
     <div className="card-content">
-      <SeriesLegend
-        className="mb-2"
-        items={series.map((row) => ({ label: row.label, color: row.color }))}
-      />
-      {filters.bureau === 'all' && (
-        <p className="mb-2 text-xxs text-muted-foreground">
-          Showing the {series.length} highest-volume bureaus. Pick a bureau in the filter above to inspect one.
-        </p>
+      {!isSingleBureau && (
+        <div className="mb-2">
+          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Bureaus to display">
+            {allStats.map((row) => {
+              const active = activeCodes.includes(row.code);
+              const atCap = !active && activeCodes.length >= MAX_SELECTED;
+              return (
+                <button
+                  key={row.code}
+                  onClick={() => toggleBureau(row.code)}
+                  aria-pressed={active}
+                  disabled={atCap}
+                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                    active
+                      ? 'border-transparent bg-primary text-primary-foreground'
+                      : 'border-border text-secondary-foreground hover:bg-muted'
+                  }`}
+                >
+                  {isAirport(row.label) && <Plane className="size-3" aria-hidden="true" />}
+                  {row.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-1.5 flex items-center gap-3 text-xxs text-muted-foreground">
+            <span>Up to {MAX_SELECTED} bureaus.</span>
+            <button onClick={() => setSelectedCodes(null)} className="text-primary hover:opacity-80">
+              Reset to top {AUTO_TOP}
+            </button>
+            {selectionHasAirports && (
+              <button onClick={excludeAirports} className="text-primary hover:opacity-80">
+                Exclude port-of-entry offices
+              </button>
+            )}
+          </div>
+        </div>
       )}
+      <SeriesLegend className="mb-2" items={series.map((row) => ({ label: row.label, color: row.color }))} />
       <div
         className="flex justify-center"
         role="img"

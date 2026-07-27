@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { animate } from 'animejs';
-import { AlertTriangle, Check, ChevronDown, ChevronUp, Link as LinkIcon, OctagonAlert } from 'lucide-react';
+import { AlertTriangle, Check, ChevronDown, ChevronsRight, ChevronUp, Link as LinkIcon, OctagonAlert } from 'lucide-react';
 import type React from 'react';
 import { BlockMath } from 'react-katex';
 
@@ -28,6 +28,8 @@ interface EstimationCardProps {
   data: ImmigrationData[];
   details: ApplicationDetails;
   onDetailsChange: (details: ApplicationDetails) => void;
+  /** When provided (desktop sidebar), renders a collapse control in the header */
+  onCollapse?: () => void;
 }
 
 const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails }) => {
@@ -79,7 +81,7 @@ const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails 
   );
 };
 
-export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, onDetailsChange }) => {
+export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, onDetailsChange, onCollapse }) => {
   const [showMath, setShowMath] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -116,7 +118,20 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, o
     <section aria-label="Processing Time Estimator" className="estimator-container">
       <div className="flex-between gap-2 border-b border-border p-2">
         <h2 className="section-title min-w-0 truncate">Processing Time Estimator</h2>
-        <ShareButton appDetails={details} />
+        <div className="flex shrink-0 items-center gap-1">
+          <ShareButton appDetails={details} />
+          {onCollapse && (
+            <IconTooltip label="Collapse the estimator">
+              <button
+                onClick={onCollapse}
+                aria-label="Collapse the Processing Time Estimator"
+                className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <ChevronsRight className="size-4" />
+              </button>
+            </IconTooltip>
+          )}
+        </div>
       </div>
       <div className="card-content-padded flex-1">
         <FilterInput
