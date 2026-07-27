@@ -8,7 +8,18 @@ export interface ApplicationDetails {
   applicationDate: string;
 }
 
-const PERMALINK_PARAM_KEYS = ['bureau', 'type', 'applicationDate'] as const;
+// The estimator permalink writes namespaced params so a shared estimate never
+// collides with the dashboard-wide ?bureau=/?type= chart filter params.
+export const ESTIMATOR_PARAM_NAMES: Record<keyof ApplicationDetails, string> = {
+  bureau: 'estBureau',
+  type: 'estType',
+  applicationDate: 'estDate',
+};
+
+// Pre-rename permalinks reused the filter param names directly. Keep reading
+// them - keyed off ?applicationDate=, which only old estimator links carry -
+// so links shared before the rename still restore the estimate.
+const LEGACY_DATE_PARAM = 'applicationDate';
 
 const isValidBureau = (value: string): boolean => nonAirportBureaus.some((bureau) => bureau.value === value);
 
@@ -18,22 +29,21 @@ const isValidType = (value: string): boolean =>
 const isValidApplicationDate = (value: string): boolean =>
   /^\d{4}-\d{2}-\d{2}$/.test(value) && !isNaN(new Date(value).getTime());
 
-// True when the URL carries at least one recognized permalink param, regardless of validity.
-export const hasPermalinkParams = (searchParams: URLSearchParams): boolean =>
-  PERMALINK_PARAM_KEYS.some((key) => searchParams.has(key));
-
-// Only a link that pins an application date is an ESTIMATOR permalink; bare
-// ?bureau=/?type= params are global filters and shouldn't pop the estimator
-// sheet open on mobile.
+// Only a link that pins an application date is an ESTIMATOR permalink; the
+// chart filter params shouldn't pop the estimator sheet open on mobile.
 export const isEstimatorPermalink = (searchParams: URLSearchParams): boolean =>
-  searchParams.has('applicationDate');
+  searchParams.has(ESTIMATOR_PARAM_NAMES.applicationDate) || searchParams.has(LEGACY_DATE_PARAM);
 
 // Reads permalink params from the URL, dropping any value that doesn't match a real
 // bureau/type/date so an invalid or tampered link can't leave the estimator in a broken state.
 export const getApplicationDetailsFromParams = (searchParams: URLSearchParams): ApplicationDetails => {
-  const bureau = searchParams.get('bureau') ?? '';
-  const type = searchParams.get('type') ?? '';
-  const applicationDate = searchParams.get('applicationDate') ?? '';
+  const isLegacy = !searchParams.has(ESTIMATOR_PARAM_NAMES.applicationDate) && searchParams.has(LEGACY_DATE_PARAM);
+  const read = (key: keyof ApplicationDetails): string =>
+    searchParams.get(ESTIMATOR_PARAM_NAMES[key]) ?? (isLegacy ? searchParams.get(key) : null) ?? '';
+
+  const bureau = read('bureau');
+  const type = read('type');
+  const applicationDate = read('applicationDate');
 
   return {
     bureau: isValidBureau(bureau) ? bureau : '',
