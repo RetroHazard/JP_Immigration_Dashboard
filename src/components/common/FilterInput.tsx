@@ -11,8 +11,6 @@ interface FilterInputProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
-  /** Shown under the control when disabled, e.g. "Not used by this view" */
-  disabledNote?: string;
   min?: string;
   max?: string;
   includeDefaultOption?: boolean;
@@ -27,7 +25,6 @@ export const FilterInput: React.FC<FilterInputProps> = ({
   value,
   onChange,
   disabled,
-  disabledNote,
   min,
   max,
   includeDefaultOption = false,
@@ -71,7 +68,6 @@ export const FilterInput: React.FC<FilterInputProps> = ({
           disabled={disabled}
         />
       )}
-      {disabled && disabledNote && <p className="text-xxs italic text-muted-foreground">{disabledNote}</p>}
     </div>
   );
 };

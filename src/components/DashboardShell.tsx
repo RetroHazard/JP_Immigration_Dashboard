@@ -212,7 +212,6 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                 void setType(next.type);
               }}
               filterConfig={activeChart.filters}
-              chartLabel={activeChart.label}
               compare={compare}
               onCompareChange={(next) => void setCompare(next)}
             />
