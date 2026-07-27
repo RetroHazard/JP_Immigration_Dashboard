@@ -37,6 +37,8 @@ export interface ChartDefinition {
   icon: LucideIcon;
   component: React.ComponentType<ImmigrationChartData>;
   filters: { bureau: boolean; appType: boolean };
+  /** Whether the "Compare With" second-bureau view applies to this chart */
+  compare: boolean;
   ranges: ChartRange[];
   defaultRange: ChartRange;
 }
@@ -49,17 +51,30 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
     icon: BarChart3,
     component: IntakeProcessingBarChart,
     filters: { bureau: true, appType: true },
+    compare: true,
     ranges: ['6', '12', '24', '36', 'all'],
     defaultRange: '12',
   },
   {
     key: 'types',
     label: 'Application Types',
-    description: 'Monthly new submissions broken down by application type.',
+    description: 'Monthly new submissions broken down by application type — click a legend entry to toggle a series.',
     icon: LineChartIcon,
     component: CategorySubmissionsLineChart,
     filters: { bureau: true, appType: false },
+    compare: true,
     ranges: ['6', '12', '24', '36', 'all'],
+    defaultRange: '12',
+  },
+  {
+    key: 'outcomes',
+    label: 'Outcomes',
+    description: 'Where applications end up: each type’s flow into granted, denied, or other outcomes.',
+    icon: GitFork,
+    component: OutcomesSankeyChart,
+    filters: { bureau: true, appType: true },
+    compare: false,
+    ranges: ['latest', '6', '12', '24', '36', 'all'],
     defaultRange: '12',
   },
   {
@@ -69,16 +84,7 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
     icon: PieChart,
     component: BureauDistributionRingChart,
     filters: { bureau: false, appType: true },
-    ranges: ['latest', '6', '12', '24', '36', 'all'],
-    defaultRange: 'latest',
-  },
-  {
-    key: 'efficiency',
-    label: 'Processing Efficiency',
-    description: 'Completion rate against intake volume per bureau; bubble size shows processed volume.',
-    icon: ChartScatter,
-    component: BureauPerformanceBubbleChart,
-    filters: { bureau: true, appType: true },
+    compare: false,
     ranges: ['latest', '6', '12', '24', '36', 'all'],
     defaultRange: 'latest',
   },
@@ -89,18 +95,20 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
     icon: LayoutDashboard,
     component: CategoryMixTreemap,
     filters: { bureau: true, appType: false },
+    compare: false,
     ranges: ['latest', '6', '12', '24', '36', 'all'],
     defaultRange: 'latest',
   },
   {
-    key: 'outcomes',
-    label: 'Outcomes',
-    description: 'Where applications end up: each type\u2019s flow into granted, denied, or other outcomes.',
-    icon: GitFork,
-    component: OutcomesSankeyChart,
+    key: 'efficiency',
+    label: 'Processing Efficiency',
+    description: 'Completion rate against intake volume per bureau; bubble size shows processed volume.',
+    icon: ChartScatter,
+    component: BureauPerformanceBubbleChart,
     filters: { bureau: true, appType: true },
+    compare: false,
     ranges: ['latest', '6', '12', '24', '36', 'all'],
-    defaultRange: '12',
+    defaultRange: 'latest',
   },
   {
     key: 'map',
@@ -109,6 +117,7 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
     icon: Globe2,
     component: GeographicDistributionChart,
     filters: { bureau: false, appType: false },
+    compare: false,
     ranges: [],
     defaultRange: 'latest',
   },

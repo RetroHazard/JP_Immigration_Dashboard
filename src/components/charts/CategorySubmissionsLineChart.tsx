@@ -1,8 +1,9 @@
 // src/components/charts/CategorySubmissionsLineChart.tsx
 // Monthly new submissions per application type, on Bklit's LineChart.
+// Legend entries toggle their series; the y-domain tweens to the visible set.
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import type React from 'react';
 import { curveMonotoneX } from '@visx/curve';
@@ -27,6 +28,15 @@ const SERIES = [
 ] as const;
 
 export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
+  const [hiddenSeries, setHiddenSeries] = useState<ReadonlySet<string>>(() => new Set());
+  const toggleSeries = (label: string) =>
+    setHiddenSeries((previous) => {
+      const next = new Set(previous);
+      if (!next.delete(label)) next.add(label);
+      return next;
+    });
+  const visibleSeries = SERIES.filter((series) => !hiddenSeries.has(series.key));
+
   const chartData = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
     return months.map((month) => {
@@ -48,30 +58,42 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     <div className="card-content">
       <SeriesLegend
         className="mb-2"
-        items={SERIES.map((series) => ({ label: series.key, color: series.color, shape: 'line' }))}
+        items={SERIES.map((series) => ({
+          label: series.key,
+          color: series.color,
+          shape: 'line',
+          hidden: hiddenSeries.has(series.key),
+        }))}
+        onToggle={toggleSeries}
       />
-      <div
-        className="chart-container"
-        role="img"
-        aria-label="Line chart of monthly new submissions per application type"
-      >
-        <LineChart data={chartData} aspectRatio="16 / 8">
-          <Grid horizontal />
-          <YAxis />
-          {SERIES.map((series) => (
-            <Line
-              key={series.key}
-              dataKey={series.key}
-              curve={curveMonotoneX}
-              stroke={series.color}
-              strokeWidth={2}
-              fadeEdges={false}
-            />
-          ))}
-          <XAxis />
-          <ChartTooltip />
-        </LineChart>
-      </div>
+      {visibleSeries.length === 0 ? (
+        <div className="flex min-h-[280px] items-center justify-center text-sm text-muted-foreground">
+          All series hidden — click a legend entry to show one.
+        </div>
+      ) : (
+        <div
+          className="chart-container"
+          role="img"
+          aria-label="Line chart of monthly new submissions per application type"
+        >
+          <LineChart data={chartData} aspectRatio="16 / 8">
+            <Grid horizontal />
+            <YAxis />
+            {visibleSeries.map((series) => (
+              <Line
+                key={series.key}
+                dataKey={series.key}
+                curve={curveMonotoneX}
+                stroke={series.color}
+                strokeWidth={2}
+                fadeEdges={false}
+              />
+            ))}
+            <XAxis />
+            <ChartTooltip />
+          </LineChart>
+        </div>
+      )}
     </div>
   );
 };
