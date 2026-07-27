@@ -20,6 +20,7 @@ import type { EstimatedDateResult } from '../utils/calculateEstimates';
 import { calculateEstimatedDate } from '../utils/calculateEstimates';
 import { nonAirportBureaus } from '../utils/getBureauData';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
+import { ESTIMATOR_PARAM_NAMES } from '../utils/urlApplicationDetails';
 import { FilterInput } from './common/FilterInput';
 import { FormulaTooltip, variableExplanations } from './common/FormulaTooltip';
 import { IconTooltip } from './common/IconTooltip';
@@ -42,15 +43,20 @@ const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails 
   const doShare = async () => {
     const mutableParams = new URLSearchParams(searchParams.toString());
 
-    // Only keep params with a selected value, so sharing a partially-filled form
-    // doesn't leave empty bureau/type/applicationDate params in the URL.
-    Object.entries(appDetails).forEach(([key, value]) => {
+    // The estimator's params are namespaced (est*) so a shared estimate never
+    // overwrites the chart's ?bureau=/?type= filters. Only params with a
+    // selected value are kept, so sharing a partially-filled form doesn't
+    // leave empty params in the URL.
+    (Object.keys(ESTIMATOR_PARAM_NAMES) as Array<keyof ApplicationDetails>).forEach((key) => {
+      const value = appDetails[key];
       if (value) {
-        mutableParams.set(key, value);
+        mutableParams.set(ESTIMATOR_PARAM_NAMES[key], value);
       } else {
-        mutableParams.delete(key);
+        mutableParams.delete(ESTIMATOR_PARAM_NAMES[key]);
       }
     });
+    // Drop the pre-rename estimator date param if the visitor arrived on one.
+    mutableParams.delete('applicationDate');
 
     const newRelativePath = `${pathname}?${mutableParams.toString()}`;
     router.push(newRelativePath, { scroll: false });
