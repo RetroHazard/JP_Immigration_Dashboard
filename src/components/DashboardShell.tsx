@@ -85,6 +85,21 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
     [activeChart.filters.bureau, activeChart.filters.appType, bureau, type]
   );
 
+  // Data coverage, shown beside the period selector (moved out of the
+  // filter card to keep it a single row).
+  const coverage = useMemo(() => {
+    if (data.length === 0) return null;
+    const months = [...new Set(data.map((entry) => entry.month))].sort();
+    const fmt = (month: string) => {
+      const [year, monthNum] = month.split('-');
+      return new Date(Number(year), Number(monthNum) - 1).toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric',
+      });
+    };
+    return `${fmt(months[0])} – ${fmt(months[months.length - 1])}`;
+  }, [data]);
+
   // Compare mode: a second bureau rendered as a small multiple below the
   // chart, on every view that supports the bureau filter.
   const compareBureau = activeChart.filters.bureau && compare && compare !== bureau ? compare : null;
@@ -225,7 +240,6 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
           <div className="flex min-w-0 flex-col gap-4">
             <div data-animate="card">
             <FilterPanel
-              data={data}
               filters={{ bureau, type }}
               onChange={(next) => {
                 void setBureau(next.bureau);
@@ -256,7 +270,16 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                         <h2 className="section-title">{chart.label}</h2>
                         <p className="mt-0.5 text-xs text-muted-foreground">{chart.description}</p>
                       </div>
-                      <PeriodSelector ranges={chart.ranges} value={range} onChange={(next) => void setRangeParam(next)} />
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <PeriodSelector
+                          ranges={chart.ranges}
+                          value={range}
+                          onChange={(next) => void setRangeParam(next)}
+                        />
+                        {coverage && (
+                          <span className="whitespace-nowrap text-xxs text-muted-foreground">Data: {coverage}</span>
+                        )}
+                      </div>
                     </div>
                     {index === activeIndex && (
                       <>

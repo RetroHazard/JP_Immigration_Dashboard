@@ -15,6 +15,8 @@ import type { Topology } from 'topojson-specification';
 
 import { bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
+import { useTheme } from '../../contexts/ThemeContext';
+import { visibleBureauColor, withAlpha } from '../../utils/bureauColors';
 import { nonAirportBureaus } from '../../utils/getBureauData';
 import { logger } from '../../utils/logger';
 import {
@@ -37,11 +39,6 @@ const densityBin = (density: number) => DENSITY_BINS.filter((edge) => density >=
 // intensity step (alpha blends against the card background in both themes).
 const DENSITY_ALPHAS = [0.3, 0.45, 0.6, 0.78, 0.92];
 
-const withAlpha = (rgba: string, alpha: number) =>
-  rgba.replace(/rgba?\(([^)]+?)(?:,[^,)]*)?\)$/, (_match, channels: string) => {
-    const [r, g, b] = channels.split(',').map((channel) => channel.trim());
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  });
 
 const prefectureByName = new Map(japanPrefectures.map((prefecture) => [prefecture.name, prefecture]));
 const bureauByCode = new Map(bureauOptions.map((bureau) => [bureau.value, bureau]));
@@ -159,6 +156,7 @@ const ZoomControls: React.FC = () => {
 };
 
 export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () => {
+  const { isDarkMode } = useTheme();
   const [features, setFeatures] = useState<FeatureCollection<Geometry, ChoroplethFeatureProperties> | null>(null);
   const [loadError, setLoadError] = useState(false);
 
@@ -189,9 +187,12 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
       const prefecture = prefectureByName.get(String(geoFeature.properties?.name));
       const bureau = prefecture ? bureauByCode.get(prefecture.bureau) : undefined;
       if (!prefecture || !bureau?.border) return 'var(--muted)';
-      return withAlpha(bureau.border, DENSITY_ALPHAS[densityBin(Number(prefecture.density))]);
+      return withAlpha(
+        visibleBureauColor(bureau.border, isDarkMode),
+        DENSITY_ALPHAS[densityBin(Number(prefecture.density))]
+      );
     },
-    []
+    [isDarkMode]
   );
 
   if (loadError) {
@@ -217,7 +218,10 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
           <SeriesLegend
             items={nonAirportBureaus
               .filter((bureau) => bureau.border)
-              .map((bureau) => ({ label: bureau.label, color: bureau.border as string }))}
+              .map((bureau) => ({
+                label: bureau.label,
+                color: visibleBureauColor(bureau.border as string, isDarkMode),
+              }))}
           />
           <p className="mt-1">Color = service bureau · intensity = population density</p>
         </div>
