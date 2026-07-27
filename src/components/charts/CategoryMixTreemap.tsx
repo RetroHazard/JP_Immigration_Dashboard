@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type React from 'react';
+import { createPortal } from 'react-dom';
 
 import type { MixTree } from '../../utils/categoryMixTree';
 import { buildCategoryMixTree, mixLeafColor } from '../../utils/categoryMixTree';
@@ -160,13 +161,53 @@ const computeLayout = (tree: MixTree, focusKey: string | null, width: number, he
 
 const fmt = (value: number) => value.toLocaleString('en-US');
 const HEIGHT = 430;
-const TILE_TRANSITION = 'left 0.42s ease-out, top 0.42s ease-out, width 0.42s ease-out, height 0.42s ease-out, opacity 0.42s ease-out';
+const TILE_TRANSITION =
+  'left 0.42s ease-out, top 0.42s ease-out, width 0.42s ease-out, height 0.42s ease-out, opacity 0.42s ease-out, filter 0.15s';
 
 export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const tree = useMemo(() => buildCategoryMixTree(data, filters, range), [data, filters, range]);
   const [focusKey, setFocusKey] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+
+  // Tiles animate only between focus states. Renders caused by mount or a
+  // container resize snap instantly, so tiles never "fly in" from stale rects.
+  const widthRef = useRef(0);
+  const widthStable = widthRef.current === width;
+  useEffect(() => {
+    widthRef.current = width;
+  });
+
+  // Cursor-following tooltip, driven imperatively so pointer moves never
+  // re-render the ~90 tiles.
+  const tipRef = useRef<HTMLDivElement>(null);
+  const tipChipRef = useRef<HTMLSpanElement>(null);
+  const tipNameRef = useRef<HTMLSpanElement>(null);
+  const tipValueRef = useRef<HTMLDivElement>(null);
+  const moveTip = (event: React.MouseEvent) => {
+    const tip = tipRef.current;
+    if (!tip) return;
+    const pad = 14;
+    const bounds = tip.getBoundingClientRect();
+    let x = event.clientX + pad;
+    let y = event.clientY + pad;
+    if (x + bounds.width > window.innerWidth - 8) x = event.clientX - bounds.width - pad;
+    if (y + bounds.height > window.innerHeight - 8) y = event.clientY - bounds.height - pad;
+    tip.style.left = `${x}px`;
+    tip.style.top = `${y}px`;
+  };
+  const showTip = (event: React.MouseEvent, name: string, color: string, detail: string) => {
+    const tip = tipRef.current;
+    if (!tip || !tipChipRef.current || !tipNameRef.current || !tipValueRef.current) return;
+    tipChipRef.current.style.background = color;
+    tipNameRef.current.textContent = name;
+    tipValueRef.current.textContent = detail;
+    tip.style.display = 'block';
+    moveTip(event);
+  };
+  const hideTip = () => {
+    if (tipRef.current) tipRef.current.style.display = 'none';
+  };
 
   useEffect(() => {
     const element = containerRef.current;
@@ -212,6 +253,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
           height: rect.h,
           opacity: rect.op,
           pointerEvents: rect.op < 0.5 || rect.w < 2 ? 'none' : 'auto',
+          transition: widthStable ? TILE_TRANSITION : 'none',
         }
       : { opacity: 0, pointerEvents: 'none' };
 
@@ -253,10 +295,24 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
               aria-label={`${category.name}: ${fmt(category.value)} applications. Zoom in.`}
               onClick={(event) => {
                 event.stopPropagation();
+                hideTip();
                 if (focusKey === null) setFocusKey(category.key);
               }}
-              className="absolute overflow-hidden rounded-lg text-left motion-reduce:transition-none"
-              style={{ ...tileStyle(rect), background: category.color, transition: TILE_TRANSITION }}
+              onMouseMove={(event) =>
+                showTip(
+                  event,
+                  category.name,
+                  category.color,
+                  `${fmt(category.value)} applications · ${((category.value / tree.total) * 100).toFixed(1)}% of all applications`
+                )
+              }
+              onMouseLeave={hideTip}
+              className="absolute overflow-hidden rounded-lg text-left hover:brightness-105 motion-reduce:transition-none"
+              style={{
+                ...tileStyle(rect),
+                background: category.color,
+                boxShadow: 'inset 0 0 0 1px rgb(0 0 0 / 0.06)',
+              }}
             >
               {!tiny && (
                 <span className="flex items-baseline justify-between gap-2 whitespace-nowrap px-2.5 pt-1.5 text-xs font-bold text-background">
@@ -284,17 +340,29 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
             return (
               <div
                 key={key}
-                title={rest ? undefined : `${leaf.name} · ${category.short}: ${fmt(leaf.value)} applications`}
-                className="absolute overflow-hidden rounded-md text-foreground motion-reduce:transition-none"
-                style={{ ...tileStyle(rect), background: mixLeafColor(category.color, rank), transition: TILE_TRANSITION }}
+                className="absolute cursor-pointer overflow-hidden rounded-md text-foreground hover:brightness-105 motion-reduce:transition-none"
+                style={{ ...tileStyle(rect), background: mixLeafColor(category.color, rank) }}
                 onClick={(event) => {
                   // At the root a leaf click zooms into its category; when
                   // focused it bubbles to the background and zooms out.
+                  hideTip();
                   if (focusKey === null) {
                     event.stopPropagation();
                     setFocusKey(category.key);
                   }
                 }}
+                onMouseMove={(event) => {
+                  event.stopPropagation();
+                  if (rest) return;
+                  const ofLabel = focusKey === category.key ? category.name : 'all applications';
+                  showTip(
+                    event,
+                    `${leaf.name} · ${category.short}`,
+                    mixLeafColor(category.color, rank),
+                    `${fmt(leaf.value)} applications · ${((leaf.value / base) * 100).toFixed(1)}% of ${ofLabel}`
+                  );
+                }}
+                onMouseLeave={hideTip}
               >
                 {showLabel && (
                   <span className="flex flex-col px-2 py-1 text-xs font-semibold leading-tight">
@@ -311,6 +379,24 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
           });
         })}
       </div>
+      {/* Portaled to <body>: the card's entrance animation leaves a transform
+          on an ancestor, which would re-anchor (and clip) position: fixed. */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            ref={tipRef}
+            aria-hidden="true"
+            className="pointer-events-none fixed z-50 max-w-[260px] rounded-lg border border-border bg-card px-2.5 py-1.5 shadow-soft"
+            style={{ display: 'none' }}
+          >
+            <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+              <span ref={tipChipRef} className="inline-block size-2.5 shrink-0 rounded-[3px]" />
+              <span ref={tipNameRef} />
+            </div>
+            <div ref={tipValueRef} className="mt-0.5 font-mono text-xxs text-muted-foreground" />
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
