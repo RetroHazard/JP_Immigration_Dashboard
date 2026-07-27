@@ -62,7 +62,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           <YAxis />
           <SeriesBar dataKey="Pending (carried over)" fill="var(--chart-1)" />
           <SeriesBar dataKey="Received" fill="var(--chart-2)" radius={3} />
-          <Line dataKey="Processed" stroke="var(--chart-3)" curve={curveMonotoneX} strokeWidth={2.25} />
+          <Line dataKey="Processed" stroke="var(--chart-3)" curve={curveMonotoneX} strokeWidth={2.25} fadeEdges={false} />
           <XAxis />
           <ChartTooltip />
         </ComposedChart>

@@ -59,7 +59,14 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
           <Grid horizontal />
           <YAxis />
           {SERIES.map((series) => (
-            <Line key={series.key} dataKey={series.key} curve={curveMonotoneX} stroke={series.color} strokeWidth={2} />
+            <Line
+              key={series.key}
+              dataKey={series.key}
+              curve={curveMonotoneX}
+              stroke={series.color}
+              strokeWidth={2}
+              fadeEdges={false}
+            />
           ))}
           <XAxis />
           <ChartTooltip />
