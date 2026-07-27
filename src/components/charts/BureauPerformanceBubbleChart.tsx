@@ -13,6 +13,8 @@ import type React from 'react';
 
 import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
+import { useTheme } from '../../contexts/ThemeContext';
+import { tintToward, visibleBureauColor } from '../../utils/bureauColors';
 import { breakdownScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { SeriesLegend } from '../common/SeriesLegend';
@@ -21,6 +23,9 @@ interface BubblePoint {
   code: string;
   label: string;
   color: string;
+  /** Full-strength parent color for the dashed satellite outline */
+  outline: string;
+  isAirport: boolean;
   received: number;
   processed: number;
   rate: number;
@@ -31,12 +36,29 @@ const bureauColor = new Map(
   bureauOptions.filter((bureau) => bureau.border).map((bureau) => [bureau.value, bureau.border as string])
 );
 
+// Branch office -> parent bureau (airports inherit their region's color)
+const parentOf = new Map<string, string>();
+for (const bureau of bureauOptions) {
+  for (const child of bureau.children ?? []) parentOf.set(child, bureau.value);
+}
+
+const isAirportLabel = (label: string) => label.toLowerCase().includes('airport');
+
+/** Airports render as a tint of their parent region's flag color. */
+const colorsFor = (code: string, label: string, isDarkMode: boolean): { color: string; outline: string } => {
+  const own = visibleBureauColor(bureauColor.get(code) ?? 'var(--chart-1)', isDarkMode);
+  if (!isAirportLabel(label)) return { color: own, outline: own };
+  const parent = visibleBureauColor(bureauColor.get(parentOf.get(code) ?? '') ?? own, isDarkMode);
+  return { color: tintToward(parent, 0.45), outline: parent };
+};
+
 const W = 720;
 const H = 380;
 const MARGIN = { top: 16, right: 24, bottom: 40, left: 48 };
 const LABELED_BUBBLES = 5;
 
 export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
+  const { isDarkMode } = useTheme();
   const [hovered, setHovered] = useState<BubblePoint | null>(null);
 
   const points = useMemo(() => {
@@ -58,17 +80,20 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
           (sum, entry) => (entry.status === STATUS_CODES.PROCESSED ? sum + entry.value : sum),
           0
         );
+        const { color, outline } = colorsFor(bureau.value, bureau.label, isDarkMode);
         return {
           code: bureau.value,
           label: bureau.label,
-          color: bureauColor.get(bureau.value) ?? 'var(--chart-1)',
+          color,
+          outline,
+          isAirport: isAirportLabel(bureau.label),
           received,
           processed,
           rate: received > 0 ? (processed / received) * 100 : 0,
         };
       })
       .filter((point) => point.received > 0);
-  }, [data, filters.bureau, filters.type, range]);
+  }, [data, filters.bureau, filters.type, range, isDarkMode]);
 
   const { xScale, yScale, rScale } = useMemo(() => {
     const maxX = Math.max(...points.map((p) => p.received), 1);
@@ -105,7 +130,8 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
           .map((point) => ({ label: point.label, color: point.color }))}
       />
       <p className="mb-2 text-xxs text-muted-foreground">
-        Color = bureau (matching the Regional Map) · bubble size = applications processed over the selected period.
+        Color = bureau (matching the Regional Map); airport offices are a dashed tint of their region&apos;s color ·
+        bubble size = applications processed over the selected period.
       </p>
       <div className="relative">
         <svg
@@ -172,8 +198,9 @@ export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ d
               r={rScale(point.processed)}
               fill={point.color}
               fillOpacity={hovered?.code === point.code ? 0.85 : 0.55}
-              stroke={point.color}
+              stroke={point.outline}
               strokeWidth={1.5}
+              strokeDasharray={point.isAirport ? '4 2.5' : undefined}
               className="cursor-pointer transition-[fill-opacity]"
               onMouseEnter={() => setHovered(point)}
               onMouseLeave={() => setHovered(null)}
