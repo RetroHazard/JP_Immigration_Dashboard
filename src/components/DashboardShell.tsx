@@ -100,9 +100,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
     return `${fmt(months[0])} – ${fmt(months[months.length - 1])}`;
   }, [data]);
 
-  // Compare mode: a second bureau rendered as a small multiple below the
-  // chart, on every view that supports the bureau filter.
-  const compareBureau = activeChart.filters.bureau && compare && compare !== bureau ? compare : null;
+  // Compare mode: a second bureau rendered as a side-by-side small multiple,
+  // on views that opt in via the registry (single-view charts like the
+  // treemap, sankey, and bubble plot already show every bureau at once).
+  const compareEnabled = activeChart.filters.bureau && activeChart.compare;
+  const compareBureau = compareEnabled && compare && compare !== bureau ? compare : null;
 
   // --- Estimator state, lifted so the sidebar and the mobile sheet share it ---
   const [estimatorDetails, setEstimatorDetails] = useState<ApplicationDetails>(() =>
@@ -247,6 +249,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               }}
               filterConfig={activeChart.filters}
               compare={compare}
+              compareEnabled={compareEnabled}
               onCompareChange={(next) => void setCompare(next)}
             />
             </div>
@@ -283,30 +286,34 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                     </div>
                     {index === activeIndex && (
                       <>
-                        {compareBureau && (
-                          <p className="mb-1 text-xs font-semibold text-secondary-foreground">
-                            {getBureauLabel(effectiveFilters.bureau)}
-                          </p>
-                        )}
-                        <ActiveChart
-                          activeChartIndex={activeIndex}
-                          data={data}
-                          filters={effectiveFilters}
-                          range={range}
-                        />
-                        {compareBureau && (
-                          <div className="mt-4 border-t border-border pt-3">
-                            <p className="mb-1 text-xs font-semibold text-secondary-foreground">
-                              {getBureauLabel(compareBureau)} <span className="font-normal text-muted-foreground">(comparison)</span>
-                            </p>
+                        <div className={compareBureau ? 'grid gap-x-4 gap-y-4 md:grid-cols-2' : undefined}>
+                          <div className="min-w-0">
+                            {compareBureau && (
+                              <p className="mb-1 text-xs font-semibold text-secondary-foreground">
+                                {getBureauLabel(effectiveFilters.bureau)}
+                              </p>
+                            )}
                             <ActiveChart
                               activeChartIndex={activeIndex}
                               data={data}
-                              filters={{ bureau: compareBureau, type: effectiveFilters.type }}
+                              filters={effectiveFilters}
                               range={range}
                             />
                           </div>
-                        )}
+                          {compareBureau && (
+                            <div className="min-w-0 border-t border-border pt-3 md:border-l md:border-t-0 md:pl-4 md:pt-0">
+                              <p className="mb-1 text-xs font-semibold text-secondary-foreground">
+                                {getBureauLabel(compareBureau)} <span className="font-normal text-muted-foreground">(comparison)</span>
+                              </p>
+                              <ActiveChart
+                                activeChartIndex={activeIndex}
+                                data={data}
+                                filters={{ bureau: compareBureau, type: effectiveFilters.type }}
+                                range={range}
+                              />
+                            </div>
+                          )}
+                        </div>
                         <ChartDataTable data={data} filters={effectiveFilters} range={range} />
                       </>
                     )}
