@@ -3,9 +3,9 @@
 // root, categories as blocks, bureaus nested inside. Click a category to zoom
 // into its full bureau breakdown; click the background (or Esc) to zoom out.
 //
-// NOT currently registered — the sunburst is the live Category Mix view. This
-// shares its data (buildCategoryMixTree) and props contract, so swapping the
-// `mix` entry in ChartComponents.tsx to this component is all it takes.
+// The live Category Mix view. CategoryMixSunburst renders the same hierarchy
+// (shared buildCategoryMixTree, same props contract) as a sunburst — swapping
+// the `mix` entry in ChartComponents.tsx is all it takes to switch.
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';

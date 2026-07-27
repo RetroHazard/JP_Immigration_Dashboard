@@ -3,14 +3,14 @@
 // and allowed time ranges per chart. The shell renders tabs, the card header,
 // and the period selector from this metadata; charts only plot.
 import type { LucideIcon } from 'lucide-react';
-import { BarChart3, ChartScatter, GitFork, Globe2, LineChart as LineChartIcon, PieChart, Target } from 'lucide-react';
+import { BarChart3, ChartScatter, GitFork, Globe2, LayoutDashboard, LineChart as LineChartIcon, PieChart } from 'lucide-react';
 import type React from 'react';
 
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
 import type { ChartRange } from '../../utils/selectors';
 import { BureauDistributionRingChart } from '../charts/BureauDistributionRingChart';
 import { BureauPerformanceBubbleChart } from '../charts/BureauPerformanceBubbleChart';
-import { CategoryMixSunburst } from '../charts/CategoryMixSunburst';
+import { CategoryMixTreemap } from '../charts/CategoryMixTreemap';
 import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineChart';
 import { GeographicDistributionChart } from '../charts/GeographicDistributionChart';
 import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
@@ -85,9 +85,9 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
   {
     key: 'mix',
     label: 'Category Mix',
-    description: 'All applications by type and bureau — click a segment to zoom into its breakdown.',
-    icon: Target,
-    component: CategoryMixSunburst,
+    description: 'All applications by type and bureau — click a category to zoom into its breakdown.',
+    icon: LayoutDashboard,
+    component: CategoryMixTreemap,
     filters: { bureau: true, appType: false },
     ranges: ['latest', '6', '12', '24', '36', 'all'],
     defaultRange: 'latest',
