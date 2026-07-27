@@ -37,7 +37,9 @@ export const variableExplanations: VariableExplanations = {
 
 export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ variables, children }) => (
   <div className="relative">
-    <div className="absolute right-0 top-0">
+    {/* z-10: the KaTeX block renders later in the DOM and would otherwise
+        paint over the trigger and swallow its clicks */}
+    <div className="absolute right-0 top-0 z-10">
       <Popover>
         <PopoverTrigger asChild>
           <button
