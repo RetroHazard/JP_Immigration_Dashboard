@@ -1,5 +1,5 @@
 # Japan Immigration Statistics Dashboard
-[![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -44,93 +44,111 @@ For detailed setup instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
 ## :sparkles: Features
 
 ### :bar_chart: Data Visualization
-This project offers a suite of interactive and configurable charts to analyze data trends and distributions. 
-Each chart is designed to provide clear insights while allowing flexibility through filters and customization.
+Seven interactive charts, each answering a specific question about the data, with per-chart filtering
+(bureau and/or application type, where relevant) and a configurable time range.
 
-#### **Stacked Bar Chart**
-- **Purpose:** Represents intake and processing trends.
+#### **Intake & Processing**
+- **Purpose:** Applications carried over and newly received each month, against the volume the bureaus completed.
 - **Features:**
-  - Displays:
-    - Previously received applications
-    - Newly received applications
-    - Processed applications per month
+  - Stacked bars for carried-over + newly received applications, with completed volume as a line on the same axis
   - Filterable by bureau and application type
-  - Indexed tooltips for detailed viewing
-  - Configurable time range display
+  - Bureau-to-bureau comparison view
+  - Configurable time range (6/12/24/36 months, or all)
 
-#### **Multi-Line Chart**
-- **Purpose:** Represents submission trends.
+#### **Application Types**
+- **Purpose:** Monthly new submissions broken down by application type.
 - **Features:**
-  - Tracks all category types
-  - Filterable by individual bureaus
-  - Exclude specific application types via UI
-  - Indexed tooltips for detailed viewing
-  - Configurable time range display
+  - Click a legend entry to toggle a type's series; the axis rescales to the visible set
+  - Filterable by bureau
+  - Bureau-to-bureau comparison view
+  - Configurable time range
 
-#### **Ring Chart**
-- **Purpose:** Represents distribution of workload.
+#### **Outcomes**
+- **Purpose:** Where applications end up — granted, denied, or otherwise resolved.
 - **Features:**
-  - Visualizes load distribution by application type
-  - Exclude specific bureaus via UI
-  - Configurable cumulative time range display
-
-#### **Bubble Chart**
-- **Purpose:** Measure processing efficiency.
-- **Features:**
-  - Visualizes monthly intake vs. processing rates
-  - Normalized bubble sizes for large datasets
+  - Sankey flow from application type into outcome, with an approval-rate gauge for the same selection
   - Filterable by bureau and application type
-  - Clear, concise tooltips
-  - Configurable cumulative time range display
+  - Configurable time range, including a latest-month view
 
-#### **Radar Chart**
-- **Purpose:** Highlight category spread.
+#### **Bureau Share**
+- **Purpose:** Each bureau's share of total intake.
 - **Features:**
-  - Visualize category distributions
-  - Filterable by individual bureaus
-  - Configurable cumulative time range display
+  - Donut chart of the top bureaus by volume, with an explicit "Other" fold for the long tail
+  - Filterable by application type
+  - Configurable cumulative time range
 
-#### **Choropleth Map**
-- **Purpose:** Show service density.
+#### **Category Mix**
+- **Purpose:** Every bureau's application-type composition, side by side.
 - **Features:**
-  - Interactive, topographical map of Japan, at a Prefectural level
-  - Prefectures colored based on Service Bureau and overall Density rating
-  - Prefecture tooltips with vital statistics
-  - Bureau/Airport markers placed via GPS coordinates
-  - Bureau tooltips with Service Area statistics
+  - Zoomable hierarchical treemap — click a category to zoom into its bureau breakdown, click the background (or `Esc`) to zoom back out
+  - Filterable by bureau
+  - Configurable cumulative time range
+
+#### **Processing Efficiency**
+- **Purpose:** Completion rate against intake volume, per bureau.
+- **Features:**
+  - Ranked lollipop: bureaus sorted by completion rate, with stem weight carrying intake volume and a dashed guide at the nationwide rate
+  - Hover card (rows are also keyboard-focusable) with each bureau's received/processed/completion figures
+  - Filterable by bureau and application type
+  - Configurable cumulative time range
+
+#### **Regional Map**
+- **Purpose:** Geographic service coverage and density across Japan.
+- **Features:**
+  - Interactive choropleth of Japan at the prefectural level, shaded by population density (Statistics Bureau of Japan estimates)
+  - Bureau and airport office markers with location-specific tooltips
+  - Built-in zoom and pan
 
 ---
 
 ### :mag: Dynamic Filtering
-- Dynamic filter availability:
-  - Immigration bureau selection
-  - Application type selection
+- Per-chart filter availability (bureau, application type) — only the filters that apply to the active chart are enabled
+- Global airport toggle — a one-click filter that removes the airport branch offices (Narita, Haneda, Kansai, Chubu) from every chart, stat, and table, subtracting their volumes from the nationwide totals rather than merely hiding them
+- One-click filter reset
+- Bureau-to-bureau comparison view for charts that support it, hidden below the `md` breakpoint where a side-by-side layout has no room
 - Statistics summary on charts
-- On-chart series pruning for better insights
+- On-chart series pruning (Application Types legend toggles)
 
 ---
 
 ### :clock2: Processing Time Estimator
 - Smart Estimation Panel:
-  - Collapsible interface
+  - Collapsible sidebar on desktop (collapses to a full-height rail), a bottom sheet on mobile
   - Queue position tracking
-  - Historical processing rate analysis
-  - Predictive modeling with detailed calculation formulas
-    - Tooltip reference /w variable explanations
+  - Historical processing rate analysis (rolling 6-month average)
+  - Predictive modeling with a step-by-step calculation breakdown rendered in LaTeX (KaTeX)
+    - Inline tooltip reference w/ variable explanations
+  - One-click reset
+  - Shareable permalink for a filled-out estimate (bureau, application type, and date)
   - Past-due notifications
 
 ---
 
-### :pencil: Summary Badges
-- Effortlessly reference the most recent data points
+### :pencil: Stats Summary
+- At-a-glance totals for the current filter selection: total applications, pending, granted, denied, and approval rate
+- Month-over-month delta and a miniature sparkline trend per metric
 - Filterable by Immigration Bureau and Application Type
+- Adaptive layout — a single row on desktop, a no-scroll mosaic on mobile that never requires horizontal scrolling
 - Responsive tooltips for mobile users
+
+---
+
+### :clipboard: Data Table & Export
+- Collapsible monthly data table for the current chart selection — also serves as an accessible text alternative to the SVG charts
+- One-click CSV export
+
+---
+
+### :globe_with_meridians: Localization *(in progress, switcher hidden)*
+- An i18n scaffold exists (`?lang=ja` for testing), but the language switcher is hidden from the UI until full-coverage translation is ready — Japanese currently only covers a handful of top-level strings (page title, subtitle, estimator header, footer attribution)
+- Structured so additional languages and full-UI translation can be added without layout changes; the switcher returns once localization is a completed feature, not a partial one
 
 ---
 
 ### :iphone: Responsive Design
 - Mobile-friendly with adaptive breakpoints
-- Fluid layout for all screen sizes
+- Fluid layout for all screen sizes — no horizontal scrolling anywhere, including the stats summary row
+- Mobile settings drawer for theme and the in-app changelog, which live inline in the header on desktop (the language section is hidden for now, see Localization above)
 - Responsive user interface with light/dark mode support
 
 ---
@@ -138,21 +156,26 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 ## :hammer_and_wrench: Tech Stack
 
 ### Frontend:
-- `Next.js` – React Framework with static export
-- `React` – UI Library
-- `TypeScript` – Type-safe JavaScript
-- `Chart.js` – Data Visualization (Charts)
-- `@nivo/treemap` – Hierarchical Visualizations
-- `react-simple-maps` – Geographic Visualizations
-- `d3-scale` – Data scaling utilities
-- `FloatingUI` – Tooltips and Popovers
-- `KaTeX` – Mathematical Notation Rendering
-- `Tailwind CSS` – Utility-first Styling
-- `@iconify/react` – Icon Components
+- `Next.js 15` – React framework with static export
+- `React 19` – UI library
+- `TypeScript` (strict) – Type-safe JavaScript
+- `Tailwind CSS v4` – Utility-first styling with a CSS-variable design-token system ("Civic Glass")
+- `shadcn/ui` (vendored) – Radix-based UI primitives (tabs, dialog, sheet, select, tooltip)
+- `Bklit UI` (vendored, MIT) – visx-based chart components (line, composed, pie, sunburst, radar, sankey, gauge, choropleth)
+- `visx` – Used internally by the vendored Bklit charts (not by the two hand-rolled custom charts, Category Mix Treemap and Processing Efficiency, which use no charting library / `d3-scale` respectively)
+- `Anime.js v4` – App-level motion layer (entrances, count-ups, chart transitions) with a single reduced-motion chokepoint (`src/lib/motion.ts`); the vendored Bklit charts animate internally via `motion` (motion/react) instead, with their own independent reduced-motion handling
+- `@number-flow/react` – Animated number counters inside the Bklit charts' gauge/ring/pie centers (StatCard uses its own Anime.js-based `useCountUp` instead)
+- `nuqs` – URL state (chart tab, filters, time range, compare mode are all shareable links)
+- `next-themes` – Flash-free dark/light theme on static export
+- `KaTeX` – Mathematical notation rendering in the estimator
+- `Lucide` – Icon system
+- `Fontsource` – Self-hosted Inter Variable + Noto Sans JP Variable
+- `@next/third-parties` (Google Analytics) – Loaded only when a `GA_MEASUREMENT_ID` is configured at build time
 
 ### DevOps & Automation:
-- `GitHub Actions` – CI/CD Automation
+- `GitHub Actions` – CI (lint, typecheck, tests, fixture build) and deploy automation
 - `Data Watcher Workflow` – Automated e-Stat data monitoring
+- `Build-time data transform` – e-Stat payload flattened and bureau-corrected once at build (~10x smaller client payload)
 - `react-build-info` – Build metadata generation
 
 ### Hosting:
@@ -171,11 +194,10 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 The dashboard automatically monitors and updates immigration statistics from the e-Stat API:
 
 ### Data Watcher Workflow
-- **Schedule:** Runs daily at 10:05 AM JST from the 23rd-28th of each month
-- **Detection:** Compares `SURVEY_DATE` in e-Stat API responses to detect new data releases
-- **Auto-Build:** Automatically triggers build and deployment when new data is detected
-- **Cache Management:** Maintains efficient GitHub Actions cache, automatically cleaning old entries
-- **Smart Scheduling:** Targets e-Stat's typical release window (25th of each month, weekdays only)
+- **Schedule:** Runs daily at 10:05 AM JST, year-round — not just around the expected release window, so it also catches retroactive corrections e-Stat occasionally publishes mid-month
+- **Detection:** Compares `SURVEY_DATE` in e-Stat API responses against the previous run's data to detect new or corrected releases
+- **Conditional Publish:** A build and deploy is only triggered when `SURVEY_DATE` has actually changed — most daily runs find nothing new and simply refresh the cache without publishing anything
+- **Cache Management:** Maintains efficient GitHub Actions cache, automatically cleaning out stale/replaced entries
 
 ---
 
@@ -194,7 +216,7 @@ The dashboard automatically monitors and updates immigration statistics from the
 
 ### Data Deaggregation:
 - Regional Immigration Bureaus (denominated as **出入国在留管理局管内**) are aggregate representations of all data sources in the region; Special Branch Offices which are also responsible for processing are individually noted in the e-Stat data.
-- To account for this, aggregated data is restructured within the Regional Bureau dataset at runtime. This allows for a more accurate representation of the regional bureau's overall processing capacity and prevents unintentional duplication of data.
+- To account for this, aggregated data is restructured within the Regional Bureau dataset once at build time (`scripts/transform-data.mts`), before the client ever loads it. This allows for a more accurate representation of the regional bureau's overall processing capacity and prevents unintentional duplication of data.
 ####
     - Within the Original Dataset:
         - Tokyo Regional Immigration Bureau (東京出入国在留管理局管内) is inclusive of Shinagawa, Yokohama, Narita Airport, and Haneda Airport.
@@ -214,8 +236,8 @@ The dashboard automatically monitors and updates immigration statistics from the
 ####
 
 ### Runtime Processing:
-- **Type Safety:** Full TypeScript implementation with `noImplicitAny` enabled
-- **Centralized Filtering:** Shared `useFilteredData` hook for consistent data operations
+- **Type Safety:** Full TypeScript implementation in strict mode
+- **Centralized Filtering:** Shared `selectData` selector (`src/utils/selectors.ts`), explicit about bureau scope (nationwide, a single bureau, or a per-bureau breakdown) instead of overloading a single "all" value
 - **Performance Optimization:**
   - Memoized calculations to prevent unnecessary re-renders
   - Lazy loading of KaTeX library for mathematical formulas
@@ -240,20 +262,20 @@ The dashboard automatically monitors and updates immigration statistics from the
 ## :building_construction: Architecture & Code Quality
 
 ### TypeScript Implementation
-- **Strict Type Safety:** Enabled `noImplicitAny` for comprehensive type checking
+- **Strict Type Safety:** `strict: true` enabled for comprehensive type checking
 - **Custom Type Definitions:** Explicit types for all immigration data structures
-- **Zero `any` Usage:** Complete elimination of implicit and explicit `any` types
+- **Zero `any` Usage in App Code:** No implicit or explicit `any` in `src/` outside the vendored Bklit library, which retains a handful of internal `any`s (with upstream lint-ignore comments) carried over from its own source
 
 ### Code Organization
-- **Shared Hooks:** Centralized data manipulation (`useFilteredData`, `useImmigrationData`)
-- **Context Providers:** Theme management with localStorage persistence and system preference fallback
+- **Shared Hooks & Selectors:** `useImmigrationData` for fetching, `selectData` (`src/utils/selectors.ts`) for consistent, bureau-scope-aware filtering
+- **Context Providers:** Theme (via `next-themes`) and locale providers, both with persistence and system-preference fallback
 - **Error Boundaries:** Application-level error catching with graceful user feedback
 - **Logger Utility:** Environment-aware logging (development-only verbose logs)
 
 ### Performance Optimizations
 - **React Memoization:** `useMemo` and `useCallback` for expensive calculations
 - **Lazy Loading:** Dynamic imports for heavy dependencies (KaTeX ~100KB)
-- **Single-Pass Filtering:** Centralized filtering eliminates duplicate operations across 6 chart components
+- **Single-Pass Filtering:** Centralized filtering eliminates duplicate operations across all 7 chart components
 - **Pre-computed Data:** Color scales and static configurations calculated once at mount
 
 ### Build Configuration

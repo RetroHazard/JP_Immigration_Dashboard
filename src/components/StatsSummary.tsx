@@ -1,123 +1,162 @@
 // src/components/StatsSummary.tsx
 import { useMemo } from 'react';
 
+import { CircleSlash, FileStack, Hourglass, Percent, Stamp } from 'lucide-react';
 import type React from 'react';
 
+import { applicationOptions } from '../constants/applicationOptions';
 import { STATUS_CODES } from '../constants/statusCodes';
-import { getLatestMonth, useFilteredData } from '../hooks/useFilteredData';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { getBureauLabel } from '../utils/getBureauData';
+import { bureauScopeFromFilter, getAllMonths, selectData } from '../utils/selectors';
+import type { StatDelta } from './common/StatCard';
 import { StatCard } from './common/StatCard';
 
 interface StatsSummaryProps {
   data: ImmigrationData[];
-  filters: { month?: string; type: string; bureau: string };
+  filters: { type: string; bureau: string };
 }
 
+interface MonthStats {
+  totalApplications: number;
+  pending: number;
+  granted: number;
+  denied: number;
+  processed: number;
+  approvalRate: number;
+}
+
+const SPARK_MONTHS = 8;
+
+const statsForRows = (rows: ImmigrationData[]): MonthStats => {
+  const acc = { oldApplications: 0, newApplications: 0, processed: 0, granted: 0, denied: 0, other: 0 };
+  for (const entry of rows) {
+    switch (entry.status) {
+      case STATUS_CODES.OLD_APPLICATIONS:
+        acc.oldApplications += entry.value;
+        break;
+      case STATUS_CODES.NEW_APPLICATIONS:
+        acc.newApplications += entry.value;
+        break;
+      case STATUS_CODES.PROCESSED:
+        acc.processed += entry.value;
+        break;
+      case STATUS_CODES.GRANTED:
+        acc.granted += entry.value;
+        break;
+      case STATUS_CODES.DENIED:
+        acc.denied += entry.value;
+        break;
+      case STATUS_CODES.OTHER:
+        acc.other += entry.value;
+        break;
+    }
+  }
+  const totalApplications = acc.oldApplications + acc.newApplications;
+  return {
+    totalApplications,
+    pending: totalApplications - acc.processed + acc.other,
+    granted: acc.granted,
+    denied: acc.denied,
+    processed: acc.processed,
+    approvalRate: acc.processed ? (acc.granted / acc.processed) * 100 : 0,
+  };
+};
+
+const formatInt = (value: number) => Math.round(value).toLocaleString('en-US');
+const formatPercent = (value: number) => `${value.toFixed(1)}%`;
+
+const deltaOf = (current: number, previous: number | undefined, direction: StatDelta extends null ? never : NonNullable<StatDelta>['direction']): StatDelta =>
+  previous === undefined || previous === 0 ? null : { percent: ((current - previous) / previous) * 100, direction };
+
 export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => {
-  // Get the most recent month from data
-  const selectedMonth = getLatestMonth(data);
+  const monthly = useMemo(() => {
+    const scoped = selectData(data, { scope: bureauScopeFromFilter(filters.bureau), type: filters.type });
+    const months = getAllMonths(scoped).slice(-SPARK_MONTHS);
+    return months.map((month) => statsForRows(scoped.filter((entry) => entry.month === month)));
+  }, [data, filters.bureau, filters.type]);
 
-  // Use shared filter hook with month filter
-  const filteredData = useFilteredData(data, {
-    bureau: filters.bureau,
-    type: filters.type,
-    month: selectedMonth || undefined,
-  });
-
-  const stats = useMemo(() => {
-    if (!filteredData || filteredData.length === 0) return null;
-
-    // Optimize: single reduce instead of 6 separate iterations
-    const { oldApplications, newApplications, processed, granted, denied, other } = filteredData.reduce(
-      (acc, entry) => {
-        switch (entry.status) {
-          case STATUS_CODES.OLD_APPLICATIONS:
-            acc.oldApplications += entry.value;
-            break;
-          case STATUS_CODES.NEW_APPLICATIONS:
-            acc.newApplications += entry.value;
-            break;
-          case STATUS_CODES.PROCESSED:
-            acc.processed += entry.value;
-            break;
-          case STATUS_CODES.GRANTED:
-            acc.granted += entry.value;
-            break;
-          case STATUS_CODES.DENIED:
-            acc.denied += entry.value;
-            break;
-          case STATUS_CODES.OTHER:
-            acc.other += entry.value;
-            break;
-        }
-        return acc;
-      },
-      { oldApplications: 0, newApplications: 0, processed: 0, granted: 0, denied: 0, other: 0 }
+  if (monthly.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+        No data for this combination of filters.
+      </div>
     );
+  }
 
-    const totalApplications = oldApplications + newApplications;
-    const pending = totalApplications - processed + other;
+  const latest = monthly[monthly.length - 1];
+  const previous = monthly.length > 1 ? monthly[monthly.length - 2] : undefined;
+  const bureauLabel = getBureauLabel(filters.bureau);
+  const typeLabel =
+    filters.type !== 'all' ? applicationOptions.find((option) => option.value === filters.type)?.short : undefined;
+  const subtitle = typeLabel ? `${bureauLabel} (${typeLabel})` : bureauLabel;
+  const spark = (pick: (m: MonthStats) => number) => monthly.map(pick);
 
-    return {
-      totalApplications,
-      processed,
-      granted,
-      denied,
-      other,
-      pending,
-      approvalRate: processed ? ((granted / processed) * 100).toFixed(1) : 0,
-    };
-  }, [filteredData]);
-
-  if (!stats) return null;
+  // No wrapping and no horizontal scroll at any viewport: phones get a
+  // filled 2 + 3 mosaic of compact cards - the volume metrics (Total,
+  // Pending) up top, the outcome metrics (Granted, Denied, Approval)
+  // below; from md up the five cards share one row, shrinking evenly
+  // (truncating) instead of overflowing.
+  const row = 'md:min-w-0 md:flex-1';
 
   return (
-    <div className="stat-container">
+    <div className="grid grid-cols-6 gap-2 md:flex md:gap-3">
       <StatCard
+        className={`col-span-3 ${row}`}
         title="Total Applications"
         shortTitle="Total"
-        subtitle={getBureauLabel(filters.bureau)}
-        value={stats.totalApplications.toLocaleString()}
-        color="bg-blue-500"
-        icon="material-symbols:file-copy-outline-rounded"
-        filterType={filters.type}
+        subtitle={subtitle}
+        value={latest.totalApplications}
+        formatValue={formatInt}
+        color="blue"
+        icon={FileStack}
+        delta={deltaOf(latest.totalApplications, previous?.totalApplications, 'neutral')}
+        spark={spark((m) => m.totalApplications)}
       />
       <StatCard
+        className={`col-span-3 ${row}`}
         title="Pending"
-        shortTitle="Pending"
-        subtitle={getBureauLabel(filters.bureau)}
-        value={stats.pending.toLocaleString()}
-        color="bg-yellow-500"
-        icon="material-symbols:pending-actions-rounded"
-        filterType={filters.type}
+        subtitle={subtitle}
+        value={latest.pending}
+        formatValue={formatInt}
+        color="yellow"
+        icon={Hourglass}
+        delta={deltaOf(latest.pending, previous?.pending, 'up-warn')}
+        spark={spark((m) => m.pending)}
       />
       <StatCard
+        className={`col-span-2 ${row}`}
         title="Granted"
-        shortTitle="Granted"
-        subtitle={getBureauLabel(filters.bureau)}
-        value={stats.granted.toLocaleString()}
-        color="bg-green-500"
-        icon="material-symbols:order-approve-rounded"
-        filterType={filters.type}
+        subtitle={subtitle}
+        value={latest.granted}
+        formatValue={formatInt}
+        color="green"
+        icon={Stamp}
+        delta={deltaOf(latest.granted, previous?.granted, 'up-good')}
+        spark={spark((m) => m.granted)}
       />
       <StatCard
+        className={`col-span-2 ${row}`}
         title="Denied"
-        shortTitle="Denied"
-        subtitle={getBureauLabel(filters.bureau)}
-        value={stats.denied.toLocaleString()}
-        color="bg-red-500"
-        icon="material-symbols:cancel-outline-rounded"
-        filterType={filters.type}
+        subtitle={subtitle}
+        value={latest.denied}
+        formatValue={formatInt}
+        color="red"
+        icon={CircleSlash}
+        delta={deltaOf(latest.denied, previous?.denied, 'up-warn')}
+        spark={spark((m) => m.denied)}
       />
       <StatCard
+        className={`col-span-2 ${row}`}
         title="Approval Rate"
-        shortTitle="APV. Rate"
-        subtitle={getBureauLabel(filters.bureau)}
-        value={`${stats.approvalRate}%`}
-        color="bg-gray-500"
-        icon="material-symbols:percent-rounded"
-        filterType={filters.type}
+        shortTitle="Approval"
+        subtitle={subtitle}
+        value={latest.approvalRate}
+        formatValue={formatPercent}
+        color="gray"
+        icon={Percent}
+        delta={deltaOf(latest.approvalRate, previous?.approvalRate, 'up-good')}
+        spark={spark((m) => m.approvalRate)}
       />
     </div>
   );

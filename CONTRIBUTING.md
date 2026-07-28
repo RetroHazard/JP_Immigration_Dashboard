@@ -30,7 +30,7 @@ Be respectful, constructive, and collaborative. We're all here to improve immigr
 
 ### Prerequisites
 
-- **Node.js** — Version 18+ (check `package.json` for exact version requirements)
+- **Node.js** — no `engines` field is pinned in `package.json`; CI runs Node 22 and the deploy workflow runs Node 20, so either is known-working
 - **npm** — Comes with Node.js
 - **Git** — For version control
 
@@ -143,16 +143,19 @@ Follow the existing project structure:
 
 ```
 src/
-├── app/              # Next.js app routes
+├── app/              # Next.js app routes (static export entry points)
 ├── components/       # React components
-│   ├── layouts/      # Layout components
-│   ├── common/       # Reusable components
-│   └── charts/       # Chart components
+│   ├── common/       # Reusable components (StatCard, FilterInput, ...)
+│   ├── charts/       # Chart components (one per chart tab)
+│   ├── ui/           # shadcn/Radix primitives (vendored)
+│   ├── bklit/        # Vendored Bklit UI chart library (visx-based)
+│   └── __tests__/    # Component tests
 ├── hooks/            # Custom React hooks
-├── utils/            # Utility functions
-├── constants/        # Constants and type definitions
-├── contexts/         # React context providers
-└── __tests__/        # Unit tests
+├── utils/            # Utility functions and data selectors (+ __tests__/)
+├── constants/        # Constants (bureaus, application types, status codes, ...)
+├── contexts/         # React context providers (theme)
+├── i18n/             # Locale strings and the locale context
+└── lib/              # Small shared helpers (class-merge, motion)
 ```
 
 ## Testing
@@ -163,22 +166,22 @@ src/
 - File naming: `*.test.ts` or `*.test.tsx`
 - Test data processing functions, hooks, and utilities
 
-Example:
+Example (adapted from the real `src/utils/__tests__/selectors.test.ts`):
 ```typescript
 import { describe, it, expect } from 'vitest';
-import { filterByBureau } from './data-utils';
+import { selectData } from '../selectors';
 
-describe('filterByBureau', () => {
-  it('returns only items matching the bureau', () => {
+describe('selectData bureau scopes', () => {
+  it('bureau scope returns exactly that bureau', () => {
     const data = [
-      { bureau: 'Tokyo', count: 100 },
-      { bureau: 'Osaka', count: 50 },
+      { month: '2025-06', bureau: '101170', type: '20', status: '300000', value: 600 },
+      { month: '2025-06', bureau: '101460', type: '20', status: '300000', value: 400 },
     ];
 
-    const result = filterByBureau(data, 'Tokyo');
+    const result = selectData(data, { scope: { kind: 'bureau', code: '101460' } });
 
     expect(result).toHaveLength(1);
-    expect(result[0].bureau).toBe('Tokyo');
+    expect(result[0].value).toBe(400);
   });
 });
 ```
@@ -207,7 +210,8 @@ When adding a feature or fixing a bug:
    - **Added** — New features
    - **Changed** — Modifications to existing features
    - **Fixed** — Bug fixes
-   - **Security** — Security patches
+
+Dependency/CVE patches aren't user-facing on their own and don't belong here — git history and Dependabot already track those.
 
 Example:
 ```markdown
