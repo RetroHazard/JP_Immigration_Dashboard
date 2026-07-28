@@ -8,7 +8,7 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 - **Localization foundation**: every string in the interface is now translatable —
   - Text, ARIA labels, chart legends and tooltips, table headers, and empty and error states all come from a single catalogue file per language, so adding a language means writing one file rather than editing components. A partial translation is safe to ship: anything left out falls back to English instead of rendering blank
-  - Numbers, percentages, and dates follow the chosen language, including chart axis ticks and tooltips, and counted phrases ("6 months", "± 3 days") use real plural rules rather than an English "s"
+  - Numbers, percentages, and dates follow the chosen language, including chart axis ticks and tooltips, and counted phrases ("6 months", "± 3 days") use real plural rules rather than an English "s". Chart y-axis labels also read better in English as a side effect — a million now shows as "1M" rather than "1000k"
   - The language switcher is rebuilt but stays hidden until a language is actually translated — Japanese is still only a handful of strings. `?lang=ja` continues to work for testing
   - Contributors can add a language without touching the app: see `src/i18n/README.md`
 - **v1.1.0**: Refinements on top of the Civic Glass redesign —

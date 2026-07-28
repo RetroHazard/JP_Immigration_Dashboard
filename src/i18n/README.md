@@ -101,6 +101,10 @@ doesn't inflect.
 | `T.tsx` | For the few sentences that wrap a link or emphasis mid-clause. |
 | `config.ts` | `LOCALE_SWITCHER_ENABLED`, plus the storage and query-param keys. |
 
+Three files under `components/bklit/charts/` are locally modified so chart axis
+ticks and tooltips follow the locale too: `chart-formatters.ts`,
+`chart-stat-flow.tsx`, and `y-axis.tsx`. A re-vendor would overwrite them.
+
 Locale detection runs `?lang=` → `localStorage` → browser language → English.
 The browser step is gated on `LOCALE_SWITCHER_ENABLED`: while the switcher is
 hidden, auto-detecting a language would strand its speakers in a

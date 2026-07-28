@@ -3,6 +3,7 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useChartStable, useYScale } from "./chart-context";
+import { compactFmt, intFmt } from "./chart-formatters";
 import { DEFAULT_Y_DOMAIN_TWEEN_MS } from "./chart-phase";
 import { LINE_LOADING_PULSE_EASE } from "./line-loading-timing";
 import { resolveReferenceDataRange } from "./reference-area-geometry";
@@ -25,7 +26,7 @@ export interface YAxisProps {
    * Clamped to {@link Y_AXIS_MIN_TICK_COUNT}–{@link Y_AXIS_MAX_TICK_COUNT}. Default: 5.
    */
   numTicks?: number;
-  /** Format large numbers (e.g. 1000 as "1k"). Default: true */
+  /** Abbreviate large numbers (e.g. 1000 as "1K"), per the active locale. Default: true */
   formatLargeNumbers?: boolean;
   /** Custom formatter for tick labels (e.g. USD). Overrides formatLargeNumbers when set. */
   formatValue?: (value: number) => string;
@@ -39,10 +40,13 @@ function formatLabel(
   if (formatValue) {
     return formatValue(value);
   }
+  // LOCAL MODIFICATION: upstream hardcodes a `${n / 1000}k` suffix and an
+  // ungrouped String(value), both of which are English-only. Uses the shared
+  // locale-bound formatters instead. Re-apply after a re-vendor.
   if (formatLargeNumbers && value >= 1000) {
-    return `${(value / 1000).toFixed(0)}k`;
+    return compactFmt(value);
   }
-  return String(value);
+  return intFmt(value);
 }
 
 function resolveTickLabelColor(

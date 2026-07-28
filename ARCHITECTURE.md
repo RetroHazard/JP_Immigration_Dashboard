@@ -219,7 +219,7 @@ graph TD
 Every user-visible string resolves through a per-language catalogue; `src/i18n/README.md` is the reference. Two things are worth knowing before working elsewhere in the tree:
 
 - **Domain constants carry no display text.** `bureauOptions`, `applicationOptions`, `japanPrefectures`, and `CHART_COMPONENTS` hold codes, geometry, and capability flags only. Names come from the catalogue, joined back by the hooks in `useDomainLabels.ts`. Consequently a bureau's name can only be resolved inside a component — utilities that need one take a resolver argument (`computeEfficiencyPoints`).
-- **Two vendored Bklit files are locally modified.** `charts/chart-formatters.ts` and `charts/chart-stat-flow.tsx` had their `Intl` locale hardcoded to `en-US` (and, in one case, left to the browser). They now read module state that `LocaleProvider` sets during render. `scripts/vendor-bklit.mjs` would overwrite both — re-apply after a re-vendor. Each file says so at the top.
+- **Three vendored Bklit files are locally modified.** `charts/chart-formatters.ts` and `charts/chart-stat-flow.tsx` had their `Intl` locale hardcoded to `en-US` (and, in one case, left to the browser); `charts/y-axis.tsx` built tick labels with an English `${n / 1000}k` suffix. All three now read module state that `LocaleProvider` sets during render. `scripts/vendor-bklit.mjs` would overwrite them — re-apply after a re-vendor. Each file says so at the point of change.
 
 The language switcher exists but is gated behind `LOCALE_SWITCHER_ENABLED` in `src/i18n/config.ts`, which also gates browser-language detection.
 

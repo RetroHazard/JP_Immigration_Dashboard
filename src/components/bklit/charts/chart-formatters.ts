@@ -27,6 +27,10 @@ let shortDate = new Intl.DateTimeFormat(locale, DATE_OPTIONS);
 let weekdayDate = new Intl.DateTimeFormat(locale, WEEKDAY_OPTIONS);
 let hmsTime = new Intl.DateTimeFormat(locale, TIME_OPTIONS);
 let integer = new Intl.NumberFormat(locale);
+let compact = new Intl.NumberFormat(locale, {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
 
 /** Rebuilds the formatters for a new locale. A no-op if unchanged. */
 export const setChartFormatterLocale = (next: string): void => {
@@ -36,6 +40,10 @@ export const setChartFormatterLocale = (next: string): void => {
   weekdayDate = new Intl.DateTimeFormat(locale, WEEKDAY_OPTIONS);
   hmsTime = new Intl.DateTimeFormat(locale, TIME_OPTIONS);
   integer = new Intl.NumberFormat(locale);
+  compact = new Intl.NumberFormat(locale, {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  });
 };
 
 export const shortDateFmt = {
@@ -51,6 +59,9 @@ export const hmsTimeFmt = {
 };
 
 export const intFmt = (value: number) => integer.format(value);
+
+/** Abbreviated form for cramped axis labels — "200K" in English, "20万" in Japanese. */
+export const compactFmt = (value: number) => compact.format(value);
 
 /** The locale the chart formatters are currently bound to. */
 export const chartFormatterLocale = (): string => locale;

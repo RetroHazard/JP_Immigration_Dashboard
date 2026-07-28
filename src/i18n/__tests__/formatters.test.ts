@@ -1,7 +1,7 @@
 // src/i18n/__tests__/formatters.test.ts
 import { describe, expect, it } from 'vitest';
 
-import { setChartFormatterLocale, shortDateFmt } from '../../components/bklit/charts/chart-formatters';
+import { compactFmt, intFmt, setChartFormatterLocale, shortDateFmt } from '../../components/bklit/charts/chart-formatters';
 import { createFormatters } from '../formatters';
 
 const en = createFormatters('en-US');
@@ -45,6 +45,18 @@ describe('vendored chart formatters', () => {
     setChartFormatterLocale('ja-JP');
     expect(shortDateFmt.format(date)).toBe('9月22日');
     // Restore, so ordering between test files can't leak.
+    setChartFormatterLocale('en-US');
+  });
+
+  it('abbreviates y-axis ticks per locale, replacing the hardcoded "k" suffix', () => {
+    setChartFormatterLocale('en-US');
+    expect(compactFmt(200000)).toBe('200K');
+    // The old `${n / 1000}k` rendered this as the awkward "1000k".
+    expect(compactFmt(1000000)).toBe('1M');
+    expect(intFmt(1234)).toBe('1,234');
+    setChartFormatterLocale('ja-JP');
+    expect(compactFmt(200000)).toBe('20万');
+    expect(compactFmt(1000000)).toBe('100万');
     setChartFormatterLocale('en-US');
   });
 });
