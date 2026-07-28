@@ -9,7 +9,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { animate } from 'animejs';
-import { AlertTriangle, Check, ChevronRight, ChevronsRight, Link as LinkIcon, OctagonAlert, X } from 'lucide-react';
+import {
+  AlertTriangle,
+  Check,
+  ChevronRight,
+  ChevronsRight,
+  Link as LinkIcon,
+  OctagonAlert,
+  RotateCcw,
+  X,
+} from 'lucide-react';
 import type React from 'react';
 import { BlockMath } from 'react-katex';
 
@@ -182,6 +191,16 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
       <div className="flex-between gap-2 border-b border-border p-2">
         <h2 className="section-title min-w-0 truncate">Processing Time Estimator</h2>
         <div className="flex shrink-0 items-center gap-1">
+          <IconTooltip label="Reset the estimator">
+            <button
+              onClick={() => onDetailsChange({ bureau: '', type: '', applicationDate: '' })}
+              disabled={!details.bureau && !details.type && !details.applicationDate}
+              aria-label="Reset the Processing Time Estimator"
+              className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+            >
+              <RotateCcw className="size-4" />
+            </button>
+          </IconTooltip>
           <ShareButton appDetails={details} />
           {onCollapse && (
             <IconTooltip label="Collapse the estimator">
