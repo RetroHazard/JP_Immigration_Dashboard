@@ -1,7 +1,7 @@
 // src/components/DashboardShell.tsx
 // The single responsive shell. Replaces the old always-both-mounted
 // DesktopLayout/MobileLayout pair with one layout tree:
-// - labeled chart tabs (real tablist semantics via Radix)
+// - icon chart tabs, the active one expanding its label (real tablist semantics via Radix)
 // - global filter bar with visible "not used by this view" explanations
 // - the Processing Time Estimator as a permanent sidebar (desktop) or a
 //   bottom sheet (mobile) sharing the same controlled state
@@ -381,16 +381,24 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
             </div>
 
             <Tabs value={activeChart.key} onValueChange={(key) => void setChartKey(key)}>
-              <div className="overflow-x-auto pb-1">
-                <TabsList className="w-max">
-                  {CHART_COMPONENTS.map((chart) => (
-                    <TabsTrigger key={chart.key} value={chart.key} className="gap-1.5">
-                      <chart.icon className="size-4" aria-hidden="true" />
-                      <span className="whitespace-nowrap">{chart.label}</span>
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
+              {/* No horizontal scrolling at any width: inactive tabs collapse to
+                  their icons (title/sr-only keep the names), and only the active
+                  tab expands its label — hidden entirely below sm, where the
+                  chart card's own title carries the name */}
+              <TabsList className="max-sm:w-full sm:w-max">
+                {CHART_COMPONENTS.map((chart) => (
+                  <TabsTrigger key={chart.key} value={chart.key} className="group gap-0" title={chart.label}>
+                    <chart.icon className="size-4" aria-hidden="true" />
+                    <span className="sr-only">{chart.label}</span>
+                    <span
+                      aria-hidden="true"
+                      className="hidden max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-[max-width,opacity,padding] duration-300 group-data-[state=active]:max-w-44 group-data-[state=active]:pl-1.5 group-data-[state=active]:opacity-100 sm:block"
+                    >
+                      {chart.label}
+                    </span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
               {CHART_COMPONENTS.map((chart, index) => (
                 <TabsContent key={chart.key} value={chart.key} className="mt-2">
                   <div className="base-container" data-chart-panel data-animate="card">
