@@ -1,7 +1,12 @@
 // src/i18n/LocaleContext.tsx
 // Lightweight locale scaffold (no routing framework - plays nicely with the
-// static export). Locale precedence: ?lang= param, then localStorage, then
-// the browser language. <html lang> stays in sync.
+// static export). The language switcher is temporarily hidden from the UI
+// (full-coverage localization is a future initiative), so locale detection
+// no longer follows the browser language - that would silently drop
+// Japanese-language visitors into a dashboard that's only translated in a
+// handful of spots, with no switcher left to get back to English. The
+// ?lang= param remains as an explicit, deliberate override for testing.
+// <html lang> stays in sync.
 'use client';
 
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
@@ -23,9 +28,7 @@ const detectLocale = (): Locale => {
   if (typeof window === 'undefined') return 'en';
   const fromUrl = new URLSearchParams(window.location.search).get('lang');
   if (fromUrl === 'ja' || fromUrl === 'en') return fromUrl;
-  const stored = window.localStorage.getItem('locale');
-  if (stored === 'ja' || stored === 'en') return stored;
-  return window.navigator.language.startsWith('ja') ? 'ja' : 'en';
+  return 'en';
 };
 
 export const LocaleProvider = ({ children }: { children: ReactNode }) => {

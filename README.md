@@ -139,17 +139,16 @@ Seven interactive charts, each answering a specific question about the data, wit
 
 ---
 
-### :globe_with_meridians: Localization *(in progress)*
-- A language switcher in the header (desktop) or mobile settings drawer, with an i18n scaffold behind it
-- Japanese translation currently covers a handful of top-level strings (page title, subtitle, estimator header, footer attribution); everything else falls back to English while translation continues
-- Structured so additional languages and full-UI translation can be added without layout changes
+### :globe_with_meridians: Localization *(in progress, switcher hidden)*
+- An i18n scaffold exists (`?lang=ja` for testing), but the language switcher is hidden from the UI until full-coverage translation is ready — Japanese currently only covers a handful of top-level strings (page title, subtitle, estimator header, footer attribution)
+- Structured so additional languages and full-UI translation can be added without layout changes; the switcher returns once localization is a completed feature, not a partial one
 
 ---
 
 ### :iphone: Responsive Design
 - Mobile-friendly with adaptive breakpoints
 - Fluid layout for all screen sizes — no horizontal scrolling anywhere, including the stats summary row
-- Mobile settings drawer for theme, language, and the in-app changelog, which live inline in the header on desktop
+- Mobile settings drawer for theme and the in-app changelog, which live inline in the header on desktop (the language section is hidden for now, see Localization above)
 - Responsive user interface with light/dark mode support
 
 ---

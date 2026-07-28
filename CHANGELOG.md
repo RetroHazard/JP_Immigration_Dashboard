@@ -27,6 +27,7 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Changed
 
+- **v1.1.0**: Hid the language switcher — the Japanese translation only covers a handful of strings so far, and full localization is planned as its own initiative rather than something to expose partially in the meantime.
 - Updated prefectural population data on the Regional Map to the Statistics Bureau of Japan's official October 1, 2024 estimates. ([#52](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/52))
 
 ### Fixed

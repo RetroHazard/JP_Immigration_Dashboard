@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { animate, stagger } from 'animejs';
-import { Calculator, Check, ChevronsLeft, History, Menu, Moon, Sun } from 'lucide-react';
+import { Calculator, ChevronsLeft, History, Menu, Moon, Sun } from 'lucide-react';
 import { parseAsBoolean, parseAsStringLiteral, useQueryState } from 'nuqs';
 import type React from 'react';
 
@@ -53,7 +53,7 @@ interface DashboardShellProps {
 
 export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) => {
   const { isDarkMode, toggleTheme } = useTheme();
-  const { locale, setLocale, t } = useLocale();
+  const { t } = useLocale();
   const searchParams = useSearchParams();
 
   // --- URL state (shareable): active chart, global filters, time range ---
@@ -201,27 +201,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
-              <div
-                className="hidden overflow-hidden rounded-full border border-border text-xs sm:flex"
-                role="group"
-                aria-label="Language"
-              >
-                <button
-                  onClick={() => setLocale('en')}
-                  aria-pressed={locale === 'en'}
-                  className={`px-2.5 py-1.5 transition-colors ${locale === 'en' ? 'bg-primary text-primary-foreground' : 'text-secondary-foreground hover:bg-muted'}`}
-                >
-                  EN
-                </button>
-                <button
-                  onClick={() => setLocale('ja')}
-                  aria-pressed={locale === 'ja'}
-                  lang="ja"
-                  className={`px-2.5 py-1.5 transition-colors ${locale === 'ja' ? 'bg-primary text-primary-foreground' : 'text-secondary-foreground hover:bg-muted'}`}
-                >
-                  日本語
-                </button>
-              </div>
+              {/* Language selector hidden: the i18n scaffold only covers a
+                  handful of strings so far, and offering the switch reads as
+                  a promise the localization isn't ready to keep yet. Revisit
+                  when full-coverage localization becomes its own initiative. */}
               <button
                 onClick={() => setIsChangelogOpen(true)}
                 className="hidden items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-secondary-foreground transition-colors hover:bg-muted sm:flex"
@@ -253,34 +236,6 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                     <SheetTitle className="text-sm">Settings</SheetTitle>
                   </SheetHeader>
                   <div className="space-y-6 overflow-y-auto p-4">
-                    <section aria-label="Language">
-                      <h3 className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Language
-                      </h3>
-                      <div className="mt-2 grid gap-1.5">
-                        {(
-                          [
-                            { code: 'en', label: 'English' },
-                            { code: 'ja', label: '日本語' },
-                          ] as const
-                        ).map((language) => (
-                          <button
-                            key={language.code}
-                            onClick={() => setLocale(language.code)}
-                            aria-pressed={locale === language.code}
-                            lang={language.code}
-                            className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition-colors ${
-                              locale === language.code
-                                ? 'border-primary/40 bg-primary/10 font-semibold text-primary'
-                                : 'border-border text-secondary-foreground hover:bg-muted'
-                            }`}
-                          >
-                            {language.label}
-                            {locale === language.code && <Check className="size-4" aria-hidden="true" />}
-                          </button>
-                        ))}
-                      </div>
-                    </section>
                     <section aria-label="Theme">
                       <h3 className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">Theme</h3>
                       <div className="mt-2 grid grid-cols-2 gap-1.5">
