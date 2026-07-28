@@ -39,7 +39,11 @@ interface StatCardProps {
   className?: string;
 }
 
-const Sparkline: React.FC<{ points: number[]; className?: string }> = ({ points, className }) => {
+const Sparkline: React.FC<{ points: number[]; className?: string; stretch?: boolean }> = ({
+  points,
+  className,
+  stretch,
+}) => {
   if (points.length < 2) return null;
   const max = Math.max(...points);
   const min = Math.min(...points);
@@ -53,8 +57,20 @@ const Sparkline: React.FC<{ points: number[]; className?: string }> = ({ points,
     )
     .join(' ');
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} className={className} aria-hidden="true">
-      <polyline points={coords} fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      {...(stretch ? { preserveAspectRatio: 'none' } : { width: w, height: h })}
+      className={className}
+      aria-hidden="true"
+    >
+      <polyline
+        points={coords}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        vectorEffect="non-scaling-stroke"
+        opacity="0.5"
+      />
     </svg>
   );
 };
@@ -106,6 +122,9 @@ const StatCardComponent: React.FC<StatCardProps> = ({
         </span>
         {spark && <Sparkline points={spark} className="hidden shrink-0 text-chart-1 lg:block" />}
       </div>
+      {/* Compact cards trade the inline sparkline for a full-width one along
+          the bottom, where it doesn't compete with the delta for room */}
+      {spark && <Sparkline points={spark} stretch className="mt-1 h-4 w-full text-chart-1 lg:hidden" />}
     </div>
   );
 };
