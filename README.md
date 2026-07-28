@@ -87,9 +87,8 @@ Seven interactive charts, each answering a specific question about the data, wit
 #### **Processing Efficiency**
 - **Purpose:** Completion rate against intake volume, per bureau.
 - **Features:**
-  - Quadrant scatter: bubble size shows processed volume, and median guides split the plot so high-volume bureaus falling behind stand out — the shaded quadrant is the watch-list
-  - Crosshair guides and a hover card with each bureau's received/processed/completion figures
-  - Rate axis zooms to the data, with a dashed 100%-of-intake reference line
+  - Ranked lollipop: bureaus sorted by completion rate, with stem weight carrying intake volume and a dashed guide at the nationwide rate
+  - Hover card (rows are also keyboard-focusable) with each bureau's received/processed/completion figures
   - Filterable by bureau and application type
   - Configurable cumulative time range
 

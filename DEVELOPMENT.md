@@ -160,8 +160,8 @@ JP_Immigration_Dashboard/
 │   │   │   ├── BureauDistributionRingChart.tsx   # Bklit PieChart (donut)
 │   │   │   ├── CategoryMixTreemap.tsx            # Custom zoomable treemap
 │   │   │   ├── CategoryMixSunburst.tsx           # Alternate sunburst view (same data hierarchy)
-│   │   │   ├── ProcessingEfficiencyQuadrantChart.tsx  # Custom quadrant scatter (d3-scale, raw SVG)
-│   │   │   ├── ProcessingEfficiencyLollipop.tsx  # Alternate ranked lollipop view (same data)
+│   │   │   ├── ProcessingEfficiencyLollipop.tsx  # Custom ranked lollipop (CSS grid rows)
+│   │   │   ├── ProcessingEfficiencyQuadrantChart.tsx  # Alternate quadrant scatter view (same data)
 │   │   │   ├── EfficiencyHoverCard.tsx           # Shared hover card for the efficiency views
 │   │   │   └── GeographicDistributionChart.tsx   # Bklit choropleth (visx + topojson)
 │   │   │

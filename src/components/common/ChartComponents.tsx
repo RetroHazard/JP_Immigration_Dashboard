@@ -3,7 +3,7 @@
 // and allowed time ranges per chart. The shell renders tabs, the card header,
 // and the period selector from this metadata; charts only plot.
 import type { LucideIcon } from 'lucide-react';
-import { BarChart3, ChartScatter, GitFork, Globe2, LayoutDashboard, LineChart as LineChartIcon, PieChart } from 'lucide-react';
+import { BarChart3, ChartBarDecreasing, GitFork, Globe2, LayoutDashboard, LineChart as LineChartIcon, PieChart } from 'lucide-react';
 import type React from 'react';
 
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
@@ -14,7 +14,7 @@ import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineC
 import { GeographicDistributionChart } from '../charts/GeographicDistributionChart';
 import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
 import { OutcomesSankeyChart } from '../charts/OutcomesSankeyChart';
-import { ProcessingEfficiencyQuadrantChart } from '../charts/ProcessingEfficiencyQuadrantChart';
+import { ProcessingEfficiencyLollipop } from '../charts/ProcessingEfficiencyLollipop';
 
 export type { ChartRange };
 
@@ -102,9 +102,9 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
   {
     key: 'efficiency',
     label: 'Processing Efficiency',
-    description: 'Completion rate against intake volume per bureau — quadrants split at the period medians.',
-    icon: ChartScatter,
-    component: ProcessingEfficiencyQuadrantChart,
+    description: 'Bureaus ranked by completion rate — stem weight carries intake volume, with the nationwide rate as a guide.',
+    icon: ChartBarDecreasing,
+    component: ProcessingEfficiencyLollipop,
     filters: { bureau: true, appType: true },
     compare: false,
     ranges: ['latest', '6', '12', '24', '36', 'all'],

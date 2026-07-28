@@ -4,10 +4,6 @@
 // official nationwide completion rate. Rate = processed / received, so the
 // scatter's bubble-size channel is redundant here — the ranking is the
 // message, and labelled rows reflow cleanly at any screen width.
-//
-// NOT currently registered — the quadrant scatter is the live Processing
-// Efficiency view. Same data and props contract; swap the `efficiency` entry
-// in ChartComponents.tsx to switch over.
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';

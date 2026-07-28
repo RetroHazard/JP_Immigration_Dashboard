@@ -143,7 +143,7 @@ graph TD
     OUTCOMES["OutcomesSankeyChart<br/>selectData → Flow by outcome"]
     SHARE["BureauDistributionRingChart<br/>selectData → Sum by bureau"]
     MIX["CategoryMixTreemap<br/>selectData → Hierarchical sum"]
-    EFFICIENCY["ProcessingEfficiencyQuadrantChart<br/>selectData → Calc ratios"]
+    EFFICIENCY["ProcessingEfficiencyLollipop<br/>selectData → Calc ratios"]
     MAP["GeographicDistributionChart<br/>selectData → Aggregate by pref"]
     
     RAW --> INTAKE
@@ -159,13 +159,13 @@ graph TD
     OUTCOMES -.->|Render| VIZ3["Bklit Sankey + Gauge (visx)"]
     SHARE -.->|Render| VIZ4["Bklit PieChart (visx)"]
     MIX -.->|Render| VIZ5["Custom squarified treemap (no charting lib)"]
-    EFFICIENCY -.->|Render| VIZ6["Custom quadrant scatter (d3-scale, raw SVG)"]
+    EFFICIENCY -.->|Render| VIZ6["Custom ranked lollipop (CSS grid rows, no charting lib)"]
     MAP -.->|Render| VIZ7["Bklit Choropleth (visx)"]
 ```
 
 Each chart calls `selectData` independently with its own bureau/type/range selection — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). The one global exception is the airport toggle: when airport offices are excluded, `DashboardShell` runs the array through `excludeAirportData` before it reaches any chart, stat, or table — the airport rows are dropped and their volumes subtracted from the nationwide aggregate row, so totals reflect only the visible bureaus (the estimator keeps the full dataset). `visx` is used inside the vendored Bklit chart library only; the two custom charts (Category Mix Treemap, Processing Efficiency) don't depend on it.
 
-A sibling `CategoryMixSunburst.tsx` renders the same hierarchy (shared `categoryMixTree.ts`) as a sunburst instead of a treemap, and `ProcessingEfficiencyLollipop.tsx` renders the efficiency data (shared `processingEfficiency.ts`) as a ranked lollipop; neither is currently wired into the chart tab registry.
+A sibling `CategoryMixSunburst.tsx` renders the same hierarchy (shared `categoryMixTree.ts`) as a sunburst instead of a treemap, and `ProcessingEfficiencyQuadrantChart.tsx` renders the efficiency data (shared `processingEfficiency.ts`) as a quadrant scatter; neither is currently wired into the chart tab registry.
 
 ## Component Architecture
 
@@ -192,7 +192,7 @@ graph TD
     CHARTS --> OUTCOMES["🔀 OutcomesSankeyChart"]
     CHARTS --> SHARE["🍩 BureauDistributionRingChart"]
     CHARTS --> MIX["🗂️ CategoryMixTreemap"]
-    CHARTS --> EFFICIENCY["🫧 ProcessingEfficiencyQuadrantChart"]
+    CHARTS --> EFFICIENCY["🍭 ProcessingEfficiencyLollipop"]
     CHARTS --> MAP["🗾 GeographicDistributionChart"]
     
     style APP fill:#4CAF50,color:#fff
@@ -237,10 +237,10 @@ Seven chart components, registered in `src/components/common/ChartComponents.tsx
 | OutcomesSankeyChart | Bklit Sankey + Gauge | Application outcomes flow + approval rate |
 | BureauDistributionRingChart | Bklit PieChart | Bureau share of intake |
 | CategoryMixTreemap | Custom squarified treemap (no charting lib) | Applications by type and bureau |
-| ProcessingEfficiencyQuadrantChart | Custom SVG (d3-scale) | Completion rate vs. intake, split into median quadrants |
+| ProcessingEfficiencyLollipop | Custom CSS grid rows (no charting lib) | Bureaus ranked by completion rate, stems weighted by intake |
 | GeographicDistributionChart | Bklit Choropleth (visx) | Geographic distribution |
 
-Two swap-ready alternates live beside them, unwired from the registry: `CategoryMixSunburst.tsx` (the Category Mix hierarchy as a sunburst) and `ProcessingEfficiencyLollipop.tsx` (Processing Efficiency as a ranked lollipop — bureaus sorted by completion rate, stem weight carrying intake volume). Each shares its live sibling's data contract, so swapping is a one-line registry change.
+Two swap-ready alternates live beside them, unwired from the registry: `CategoryMixSunburst.tsx` (the Category Mix hierarchy as a sunburst) and `ProcessingEfficiencyQuadrantChart.tsx` (Processing Efficiency as a quadrant scatter — completion rate against intake volume, split at the period medians, d3-scale + raw SVG). Each shares its live sibling's data contract, so swapping is a one-line registry change.
 
 Each chart:
 - Receives pre-filtered data as props
@@ -367,7 +367,7 @@ graph LR
     UNPACK -->|props, unfiltered| OUTCOMES["OutcomesSankeyChart"]
     UNPACK -->|props, unfiltered| SHARE["BureauDistributionRingChart"]
     UNPACK -->|props, unfiltered| MIX["CategoryMixTreemap"]
-    UNPACK -->|props, unfiltered| EFFICIENCY["ProcessingEfficiencyQuadrantChart"]
+    UNPACK -->|props, unfiltered| EFFICIENCY["ProcessingEfficiencyLollipop"]
     UNPACK -->|props, unfiltered| MAP["GeographicDistributionChart"]
 ```
 

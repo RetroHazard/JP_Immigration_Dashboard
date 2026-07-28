@@ -89,7 +89,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 : 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15'
             }`}
           >
-            <Plane className="size-4" aria-hidden="true" />
+            <span className="relative flex items-center justify-center" aria-hidden="true">
+              <Plane className="size-4" />
+              {/* Crossed out = airports excluded */}
+              {!includeAirports && (
+                <span className="absolute h-[1.5px] w-[22px] rotate-45 rounded-full bg-current" />
+              )}
+            </span>
             <span className="sr-only">{airportsLabel}</span>
           </button>
           <button

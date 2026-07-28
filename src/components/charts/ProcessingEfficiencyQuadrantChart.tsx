@@ -7,6 +7,10 @@
 // reveal, crosshair, and hover card follow the Bklit visual language, and the
 // rate axis zooms to the data (dot marks tolerate a non-zero baseline — the
 // tick labels make the floor explicit).
+//
+// NOT currently registered — the ranked lollipop is the live Processing
+// Efficiency view. Same data and props contract; swap the `efficiency` entry
+// in ChartComponents.tsx to switch over.
 'use client';
 
 import { useEffect, useId, useMemo, useState } from 'react';

@@ -9,7 +9,7 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 - **v1.0.0**: Civic Glass — a complete visual and technical redesign, marking the dashboard's first official production release —
   - Rebuilt on Tailwind CSS v4, shadcn/ui, and a vendored Bklit chart library, with a new design system, dark mode carried through every surface, and Anime.js-driven motion (a single reduced-motion chokepoint for accessibility)
   - Single unified dashboard shell with labeled chart tabs and shareable URL state for filters, chart selection, and the estimator
-  - Two new charts — Outcomes (Sankey flow into granted/denied/other, plus an approval-rate gauge) and Processing Efficiency (a quadrant scatter with median guides that make high-volume bureaus falling behind stand out) — alongside a rebuilt interactive Regional Map and a per-bureau Category Mix view
+  - Two new charts — Outcomes (Sankey flow into granted/denied/other, plus an approval-rate gauge) and Processing Efficiency (bureaus ranked by completion rate against the nationwide pace, with intake volume carried in each bar's weight) — alongside a rebuilt interactive Regional Map and a per-bureau Category Mix view
   - Bureau-to-bureau comparison mode with side-by-side charts
   - A global airport toggle in the filter bar: one click removes the airport branch offices (Narita, Haneda, Kansai, Chubu) from every chart, stat, and table — nationwide totals shrink accordingly instead of quietly still counting them
   - Reworked Processing Time Estimator: collapsible on desktop, a bottom sheet on mobile, a reset button, a LaTeX-rendered formula breakdown, and a shareable permalink for a filled-out estimate
