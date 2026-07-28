@@ -80,7 +80,7 @@ const BureauMarkers: React.FC = () => {
   const { projectPoint, width, height } = useChoropleth();
   const { zoom } = useChoroplethZoom();
   const [hovered, setHovered] = useState<MarkerInfo | null>(null);
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   const bureaus = useBureauOptions();
   const markers: MarkerInfo[] = useMemo(() => {
     const labelByCode = new Map(bureaus.map((bureau) => [bureau.value, bureau.label]));
@@ -133,14 +133,14 @@ const BureauMarkers: React.FC = () => {
           {hovered.population > 0 ? (
             <div className="mt-1 grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 tabular-nums text-muted-foreground">
               <span>{t('map.servicePopulation')}</span>
-              <span className="text-right text-popover-foreground">{hovered.population.toLocaleString()}</span>
+              <span className="text-right text-popover-foreground">{formatters.number(hovered.population)}</span>
               <span>{t('map.serviceArea')}</span>
               <span className="text-right text-popover-foreground">
-                {t('map.areaValue', { value: hovered.area.toLocaleString() })}
+                {t('map.areaValue', { value: formatters.number(hovered.area) })}
               </span>
               <span>{t('metric.density')}</span>
               <span className="text-right text-popover-foreground">
-                {t('map.densityValue', { value: (hovered.population / hovered.area).toFixed(1) })}
+                {t('map.densityValue', { value: formatters.number(Math.round((hovered.population / hovered.area) * 10) / 10) })}
               </span>
             </div>
           ) : (
@@ -177,7 +177,7 @@ const ZoomControls: React.FC = () => {
 };
 
 export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () => {
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   const { isDarkMode } = useTheme();
   const prefectureById = usePrefectureById();
   const bureaus = useBureauOptions();
@@ -299,11 +299,11 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
                     <span>{t('map.serviceBureau')}</span>
                     <span className="text-right">{bureauLabelOf(prefecture.bureau)}</span>
                     <span>{t('metric.population')}</span>
-                    <span className="text-right">{prefecture.population.toLocaleString()}</span>
+                    <span className="text-right">{formatters.number(prefecture.population)}</span>
                     <span>{t('metric.area')}</span>
-                    <span className="text-right">{t('map.areaValue', { value: prefecture.area.toLocaleString() })}</span>
+                    <span className="text-right">{t('map.areaValue', { value: formatters.number(prefecture.area) })}</span>
                     <span>{t('metric.density')}</span>
-                    <span className="text-right">{t('map.densityValue', { value: prefecture.density.toFixed(2) })}</span>
+                    <span className="text-right">{t('map.densityValue', { value: formatters.number(Math.round(prefecture.density * 100) / 100) })}</span>
                   </div>
                 )}
               </div>

@@ -32,7 +32,7 @@ const SLICE_COLORS = [
 
 export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   const bureauLabel = useBureauLabel();
 
   const { slices, total } = useMemo(() => {
@@ -113,7 +113,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
                 {total ? ((slice.value / total) * 100).toFixed(1) : 0}%
               </span>
               <span className="w-16 text-right tabular-nums text-muted-foreground">
-                {slice.value.toLocaleString()}
+                {formatters.number(slice.value)}
               </span>
             </li>
           ))}

@@ -34,7 +34,7 @@ const COLUMNS: { key: DictionaryKey; status: string }[] = [
 
 export const ChartDataTable: React.FC<ChartDataTableProps> = ({ data, filters, range }) => {
   const [open, setOpen] = useState(false);
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   const bureauLabel = useBureauLabel();
 
   const rows = useMemo(() => {
@@ -118,7 +118,7 @@ export const ChartDataTable: React.FC<ChartDataTableProps> = ({ data, filters, r
                   </th>
                   {row.values.map((value, index) => (
                     <td key={COLUMNS[index].key} className="px-3 py-1.5 text-right tabular-nums">
-                      {value.toLocaleString()}
+                      {formatters.number(value)}
                     </td>
                   ))}
                 </tr>

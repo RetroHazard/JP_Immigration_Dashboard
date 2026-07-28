@@ -20,7 +20,7 @@ interface EfficiencyHoverCardProps {
 }
 
 export const EfficiencyHoverCard: React.FC<EfficiencyHoverCardProps> = ({ point, x, y }) => {
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   return createPortal(
   <div
     role="status"
@@ -41,11 +41,11 @@ export const EfficiencyHoverCard: React.FC<EfficiencyHoverCardProps> = ({ point,
     </div>
     <div className="mt-[5px] grid grid-cols-[auto_auto] gap-x-3.5 gap-y-0.5 text-muted-foreground tabular-nums">
       <span>{t('metric.received')}</span>
-      <span className="text-right text-popover-foreground">{point.received.toLocaleString()}</span>
+      <span className="text-right text-popover-foreground">{formatters.number(point.received)}</span>
       <span>{t('metric.processed')}</span>
-      <span className="text-right text-popover-foreground">{point.processed.toLocaleString()}</span>
+      <span className="text-right text-popover-foreground">{formatters.number(point.processed)}</span>
       <span>{t('metric.completion')}</span>
-      <span className="text-right text-popover-foreground">{point.rate.toFixed(1)}%</span>
+      <span className="text-right text-popover-foreground">{formatters.percent(point.rate)}</span>
     </div>
   </div>,
     document.body

@@ -161,7 +161,6 @@ const computeLayout = (tree: MixTree, focusKey: string | null, width: number, he
   return out;
 };
 
-const fmt = (value: number) => value.toLocaleString('en-US');
 const HEIGHT = 430;
 const TILE_TRANSITION =
   'left 0.42s ease-out, top 0.42s ease-out, width 0.42s ease-out, height 0.42s ease-out, opacity 0.42s ease-out, filter 0.15s';
@@ -170,7 +169,8 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
   const tree = useMemo(() => buildCategoryMixTree(data, filters, range), [data, filters, range]);
   // The tree carries codes only, so the tile keys that drive its zoom
   // animation stay language-neutral; display names are resolved here.
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
+  const fmt = formatters.number;
   const applicationType = useApplicationType();
   const getBureauLabel = useBureauLabel();
   const typeLabel = (code: string) => applicationType(code)?.label ?? code;
@@ -317,7 +317,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
                   category.color,
                   t('chart.mix.tooltipValue', {
                     count: fmt(category.value),
-                    percent: `${((category.value / tree.total) * 100).toFixed(1)}%`,
+                    percent: formatters.percent((category.value / tree.total) * 100),
                     scope: t('chart.mix.scopeAll'),
                   })
                 )
@@ -335,7 +335,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
                   <span className="overflow-hidden text-ellipsis">{typeLabel(category.key)}</span>
                   {!compact && (
                     <span className="font-mono text-xxs font-semibold opacity-85">
-                      {((category.value / tree.total) * 100).toFixed(1)}%
+                      {formatters.percent((category.value / tree.total) * 100)}
                     </span>
                   )}
                 </span>
@@ -377,7 +377,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
                     mixLeafColor(category.color, rank),
                     t('chart.mix.tooltipValue', {
                       count: fmt(leaf.value),
-                      percent: `${((leaf.value / base) * 100).toFixed(1)}%`,
+                      percent: formatters.percent((leaf.value / base) * 100),
                       scope: ofLabel,
                     })
                   );
@@ -389,7 +389,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
                     <span>{rest ? t('chart.mix.others') : getBureauLabel(leaf.code)}</span>
                     {!rest && (
                       <span className="font-mono text-xxs font-medium opacity-75">
-                        {fmt(leaf.value)} · {((leaf.value / base) * 100).toFixed(1)}%
+                        {fmt(leaf.value)} · {formatters.percent((leaf.value / base) * 100)}
                       </span>
                     )}
                   </span>

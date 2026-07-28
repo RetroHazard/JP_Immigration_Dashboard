@@ -10,6 +10,7 @@
 
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { setChartFormatterLocale } from '../components/bklit/charts/chart-formatters';
 import { DEFAULT_LOCALE, LOCALE_QUERY_PARAM, LOCALE_STORAGE_KEY, LOCALE_SWITCHER_ENABLED } from './config';
 import type { Formatters } from './formatters';
 import { createFormatters } from './formatters';
@@ -76,6 +77,11 @@ export const LocaleProvider = ({ children }: { children: ReactNode }) => {
   const value = useMemo<LocaleContextValue>(() => {
     const { dictionary, intlTag } = LOCALES[locale];
     const pluralRules = new Intl.PluralRules(intlTag);
+    // The vendored chart library reads its Intl formatters from module state
+    // rather than through props, so point them at this locale before any
+    // chart renders — otherwise the first paint after a switch keeps the old
+    // axis ticks and tooltip dates.
+    setChartFormatterLocale(intlTag);
     return {
       locale,
       setLocale,

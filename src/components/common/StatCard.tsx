@@ -89,7 +89,7 @@ const StatCardComponent: React.FC<StatCardProps> = ({
   spark,
   className,
 }) => {
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   const valueRef = useCountUp(value, formatValue);
   const deltaClass =
     !delta || delta.direction === 'neutral'
@@ -119,7 +119,7 @@ const StatCardComponent: React.FC<StatCardProps> = ({
           <span className={`block truncate text-xxs tabular-nums sm:text-xs ${deltaClass}`}>
             {delta
               ? t('stats.momDelta', {
-                  delta: `${delta.percent >= 0 ? '+' : '−'}${Math.abs(delta.percent).toFixed(1)}%`,
+                  delta: `${delta.percent >= 0 ? '+' : '−'}${formatters.percent(Math.abs(delta.percent))}`,
                 })
               : subtitle}
           </span>

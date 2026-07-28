@@ -100,10 +100,6 @@ const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails 
   );
 };
 
-// "22 Sep 2026" - the compact date form the result panel uses.
-const formatResultDate = (date: Date) =>
-  `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })} ${date.getFullYear()}`;
-
 export const EstimationCard: React.FC<EstimationCardProps> = ({
   data,
   details,
@@ -111,7 +107,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
   onCollapse,
   onClose,
 }) => {
-  const { t, tPlural } = useLocale();
+  const { t, tPlural, formatters } = useLocale();
   const nonAirportBureaus = useNonAirportBureaus();
   const applicationOptions = useApplicationOptions();
   const variableExplanations = useVariableExplanations();
@@ -291,7 +287,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                   estimatedDate.details.isPastDue ? 'text-warning' : 'text-foreground'
                 }`}
               >
-                {formatResultDate(estimatedDate.estimatedDate)}
+                {formatters.mediumDate(estimatedDate.estimatedDate)}
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">{resultNote}</p>
 
@@ -328,7 +324,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                 </div>
                 <div className="mt-1.5 flex justify-between gap-2 text-xxs tabular-nums text-muted-foreground">
                   <span>{t('estimator.queuePosition')}</span>
-                  <span>{t('estimator.aheadOfYou', { count: queue.ahead.toLocaleString('en-US') })}</span>
+                  <span>{t('estimator.aheadOfYou', { count: formatters.number(queue.ahead) })}</span>
                 </div>
               </div>
             </div>

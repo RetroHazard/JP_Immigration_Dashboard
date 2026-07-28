@@ -63,14 +63,13 @@ const statsForRows = (rows: ImmigrationData[]): MonthStats => {
   };
 };
 
-const formatInt = (value: number) => Math.round(value).toLocaleString('en-US');
-const formatPercent = (value: number) => `${value.toFixed(1)}%`;
-
 const deltaOf = (current: number, previous: number | undefined, direction: StatDelta extends null ? never : NonNullable<StatDelta>['direction']): StatDelta =>
   previous === undefined || previous === 0 ? null : { percent: ((current - previous) / previous) * 100, direction };
 
 export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => {
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
+  const formatInt = (value: number) => formatters.number(Math.round(value));
+  const formatPercent = (value: number) => formatters.percent(value);
   const bureauLabel = useBureauLabel();
   const applicationType = useApplicationType();
   const monthly = useMemo(() => {

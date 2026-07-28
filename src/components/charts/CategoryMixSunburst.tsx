@@ -50,7 +50,7 @@ const BreadcrumbTrail: React.FC = () => {
 export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const tree = useMemo(() => buildCategoryMixTree(data, filters, range), [data, filters, range]);
   // The tree carries codes only; display names are resolved here.
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   const applicationType = useApplicationType();
   const getBureauLabel = useBureauLabel();
   const typeLabel = useCallback((code: string) => applicationType(code)?.label ?? code, [applicationType]);
@@ -108,8 +108,8 @@ export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filt
               hoveredArc
                 ? t('chart.mix.sunburstHint', {
                     trail: hoveredArc.trail.join(' › '),
-                    count: hoveredArc.value.toLocaleString(),
-                    percent: `${((hoveredArc.value / tree.total) * 100).toFixed(1)}%`,
+                    count: formatters.number(hoveredArc.value),
+                    percent: formatters.percent((hoveredArc.value / tree.total) * 100),
                   })
                 : hintText
             }

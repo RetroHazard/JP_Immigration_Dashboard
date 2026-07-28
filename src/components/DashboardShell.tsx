@@ -55,7 +55,7 @@ interface DashboardShellProps {
 
 export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) => {
   const { isDarkMode, toggleTheme } = useTheme();
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   const bureauLabel = useBureauLabel();
   const charts = useChartRegistry();
   const applicationType = useApplicationType();
@@ -110,13 +110,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
     const months = [...new Set(data.map((entry) => entry.month))].sort();
     const fmt = (month: string) => {
       const [year, monthNum] = month.split('-');
-      return new Date(Number(year), Number(monthNum) - 1).toLocaleDateString('en-US', {
-        month: 'short',
-        year: 'numeric',
-      });
+      return formatters.monthYear(new Date(Number(year), Number(monthNum) - 1));
     };
     return t('dashboard.coverageRange', { from: fmt(months[0]), to: fmt(months[months.length - 1]) });
-  }, [data, t]);
+  }, [data, t, formatters]);
 
   // Compare mode: a second bureau rendered as a side-by-side small multiple,
   // on views that opt in via the registry (single-view charts like the
@@ -538,11 +535,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
             />{' '}
             ·{' '}
             {t('footer.dataUpdated', {
-              date: new Date(buildInfo.buildDate).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              }),
+              date: formatters.longDate(new Date(buildInfo.buildDate)),
             })}
           </div>
         </div>

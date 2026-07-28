@@ -38,7 +38,7 @@ const NARROW_WIDTH = 500;
 export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const [measureRef, bounds] = useMeasure({ debounce: 10 });
   const isNarrow = bounds.width > 0 && bounds.width < NARROW_WIDTH;
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   const applicationOptions = useApplicationOptions();
   const types = useMemo(() => applicationOptions.filter((option) => option.value !== 'all'), [applicationOptions]);
   const outcomes = useMemo(
@@ -123,7 +123,7 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
         <div className="mx-auto flex w-full max-w-52 shrink-0 flex-col items-center gap-1 lg:mx-0 lg:w-52">
           <Gauge value={approvalRate} centerValue={approvalRate / 100} defaultLabel={t('chart.outcomes.approvalRate')} totalNotches={40} formatOptions={{ style: 'percent', maximumFractionDigits: 1 }} />
           <p className="text-center text-xxs text-muted-foreground">
-            {t('chart.outcomes.ofProcessed', { count: processed.toLocaleString() })}
+            {t('chart.outcomes.ofProcessed', { count: formatters.number(processed) })}
           </p>
         </div>
       </div>

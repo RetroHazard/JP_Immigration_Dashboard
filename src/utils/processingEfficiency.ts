@@ -108,8 +108,6 @@ export function nationwideCompletionRate(
   return received > 0 ? (processed / received) * 100 : null;
 }
 
-export const fmtCount = (value: number): string => (value >= 1000 ? `${Math.round(value / 1000)}k` : `${value}`);
-
 export const median = (values: number[]): number => {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = sorted.length / 2;

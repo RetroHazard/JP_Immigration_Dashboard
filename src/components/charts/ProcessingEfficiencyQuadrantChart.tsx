@@ -25,7 +25,7 @@ import { useLocale } from '../../i18n/LocaleContext';
 import { useBureauLabel } from '../../i18n/useDomainLabels';
 import { useAnimeScope } from '../../lib/motion';
 import type { EfficiencyPoint } from '../../utils/processingEfficiency';
-import { computeEfficiencyPoints, fmtCount, median } from '../../utils/processingEfficiency';
+import { computeEfficiencyPoints, median } from '../../utils/processingEfficiency';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { EfficiencyHoverCard } from './EfficiencyHoverCard';
 
@@ -42,7 +42,7 @@ interface Hover {
 
 export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { isDarkMode } = useTheme();
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   const bureauLabel = useBureauLabel();
   const clipId = `reveal-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const [measureRef, bounds] = useMeasure({ debounce: 10 });
@@ -150,7 +150,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
                   fontSize={10.5}
                   fill="var(--chart-foreground)"
                 >
-                  {tick}%
+                  {formatters.percent(tick, 0)}
                 </text>
               </g>
             ))}
@@ -163,7 +163,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
                 fontSize={10.5}
                 fill="var(--chart-foreground)"
               >
-                {fmtCount(tick)}
+                {formatters.compactNumber(tick)}
               </text>
             ))}
             <text
