@@ -93,16 +93,16 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
   const spark = (pick: (m: MonthStats) => number) => monthly.map(pick);
 
   // No wrapping and no horizontal scroll at any viewport: phones get a
-  // filled 3 + 2 mosaic of compact cards; from md up the five cards share
-  // one row, shrinking evenly (truncating) instead of overflowing.
-  // The mosaic reorders via CSS only - Total/Pending/Approval on top,
-  // Granted/Denied below - while the md+ row keeps the DOM order.
-  const row = 'md:order-none md:min-w-0 md:flex-1';
+  // filled 2 + 3 mosaic of compact cards - the volume metrics (Total,
+  // Pending) up top, the outcome metrics (Granted, Denied, Approval)
+  // below; from md up the five cards share one row, shrinking evenly
+  // (truncating) instead of overflowing.
+  const row = 'md:min-w-0 md:flex-1';
 
   return (
     <div className="grid grid-cols-6 gap-2 md:flex md:gap-3">
       <StatCard
-        className={`order-1 col-span-2 ${row}`}
+        className={`col-span-3 ${row}`}
         title="Total Applications"
         shortTitle="Total"
         subtitle={subtitle}
@@ -114,7 +114,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         spark={spark((m) => m.totalApplications)}
       />
       <StatCard
-        className={`order-2 col-span-2 ${row}`}
+        className={`col-span-3 ${row}`}
         title="Pending"
         subtitle={subtitle}
         value={latest.pending}
@@ -125,7 +125,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         spark={spark((m) => m.pending)}
       />
       <StatCard
-        className={`order-4 col-span-3 ${row}`}
+        className={`col-span-2 ${row}`}
         title="Granted"
         subtitle={subtitle}
         value={latest.granted}
@@ -136,7 +136,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         spark={spark((m) => m.granted)}
       />
       <StatCard
-        className={`order-5 col-span-3 ${row}`}
+        className={`col-span-2 ${row}`}
         title="Denied"
         subtitle={subtitle}
         value={latest.denied}
@@ -147,7 +147,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         spark={spark((m) => m.denied)}
       />
       <StatCard
-        className={`order-3 col-span-2 ${row}`}
+        className={`col-span-2 ${row}`}
         title="Approval Rate"
         shortTitle="Approval"
         subtitle={subtitle}
