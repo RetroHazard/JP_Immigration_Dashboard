@@ -29,6 +29,9 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 ### Fixed
 
 - Fixed aggregate bureaus (Osaka, Fukuoka, Nagoya, Shinagawa) briefly showing inflated processing-time estimates when a branch office's data hadn't been published yet for the period. ([#44](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/44))
+- Fixed the estimator's formula breakdown listing its steps in reverse — the final calculation was shown first, ahead of the values it depends on.
+- Fixed the filter bar's controls wrapping and crowding each other at the layout widths where the estimator sidebar narrows the panel.
+- Fixed the outcomes Sankey chart's layout breaking down on narrow and mobile viewports.
 
 ## 2026-02
 
