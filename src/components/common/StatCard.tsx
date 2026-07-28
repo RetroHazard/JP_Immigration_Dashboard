@@ -34,6 +34,7 @@ interface StatCardProps {
   icon: LucideIcon;
   delta?: StatDelta;
   spark?: number[];
+  className?: string;
 }
 
 const Sparkline: React.FC<{ points: number[]; className?: string }> = ({ points, className }) => {
@@ -65,6 +66,7 @@ const StatCardComponent: React.FC<StatCardProps> = ({
   icon: Icon,
   delta,
   spark,
+  className,
 }) => {
   const valueRef = useCountUp(value, formatValue);
   const deltaClass =
@@ -75,7 +77,9 @@ const StatCardComponent: React.FC<StatCardProps> = ({
         : 'text-warning';
 
   return (
-    <div className="relative flex flex-col gap-0.5 overflow-hidden rounded-xl border border-border bg-card p-3 shadow-soft transition-shadow hover:shadow-soft-lg md:p-4">
+    <div
+      className={`relative flex flex-col gap-0.5 overflow-hidden rounded-xl border border-border bg-card p-3 shadow-soft transition-shadow hover:shadow-soft-lg md:p-4 ${className ?? ''}`}
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="truncate text-xxs font-semibold uppercase tracking-wider text-muted-foreground sm:text-xs">
           {title}
