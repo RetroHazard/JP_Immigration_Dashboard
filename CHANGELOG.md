@@ -29,12 +29,6 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 - Fixed aggregate bureaus (Osaka, Fukuoka, Nagoya, Shinagawa) briefly showing inflated processing-time estimates when a branch office's data hadn't been published yet for the period. ([#44](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/44))
 
-## 2026-06
-
-### Security
-
-- Upgraded Next.js (15.5.19) and PostCSS (8.5.15) to address Dependabot security alerts (Next.js middleware/server-components/image-optimization CVEs; a PostCSS CSS-stringify XSS). The affected code paths don't apply to this app's static export in production, but the upgrade hardens the dev server and clears the alerts. ([#42](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/42))
-
 ## 2026-02
 
 ### Added
