@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { animate, stagger } from 'animejs';
-import { Calculator, ChevronsLeft, History, Moon, Sun } from 'lucide-react';
+import { Calculator, Check, ChevronsLeft, History, Menu, Moon, Sun } from 'lucide-react';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 import type React from 'react';
 
@@ -128,6 +128,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
     window.localStorage.setItem('estimator-collapsed', collapsed ? '1' : '0');
   };
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+  // Mobile settings drawer: below sm the language, theme, and changelog
+  // controls collapse into it rather than vanishing.
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // One-time entrance: header cards cascade in.
   const motionRoot = useAnimeScope<HTMLDivElement>(() => {
@@ -213,11 +216,103 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               <button
                 onClick={toggleTheme}
                 aria-label={isDarkMode ? 'Switch to light theme' : 'Switch to dark theme'}
-                className="flex size-9 items-center justify-center rounded-full border border-border text-secondary-foreground transition-colors hover:bg-muted"
+                className="hidden size-9 items-center justify-center rounded-full border border-border text-secondary-foreground transition-colors hover:bg-muted sm:flex"
               >
                 <Sun className="size-4 dark:hidden" aria-hidden="true" />
                 <Moon className="hidden size-4 dark:block" aria-hidden="true" />
               </button>
+
+              {/* Mobile: the controls above collapse into a settings drawer */}
+              <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                <SheetTrigger asChild>
+                  <button
+                    aria-label="Open the settings menu"
+                    className="flex size-9 items-center justify-center rounded-full border border-border text-secondary-foreground transition-colors hover:bg-muted sm:hidden"
+                  >
+                    <Menu className="size-4" aria-hidden="true" />
+                  </button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-72 gap-0 p-0">
+                  <SheetHeader className="border-b border-border">
+                    <SheetTitle className="text-sm">Settings</SheetTitle>
+                  </SheetHeader>
+                  <div className="space-y-6 overflow-y-auto p-4">
+                    <section aria-label="Language">
+                      <h3 className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Language
+                      </h3>
+                      <div className="mt-2 grid gap-1.5">
+                        {(
+                          [
+                            { code: 'en', label: 'English' },
+                            { code: 'ja', label: '日本語' },
+                          ] as const
+                        ).map((language) => (
+                          <button
+                            key={language.code}
+                            onClick={() => setLocale(language.code)}
+                            aria-pressed={locale === language.code}
+                            lang={language.code}
+                            className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition-colors ${
+                              locale === language.code
+                                ? 'border-primary/40 bg-primary/10 font-semibold text-primary'
+                                : 'border-border text-secondary-foreground hover:bg-muted'
+                            }`}
+                          >
+                            {language.label}
+                            {locale === language.code && <Check className="size-4" aria-hidden="true" />}
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                    <section aria-label="Theme">
+                      <h3 className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">Theme</h3>
+                      <div className="mt-2 grid grid-cols-2 gap-1.5">
+                        <button
+                          onClick={() => isDarkMode && toggleTheme()}
+                          aria-pressed={!isDarkMode}
+                          className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                            !isDarkMode
+                              ? 'border-primary/40 bg-primary/10 font-semibold text-primary'
+                              : 'border-border text-secondary-foreground hover:bg-muted'
+                          }`}
+                        >
+                          <Sun className="size-4" aria-hidden="true" />
+                          Light
+                        </button>
+                        <button
+                          onClick={() => !isDarkMode && toggleTheme()}
+                          aria-pressed={isDarkMode}
+                          className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                            isDarkMode
+                              ? 'border-primary/40 bg-primary/10 font-semibold text-primary'
+                              : 'border-border text-secondary-foreground hover:bg-muted'
+                          }`}
+                        >
+                          <Moon className="size-4" aria-hidden="true" />
+                          Dark
+                        </button>
+                      </div>
+                    </section>
+                    <section aria-label="About">
+                      <h3 className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">About</h3>
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          setIsChangelogOpen(true);
+                        }}
+                        className="mt-2 flex w-full items-center justify-between rounded-lg border border-border px-3 py-2 text-sm text-secondary-foreground transition-colors hover:bg-muted"
+                      >
+                        <span className="flex items-center gap-2">
+                          <History className="size-4" aria-hidden="true" />
+                          Changelog
+                        </span>
+                        <span className="text-xs text-muted-foreground">v{buildInfo.buildVersion}</span>
+                      </button>
+                    </section>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
@@ -294,7 +389,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                         <div className={compareBureau ? 'grid gap-x-4 gap-y-4 md:grid-cols-2' : undefined}>
                           <div className="min-w-0">
                             {compareBureau && (
-                              <p className="mb-1 text-xs font-semibold text-secondary-foreground">
+                              <p className="mb-1 hidden text-xs font-semibold text-secondary-foreground md:block">
                                 {getBureauLabel(effectiveFilters.bureau)}
                               </p>
                             )}
@@ -305,8 +400,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                               range={range}
                             />
                           </div>
+                          {/* The comparison pane follows its control: both are
+                              hidden below md, where a side-by-side has no room */}
                           {compareBureau && (
-                            <div className="min-w-0 border-t border-border pt-3 md:border-l md:border-t-0 md:pl-4 md:pt-0">
+                            <div className="hidden min-w-0 md:block md:border-l md:border-border md:pl-4">
                               <p className="mb-1 text-xs font-semibold text-secondary-foreground">
                                 {getBureauLabel(compareBureau)} <span className="font-normal text-muted-foreground">(comparison)</span>
                               </p>
