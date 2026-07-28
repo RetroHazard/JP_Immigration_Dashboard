@@ -66,7 +66,22 @@ export const en = {
   'stats.scopeWithType': '{bureau} ({type})',
   // "MoM" = month over month; the delta is already signed and formatted.
   'stats.momDelta': '{delta} MoM',
-  'stats.empty': 'No data for this combination of filters.',
+
+  // ── Shared vocabulary ────────────────────────────────────────────────────
+  // Metric names reused across the table, chart legends, and hover cards.
+  'metric.carriedOver': 'Carried over',
+  'metric.pending': 'Pending (carried over)',
+  'metric.received': 'Received',
+  'metric.processed': 'Processed',
+  'metric.granted': 'Granted',
+  'metric.denied': 'Denied',
+  'metric.other': 'Other',
+  'metric.completion': 'Completion',
+  'metric.applications': 'Applications',
+  'metric.population': 'Population',
+  'metric.area': 'Area',
+  'metric.density': 'Density',
+  'common.noDataForFilters': 'No data for this combination of filters.',
 
   // ── Data table ───────────────────────────────────────────────────────────
   'table.view': 'View data table',
@@ -74,12 +89,6 @@ export const en = {
   'table.downloadCsv': 'Download CSV',
   'table.caption': 'Monthly application statistics for {bureau}',
   'table.month': 'Month',
-  'table.carriedOver': 'Carried over',
-  'table.received': 'Received',
-  'table.processed': 'Processed',
-  'table.granted': 'Granted',
-  'table.denied': 'Denied',
-  'table.other': 'Other',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Processing Time Estimator',
@@ -153,6 +162,104 @@ export const en = {
   'estimator.formula.var.nApp.description': 'Estimated applications received prior to submission.',
   'estimator.formula.var.pApp.title': 'Processed Applications',
   'estimator.formula.var.pApp.description': 'Estimated applications processed prior to submission.',
+
+  // ── Charts: registry ─────────────────────────────────────────────────────
+  // `.label` names the tab and the card heading, `.description` is the card
+  // subtitle, `.aria` describes the graphic to a screen reader.
+  'charts.intake.label': 'Intake & Processing',
+  'charts.intake.description':
+    'Applications carried over and received each month, against the volume the bureaus completed.',
+  'charts.intake.aria':
+    'Stacked bars of pending and received applications per month, with processed volume as a line',
+  'charts.types.label': 'Application Types',
+  'charts.types.description':
+    'Monthly new submissions broken down by application type — click a legend entry to toggle a series.',
+  'charts.types.aria': 'Line chart of monthly new submissions per application type',
+  'charts.outcomes.label': 'Outcomes',
+  'charts.outcomes.description': 'Where applications end up: each type’s flow into granted, denied, or other outcomes.',
+  'charts.outcomes.aria': 'Sankey diagram of application types flowing to outcomes',
+  'charts.share.label': 'Bureau Share',
+  'charts.share.description': 'Where applications were filed: each bureau’s share of total intake.',
+  'charts.share.aria': "Donut chart of each bureau's share of received applications",
+  'charts.mix.label': 'Category Mix',
+  'charts.mix.description': 'All applications by type and bureau — click a category to zoom into its breakdown.',
+  'charts.efficiency.label': 'Processing Efficiency',
+  'charts.efficiency.description':
+    'Bureaus ranked by completion rate — stem weight carries intake volume, with the nationwide rate as a guide.',
+  'charts.efficiency.aria': 'Bureaus ranked by completion rate, with intake volume as stem weight',
+  'charts.map.label': 'Regional Map',
+  'charts.map.description': 'Bureau service areas and population density, with bureau and airport office locations.',
+  // Alternate views, kept swap-ready but not currently registered.
+  'charts.mixSunburst.aria': 'Sunburst of applications by type and bureau; interactive drill-down',
+  'charts.efficiencyQuadrant.aria':
+    'Quadrant chart of completion rate against received volume per bureau; bubble size shows processed volume',
+
+  // ── Charts: shared ───────────────────────────────────────────────────────
+  'chart.legendShow': 'Show {series}',
+  'chart.legendHide': 'Hide {series}',
+  'chart.allSeriesHidden': 'All series hidden — click a legend entry to show one.',
+
+  // ── Chart: Application Types ─────────────────────────────────────────────
+  // Compact per-type series names. Deliberately separate from
+  // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
+  'chart.types.series.acquisition': 'Acquisition',
+  'chart.types.series.extension': 'Extension',
+  'chart.types.series.change': 'Change of Status',
+  'chart.types.series.activity': 'Activity Permission',
+  'chart.types.series.reentry': 'Re-entry',
+  'chart.types.series.permanent': 'Permanent Residence',
+
+  // ── Chart: Outcomes ──────────────────────────────────────────────────────
+  'chart.outcomes.otherWithdrawn': 'Other / Withdrawn',
+  'chart.outcomes.valueUnit': 'applications',
+  'chart.outcomes.tooltipValueLabel': 'Applications',
+  'chart.outcomes.approvalRate': 'Approval rate',
+  'chart.outcomes.ofProcessed': 'of {count} processed applications',
+  'chart.outcomes.empty': 'No processed applications in this period.',
+
+  // ── Chart: Bureau Share ──────────────────────────────────────────────────
+  'chart.share.otherSlice': 'Other ({count})',
+
+  // ── Chart: Category Mix ──────────────────────────────────────────────────
+  'chart.mix.root': 'All applications',
+  'chart.mix.breadcrumbAria': 'Treemap drill-down path',
+  'chart.mix.zoomInHint': 'Click a category to zoom in',
+  'chart.mix.zoomOutHint': 'Click the background (or press Esc) to zoom out',
+  'chart.mix.others': 'Others',
+  'chart.mix.categoryAria': '{category}: {count} applications. Zoom in.',
+  'chart.mix.tooltipValue': '{count} applications · {percent} of {scope}',
+  'chart.mix.scopeAll': 'all applications',
+  'chart.mix.sunburstHint': '{trail} — {count} applications ({percent} of total)',
+
+  // ── Chart: Processing Efficiency ─────────────────────────────────────────
+  'chart.efficiency.branchOffice': 'branch office',
+  'chart.efficiency.receivedCount': '{count} received',
+  'chart.efficiency.nationwide': 'Nationwide {rate}',
+  'chart.efficiency.pointAria': '{bureau}: {rate} percent completion, {count} applications received',
+  'chart.efficiency.xAxis': 'Applications received',
+  'chart.efficiency.fullCompletion': '100% of intake completed',
+  'chart.efficiency.quadrantKeepingPace': 'HIGH VOLUME · KEEPING PACE',
+  'chart.efficiency.quadrantFallingBehind': 'HIGH VOLUME · FALLING BEHIND',
+
+  // ── Chart: Regional Map ──────────────────────────────────────────────────
+  'map.bureauMarkerAria': '{bureau} bureau',
+  'map.airportMarkerAria': '{bureau} airport office',
+  'map.bureauSuffix': '{bureau} Bureau',
+  'map.airportSuffix': '{bureau} Airport Office',
+  'map.servicePopulation': 'Service population',
+  'map.serviceArea': 'Service area',
+  'map.serviceBureau': 'Service bureau',
+  'map.portOfEntry': 'Port-of-entry office',
+  'map.legendNote': 'Color = service bureau · intensity = population density',
+  'map.bureau': 'Bureau',
+  'map.airportOffice': 'Airport office',
+  'map.zoomIn': 'Zoom in',
+  'map.zoomOut': 'Zoom out',
+  'map.resetView': 'Reset view',
+  'map.loadError': 'Unable to load the map data. Try reloading the page.',
+  'map.loading': 'Loading Map Data...',
+  'map.areaValue': '{value} km²',
+  'map.densityValue': '{value} /km²',
 
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': 'Changelog',

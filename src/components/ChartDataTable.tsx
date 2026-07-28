@@ -24,12 +24,12 @@ interface ChartDataTableProps {
 }
 
 const COLUMNS: { key: DictionaryKey; status: string }[] = [
-  { key: 'table.carriedOver', status: STATUS_CODES.OLD_APPLICATIONS },
-  { key: 'table.received', status: STATUS_CODES.NEW_APPLICATIONS },
-  { key: 'table.processed', status: STATUS_CODES.PROCESSED },
-  { key: 'table.granted', status: STATUS_CODES.GRANTED },
-  { key: 'table.denied', status: STATUS_CODES.DENIED },
-  { key: 'table.other', status: STATUS_CODES.OTHER },
+  { key: 'metric.carriedOver', status: STATUS_CODES.OLD_APPLICATIONS },
+  { key: 'metric.received', status: STATUS_CODES.NEW_APPLICATIONS },
+  { key: 'metric.processed', status: STATUS_CODES.PROCESSED },
+  { key: 'metric.granted', status: STATUS_CODES.GRANTED },
+  { key: 'metric.denied', status: STATUS_CODES.DENIED },
+  { key: 'metric.other', status: STATUS_CODES.OTHER },
 ];
 
 export const ChartDataTable: React.FC<ChartDataTableProps> = ({ data, filters, range }) => {

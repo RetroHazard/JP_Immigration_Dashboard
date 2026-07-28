@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
 
+import { useLocale } from '../../i18n/LocaleContext';
 import { useApplicationType, useBureauLabel } from '../../i18n/useDomainLabels';
 import type { MixTree } from '../../utils/categoryMixTree';
 import { buildCategoryMixTree, mixLeafColor } from '../../utils/categoryMixTree';
@@ -169,6 +170,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
   const tree = useMemo(() => buildCategoryMixTree(data, filters, range), [data, filters, range]);
   // The tree carries codes only, so the tile keys that drive its zoom
   // animation stay language-neutral; display names are resolved here.
+  const { t } = useLocale();
   const applicationType = useApplicationType();
   const getBureauLabel = useBureauLabel();
   const typeLabel = (code: string) => applicationType(code)?.label ?? code;
@@ -246,7 +248,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
   if (tree.total === 0) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
-        No data for this combination of filters.
+        {t('common.noDataForFilters')}
       </div>
     );
   }
@@ -267,13 +269,13 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
   return (
     <div className="card-content">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground" aria-label="Treemap drill-down path">
+        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground" aria-label={t('chart.mix.breadcrumbAria')}>
           <button
             onClick={zoomOut}
             disabled={focusKey === null}
             className="rounded font-medium text-primary hover:opacity-80 disabled:font-semibold disabled:text-foreground"
           >
-            All applications
+            {t('chart.mix.root')}
           </button>
           {focused && (
             <>
@@ -283,7 +285,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
           )}
         </nav>
         <span className="text-xxs text-muted-foreground">
-          {focusKey === null ? 'Click a category to zoom in' : 'Click the background (or press Esc) to zoom out'}
+          {t(focusKey === null ? 'chart.mix.zoomInHint' : 'chart.mix.zoomOutHint')}
         </span>
       </div>
       <div
@@ -299,7 +301,10 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
           return (
             <button
               key={category.key}
-              aria-label={`${typeLabel(category.key)}: ${fmt(category.value)} applications. Zoom in.`}
+              aria-label={t('chart.mix.categoryAria', {
+                category: typeLabel(category.key),
+                count: fmt(category.value),
+              })}
               onClick={(event) => {
                 event.stopPropagation();
                 hideTip();
@@ -310,7 +315,11 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
                   event,
                   typeLabel(category.key),
                   category.color,
-                  `${fmt(category.value)} applications · ${((category.value / tree.total) * 100).toFixed(1)}% of all applications`
+                  t('chart.mix.tooltipValue', {
+                    count: fmt(category.value),
+                    percent: `${((category.value / tree.total) * 100).toFixed(1)}%`,
+                    scope: t('chart.mix.scopeAll'),
+                  })
                 )
               }
               onMouseLeave={hideTip}
@@ -361,19 +370,23 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
                 onMouseMove={(event) => {
                   event.stopPropagation();
                   if (rest) return;
-                  const ofLabel = focusKey === category.key ? typeLabel(category.key) : 'all applications';
+                  const ofLabel = focusKey === category.key ? typeLabel(category.key) : t('chart.mix.scopeAll');
                   showTip(
                     event,
                     `${getBureauLabel(leaf.code)} · ${typeShort(category.key)}`,
                     mixLeafColor(category.color, rank),
-                    `${fmt(leaf.value)} applications · ${((leaf.value / base) * 100).toFixed(1)}% of ${ofLabel}`
+                    t('chart.mix.tooltipValue', {
+                      count: fmt(leaf.value),
+                      percent: `${((leaf.value / base) * 100).toFixed(1)}%`,
+                      scope: ofLabel,
+                    })
                   );
                 }}
                 onMouseLeave={hideTip}
               >
                 {showLabel && (
                   <span className="flex flex-col px-2 py-1 text-xs font-semibold leading-tight">
-                    <span>{rest ? 'Others' : getBureauLabel(leaf.code)}</span>
+                    <span>{rest ? t('chart.mix.others') : getBureauLabel(leaf.code)}</span>
                     {!rest && (
                       <span className="font-mono text-xxs font-medium opacity-75">
                         {fmt(leaf.value)} · {((leaf.value / base) * 100).toFixed(1)}%

@@ -10,6 +10,8 @@
 
 import { useMemo } from 'react';
 
+import type { ChartDefinition } from '../components/common/ChartComponents';
+import { CHART_COMPONENTS } from '../components/common/ChartComponents';
 import type { ApplicationOption } from '../constants/applicationOptions';
 import { applicationOptions } from '../constants/applicationOptions';
 import type { BureauOption } from '../constants/bureauOptions';
@@ -34,6 +36,27 @@ export interface LabeledApplicationType extends ApplicationOption {
 export interface LabeledPrefecture extends Prefecture {
   name: string;
 }
+
+export interface LabeledChart extends ChartDefinition {
+  /** Canonical display name, used by the tab AND the card header. */
+  label: string;
+  /** One sentence: what question this chart answers. */
+  description: string;
+}
+
+/** The chart registry with its tab labels and card subtitles resolved. */
+export const useChartRegistry = (): LabeledChart[] => {
+  const { t } = useLocale();
+  return useMemo(
+    () =>
+      CHART_COMPONENTS.map((chart) => ({
+        ...chart,
+        label: t(`charts.${chart.key}.label` as DictionaryKey),
+        description: t(`charts.${chart.key}.description` as DictionaryKey),
+      })),
+    [t]
+  );
+};
 
 /** Every bureau, including the `all` nationwide aggregate, with its names. */
 export const useBureauOptions = (): LabeledBureau[] => {

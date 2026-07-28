@@ -82,7 +82,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
   if (monthly.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-        {t('stats.empty')}
+        {t('common.noDataForFilters')}
       </div>
     );
   }

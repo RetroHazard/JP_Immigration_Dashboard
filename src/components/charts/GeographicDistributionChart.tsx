@@ -16,6 +16,7 @@ import type { Topology } from 'topojson-specification';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../i18n/LocaleContext';
 import { useBureauLabel, useBureauOptions, usePrefectureById } from '../../i18n/useDomainLabels';
 import { visibleBureauColor, withAlpha } from '../../utils/bureauColors';
 import { AIRPORT_BUREAU_CODES } from '../../utils/getBureauData';
@@ -79,6 +80,7 @@ const BureauMarkers: React.FC = () => {
   const { projectPoint, width, height } = useChoropleth();
   const { zoom } = useChoroplethZoom();
   const [hovered, setHovered] = useState<MarkerInfo | null>(null);
+  const { t } = useLocale();
   const bureaus = useBureauOptions();
   const markers: MarkerInfo[] = useMemo(() => {
     const labelByCode = new Map(bureaus.map((bureau) => [bureau.value, bureau.label]));
@@ -102,7 +104,9 @@ const BureauMarkers: React.FC = () => {
         return (
           <button
             key={marker.code}
-            aria-label={`${marker.label} ${marker.isAirport ? 'airport office' : 'bureau'}`}
+            aria-label={t(marker.isAirport ? 'map.airportMarkerAria' : 'map.bureauMarkerAria', {
+              bureau: marker.label,
+            })}
             className={`pointer-events-auto absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border shadow-soft transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-ring ${
               marker.isAirport
                 ? 'size-5 border-border bg-card text-secondary-foreground'
@@ -122,22 +126,25 @@ const BureauMarkers: React.FC = () => {
         <div className="pointer-events-none absolute bottom-2 left-2 z-10 rounded-lg border border-border bg-popover/95 px-3 py-2 text-xs text-popover-foreground shadow-soft-lg backdrop-blur">
           <div className="flex items-center gap-1.5 font-semibold">
             {hovered.isAirport ? <Plane className="size-3.5" /> : <Building2 className="size-3.5" />}
-            {hovered.label}
-            {hovered.isAirport ? ' Airport Office' : ' Bureau'}
+            {/* One entry per shape rather than a name plus an appended
+                 word: the office type precedes the name in many languages. */}
+            {t(hovered.isAirport ? 'map.airportSuffix' : 'map.bureauSuffix', { bureau: hovered.label })}
           </div>
           {hovered.population > 0 ? (
             <div className="mt-1 grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 tabular-nums text-muted-foreground">
-              <span>Service population</span>
+              <span>{t('map.servicePopulation')}</span>
               <span className="text-right text-popover-foreground">{hovered.population.toLocaleString()}</span>
-              <span>Service area</span>
-              <span className="text-right text-popover-foreground">{hovered.area.toLocaleString()} km²</span>
-              <span>Density</span>
+              <span>{t('map.serviceArea')}</span>
               <span className="text-right text-popover-foreground">
-                {(hovered.population / hovered.area).toFixed(1)} /km²
+                {t('map.areaValue', { value: hovered.area.toLocaleString() })}
+              </span>
+              <span>{t('metric.density')}</span>
+              <span className="text-right text-popover-foreground">
+                {t('map.densityValue', { value: (hovered.population / hovered.area).toFixed(1) })}
               </span>
             </div>
           ) : (
-            <div className="mt-1 text-muted-foreground">Port-of-entry office</div>
+            <div className="mt-1 text-muted-foreground">{t('map.portOfEntry')}</div>
           )}
         </div>
       )}
@@ -147,21 +154,22 @@ const BureauMarkers: React.FC = () => {
 
 /** Zoom controls using the chart's own zoom instance (labeled, iconized). */
 const ZoomControls: React.FC = () => {
+  const { t } = useLocale();
   const { zoom } = useChoroplethZoom();
   if (!zoom) return null;
   return (
     <div className="absolute right-2 top-2 flex flex-col gap-1.5">
-      <button onClick={() => zoom.scale({ scaleX: 1.4, scaleY: 1.4 })} className="zoom-button" aria-label="Zoom in">
+      <button onClick={() => zoom.scale({ scaleX: 1.4, scaleY: 1.4 })} className="zoom-button" aria-label={t('map.zoomIn')}>
         <Plus className="size-4" aria-hidden="true" />
       </button>
       <button
         onClick={() => zoom.scale({ scaleX: 1 / 1.4, scaleY: 1 / 1.4 })}
         className="zoom-button"
-        aria-label="Zoom out"
+        aria-label={t('map.zoomOut')}
       >
         <Minus className="size-4" aria-hidden="true" />
       </button>
-      <button onClick={() => zoom.reset()} className="zoom-button" aria-label="Reset view">
+      <button onClick={() => zoom.reset()} className="zoom-button" aria-label={t('map.resetView')}>
         <RotateCcw className="size-4" aria-hidden="true" />
       </button>
     </div>
@@ -169,6 +177,7 @@ const ZoomControls: React.FC = () => {
 };
 
 export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () => {
+  const { t } = useLocale();
   const { isDarkMode } = useTheme();
   const prefectureById = usePrefectureById();
   const bureaus = useBureauOptions();
@@ -212,7 +221,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
   if (loadError) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
-        Unable to load the map data. Try reloading the page.
+        {t('map.loadError')}
       </div>
     );
   }
@@ -220,7 +229,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
   if (!features) {
     return (
       <div className="map-container">
-        <LoadingSpinner fullScreen={false} message="Loading Map Data..." />
+        <LoadingSpinner fullScreen={false} message={t('map.loading')} />
       </div>
     );
   }
@@ -238,20 +247,20 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
                 color: visibleBureauColor(bureau.border as string, isDarkMode),
               }))}
           />
-          <p className="mt-1">Color = service bureau · intensity = population density</p>
+          <p className="mt-1">{t('map.legendNote')}</p>
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <span className="inline-flex items-center gap-1">
             <span className="flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <Building2 className="size-2.5" aria-hidden="true" />
             </span>
-            Bureau
+            {t('map.bureau')}
           </span>
           <span className="inline-flex items-center gap-1">
             <span className="flex size-4 items-center justify-center rounded-full border border-border bg-card text-secondary-foreground">
               <Plane className="size-2.5" aria-hidden="true" />
             </span>
-            Airport office
+            {t('map.airportOffice')}
           </span>
         </div>
       </div>
@@ -287,14 +296,14 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
                 </div>
                 {prefecture && (
                   <div className="mt-1 grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 tabular-nums text-muted-foreground">
-                    <span>Service bureau</span>
+                    <span>{t('map.serviceBureau')}</span>
                     <span className="text-right">{bureauLabelOf(prefecture.bureau)}</span>
-                    <span>Population</span>
+                    <span>{t('metric.population')}</span>
                     <span className="text-right">{prefecture.population.toLocaleString()}</span>
-                    <span>Area</span>
-                    <span className="text-right">{prefecture.area.toLocaleString()} km²</span>
-                    <span>Density</span>
-                    <span className="text-right">{prefecture.density.toFixed(2)} /km²</span>
+                    <span>{t('metric.area')}</span>
+                    <span className="text-right">{t('map.areaValue', { value: prefecture.area.toLocaleString() })}</span>
+                    <span>{t('metric.density')}</span>
+                    <span className="text-right">{t('map.densityValue', { value: prefecture.density.toFixed(2) })}</span>
                   </div>
                 )}
               </div>

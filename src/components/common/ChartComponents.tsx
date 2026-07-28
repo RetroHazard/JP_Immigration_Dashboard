@@ -1,7 +1,8 @@
 // src/components/common/ChartComponents.tsx
-// Chart registry: one canonical name, description, icon, filter capability,
-// and allowed time ranges per chart. The shell renders tabs, the card header,
-// and the period selector from this metadata; charts only plot.
+// Chart registry: one stable key, icon, filter capability, and allowed time
+// ranges per chart. The shell renders tabs, the card header, and the period
+// selector from this metadata joined to the catalogue via useChartRegistry();
+// charts only plot.
 import type { LucideIcon } from 'lucide-react';
 import { BarChart3, ChartBarDecreasing, GitFork, Globe2, LayoutDashboard, LineChart as LineChartIcon, PieChart } from 'lucide-react';
 import type React from 'react';
@@ -28,12 +29,13 @@ export interface ImmigrationChartData {
 }
 
 export interface ChartDefinition {
-  /** Stable slug used as the ?chart= URL value */
+  /**
+   * Stable slug used as the ?chart= URL value, and the catalogue key suffix
+   * for this chart's `charts.<key>.label` / `.description` / `.aria` entries.
+   * Display text is resolved by useChartRegistry() rather than living here —
+   * a module-level array can't call the locale-bound `t`.
+   */
   key: string;
-  /** Canonical display name, used by the tab AND the card header */
-  label: string;
-  /** One sentence: what question this chart answers */
-  description: string;
   icon: LucideIcon;
   component: React.ComponentType<ImmigrationChartData>;
   filters: { bureau: boolean; appType: boolean };
@@ -46,8 +48,6 @@ export interface ChartDefinition {
 export const CHART_COMPONENTS: ChartDefinition[] = [
   {
     key: 'intake',
-    label: 'Intake & Processing',
-    description: 'Applications carried over and received each month, against the volume the bureaus completed.',
     icon: BarChart3,
     component: IntakeProcessingBarChart,
     filters: { bureau: true, appType: true },
@@ -57,8 +57,6 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
   },
   {
     key: 'types',
-    label: 'Application Types',
-    description: 'Monthly new submissions broken down by application type — click a legend entry to toggle a series.',
     icon: LineChartIcon,
     component: CategorySubmissionsLineChart,
     filters: { bureau: true, appType: false },
@@ -68,8 +66,6 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
   },
   {
     key: 'outcomes',
-    label: 'Outcomes',
-    description: 'Where applications end up: each type’s flow into granted, denied, or other outcomes.',
     icon: GitFork,
     component: OutcomesSankeyChart,
     filters: { bureau: true, appType: true },
@@ -79,8 +75,6 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
   },
   {
     key: 'share',
-    label: 'Bureau Share',
-    description: 'Where applications were filed: each bureau’s share of total intake.',
     icon: PieChart,
     component: BureauDistributionRingChart,
     filters: { bureau: false, appType: true },
@@ -90,8 +84,6 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
   },
   {
     key: 'mix',
-    label: 'Category Mix',
-    description: 'All applications by type and bureau — click a category to zoom into its breakdown.',
     icon: LayoutDashboard,
     component: CategoryMixTreemap,
     filters: { bureau: true, appType: false },
@@ -101,8 +93,6 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
   },
   {
     key: 'efficiency',
-    label: 'Processing Efficiency',
-    description: 'Bureaus ranked by completion rate — stem weight carries intake volume, with the nationwide rate as a guide.',
     icon: ChartBarDecreasing,
     component: ProcessingEfficiencyLollipop,
     filters: { bureau: true, appType: true },
@@ -112,8 +102,6 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
   },
   {
     key: 'map',
-    label: 'Regional Map',
-    description: 'Bureau service areas and population density, with bureau and airport office locations.',
     icon: Globe2,
     component: GeographicDistributionChart,
     filters: { bureau: false, appType: false },

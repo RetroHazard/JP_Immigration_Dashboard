@@ -10,6 +10,7 @@ import type React from 'react';
 
 import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
+import { useLocale } from '../../i18n/LocaleContext';
 import { useBureauLabel } from '../../i18n/useDomainLabels';
 import { getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import { PieCenter } from '../bklit/charts/pie-center';
@@ -31,6 +32,7 @@ const SLICE_COLORS = [
 
 export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const { t } = useLocale();
   const bureauLabel = useBureauLabel();
 
   const { slices, total } = useMemo(() => {
@@ -54,18 +56,21 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
     const top = byBureau.slice(0, TOP_SLICES);
     const rest = byBureau.slice(TOP_SLICES);
     const otherTotal = rest.reduce((sum, bureau) => sum + bureau.value, 0);
-    const result = otherTotal > 0 ? [...top, { label: `Other (${rest.length})`, value: otherTotal }] : top;
+    const result =
+      otherTotal > 0
+        ? [...top, { label: t('chart.share.otherSlice', { count: rest.length }), value: otherTotal }]
+        : top;
 
     return {
       slices: result.map((slice, index) => ({ ...slice, color: SLICE_COLORS[index] })),
       total: byBureau.reduce((sum, bureau) => sum + bureau.value, 0),
     };
-  }, [data, filters.type, range, bureauLabel]);
+  }, [data, filters.type, range, bureauLabel, t]);
 
   if (slices.length === 0) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
-        No data for this combination of filters.
+        {t('common.noDataForFilters')}
       </div>
     );
   }
@@ -75,7 +80,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
       <div
         className="flex flex-col items-center gap-6 sm:flex-row sm:justify-center sm:gap-10"
         role="img"
-        aria-label="Donut chart of each bureau's share of received applications"
+        aria-label={t('charts.share.aria')}
       >
         <div className="aspect-square w-full max-w-[320px] sm:flex-1">
           <PieChart
@@ -89,7 +94,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
             {slices.map((slice, index) => (
               <PieSlice key={slice.label} index={index} color={slice.color} />
             ))}
-            <PieCenter defaultLabel="Applications" />
+            <PieCenter defaultLabel={t('metric.applications')} />
           </PieChart>
         </div>
         <ul className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs sm:grid-cols-1">

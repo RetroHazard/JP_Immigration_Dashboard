@@ -27,14 +27,14 @@ import { useTheme } from '../contexts/ThemeContext';
 import type { DashboardMeta, ImmigrationData } from '../hooks/useImmigrationData';
 import { useLocale } from '../i18n/LocaleContext';
 import { T } from '../i18n/T';
-import { useApplicationType, useBureauLabel } from '../i18n/useDomainLabels';
+import { useApplicationType, useBureauLabel, useChartRegistry } from '../i18n/useDomainLabels';
 import { prefersReducedMotion, useAnimeScope } from '../lib/motion';
 import { excludeAirportData } from '../utils/excludeAirportData';
 import { AIRPORT_BUREAU_CODES } from '../utils/getBureauData';
 import type { ChartRange } from '../utils/selectors';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { getApplicationDetailsFromParams, isEstimatorPermalink } from '../utils/urlApplicationDetails';
-import { CHART_COMPONENTS, CHART_KEYS } from './common/ChartComponents';
+import { CHART_KEYS } from './common/ChartComponents';
 import { PeriodSelector } from './common/PeriodSelector';
 import { ActiveChart } from './ActiveChart';
 import { ChangelogModal } from './ChangelogModal';
@@ -57,6 +57,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
   const { isDarkMode, toggleTheme } = useTheme();
   const { t } = useLocale();
   const bureauLabel = useBureauLabel();
+  const charts = useChartRegistry();
   const applicationType = useApplicationType();
   const searchParams = useSearchParams();
 
@@ -75,9 +76,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
 
   const activeIndex = Math.max(
     0,
-    CHART_COMPONENTS.findIndex((chart) => chart.key === chartKey)
+    charts.findIndex((chart) => chart.key === chartKey)
   );
-  const activeChart = CHART_COMPONENTS[activeIndex];
+  const activeChart = charts[activeIndex];
 
   // The single ?range= param applies to the active chart, clamped to what it offers.
   const range: ChartRange =
@@ -361,7 +362,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                   tab expands its label — hidden entirely below sm, where the
                   chart card's own title carries the name */}
               <TabsList className="max-sm:w-full sm:w-max">
-                {CHART_COMPONENTS.map((chart) => (
+                {charts.map((chart) => (
                   <TabsTrigger key={chart.key} value={chart.key} className="group gap-0" title={chart.label}>
                     <chart.icon className="size-4" aria-hidden="true" />
                     <span className="sr-only">{chart.label}</span>
@@ -374,7 +375,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                   </TabsTrigger>
                 ))}
               </TabsList>
-              {CHART_COMPONENTS.map((chart, index) => (
+              {charts.map((chart, index) => (
                 <TabsContent key={chart.key} value={chart.key} className="mt-2">
                   <div className="base-container" data-chart-panel data-animate="card">
                     <div className="mb-1 flex items-start justify-between gap-3">

@@ -10,6 +10,7 @@ import type React from 'react';
 import useMeasure from 'react-use-measure';
 
 import { STATUS_CODES } from '../../constants/statusCodes';
+import { useLocale } from '../../i18n/LocaleContext';
 import { useApplicationOptions } from '../../i18n/useDomainLabels';
 import { bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import { Gauge } from '../bklit/charts/gauge';
@@ -20,10 +21,10 @@ import { SankeyTooltip } from '../bklit/charts/sankey/sankey-tooltip';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 const OUTCOMES = [
-  { label: 'Granted', compact: 'Granted', status: STATUS_CODES.GRANTED },
-  { label: 'Denied', compact: 'Denied', status: STATUS_CODES.DENIED },
-  { label: 'Other / Withdrawn', compact: 'Other', status: STATUS_CODES.OTHER },
-];
+  { labelKey: 'metric.granted', compactKey: 'metric.granted', status: STATUS_CODES.GRANTED },
+  { labelKey: 'metric.denied', compactKey: 'metric.denied', status: STATUS_CODES.DENIED },
+  { labelKey: 'chart.outcomes.otherWithdrawn', compactKey: 'metric.other', status: STATUS_CODES.OTHER },
+] as const;
 
 // Bklit's Sankey reserves fixed 180px label margins per side, so a narrow
 // container collapses the drawing area (and below ~360px it inverts). On
@@ -37,8 +38,13 @@ const NARROW_WIDTH = 500;
 export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const [measureRef, bounds] = useMeasure({ debounce: 10 });
   const isNarrow = bounds.width > 0 && bounds.width < NARROW_WIDTH;
+  const { t } = useLocale();
   const applicationOptions = useApplicationOptions();
   const types = useMemo(() => applicationOptions.filter((option) => option.value !== 'all'), [applicationOptions]);
+  const outcomes = useMemo(
+    () => OUTCOMES.map((outcome) => ({ ...outcome, label: t(outcome.labelKey), compact: t(outcome.compactKey) })),
+    [t]
+  );
 
   const { sankeyData, approvalRate, processed } = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
@@ -55,11 +61,11 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
     const activeTypes = filters.type === 'all' ? types : types.filter((type) => type.value === filters.type);
     const nodes = [
       ...activeTypes.map((type) => ({ name: displayName(type), category: 'source' as const })),
-      ...OUTCOMES.map((outcome) => ({ name: displayName(outcome), category: 'outcome' as const })),
+      ...outcomes.map((outcome) => ({ name: displayName(outcome), category: 'outcome' as const })),
     ];
     const links: { source: number; target: number; value: number }[] = [];
     activeTypes.forEach((type, typeIndex) => {
-      OUTCOMES.forEach((outcome, outcomeIndex) => {
+      outcomes.forEach((outcome, outcomeIndex) => {
         const value = rows.reduce(
           (sum, entry) => (entry.type === type.value && entry.status === outcome.status ? sum + entry.value : sum),
           0
@@ -80,12 +86,12 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
       approvalRate: totalProcessed > 0 ? (granted / totalProcessed) * 100 : 0,
       processed: totalProcessed,
     };
-  }, [data, filters.bureau, filters.type, range, isNarrow, types]);
+  }, [data, filters.bureau, filters.type, range, isNarrow, types, outcomes]);
 
   if (sankeyData.links.length === 0) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
-        No processed applications in this period.
+        {t('chart.outcomes.empty')}
       </div>
     );
   }
@@ -97,7 +103,7 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
           ref={measureRef}
           className="min-w-0 flex-1"
           role="img"
-          aria-label="Sankey diagram of application types flowing to outcomes"
+          aria-label={t('charts.outcomes.aria')}
         >
           {bounds.width > 0 && (
             <SankeyChart
@@ -107,17 +113,17 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
               nodePadding={isNarrow ? 16 : 24}
             >
               <SankeyLink />
-              <SankeyNode valueUnit="applications" showValueLabels={!isNarrow} />
-              <SankeyTooltip valueLabel="Applications" />
+              <SankeyNode valueUnit={t('chart.outcomes.valueUnit')} showValueLabels={!isNarrow} />
+              <SankeyTooltip valueLabel={t('chart.outcomes.tooltipValueLabel')} />
             </SankeyChart>
           )}
         </div>
         {/* max-w cap: below lg the gauge would otherwise scale to the full
             card width and dwarf the sankey */}
         <div className="mx-auto flex w-full max-w-52 shrink-0 flex-col items-center gap-1 lg:mx-0 lg:w-52">
-          <Gauge value={approvalRate} centerValue={approvalRate / 100} defaultLabel="Approval rate" totalNotches={40} formatOptions={{ style: 'percent', maximumFractionDigits: 1 }} />
+          <Gauge value={approvalRate} centerValue={approvalRate / 100} defaultLabel={t('chart.outcomes.approvalRate')} totalNotches={40} formatOptions={{ style: 'percent', maximumFractionDigits: 1 }} />
           <p className="text-center text-xxs text-muted-foreground">
-            of {processed.toLocaleString()} processed applications
+            {t('chart.outcomes.ofProcessed', { count: processed.toLocaleString() })}
           </p>
         </div>
       </div>

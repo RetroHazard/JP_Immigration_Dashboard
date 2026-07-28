@@ -11,6 +11,7 @@ import type React from 'react';
 import { curveMonotoneX } from '@visx/curve';
 
 import { STATUS_CODES } from '../../constants/statusCodes';
+import { useLocale } from '../../i18n/LocaleContext';
 import { bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import { ComposedChart } from '../bklit/charts/composed-chart';
 import { Grid } from '../bklit/charts/grid';
@@ -26,30 +27,14 @@ import { SeriesLegend } from '../common/SeriesLegend';
 // text only. They used to be the same string, which made the plotted data
 // shape depend on the UI language.
 const SERIES = [
-  {
-    id: 'pending',
-    label: 'Pending (carried over)',
-    status: STATUS_CODES.OLD_APPLICATIONS,
-    color: 'var(--chart-1)',
-    shape: 'square' as const,
-  },
-  {
-    id: 'received',
-    label: 'Received',
-    status: STATUS_CODES.NEW_APPLICATIONS,
-    color: 'var(--chart-2)',
-    shape: 'square' as const,
-  },
-  {
-    id: 'processed',
-    label: 'Processed',
-    status: STATUS_CODES.PROCESSED,
-    color: 'var(--chart-3)',
-    shape: 'line' as const,
-  },
-];
+  { id: 'pending', labelKey: 'metric.pending', status: STATUS_CODES.OLD_APPLICATIONS, color: 'var(--chart-1)', shape: 'square' },
+  { id: 'received', labelKey: 'metric.received', status: STATUS_CODES.NEW_APPLICATIONS, color: 'var(--chart-2)', shape: 'square' },
+  { id: 'processed', labelKey: 'metric.processed', status: STATUS_CODES.PROCESSED, color: 'var(--chart-3)', shape: 'line' },
+] as const;
 
 export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
+  const { t } = useLocale();
+  const series = useMemo(() => SERIES.map((entry) => ({ ...entry, label: t(entry.labelKey) })), [t]);
   const chartData = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
     return months.map((month) => {
@@ -69,11 +54,11 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
 
   return (
     <div className="card-content">
-      <SeriesLegend className="mb-2" items={SERIES} />
+      <SeriesLegend className="mb-2" items={series} />
       <div
         className="chart-container"
         role="img"
-        aria-label="Stacked bars of pending and received applications per month, with processed volume as a line"
+        aria-label={t('charts.intake.aria')}
       >
         <ComposedChart data={chartData} stacked stackGap={2} maxBarSize={30} aspectRatio="16 / 8">
           <Grid horizontal />
@@ -86,10 +71,10 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
               raw series ids now that those are no longer display text. */}
           <ChartTooltip
             rows={(point) =>
-              SERIES.map((series) => ({
-                color: series.color,
-                label: series.label,
-                value: Number(point[series.id] ?? 0),
+              series.map((entry) => ({
+                color: entry.color,
+                label: entry.label,
+                value: Number(point[entry.id] ?? 0),
               }))
             }
           />
