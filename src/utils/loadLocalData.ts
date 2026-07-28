@@ -1,20 +1,32 @@
 // src/utils/loadLocalData.ts
-import type { RawData } from './dataTransform';
+// Loads the pre-transformed dashboard data emitted at build time by
+// scripts/transform-data.mts and unpacks it into ImmigrationData[].
+import type { DashboardDataFile } from './dashboardData';
+import { unpackDashboardData } from './dashboardData';
 import { logger } from './logger';
 
-export const loadLocalData = async (): Promise<RawData | null> => {
+export interface LoadedDashboardData {
+  meta: DashboardDataFile['meta'];
+  records: ReturnType<typeof unpackDashboardData>;
+}
+
+export const loadLocalData = async (): Promise<LoadedDashboardData | null> => {
   try {
-    const response = await fetch('/datastore/statData.json');
+    const response = await fetch('/data/dashboard.json');
 
     if (!response.ok) {
-      // Handle HTTP errors explicitly
       logger.error('HTTP error loading data:', response.status);
       return null;
     }
 
-    return await response.json();
+    const file = (await response.json()) as DashboardDataFile;
+    if (file?.meta?.schema !== 1 || !Array.isArray(file.values)) {
+      logger.error('Unexpected dashboard data schema:', file?.meta);
+      return null;
+    }
+
+    return { meta: file.meta, records: unpackDashboardData(file) };
   } catch (error) {
-    // Catch network errors or JSON parsing issues
     logger.error('Error loading local data:', error);
     return null;
   }

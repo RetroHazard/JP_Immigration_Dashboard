@@ -1,5 +1,7 @@
 # Architecture Guide
 
+> **Note:** The 2026 "Civic Glass" redesign replaced Chart.js/react-simple-maps with vendored Bklit UI (visx) charts, moved the e-Stat transform to build time, introduced URL-first state via nuqs, and consolidated UI primitives on shadcn/ui. Sections below are updated where they materially changed; diagrams reflect the current stack.
+
 Overview of the Japan Immigration Statistics Dashboard's architecture, design patterns, and key components.
 
 ## Table of Contents
@@ -25,12 +27,16 @@ graph TB
     subgraph "Build-Time (GitHub Actions)"
         ESTAT["e-Stat API"]
         FETCH["Fetch & Validate"]
-        STATS["stats.json"]
-        BUILD["Next.js Build"]
+        RAW["statData.json<br/>(raw, cached)"]
+        TRANSFORM["transform-data.mts<br/>flatten + deaggregate"]
+        STATS["dashboard.json<br/>(packed, compact)"]
+        BUILD["Next.js Build<br/>(static export)"]
         DEPLOY["GitHub Pages"]
         
-        ESTAT -->|Daily| FETCH
-        FETCH -->|Process| STATS
+        ESTAT -->|Checked daily| FETCH
+        FETCH -->|Cache| RAW
+        RAW --> TRANSFORM
+        TRANSFORM --> STATS
         STATS -->|Reference| BUILD
         BUILD -->|Deploy| DEPLOY
     end
@@ -38,7 +44,7 @@ graph TB
     subgraph "Browser (Runtime)"
         USER["User"]
         APP["React App"]
-        LOAD["Load stats.json"]
+        LOAD["Load dashboard.json"]
         RENDER["Render Components"]
         
         USER -->|Interact| APP
@@ -53,11 +59,11 @@ graph TB
 
 ```mermaid
 graph LR
-    DATA["📊 stats.json<br/>Raw Data"] 
-    HOOK["🪝 useImmigrationData<br/>Load & Parse"]
-    FILTER["🔍 useFilteredData<br/>Filter by Selection"]
+    DATA["📊 dashboard.json<br/>Pre-transformed Data"] 
+    HOOK["🪝 useImmigrationData<br/>Fetch & Unpack"]
+    FILTER["🔍 selectData<br/>Filter by Selection"]
     CALC["⚙️ Chart Calculations<br/>Aggregate & Normalize"]
-    VIZ["📈 Visualization<br/>Chart.js / Nivo"]
+    VIZ["📈 Visualization<br/>Bklit UI (visx)"]
     
     DATA --> HOOK
     HOOK --> FILTER
@@ -74,7 +80,7 @@ sequenceDiagram
     participant User
     participant React
     participant Hook as useImmigrationData
-    participant JSON as stats.json
+    participant JSON as dashboard.json
     participant State
     participant Charts
     
@@ -86,7 +92,7 @@ sequenceDiagram
     activate JSON
     JSON-->>Hook: Return JSON
     deactivate JSON
-    Hook->>State: Parse & store
+    Hook->>State: Unpack & store
     deactivate Hook
     React->>Charts: Render with data
     activate Charts
@@ -101,17 +107,17 @@ sequenceDiagram
 sequenceDiagram
     participant User
     participant FilterPanel
-    participant State
-    participant useFilteredData
+    participant State as URL state (nuqs)
+    participant selectData as useSelectedData
     participant Charts
     
     User->>FilterPanel: Click bureau filter
-    FilterPanel->>State: Update selectedBureaus
-    State->>useFilteredData: Re-run memo
-    activate useFilteredData
-    useFilteredData->>useFilteredData: Filter data
-    useFilteredData-->>State: Return filtered data
-    deactivate useFilteredData
+    FilterPanel->>State: Update ?bureau= param
+    State->>selectData: Re-run memo
+    activate selectData
+    selectData->>selectData: Filter data
+    selectData-->>State: Return filtered data
+    deactivate selectData
     State->>Charts: Pass filtered data
     Charts->>Charts: Re-render
     Charts-->>User: Updated visualizations
@@ -121,28 +127,33 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    FILTERED["Filtered Data<br/>Bureau + Status"]
-    STACK["StackedBarChart<br/>Group by month"]
-    LINE["MultiLineChart<br/>Group by date"]
-    RING["RingChart<br/>Sum by category"]
-    BUBBLE["BubbleChart<br/>Calc ratios"]
-    RADAR["RadarChart<br/>Normalize"]
-    MAP["ChoroplethMap<br/>Aggregate by pref"]
+    FILTERED["Filtered Data<br/>Bureau + Type"]
+    INTAKE["IntakeProcessingBarChart<br/>Group by month"]
+    TYPES["CategorySubmissionsLineChart<br/>Group by date"]
+    OUTCOMES["OutcomesSankeyChart<br/>Flow by outcome"]
+    SHARE["BureauDistributionRingChart<br/>Sum by bureau"]
+    MIX["CategoryMixTreemap<br/>Hierarchical sum"]
+    EFFICIENCY["BureauPerformanceBubbleChart<br/>Calc ratios"]
+    MAP["GeographicDistributionChart<br/>Aggregate by pref"]
     
-    FILTERED --> STACK
-    FILTERED --> LINE
-    FILTERED --> RING
-    FILTERED --> BUBBLE
-    FILTERED --> RADAR
+    FILTERED --> INTAKE
+    FILTERED --> TYPES
+    FILTERED --> OUTCOMES
+    FILTERED --> SHARE
+    FILTERED --> MIX
+    FILTERED --> EFFICIENCY
     FILTERED --> MAP
     
-    STACK -.->|Render| VIZ1["Chart.js"]
-    LINE -.->|Render| VIZ2["Chart.js"]
-    RING -.->|Render| VIZ3["Nivo"]
-    BUBBLE -.->|Render| VIZ4["Chart.js"]
-    RADAR -.->|Render| VIZ5["Chart.js"]
-    MAP -.->|Render| VIZ6["react-simple-maps"]
+    INTAKE -.->|Render| VIZ1["Bklit ComposedChart (visx)"]
+    TYPES -.->|Render| VIZ2["Bklit LineChart (visx)"]
+    OUTCOMES -.->|Render| VIZ3["Bklit Sankey + Gauge (visx)"]
+    SHARE -.->|Render| VIZ4["Bklit PieChart (visx)"]
+    MIX -.->|Render| VIZ5["Custom squarified treemap"]
+    EFFICIENCY -.->|Render| VIZ6["Custom visx scatter/bubble"]
+    MAP -.->|Render| VIZ7["Bklit Choropleth (visx)"]
 ```
+
+A sibling `CategoryMixSunburst.tsx` renders the same hierarchy (shared `categoryMixTree.ts`) as a sunburst instead of a treemap; it isn't currently wired into the chart tab registry.
 
 ## Component Architecture
 
@@ -150,25 +161,27 @@ graph TD
 
 ```mermaid
 graph TD
-    APP["🏠 Page<br/>page.tsx"]
+    APP["🏠 page.tsx<br/>+ client.tsx providers"]
     
-    APP --> LAYOUT["📐 Layout<br/>Header + Footer"]
     APP --> ERROR["🚨 ErrorBoundary<br/>Error Catching"]
-    APP --> THEME["🎨 ThemeProvider<br/>Light/Dark Mode"]
-    APP --> FILTER["🔍 FilterPanel<br/>Bureau & Status"]
-    APP --> STATS["📊 StatsBadge<br/>Summary Stats"]
-    APP --> CHARTS["📈 Charts Container"]
-    APP --> ESTIMATOR["⏱️ ProcessingTimeEstimator<br/>Queue Predictor"]
+    APP --> THEME["🎨 ThemeProvider<br/>next-themes adapter"]
+    APP --> SHELL["📐 DashboardShell<br/>Header + Tabs + Footer"]
     
-    CHARTS --> STACKED["📊 StackedBarChart"]
-    CHARTS --> MULTILINE["📈 MultiLineChart"]
-    CHARTS --> RING["🍩 RingChart"]
-    CHARTS --> BUBBLE["🫧 BubbleChart"]
-    CHARTS --> RADAR["🔷 RadarChart"]
-    CHARTS --> MAP["🗾 ChoroplethMap"]
+    SHELL --> FILTER["🔍 FilterPanel<br/>Bureau & Application Type"]
+    SHELL --> STATS["📊 StatsSummary<br/>Summary Stat Cards"]
+    SHELL --> CHARTS["📈 Chart Tabs<br/>ChartComponents registry"]
+    SHELL --> ESTIMATOR["⏱️ EstimationCard<br/>Queue Predictor"]
+    
+    CHARTS --> INTAKE["📊 IntakeProcessingBarChart"]
+    CHARTS --> TYPES["📈 CategorySubmissionsLineChart"]
+    CHARTS --> OUTCOMES["🔀 OutcomesSankeyChart"]
+    CHARTS --> SHARE["🍩 BureauDistributionRingChart"]
+    CHARTS --> MIX["🗂️ CategoryMixTreemap"]
+    CHARTS --> EFFICIENCY["🫧 BureauPerformanceBubbleChart"]
+    CHARTS --> MAP["🗾 GeographicDistributionChart"]
     
     style APP fill:#4CAF50,color:#fff
-    style LAYOUT fill:#2196F3,color:#fff
+    style SHELL fill:#2196F3,color:#fff
     style ERROR fill:#F44336,color:#fff
     style THEME fill:#FF9800,color:#fff
     style FILTER fill:#9C27B0,color:#fff
@@ -177,66 +190,65 @@ graph TD
 
 ### Key Components
 
-#### **Page Component** (`src/app/[[...slug]]/page.tsx`)
+#### **Page / Client Wrapper** (`src/app/[[...slug]]/page.tsx`, `client.tsx`)
 
-The root component that:
-- Initializes the app layout
-- Fetches immigration data
-- Manages filter state
+`page.tsx` is a thin static-params wrapper; `client.tsx` sets up the client providers (nuqs URL adapter, ThemeProvider, LocaleProvider, TooltipProvider, ErrorBoundary) and dynamically imports `App.tsx` (`ssr: false`). `App.tsx` calls `useImmigrationData` and renders `DashboardShell` once data is loaded.
+
+#### **DashboardShell** (`src/components/DashboardShell.tsx`)
+
+The single responsive shell that:
+- Renders the header, chart tabs, filter bar, data table, and footer
+- Owns the URL-first state (`chart`, `bureau`, `type`, `range`, `compare` query params via nuqs)
+- Hosts the Processing Time Estimator as a collapsible desktop sidebar or a mobile bottom sheet
 - Coordinates all child components
-- Handles URL parameters for estimator permalinks
 
-#### **FilterPanel** (`src/components/common/FilterPanel.tsx`)
+#### **FilterPanel** (`src/components/FilterPanel.tsx`)
 
 Controls for filtering data:
-- Bureau selection (multi-select)
-- Application type selection (multi-select)
-- Dynamically updates based on available data
-- Filters are applied across all connected charts
+- Bureau selection (single-select, plus an optional "Compare With" second bureau)
+- Application type selection
+- Filter availability is driven per-chart by the `ChartComponents` registry
+- Filters are applied to whichever chart is active
 
 #### **Chart Components** (`src/components/charts/`)
 
-Six independent visualization components:
+Seven chart components, registered in `src/components/common/ChartComponents.tsx` and rendered as tabs:
 
 | Component | Library | Purpose |
 |-----------|---------|---------|
-| StackedBarChart | Chart.js | Intake/Processing trends |
-| MultiLineChart | Chart.js | Submission trends over time |
-| RingChart | Nivo | Application type distribution |
-| BubbleChart | Chart.js | Intake vs. Processing efficiency |
-| RadarChart | Chart.js | Category spread by bureau |
-| ChoroplethMap | react-simple-maps | Geographic distribution |
+| IntakeProcessingBarChart | Bklit ComposedChart | Intake/Processing trends |
+| CategorySubmissionsLineChart | Bklit LineChart | Submission trends over time |
+| OutcomesSankeyChart | Bklit Sankey + Gauge | Application outcomes flow + approval rate |
+| BureauDistributionRingChart | Bklit PieChart | Bureau share of intake |
+| CategoryMixTreemap | Custom squarified treemap | Applications by type and bureau |
+| BureauPerformanceBubbleChart | Custom visx SVG | Intake vs. Processing efficiency |
+| GeographicDistributionChart | Bklit Choropleth (visx) | Geographic distribution |
+
+An eighth component, `CategoryMixSunburst.tsx`, renders the same Category Mix hierarchy as a sunburst but isn't currently wired into the registry.
 
 Each chart:
 - Receives pre-filtered data as props
 - Manages its own visualization state
 - Is self-contained and reusable
 
-#### **ProcessingTimeEstimator** (`src/components/common/ProcessingTimeEstimator.tsx`)
+#### **EstimationCard** (`src/components/EstimationCard.tsx`)
 
 Interactive queue position estimator:
 - Accepts user input (bureau, application type, submission date)
-- Calls estimation functions
-- Displays detailed calculations with KaTeX formulas
-- Generates shareable permalinks
+- Calls `calculateEstimatedDate` (`src/utils/calculateEstimates.ts`)
+- Displays a "Show the math" breakdown with KaTeX formulas (`FormulaTooltip`)
+- Generates shareable permalinks (`src/utils/urlApplicationDetails.ts`)
 
-#### **StatsBadge** (`src/components/common/StatsBadge.tsx`)
+#### **StatsSummary** (`src/components/StatsSummary.tsx`)
 
-Summary statistics display:
-- Shows key metrics (last updated, bureau data points)
+Summary statistics display, built from `StatCard` (`src/components/common/StatCard.tsx`):
+- Shows key metrics (submissions, processed, approval rate, etc.), animated with `@number-flow/react`
 - Updates based on filters
 - Responsive layout for mobile
 
-### Layout Components
+### Header & Footer
 
-#### **Header** (`src/components/layouts/Header.tsx`)
-- Navigation and branding
-- Version display (clickable for changelog)
-- Dark/light mode toggle
-
-#### **Footer** (`src/components/layouts/Footer.tsx`)
-- Attribution and links
-- Data source credit (e-Stat)
+There is no separate `layouts/` directory — the header (branding, language toggle, theme toggle, changelog trigger) and footer (attribution, e-Stat credit) markup live directly inside `DashboardShell.tsx`.
 
 #### **ErrorBoundary** (`src/components/common/ErrorBoundary.tsx`)
 - Catches React errors
@@ -249,29 +261,29 @@ Summary statistics display:
 
 ```mermaid
 graph TD
-    PAGE["Page Component<br/>Main State Hub"]
+    SHELL["DashboardShell<br/>Main State Hub"]
     
-    DATA["🗄️ immigrationData<br/>Raw dataset<br/>from stats.json"]
+    DATA["🗄️ immigrationData<br/>Raw dataset<br/>from dashboard.json"]
     
-    FILTERS["🔍 Filters<br/>selectedBureaus[]<br/>selectedStatuses[]"]
+    FILTERS["🔍 Filters (URL, via nuqs)<br/>?bureau=<br/>?type=<br/>?compare="]
     
-    THEME["🎨 ThemeContext<br/>theme: light|dark<br/>persisted to localStorage"]
+    THEME["🎨 next-themes<br/>theme: light|dark|system<br/>persisted to localStorage"]
     
-    ESTIMATOR["⏱️ Estimator<br/>bureau, status, date<br/>in URL params"]
+    ESTIMATOR["⏱️ Estimator<br/>bureau, type, date<br/>in URL params"]
     
     UI["UI State<br/>loading, error"]
     
-    PAGE --> DATA
-    PAGE --> FILTERS
-    PAGE --> THEME
-    PAGE --> ESTIMATOR
-    PAGE --> UI
+    SHELL --> DATA
+    SHELL --> FILTERS
+    SHELL --> THEME
+    SHELL --> ESTIMATOR
+    SHELL --> UI
     
-    DATA -->|memo| FILTERED["🔄 useFilteredData<br/>Apply filters"]
+    DATA -->|memo| FILTERED["🔄 useSelectedData<br/>Apply filters"]
     FILTERS -->|trigger| FILTERED
-    FILTERED -->|passed to| CHARTS["6 Chart Components"]
+    FILTERED -->|passed to| CHARTS["7 Chart Components"]
     
-    style PAGE fill:#4CAF50,color:#fff
+    style SHELL fill:#4CAF50,color:#fff
     style DATA fill:#2196F3,color:#fff
     style FILTERS fill:#9C27B0,color:#fff
     style THEME fill:#FF9800,color:#fff
@@ -298,49 +310,66 @@ graph TD
 
 ## Data Processing Pipeline
 
-### 1. Raw Data Structure
+### 1. Client-Side Data Shape
 
-```json
-{
-  "data": [
-    {
-      "date": "2026-07-01",
-      "bureau": "Tokyo",
-      "status": "PROCESSING",
-      "count": 1234,
-      "category": "Work Visa",
-      "averageProcessingDays": 45
-    }
-  ]
+The `ImmigrationData` record the client loads and filters (`src/hooks/useImmigrationData.ts`):
+
+```typescript
+interface ImmigrationData {
+  month: string;    // "2026-07"
+  bureau: string;    // e-Stat bureau code
+  type: string;       // application type code
+  value: number;
+  status: string;     // e-Stat status code
 }
 ```
 
-### 2. Data Processing Pipeline
+`public/data/dashboard.json` stores this as a packed schema (index tables + flat value tuples, ~10x smaller than the raw payload) that `unpackDashboardData` (`src/utils/dashboardData.ts`) expands back into `ImmigrationData[]`.
+
+### 2. Build-Time vs. Runtime Pipeline
+
+Bureau-aggregate correction (deaggregation) now happens **once at build time**, not on every page load:
 
 ```mermaid
 graph LR
-    FETCH["📥 Fetch stats.json<br/>useImmigrationData"]
-    PARSE["🔍 Parse JSON<br/>Validate structure"]
-    DEAGG["➖ Deaggregate<br/>Split branches from<br/>regional bureaus"]
-    FILTER["🔑 Apply Filters<br/>useFilteredData<br/>Bureau + Status"]
-    CACHE["💾 Memoize<br/>useMemo hook<br/>prevent re-calc"]
+    subgraph "Build time (scripts/transform-data.mts)"
+        RAW["📥 public/datastore/statData.json<br/>Raw e-Stat payload"]
+        FLATTEN["🔍 transformData<br/>dataTransform.ts"]
+        CORRECT["➖ correctBureauAggregates.ts<br/>Subtract branch totals"]
+        PACK["📦 packDashboardData<br/>dashboardData.ts"]
+        OUT["📤 public/data/dashboard.json"]
+        
+        RAW --> FLATTEN
+        FLATTEN --> CORRECT
+        CORRECT --> PACK
+        PACK --> OUT
+    end
     
-    FETCH --> PARSE
-    PARSE --> DEAGG
-    DEAGG --> FILTER
-    FILTER --> CACHE
+    subgraph "Runtime (browser)"
+        FETCH["📥 Fetch dashboard.json<br/>useImmigrationData"]
+        UNPACK["🔓 unpackDashboardData<br/>Validate schema"]
+        FILTER["🔑 selectData / useSelectedData<br/>Bureau scope + Type"]
+        CACHE["💾 Memoize<br/>useMemo hook<br/>prevent re-calc"]
+        
+        FETCH --> UNPACK
+        UNPACK --> FILTER
+        FILTER --> CACHE
+    end
     
-    CACHE -->|to charts| STACKED["StackedBarChart<br/>Group by month"]
-    CACHE -->|to charts| LINE["MultiLineChart<br/>Group by date"]
-    CACHE -->|to charts| RING["RingChart<br/>Sum & %"]
-    CACHE -->|to charts| BUBBLE["BubbleChart<br/>Calc ratios"]
-    CACHE -->|to charts| RADAR["RadarChart<br/>Normalize"]
-    CACHE -->|to charts| MAP["ChoroplethMap<br/>Agg by pref"]
+    OUT -.->|served as static asset| FETCH
+    
+    CACHE -->|to charts| INTAKE["IntakeProcessingBarChart"]
+    CACHE -->|to charts| TYPES["CategorySubmissionsLineChart"]
+    CACHE -->|to charts| OUTCOMES["OutcomesSankeyChart"]
+    CACHE -->|to charts| SHARE["BureauDistributionRingChart"]
+    CACHE -->|to charts| MIX["CategoryMixTreemap"]
+    CACHE -->|to charts| EFFICIENCY["BureauPerformanceBubbleChart"]
+    CACHE -->|to charts| MAP["GeographicDistributionChart"]
 ```
 
 ### 3. Data Deaggregation
 
-Some bureaus (Tokyo, Osaka, Nagoya, Fukuoka) are **aggregates** that include branch office data from e-Stat:
+Some bureaus (Tokyo, Osaka, Nagoya, Fukuoka) are **aggregates** that include branch office data from e-Stat. This correction now runs once at build time (see the pipeline above), not per page load:
 
 ```mermaid
 graph TD
@@ -368,25 +397,25 @@ graph TD
     HANEDA --> RESULT
 ```
 
-**Code Location:** `src/utils/data-processing.ts` → `deaggregateData()`
+**Code Location:** `src/utils/correctBureauAggregates.ts` → `makeCorrectedAccessor()`, called from `src/utils/dataTransform.ts` → `transformData()` during `scripts/transform-data.mts` (build time). If a branch office hasn't published data for a period yet, that aggregate-bureau entry is skipped rather than emitted with an inflated value (see `isBranchDataIncomplete`).
 
 ### 4. Filtering & Memoization
 
 ```mermaid
 stateDiagram-v2
     [*] --> RAW: Raw Data Loaded
-    
+
     RAW --> LISTEN: Listen for<br/>Filter Changes
-    
-    LISTEN --> SHOULD_UPDATE: selectedBureaus<br/>or selectedStatuses<br/>changed?
-    
-    SHOULD_UPDATE --> |YES| FILTER: Apply Filters<br/>useFilteredData
+
+    LISTEN --> SHOULD_UPDATE: ?bureau or ?type<br/>URL param changed?
+
+    SHOULD_UPDATE --> |YES| FILTER: Apply Filters<br/>useSelectedData
     SHOULD_UPDATE --> |NO| CACHE: Return cached<br/>result from useMemo
-    
+
     FILTER --> MEMOIZE: Save to memo
     MEMOIZE --> CACHE
-    
-    CACHE --> DIST: Distribute to<br/>6 chart components
+
+    CACHE --> DIST: Distribute to<br/>7 chart components
     DIST --> [*]
 ```
 
@@ -396,11 +425,11 @@ For processing time prediction:
 
 ```mermaid
 graph TD
-    INPUT["📝 User Input<br/>Bureau + Status<br/>+ Submission Date"]
+    INPUT["📝 User Input<br/>Bureau + Type<br/>+ Submission Date"]
     
     HIST["📊 Historical Data<br/>Last 6 months<br/>processing rates"]
     
-    RATE["⚙️ Calculate Rate<br/>Avg daily processing<br/>for this bureau/status"]
+    RATE["⚙️ Calculate Rate<br/>Avg daily processing<br/>for this bureau/type"]
     
     QUEUE["🔢 Estimate Queue<br/>Position at<br/>submission date"]
     
@@ -422,7 +451,7 @@ graph TD
     style LATEX fill:#FF9800,color:#fff
 ```
 
-**Code Location:** `src/utils/estimation.ts`
+**Code Location:** `src/utils/calculateEstimates.ts` → `calculateEstimatedDate()`
 
 ## Performance Optimizations
 
@@ -434,13 +463,13 @@ graph TD
     
     PERF --> MEMO["📌 Memoization<br/>useMemo/useCallback"]
     PERF --> LAZY["📦 Lazy Loading<br/>Dynamic imports"]
-    PERF --> SINGLE["🔄 Single-Pass Filtering<br/>One filter, 6 charts"]
+    PERF --> SINGLE["🔄 Single-Pass Filtering<br/>Per-chart selection, 7 charts"]
     PERF --> PRECOMP["⚙️ Pre-computed Values<br/>Calc once at mount"]
     PERF --> BUILD["🔨 Production Build<br/>Minified & tree-shaken"]
     
     MEMO --> EXAMPLE1["Prevent re-filtering<br/>on every render"]
     LAZY --> EXAMPLE2["KaTeX ~100KB<br/>loaded on demand"]
-    SINGLE --> EXAMPLE3["useFilteredData<br/>called once"]
+    SINGLE --> EXAMPLE3["useSelectedData<br/>memoized per chart"]
     PRECOMP --> EXAMPLE4["Color scales<br/>calculated once"]
     BUILD --> EXAMPLE5["JS ~150KB gzipped<br/>Fast delivery"]
     
@@ -469,22 +498,24 @@ const memoizedCallback = useCallback(() => {
 ### Lazy Loading Example
 
 ```typescript
-// KaTeX is ~100KB, loaded dynamically
-const KaTeX = dynamic(() => import('react-katex'));
+// The entire dashboard is a client-only chunk, deferred until after
+// the shell's providers mount (src/app/[[...slug]]/client.tsx):
+const App = dynamic(() => import('../../App'), { ssr: false });
 ```
 
 ### Single-Pass Filtering
 
-All charts use the same filtered dataset:
-- One call to `useFilteredData`
-- Avoid filtering 6 different times
-- Distribute to 6 chart components via props
+Each chart calls `useSelectedData`/`selectData` (`src/utils/selectors.ts`) with the filters and range it needs:
+- Filtering is memoized per chart on its own selection key
+- Charts that don't use a given filter (see the `ChartComponents` registry) simply don't pass it, avoiding redundant recomputation
+- Distributed to 7 chart components via props
 
 ### Pre-Computed Values
 
 ```typescript
-// Calculated at component mount, not on every render
-const prefectureColors = usePrefectureColors(data);
+// A bureau's flag color, clamped to stay readable per theme
+// (src/utils/bureauColors.ts):
+const color = visibleBureauColor(bureauOption.background, isDarkMode);
 ```
 
 ## Type Safety
@@ -505,9 +536,9 @@ graph TD
     COMPILE --> RUNTIME
     
     TYPES --> TYPEFILES["File Organization"]
-    TYPEFILES --> TF1["src/constants/types.ts<br/>Shared interfaces"]
-    TYPEFILES --> TF2["src/constants/bureaus.ts<br/>Bureau types"]
-    TYPEFILES --> TF3["src/constants/statuses.ts<br/>Status codes"]
+    TYPEFILES --> TF1["src/hooks/useImmigrationData.ts<br/>ImmigrationData interface"]
+    TYPEFILES --> TF2["src/constants/bureauOptions.ts<br/>Bureau types"]
+    TYPEFILES --> TF3["src/constants/statusCodes.ts<br/>Status codes"]
     
     style TSCONFIG fill:#4CAF50,color:#fff
     style NOANY fill:#F44336,color:#fff
@@ -531,14 +562,13 @@ graph TD
 ### Zero `any` Policy Example
 
 ```typescript
-// Define explicit types
+// Define explicit types (src/hooks/useImmigrationData.ts)
 interface ImmigrationData {
-  date: string
-  bureau: string
-  status: StatusCode
-  count: number
-  category: string
-  averageProcessingDays: number
+  month: string;
+  bureau: string;
+  type: string;
+  value: number;
+  status: string;
 }
 
 // Use in functions with type annotations
@@ -564,8 +594,8 @@ graph TD
     PATTERNS --> MEMO["📌 Memoization"]
     
     HOOKS --> H1["useImmigrationData<br/>Data fetching"]
-    HOOKS --> H2["useFilteredData<br/>Filter logic"]
-    HOOKS --> H3["useTheme<br/>Theme context"]
+    HOOKS --> H2["useSelectedData<br/>Filter logic"]
+    HOOKS --> H3["useTheme<br/>next-themes adapter"]
     
     COMP --> C1["Data Processing"]
     COMP --> C2["Calculations"]
@@ -587,19 +617,19 @@ graph TD
 
 ### Custom Hooks
 
-**useImmigrationData** — Fetches and parses data
+**useImmigrationData** (`src/hooks/useImmigrationData.ts`) — Fetches and unpacks data
 ```typescript
-const data = useImmigrationData();
+const { data, meta, loading, error } = useImmigrationData();
 ```
 
-**useFilteredData** — Applies filtering logic
+**useSelectedData** (`src/utils/selectors.ts`) — Memoized filtering logic
 ```typescript
-const filtered = useFilteredData(data, selectedBureaus, selectedStatuses);
+const filtered = useSelectedData(data, { scope: bureauScopeFromFilter(bureau), type });
 ```
 
-**useTheme** — Theme management via Context
+**useTheme** (`src/contexts/ThemeContext.tsx`, a thin adapter over `next-themes`) — Theme management
 ```typescript
-const { theme, toggleTheme } = useTheme();
+const { isDarkMode, toggleTheme } = useTheme();
 ```
 
 ### Component Composition
@@ -609,13 +639,13 @@ Charts follow a consistent pattern:
 ```
 Raw Data
     ↓
-[Filter] — Apply bureau/status filters
+[Filter] — Apply bureau/type filters
     ↓
 [Calculate] — Chart-specific aggregations
     ↓
 [Normalize] — Scale and format for visualization
     ↓
-[Render] — Use Chart.js/Nivo/react-simple-maps
+[Render] — Use Bklit UI (visx) chart components
     ↓
 [Interact] — Handle tooltips and events
 ```
@@ -647,11 +677,14 @@ graph TD
 ```
 components/
 ├── charts/
-│   ├── StackedBarChart.tsx        # Component + styling
-│   ├── StackedBarChart.test.tsx    # Tests for this chart
-│   └── hooks/
-│       └── useChartData.ts         # Chart-specific hook
+│   ├── IntakeProcessingBarChart.tsx  # Component, styling, and its own aggregation logic
+│   ├── OutcomesSankeyChart.tsx
+│   └── ...
+├── __tests__/
+│   └── components.smoke.test.tsx     # Cross-component smoke tests
 ```
+
+(Chart-specific aggregation currently lives inline in each chart component rather than in a colocated hook; utils/hooks are extracted once logic is actually shared.)
 
 ### Principle: Shared Code in Utils/Hooks
 
@@ -682,10 +715,10 @@ graph TD
     STATE["📦 React Hooks Only<br/>No Redux/Zustand"]
     STATE_PROS["✅ Simple flow<br/>✅ Low learning curve<br/>✅ Small bundle<br/>✅ Sufficient performance"]
     
-    CHARTS["📊 Chart.js<br/>Over D3.js"]
-    CHARTS_PROS["✅ Simple API<br/>✅ Built-in charts<br/>✅ Less code<br/>✅ Good performance"]
+    CHARTS["📊 Bklit UI (visx)<br/>Over Chart.js"]
+    CHARTS_PROS["✅ Vendored source<br/>✅ Design-token theming<br/>✅ SVG accessibility<br/>✅ Composable API"]
     
-    NIVO["🌳 Nivo TreeMap<br/>For hierarchical data"]
+    NIVO["🌳 visx primitives<br/>For custom charts"]
     NIVO_PROS["✅ Purpose-built<br/>✅ Mobile-ready<br/>✅ Interactive<br/>✅ Less boilerplate"]
     
     STATIC --> STATIC_PROS
@@ -722,41 +755,33 @@ graph TD
 - **Bundle Size** — No Redux/Zustand overhead
 - **Performance** — React's built-in state is sufficient
 
-### Why Chart.js over D3?
+### Why Bklit UI (vendored) over Chart.js?
 
-- **Simpler API** — Easier to implement and maintain
-- **Good for Common Charts** — Stacked bars, lines, radar, bubble
-- **Less Code** — D3 requires more boilerplate
-- **Performance** — Efficient rendering for our use case
-
-### Why Nivo for TreeMap?
-
-- **Specialized** — Purpose-built for hierarchical data
-- **Responsive** — Handles mobile automatically
-- **Interactive** — Built-in tooltips and interactions
-- **Less Code** — Compared to building from scratch
+- **Design-token theming** — Every chart reads the same CSS variables as the rest of the UI, in both themes
+- **Vendored source** — Components are copied into the repo (shadcn registry model), so gaps are patched locally (e.g. responsive choropleth scale, Sankey value units)
+- **SVG rendering** — Text alternatives and styling that canvas can't offer
+- **Composable API** — Charts assemble from Grid/Axis/Series/Tooltip parts, so remixes stay small
 
 ## Testing Strategy
 
 ### Unit Tests for Logic
 
 ```typescript
-// Test pure functions
-test('calculateAverageProcessingRate calculates correctly', () => {
-  const data = [/* ... */];
-  const result = calculateAverageProcessingRate(data);
-  expect(result).toBe(expectedValue);
+// Test pure functions (src/utils/__tests__/calculateEstimates.test.ts)
+test('calculateEstimatedDate projects a completion date', () => {
+  const data = buildMonthlyData(/* ... */);
+  const result = calculateEstimatedDate(data, { bureau: 'Osaka', type: 'X', applicationDate: '2025-04-01' });
+  expect(result?.details.isPastDue).toBe(false);
 });
 ```
 
 ### Integration Tests for Components
 
 ```typescript
-// Test component behavior
-test('FilterPanel filters data when selection changes', () => {
-  render(<FilterPanel {...props} />);
-  userEvent.click(screen.getByLabelText('Tokyo'));
-  expect(onFilterChange).toHaveBeenCalled();
+// Test component behavior (src/components/__tests__/components.smoke.test.tsx)
+test('StatCard renders title, formatted value, and MoM delta', () => {
+  render(<StatCard title="Total Applications" value={12345} delta={{ percent: 3.2, direction: 'neutral' }} {...rest} />);
+  expect(screen.getByText('Total Applications')).toBeTruthy();
 });
 ```
 
@@ -768,12 +793,13 @@ test('FilterPanel filters data when selection changes', () => {
 
 ### Dependency Pinning Strategy
 
-**Critical dependencies are pinned to exact versions:**
+**Some critical dependencies are pinned to exact versions:**
 
 - **Next.js ecosystem:** `next`, `@next/third-parties`, `@next/eslint-plugin-next`, `eslint-config-next`
-- **React framework:** `react`, `react-dom`
-- **Type safety:** `typescript`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`
+- **Type safety (linting):** `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`
 - **Code quality:** `eslint`
+
+`react`, `react-dom`, and `typescript` currently use `^` caret ranges rather than exact pins.
 
 **Benefits:**
 - **Reproducibility** — Same versions across all environments (local + CI/CD)
@@ -783,16 +809,13 @@ test('FilterPanel filters data when selection changes', () => {
 
 **Non-critical dependencies** use caret ranges (`^`) to allow patch updates automatically.
 
-### Security Audits in CI
+### Security Audits
 
-A security audit step runs in the build workflow:
+There is currently no automated `npm audit` step in CI (`.github/workflows/ci.yaml` runs lint, typecheck, test, and a fixture build; `build.yaml` builds and deploys). Audits are a manual, pre-merge step:
 
-```yaml
-- name: Security Audit
-  run: npm audit --audit-level=moderate
+```bash
+npm audit --audit-level=moderate
 ```
-
-The build **fails** if any moderate-severity or higher vulnerabilities are detected.
 
 **Response Protocol:**
 1. Developer runs `npm audit` locally to identify vulnerabilities

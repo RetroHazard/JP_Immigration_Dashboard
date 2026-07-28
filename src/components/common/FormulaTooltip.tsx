@@ -1,23 +1,16 @@
 // components/common/FormulaTooltip.tsx
-import { useRef, useState } from 'react';
+// One step of the estimator's "Show the math" breakdown: a labeled card with
+// a numbered header and an inline help popover explaining the variables. The
+// popover is click/tap-toggled so it works on touch devices - exactly where
+// the estimator sheet lives. Keeping the trigger in the header row (instead
+// of overlaying the formula) also keeps it clear of the KaTeX block.
+'use client';
 
+import { CircleHelp } from 'lucide-react';
 import type React from 'react';
 import { InlineMath } from 'react-katex';
-import {
-  arrow,
-  autoUpdate,
-  flip,
-  FloatingArrow,
-  FloatingPortal,
-  offset,
-  safePolygon,
-  shift,
-  useDismiss,
-  useFloating,
-  useHover,
-  useInteractions,
-  useRole,
-} from '@floating-ui/react';
+
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 import 'katex/dist/katex.min.css';
 
@@ -26,6 +19,8 @@ interface VariableExplanations {
 }
 
 interface FormulaTooltipProps {
+  step: number;
+  title: string;
   variables: VariableExplanations;
   children: React.ReactNode;
 }
@@ -44,75 +39,44 @@ export const variableExplanations: VariableExplanations = {
   P_app: { title: 'Processed Applications', description: 'Estimated applications processed prior to submission.' },
 };
 
-export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ variables, children }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [referenceElement, setReferenceElement] = useState<HTMLElement | null>(null);
-  const arrowRef = useRef(null);
-
-  const { refs, floatingStyles, context } = useFloating({
-    open: isOpen,
-    onOpenChange: setIsOpen,
-    placement: 'left',
-    whileElementsMounted: autoUpdate,
-    elements: { reference: referenceElement },
-    middleware: [
-      offset(8),
-      flip({ padding: 8 }),
-      shift({ padding: 8 }),
-      arrow({ element: arrowRef }),
-    ],
-  });
-
-  const hover = useHover(context, {
-    delay: { open: 300, close: 50 },
-    handleClose: safePolygon(),
-  });
-  const dismiss = useDismiss(context);
-  const role = useRole(context, { role: 'tooltip' });
-
-  const { getReferenceProps, getFloatingProps } = useInteractions([hover, dismiss, role]);
-
-  return (
-    <>
+export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ step, title, variables, children }) => (
+  <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 shadow-soft">
+    <div className="flex items-center gap-2">
       <span
-        ref={(node) => {
-          setReferenceElement(node);
-          refs.setReference(node);
-        }}
-        {...getReferenceProps()}
-        className="cursor-help"
+        aria-hidden="true"
+        className="flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xxs font-bold tabular-nums text-primary"
       >
-        {children}
+        {step}
       </span>
-
-      {isOpen && (
-        <FloatingPortal>
-          <div
-            ref={refs.setFloating}
-            style={{ ...floatingStyles, zIndex: 999 }}
-            {...getFloatingProps()}
-            className="floating-tooltip"
-            data-status="open"
+      <span className="min-w-0 truncate text-xxs font-semibold uppercase tracking-wider text-muted-foreground">
+        {title}
+      </span>
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            aria-label={`Explain the variables in the ${title} formula`}
+            className="ml-auto flex size-5 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
           >
-            <div className="space-y-2 p-2">
-              {Object.entries(variables).map(([symbol, explanation]) => (
-                <div key={symbol} className="flex flex-col">
-                  <div className="flex items-baseline">
-                    <InlineMath>{`${symbol}:`}</InlineMath>
-                    <div className="mt-1 text-xs font-semibold">{explanation.title}</div>
-                  </div>
-                  <div className="mb-1 text-xxs font-normal">{explanation.description}</div>
-                </div>
-              ))}
-            </div>
-            <FloatingArrow
-              ref={arrowRef}
-              context={context}
-              className="fill-gray-600 dark:fill-gray-300"
-            />
-          </div>
-        </FloatingPortal>
-      )}
-    </>
-  );
-};
+            <CircleHelp className="size-3.5" aria-hidden="true" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent side="left" align="start" className="w-72 p-3">
+          <ul className="space-y-2 text-xs">
+            {Object.entries(variables).map(([symbol, explanation]) => (
+              <li key={symbol} className="flex gap-2">
+                <span className="shrink-0 font-semibold">
+                  <InlineMath math={symbol} />
+                </span>
+                <span>
+                  <span className="font-medium">{explanation.title}</span>
+                  <span className="text-muted-foreground"> — {explanation.description}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </PopoverContent>
+      </Popover>
+    </div>
+    <div className="overflow-x-auto text-xxs text-secondary-foreground [&_.katex-display]:my-1.5">{children}</div>
+  </div>
+);

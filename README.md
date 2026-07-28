@@ -1,5 +1,5 @@
 # Japan Immigration Statistics Dashboard
-[![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -138,21 +138,24 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 ## :hammer_and_wrench: Tech Stack
 
 ### Frontend:
-- `Next.js` – React Framework with static export
-- `React` – UI Library
-- `TypeScript` – Type-safe JavaScript
-- `Chart.js` – Data Visualization (Charts)
-- `@nivo/treemap` – Hierarchical Visualizations
-- `react-simple-maps` – Geographic Visualizations
-- `d3-scale` – Data scaling utilities
-- `FloatingUI` – Tooltips and Popovers
-- `KaTeX` – Mathematical Notation Rendering
-- `Tailwind CSS` – Utility-first Styling
-- `@iconify/react` – Icon Components
+- `Next.js 15` – React framework with static export
+- `React 19` – UI library
+- `TypeScript` (strict) – Type-safe JavaScript
+- `Tailwind CSS v4` – Utility-first styling with a CSS-variable design-token system ("Civic Glass")
+- `shadcn/ui` (vendored) – Radix-based UI primitives (tabs, dialog, sheet, select, tooltip)
+- `Bklit UI` (vendored, MIT) – visx-based chart components (line, composed, pie, radar, sankey, gauge, choropleth)
+- `visx` / `d3` – Chart internals and the custom bubble chart
+- `Anime.js v4` – Motion layer (entrances, count-ups, chart transitions) with a single reduced-motion chokepoint
+- `nuqs` – URL state (chart tab, filters, time range, compare mode are all shareable links)
+- `next-themes` – Flash-free dark/light theme on static export
+- `KaTeX` – Mathematical notation rendering in the estimator
+- `Lucide` – Icon system
+- `Fontsource` – Self-hosted Inter Variable + Noto Sans JP Variable
 
 ### DevOps & Automation:
-- `GitHub Actions` – CI/CD Automation
+- `GitHub Actions` – CI (lint, typecheck, tests, fixture build) and deploy automation
 - `Data Watcher Workflow` – Automated e-Stat data monitoring
+- `Build-time data transform` – e-Stat payload flattened and bureau-corrected once at build (~10x smaller client payload)
 - `react-build-info` – Build metadata generation
 
 ### Hosting:

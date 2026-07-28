@@ -1,5 +1,5 @@
 // components/common/FilterInput.tsx
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 
 import type React from 'react';
 import type { ChangeEvent } from 'react';
@@ -16,6 +16,8 @@ interface FilterInputProps {
   includeDefaultOption?: boolean;
   defaultOptionLabel?: string;
   filterFn?: (option: { value: string; label: string }) => boolean;
+  /** 'eyebrow' renders the small uppercase label style used by the stat tiles */
+  labelVariant?: 'default' | 'eyebrow';
 }
 
 export const FilterInput: React.FC<FilterInputProps> = ({
@@ -30,34 +32,50 @@ export const FilterInput: React.FC<FilterInputProps> = ({
   includeDefaultOption = false,
   defaultOptionLabel = 'Select',
   filterFn = (x) => x,
+  labelVariant = 'default',
 }) => {
+  const id = useId();
   const handleChange = (e: ChangeEvent<HTMLSelectElement | HTMLInputElement>) => onChange(e.target.value);
 
   const filteredOptions = useMemo(() => options.filter(filterFn), [options, filterFn]);
 
   return (
     <div className="space-y-2">
-      <label className="filter-label">{label}</label>
+      <label
+        className={
+          labelVariant === 'eyebrow'
+            ? 'text-xxs font-semibold uppercase tracking-wider text-muted-foreground sm:text-xs'
+            : 'filter-label'
+        }
+        htmlFor={id}
+      >
+        {label}
+      </label>
       {type === 'select' ? (
-        <div className={`${disabled ? 'pointer-events-none opacity-50' : ''}`}>
-          <select className="filter-select" aria-label={value} value={value} onChange={handleChange}>
-            {includeDefaultOption && <option value="">{defaultOptionLabel}</option>}
-            {filteredOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          id={id}
+          className="filter-select disabled:cursor-not-allowed disabled:opacity-50"
+          value={value}
+          onChange={handleChange}
+          disabled={disabled}
+        >
+          {includeDefaultOption && <option value="">{defaultOptionLabel}</option>}
+          {filteredOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       ) : (
         <input
+          id={id}
           type={type}
-          placeholder="YYYY-MM"
-          className="filter-select"
+          className="filter-select disabled:cursor-not-allowed disabled:opacity-50"
           value={value}
           onChange={handleChange}
           min={min}
           max={max}
+          disabled={disabled}
         />
       )}
     </div>

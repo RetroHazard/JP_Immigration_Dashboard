@@ -1,34 +1,50 @@
 // src/components/EstimationCard.tsx
-import { useEffect, useMemo, useState } from 'react';
+// The Processing Time Estimator, promoted to a first-class, always-visible
+// panel. State is controlled by the shell so the desktop sidebar and the
+// mobile sheet share one set of inputs, and "Show the math" is a disclosure
+// that no longer hides the inputs.
+'use client';
+
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
+import { animate } from 'animejs';
+import {
+  AlertTriangle,
+  Check,
+  ChevronRight,
+  ChevronsRight,
+  Link as LinkIcon,
+  OctagonAlert,
+  RotateCcw,
+  X,
+} from 'lucide-react';
 import type React from 'react';
-import { Icon } from '@iconify/react';
+import { BlockMath } from 'react-katex';
 
 import { applicationOptions } from '../constants/applicationOptions';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
+import { prefersReducedMotion } from '../lib/motion';
 import type { EstimatedDateResult } from '../utils/calculateEstimates';
 import { calculateEstimatedDate } from '../utils/calculateEstimates';
 import { nonAirportBureaus } from '../utils/getBureauData';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
-import { getApplicationDetailsFromParams } from '../utils/urlApplicationDetails';
+import { ESTIMATOR_PARAM_NAMES } from '../utils/urlApplicationDetails';
 import { FilterInput } from './common/FilterInput';
 import { FormulaTooltip, variableExplanations } from './common/FormulaTooltip';
 import { IconTooltip } from './common/IconTooltip';
 
 interface EstimationCardProps {
   data: ImmigrationData[];
-  variant?: 'drawer' | 'expandable';
-  isExpanded?: boolean;
+  details: ApplicationDetails;
+  onDetailsChange: (details: ApplicationDetails) => void;
+  /** When provided (desktop sidebar), renders a collapse control in the header */
   onCollapse?: () => void;
+  /** When provided (mobile sheet), renders a close control in the header */
   onClose?: () => void;
 }
 
-interface ShareButtonProps {
-  appDetails: ApplicationDetails;
-}
-
-const ShareButton: React.FC<ShareButtonProps> = ({ appDetails }) => {
+const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails }) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -36,18 +52,22 @@ const ShareButton: React.FC<ShareButtonProps> = ({ appDetails }) => {
   const [copied, setCopied] = useState(false);
 
   const doShare = async () => {
-    // Mutable copy of the search params.
     const mutableParams = new URLSearchParams(searchParams.toString());
 
-    // Only keep params with a selected value, so sharing a partially-filled form
-    // doesn't leave empty bureau/type/applicationDate params in the URL.
-    Object.entries(appDetails).forEach(([key, value]) => {
+    // The estimator's params are namespaced (est*) so a shared estimate never
+    // overwrites the chart's ?bureau=/?type= filters. Only params with a
+    // selected value are kept, so sharing a partially-filled form doesn't
+    // leave empty params in the URL.
+    (Object.keys(ESTIMATOR_PARAM_NAMES) as Array<keyof ApplicationDetails>).forEach((key) => {
+      const value = appDetails[key];
       if (value) {
-        mutableParams.set(key, value);
+        mutableParams.set(ESTIMATOR_PARAM_NAMES[key], value);
       } else {
-        mutableParams.delete(key);
+        mutableParams.delete(ESTIMATOR_PARAM_NAMES[key]);
       }
     });
+    // Drop the pre-rename estimator date param if the visitor arrived on one.
+    mutableParams.delete('applicationDate');
 
     const newRelativePath = `${pathname}?${mutableParams.toString()}`;
     router.push(newRelativePath, { scroll: false });
@@ -58,279 +78,337 @@ const ShareButton: React.FC<ShareButtonProps> = ({ appDetails }) => {
 
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy URL: ', err);
+    } catch {
+      // Clipboard may be unavailable (permissions); the URL bar still has the link.
     }
   };
 
   return (
-    <IconTooltip label={copied ? 'Copied!' : 'Copy a permalink to these filters'}>
+    <IconTooltip label={copied ? 'Copied!' : 'Copy a permalink to this estimate'}>
       <button
         onClick={doShare}
-        aria-label="Copy a permalink to these filters"
+        aria-label="Copy a permalink to this estimate"
         className={`flex size-7 items-center justify-center rounded-full transition-colors ${
-          copied
-            ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300'
-            : 'text-gray-500 hover:bg-gray-100 hover:text-indigo-600 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-indigo-300'
+          copied ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-primary'
         }`}
       >
-        <Icon icon={copied ? 'material-symbols:check' : 'material-symbols:link'} className="text-base" />
+        {copied ? <Check className="size-4" /> : <LinkIcon className="size-4" />}
       </button>
     </IconTooltip>
   );
 };
 
+// "22 Sep 2026" - the compact date form the result panel uses.
+const formatResultDate = (date: Date) =>
+  `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })} ${date.getFullYear()}`;
+
+const formatUncertainty = (days: number): string | null => {
+  if (days < 1) return null;
+  if (days < 10) return `± ${days} day${days === 1 ? '' : 's'}`;
+  const weeks = Math.round(days / 7);
+  return `± ${weeks} week${weeks === 1 ? '' : 's'}`;
+};
+
 export const EstimationCard: React.FC<EstimationCardProps> = ({
   data,
-  variant = 'drawer',
-  isExpanded,
+  details,
+  onDetailsChange,
   onCollapse,
   onClose,
 }) => {
-  const searchParams = useSearchParams();
-  const [applicationDetails, setApplicationDetails] = useState<ApplicationDetails>(() =>
-    getApplicationDetailsFromParams(searchParams)
-  );
-  const [showDetails, setShowDetails] = useState(false);
-  const [BlockMath, setBlockMath] = useState<React.ComponentType<{ math: string }> | null>(null);
+  const [showMath, setShowMath] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
+  const queueFillRef = useRef<HTMLDivElement>(null);
 
   const estimatedDate: EstimatedDateResult | null = useMemo(
-    () => calculateEstimatedDate(data, applicationDetails),
-    [data, applicationDetails]
+    () => calculateEstimatedDate(data, details),
+    [data, details]
   );
 
-  // Get valid date range for the application date input
+  // How far through the original queue the application has moved: drives the
+  // queue-position bar. Past due (Q_pos <= 0) reads as a full bar.
+  const queue = useMemo(() => {
+    if (!estimatedDate) return null;
+    const { Q_pos, Q_app } = estimatedDate.details.modelVariables;
+    return {
+      ahead: Math.max(0, Math.round(Q_pos)),
+      progress: Q_app > 0 ? Math.min(1, Math.max(0, 1 - Q_pos / Q_app)) : 1,
+    };
+  }, [estimatedDate]);
+
+  const resultKey = estimatedDate ? estimatedDate.estimatedDate.getTime() : null;
+  useEffect(() => {
+    if (resultKey === null || prefersReducedMotion() || !resultRef.current) return;
+    const animation = animate(resultRef.current, {
+      opacity: [0.4, 1],
+      scale: [0.975, 1],
+      duration: 450,
+      ease: 'out(3)',
+    });
+    return () => {
+      animation.cancel();
+    };
+  }, [resultKey]);
+
+  useEffect(() => {
+    const fill = queueFillRef.current;
+    if (!fill || !queue) return;
+    const width = `${queue.progress * 100}%`;
+    if (prefersReducedMotion()) {
+      fill.style.width = width;
+      return;
+    }
+    fill.style.width = '0%';
+    const animation = animate(fill, { width, duration: 1100, ease: 'out(3)', delay: 150 });
+    return () => {
+      animation.cancel();
+    };
+  }, [queue]);
+
+  // Valid range for the application date input
   const dateRange = useMemo(() => {
     if (!data || data.length === 0) return { min: '', max: '' };
-
-    // Extract and sort unique dates from data (YYYY-MM-DD format)
     const dates = [...new Set(data.map((entry) => entry.month))].sort();
-    // Get current date in UTC (YYYY-MM-DD format)
     const currentDate = new Date().toISOString().slice(0, 10);
-
-    return {
-      min: dates[0],
-      max: currentDate, // Allow selection up to current date
-    };
+    return { min: `${dates[0]}-01`, max: currentDate };
   }, [data]);
 
-  // Lazy load KaTeX library only when user wants to see formulas
-  useEffect(() => {
-    if (showDetails && !BlockMath) {
-      // Dynamically load KaTeX CSS from CDN
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
-      link.integrity = 'sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV';
-      link.crossOrigin = 'anonymous';
-      document.head.appendChild(link);
+  const vars = estimatedDate?.details.modelVariables;
 
-      // Dynamically import BlockMath component
-      import('react-katex').then((module) => {
-        setBlockMath(() => module.BlockMath);
-      });
-    }
-  }, [showDetails, BlockMath]);
-
-  if (variant === 'expandable' && !isExpanded) {
-    return (
-      <div className="flex h-full cursor-pointer flex-col items-center justify-between p-5" onClick={onCollapse}>
-        <Icon icon="ci:chevron-left-duo" className="flashing-chevron" />
-        <div
-          className="section-title whitespace-nowrap text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-600"
-          style={{ writingMode: 'vertical-rl' }}
-        >
-          <h2>Processing Time Estimator</h2>
-        </div>
-        <Icon icon="ci:chevron-left-duo" className="flashing-chevron" />
-      </div>
-    );
-  }
+  const resultNote = estimatedDate
+    ? [
+        formatUncertainty(estimatedDate.details.uncertaintyDays),
+        `based on ${estimatedDate.details.monthsUsed} month${
+          estimatedDate.details.monthsUsed === 1 ? '' : 's'
+        } of throughput`,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : '';
 
   return (
-    <div className="estimator-container">
-      <div className="flex-between gap-2 border-b p-2 dark:border-gray-500">
+    <section aria-label="Processing Time Estimator" className="estimator-container">
+      <div className="flex-between gap-2 border-b border-border p-2">
         <h2 className="section-title min-w-0 truncate">Processing Time Estimator</h2>
         <div className="flex shrink-0 items-center gap-1">
-          {!showDetails && <ShareButton appDetails={applicationDetails} />}
-          <button
-            onClick={variant === 'drawer' ? onClose : onCollapse}
-            className="p-2 text-gray-500 hover:text-gray-700"
-          >
-            <Icon icon={variant === 'drawer' ? 'ci:close-md' : 'ci:chevron-right-duo'} className="flashing-chevron" />
-          </button>
+          <IconTooltip label="Reset the estimator">
+            <button
+              onClick={() => onDetailsChange({ bureau: '', type: '', applicationDate: '' })}
+              disabled={!details.bureau && !details.type && !details.applicationDate}
+              aria-label="Reset the Processing Time Estimator"
+              className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+            >
+              <RotateCcw className="size-4" />
+            </button>
+          </IconTooltip>
+          <ShareButton appDetails={details} />
+          {onCollapse && (
+            <IconTooltip label="Collapse the estimator">
+              <button
+                onClick={onCollapse}
+                aria-label="Collapse the Processing Time Estimator"
+                className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <ChevronsRight className="size-4" />
+              </button>
+            </IconTooltip>
+          )}
+          {onClose && (
+            <IconTooltip label="Close the estimator">
+              <button
+                onClick={onClose}
+                aria-label="Close the Processing Time Estimator"
+                className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <X className="size-4" />
+              </button>
+            </IconTooltip>
+          )}
         </div>
       </div>
       <div className="card-content-padded flex-1">
-        {!showDetails && (
-          <>
-            <FilterInput
-              type="select"
-              label="Immigration Bureau"
-              options={nonAirportBureaus}
-              value={applicationDetails.bureau}
-              includeDefaultOption
-              defaultOptionLabel="Select Bureau"
-              onChange={(value) => setApplicationDetails({ ...applicationDetails, bureau: value })}
-            />
+        <p className="text-xs text-muted-foreground">
+          Queue-model estimate from the last six months of bureau throughput.
+        </p>
 
-            <FilterInput
-              type="select"
-              label="Application Type"
-              options={applicationOptions}
-              value={applicationDetails.type}
-              includeDefaultOption
-              defaultOptionLabel="Select Type"
-              filterFn={(option) => option.value !== 'all'}
-              onChange={(value) => setApplicationDetails({ ...applicationDetails, type: value })}
-            />
+        <FilterInput
+          type="select"
+          label="Immigration Bureau"
+          labelVariant="eyebrow"
+          options={nonAirportBureaus}
+          value={details.bureau}
+          includeDefaultOption
+          defaultOptionLabel="Select Bureau"
+          onChange={(value) => onDetailsChange({ ...details, bureau: value })}
+        />
 
-            <FilterInput
-              type="date"
-              label="Application Date"
-              value={applicationDetails.applicationDate}
-              min={dateRange.min}
-              max={dateRange.max}
-              onChange={(value) => setApplicationDetails({ ...applicationDetails, applicationDate: value })}
-            />
-          </>
+        <FilterInput
+          type="select"
+          label="Application Type"
+          labelVariant="eyebrow"
+          options={applicationOptions}
+          value={details.type}
+          includeDefaultOption
+          defaultOptionLabel="Select Type"
+          filterFn={(option) => option.value !== 'all'}
+          onChange={(value) => onDetailsChange({ ...details, type: value })}
+        />
+
+        <FilterInput
+          type="date"
+          label="Application Date"
+          labelVariant="eyebrow"
+          value={details.applicationDate}
+          min={dateRange.min}
+          max={dateRange.max}
+          onChange={(value) => onDetailsChange({ ...details, applicationDate: value })}
+        />
+
+        {!estimatedDate && (
+          <p className="mt-3 rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
+            Select your bureau, application type, and application date to estimate when your application will be
+            processed.
+          </p>
         )}
 
-        {estimatedDate && (
-          <div
-            className={`card-base-gray border-t-4 ${
-              estimatedDate.details.isPastDue
-                ? 'border-amber-400 dark:border-amber-500'
-                : 'border-indigo-400 dark:border-indigo-500'
-            }`}
-          >
-            <div className="text-center text-lg font-medium text-gray-900 dark:text-gray-200">
-              Estimated Completion Date
-            </div>
-            <p
-              className={`mt-2 text-center text-2xl font-bold ${
-                estimatedDate.details.isPastDue
-                  ? 'text-amber-600 dark:text-amber-500'
-                  : 'text-indigo-600 dark:text-indigo-500'
+        {estimatedDate && queue && (
+          <div className="space-y-3">
+            <div
+              ref={resultRef}
+              className={`rounded-xl border p-4 shadow-soft ${
+                estimatedDate.details.isPastDue ? 'border-warning/40 bg-warning/10' : 'border-primary/25 bg-primary/5'
               }`}
             >
-              {estimatedDate.estimatedDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </p>
+              <div className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">
+                Estimated completion
+              </div>
+              <p
+                className={`mt-1 text-2xl font-bold tabular-nums ${
+                  estimatedDate.details.isPastDue ? 'text-warning' : 'text-foreground'
+                }`}
+              >
+                {formatResultDate(estimatedDate.estimatedDate)}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{resultNote}</p>
 
-            {estimatedDate.details.dataQuality === 'low' && (
-              <div className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                <div className="flex items-start gap-2">
-                  <Icon icon="material-symbols:warning-outline" className="mt-0.5 shrink-0 text-base" />
-                  <div>
-                    <strong>Estimated with limited data:</strong> Your application date is beyond available data. This
-                    estimate is based on simulated processing rates from {estimatedDate.details.monthsUsed} month
-                    {estimatedDate.details.monthsUsed === 1 ? '' : 's'} of historical data and may be less accurate.
+              {estimatedDate.details.dataQuality === 'low' && (
+                <div className="mt-3 rounded-md bg-warning/10 px-3 py-2 text-xs text-warning">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                    <div>
+                      <strong>Estimated with limited data:</strong> Your application date is beyond available data. This
+                      estimate is based on simulated processing rates from {estimatedDate.details.monthsUsed} month
+                      {estimatedDate.details.monthsUsed === 1 ? '' : 's'} of historical data and may be less accurate.
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {estimatedDate.details.isPastDue && (
-              <div className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                <div className="flex items-start gap-2">
-                  <Icon icon="material-symbols:error-outline" className="mt-0.5 shrink-0 text-base" />
-                  <div>
-                    <strong>Possibly past due:</strong> Based on expected processing rates, completion of this
-                    application may be past due. If you have not yet received additional requests and/or a decision on
-                    this application, please contact the bureau for more information.
+              {estimatedDate.details.isPastDue && (
+                <div className="mt-3 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                  <div className="flex items-start gap-2">
+                    <OctagonAlert className="mt-0.5 size-4 shrink-0" />
+                    <div>
+                      <strong>Possibly past due:</strong> Based on expected processing rates, completion of this
+                      application may be past due. If you have not yet received additional requests and/or a decision on
+                      this application, please contact the bureau for more information.
+                    </div>
                   </div>
                 </div>
+              )}
+
+              <div className="mt-4">
+                <div className="h-1.5 overflow-hidden rounded-full bg-border">
+                  <div
+                    ref={queueFillRef}
+                    className={`h-full rounded-full ${estimatedDate.details.isPastDue ? 'bg-warning' : 'bg-primary'}`}
+                    style={{ width: 0 }}
+                  />
+                </div>
+                <div className="mt-1.5 flex justify-between gap-2 text-xxs tabular-nums text-muted-foreground">
+                  <span>Queue position</span>
+                  <span>≈ {queue.ahead.toLocaleString('en-US')} ahead of you</span>
+                </div>
               </div>
-            )}
+            </div>
 
             <button
-              onClick={() => setShowDetails(!showDetails)}
-              className="mt-3 flex items-center text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-500"
+              onClick={() => setShowMath(!showMath)}
+              aria-expanded={showMath}
+              className="flex w-full items-center justify-between gap-2 border-t border-dashed border-border pt-3 text-xs hover:opacity-80"
             >
-              <Icon
-                icon={showDetails ? 'material-symbols:settings' : 'material-symbols:info-outline'}
-                className="mr-1"
-              />
-              {showDetails ? 'Show Filters' : 'Show Details'}
+              <span className="text-secondary-foreground">How is this calculated?</span>
+              <span className="flex items-center gap-0.5 text-muted-foreground">
+                {showMath ? 'Hide the math' : 'Show the math'}
+                <ChevronRight
+                  className={`size-3.5 transition-transform motion-reduce:transition-none ${showMath ? 'rotate-90' : ''}`}
+                />
+              </span>
             </button>
 
-            {showDetails && (
-              <div className="mt-2.5 space-y-1 border-t pt-3 text-xs dark:border-gray-500">
-                {!BlockMath ? (
-                  <div className="flex items-center justify-center py-4 text-sm text-gray-500 dark:text-gray-400">
-                    <Icon icon="eos-icons:loading" className="mr-2 text-lg" />
-                    Loading formulas...
-                  </div>
-                ) : (
-                  <div className="rounded-xl bg-gray-100 p-2.5 text-xxs text-gray-600 shadow-lg dark:bg-gray-600 dark:text-gray-200">
-                    <FormulaTooltip
-                      variables={{
-                        'D_{\\text{rem}}': variableExplanations['D_rem'],
-                        'Q_{\\text{pos}}': variableExplanations['Q_pos'],
-                        'R_{\\text{daily}}': variableExplanations['R_daily'],
-                      }}
-                    >
-                      <div className="mt-2 border-b border-gray-300 text-xxs">
-                        <BlockMath
-                          math={`
-                        \\begin{aligned}
-                        &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${estimatedDate.details.modelVariables.Q_pos.toFixed()}}}{${estimatedDate.details.modelVariables.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${estimatedDate.details.modelVariables.D_rem.toFixed()} \\ \\text{d} \\\\
-                        \\end{aligned}
-                      `}
-                        />
-                      </div>
-                    </FormulaTooltip>
-                    <FormulaTooltip
-                      variables={{
-                        'C_{\\text{proc}}': variableExplanations['C_proc'],
-                        'E_{\\text{proc}}': variableExplanations['E_proc'],
-                        '\\sum P': variableExplanations['Sigma_P'],
-                        '\\sum D': variableExplanations['Sigma_D'],
-                      }}
-                    >
-                      <div className="mt-2 border-b border-gray-300 text-xxs">
-                        <BlockMath
-                          math={`
-                        \\begin{aligned}
-                        &\\text{where}\\
-                        \\begin{cases}
-                        Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{app}}}_{${estimatedDate.details.modelVariables.Q_app.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${estimatedDate.details.modelVariables.C_proc.toFixed()}} - \\underbrace{E_{\\text{proc}}}_{${estimatedDate.details.modelVariables.E_proc.toFixed()}} \\\\
-                        \\\\
-                        R_{\\text{daily}} \\approx \\left\\lbrack\\dfrac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\dfrac{${estimatedDate.details.modelVariables.Sigma_P}}{${estimatedDate.details.modelVariables.Sigma_D}}\\right\\rbrack \\\\
-                        \\end{cases}
-                        \\end{aligned}
-                      `}
-                        />
-                      </div>
-                    </FormulaTooltip>
-                    <FormulaTooltip
-                      variables={{
-                        'Q_{\\text{app}}': variableExplanations['Q_app'],
-                        'C_{\\text{prev}}': variableExplanations['C_prev'],
-                        'N_{\\text{app}}': variableExplanations['N_app'],
-                        'P_{\\text{app}}': variableExplanations['P_app'],
-                      }}
-                    >
-                      <div className="mt-2 border-gray-300 text-xxs">
-                        <BlockMath
-                          math={`
-                        \\begin{aligned}
-                        &Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${estimatedDate.details.modelVariables.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${estimatedDate.details.modelVariables.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${estimatedDate.details.modelVariables.P_app.toFixed()}} \\\\
-                        \\end{aligned}
-                      `}
-                        />
-                      </div>
-                    </FormulaTooltip>
-                  </div>
-                )}
+            {showMath && vars && (
+              <div className="space-y-2">
+                <FormulaTooltip
+                  step={1}
+                  title="Remaining days"
+                  variables={{
+                    'D_{\\text{rem}}': variableExplanations['D_rem'],
+                    'Q_{\\text{pos}}': variableExplanations['Q_pos'],
+                    'R_{\\text{daily}}': variableExplanations['R_daily'],
+                  }}
+                >
+                  <BlockMath
+                    math={`
+                    \\begin{aligned}
+                    &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${vars.Q_pos.toFixed()}}}{${vars.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${vars.D_rem.toFixed()} \\ \\text{d} \\\\
+                    \\end{aligned}
+                  `}
+                  />
+                </FormulaTooltip>
+                <FormulaTooltip
+                  step={2}
+                  title="Queue position & daily rate"
+                  variables={{
+                    'C_{\\text{proc}}': variableExplanations['C_proc'],
+                    'E_{\\text{proc}}': variableExplanations['E_proc'],
+                    '\\sum P': variableExplanations['Sigma_P'],
+                    '\\sum D': variableExplanations['Sigma_D'],
+                  }}
+                >
+                  <BlockMath
+                    math={`
+                    \\begin{aligned}
+                    &\\begin{cases}
+                    Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{app}}}_{${vars.Q_app.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${vars.C_proc.toFixed()}} - \\underbrace{E_{\\text{proc}}}_{${vars.E_proc.toFixed()}} \\\\
+                    \\\\
+                    R_{\\text{daily}} \\approx \\left\\lbrack\\dfrac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\dfrac{${vars.Sigma_P}}{${vars.Sigma_D}}\\right\\rbrack \\\\
+                    \\end{cases}
+                    \\end{aligned}
+                  `}
+                  />
+                </FormulaTooltip>
+                <FormulaTooltip
+                  step={3}
+                  title="Queue at application"
+                  variables={{
+                    'Q_{\\text{app}}': variableExplanations['Q_app'],
+                    'C_{\\text{prev}}': variableExplanations['C_prev'],
+                    'N_{\\text{app}}': variableExplanations['N_app'],
+                    'P_{\\text{app}}': variableExplanations['P_app'],
+                  }}
+                >
+                  <BlockMath
+                    math={`
+                    \\begin{aligned}
+                    &Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${vars.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${vars.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${vars.P_app.toFixed()}} \\\\
+                    \\end{aligned}
+                  `}
+                  />
+                </FormulaTooltip>
               </div>
             )}
 
-            <p className="mt-4 text-xxs italic text-gray-500 dark:text-gray-200 sm:text-xs">
+            <p className="text-xxs italic text-muted-foreground sm:text-xs">
               *This is an{' '}
               <strong>
                 <u>estimate</u>
@@ -341,6 +419,6 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 };

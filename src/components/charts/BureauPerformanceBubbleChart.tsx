@@ -1,167 +1,246 @@
 // src/components/charts/BureauPerformanceBubbleChart.tsx
+// Processing Efficiency as a purpose-built visx bubble chart on the design
+// tokens. Bklit's ScatterChart is time-x with a fixed 0-100 y-domain, so it
+// can't express volume-vs-rate with a size channel; this local component
+// follows the same visual language (grid, ink, tooltip tokens) instead.
+// Identity is carried by direct labels + tooltip, not by 14 unlabeled hues.
+'use client';
+
 import { useMemo, useState } from 'react';
 
-import { Chart as ChartJS, Legend, LinearScale, PointElement, Title, Tooltip, type TooltipItem } from 'chart.js';
+import { scaleLinear, scaleSqrt } from 'd3-scale';
 import type React from 'react';
-import { Bubble } from 'react-chartjs-2';
 
-import { applicationOptions } from '../../constants/applicationOptions';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useTheme } from '../../contexts/ThemeContext';
+import { tintToward, visibleBureauColor } from '../../utils/bureauColors';
+import { breakdownScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import type { ImmigrationChartData } from '../common/ChartComponents';
+import { SeriesLegend } from '../common/SeriesLegend';
 
-ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
-
-interface BubbleDataPoint {
-  x: number;
-  y: number;
-  r: number;
+interface BubblePoint {
+  code: string;
   label: string;
+  color: string;
+  /** Full-strength parent color for the dashed satellite outline */
+  outline: string;
+  isAirport: boolean;
+  received: number;
   processed: number;
-  bureau: string;
+  rate: number;
 }
 
-export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data }) => {
+// Bureau flag colors (same regional identity encoding as the map)
+const bureauColor = new Map(
+  bureauOptions.filter((bureau) => bureau.border).map((bureau) => [bureau.value, bureau.border as string])
+);
+
+// Branch office -> parent bureau (airports inherit their region's color)
+const parentOf = new Map<string, string>();
+for (const bureau of bureauOptions) {
+  for (const child of bureau.children ?? []) parentOf.set(child, bureau.value);
+}
+
+const isAirportLabel = (label: string) => label.toLowerCase().includes('airport');
+
+/** Airports render as a tint of their parent region's flag color. */
+const colorsFor = (code: string, label: string, isDarkMode: boolean): { color: string; outline: string } => {
+  const own = visibleBureauColor(bureauColor.get(code) ?? 'var(--chart-1)', isDarkMode);
+  if (!isAirportLabel(label)) return { color: own, outline: own };
+  const parent = visibleBureauColor(bureauColor.get(parentOf.get(code) ?? '') ?? own, isDarkMode);
+  return { color: tintToward(parent, 0.45), outline: parent };
+};
+
+const W = 720;
+const H = 380;
+const MARGIN = { top: 16, right: 24, bottom: 40, left: 48 };
+const LABELED_BUBBLES = 5;
+
+export const BureauPerformanceBubbleChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { isDarkMode } = useTheme();
-  const [selectedPeriod, setSelectedPeriod] = useState('1');
+  const [hovered, setHovered] = useState<BubblePoint | null>(null);
 
-  const sortedMonths = useMemo(() => {
-    if (!data?.length) return [];
-    return [...new Set(data.map((entry) => entry.month))].sort();
-  }, [data]);
+  const points = useMemo(() => {
+    const months = monthsForRange(getAllMonths(data), range);
+    const rows = selectData(data, {
+      scope: breakdownScopeFromFilter(filters.bureau),
+      type: filters.type,
+    }).filter((entry) => months.includes(entry.month));
 
-  const selectedMonths = useMemo(() => {
-    if (selectedPeriod === 'all') return sortedMonths;
-    const period = parseInt(selectedPeriod, 10);
-    return sortedMonths.slice(-period);
-  }, [selectedPeriod, sortedMonths]);
+    return bureauOptions
+      .filter((bureau) => bureau.value !== 'all')
+      .map((bureau) => {
+        const bureauRows = rows.filter((entry) => entry.bureau === bureau.value);
+        const received = bureauRows.reduce(
+          (sum, entry) => (entry.status === STATUS_CODES.NEW_APPLICATIONS ? sum + entry.value : sum),
+          0
+        );
+        const processed = bureauRows.reduce(
+          (sum, entry) => (entry.status === STATUS_CODES.PROCESSED ? sum + entry.value : sum),
+          0
+        );
+        const { color, outline } = colorsFor(bureau.value, bureau.label, isDarkMode);
+        return {
+          code: bureau.value,
+          label: bureau.label,
+          color,
+          outline,
+          isAirport: isAirportLabel(bureau.label),
+          received,
+          processed,
+          rate: received > 0 ? (processed / received) * 100 : 0,
+        };
+      })
+      .filter((point) => point.received > 0);
+  }, [data, filters.bureau, filters.type, range, isDarkMode]);
 
-  const filteredData = useMemo(() => {
-    // Data is pre-filtered by bureau and type in App.tsx, only filter by month and status
-    const relevantStatuses = [STATUS_CODES.NEW_APPLICATIONS, STATUS_CODES.PROCESSED] as string[];
-    return data.filter(
-      (entry) => selectedMonths.includes(entry.month) && relevantStatuses.includes(entry.status)
+  const { xScale, yScale, rScale } = useMemo(() => {
+    const maxX = Math.max(...points.map((p) => p.received), 1);
+    const maxY = Math.max(...points.map((p) => p.rate), 100);
+    const maxR = Math.max(...points.map((p) => p.processed), 1);
+    return {
+      xScale: scaleLinear()
+        .domain([0, maxX * 1.08])
+        .range([MARGIN.left, W - MARGIN.right]),
+      yScale: scaleLinear()
+        .domain([0, Math.min(Math.ceil(maxY / 20) * 20, 160)])
+        .range([H - MARGIN.bottom, MARGIN.top]),
+      rScale: scaleSqrt().domain([0, maxR]).range([3, 34]),
+    };
+  }, [points]);
+
+  if (points.length === 0) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
+        No data for this combination of filters.
+      </div>
     );
-  }, [data, selectedMonths]);
+  }
 
-  const chartData = useMemo(() => {
-    const bureaus = bureauOptions.filter((b) => b.value !== 'all');
-    const appTypes = applicationOptions.filter((t) => t.value !== 'all');
-
-    // Calculate maximum processed value
-    let maxProcessed = 0;
-    bureaus.forEach((bureau) => {
-      appTypes.forEach((type) => {
-        const processed = filteredData
-          .filter((d) => d.bureau === bureau.value && d.type === type.value)
-          .filter((d) => d.status === STATUS_CODES.PROCESSED)
-          .reduce((sum, d) => sum + d.value, 0);
-        if (processed > maxProcessed) maxProcessed = processed;
-      });
-    });
-
-    const AREA_SCALING_FACTOR = 15000; // Adjust based on visual requirements
-    const sizeScale = maxProcessed > 0 ? Math.sqrt(AREA_SCALING_FACTOR / (Math.PI * maxProcessed)) : 0;
-
-    return bureaus.map((bureau) => {
-      const bureauDataPoints = appTypes
-        .map((type) => {
-          const bureauTypeData = filteredData.filter((d) => d.bureau === bureau.value && d.type === type.value);
-
-          const totalReceived = bureauTypeData
-            .filter((d) => d.status === STATUS_CODES.NEW_APPLICATIONS)
-            .reduce((sum, d) => sum + d.value, 0);
-
-          const totalProcessed = bureauTypeData
-            .filter((d) => d.status === STATUS_CODES.PROCESSED)
-            .reduce((sum, d) => sum + d.value, 0);
-
-          const efficiency = totalReceived > 0 ? (totalProcessed / totalReceived) * 100 : 0;
-
-          return {
-            x: totalReceived,
-            y: efficiency,
-            r: Math.sqrt(totalProcessed) * sizeScale, // Controls bubble size
-            label: type.label,
-            processed: totalProcessed,
-            bureau: bureau.label,
-          };
-        })
-        .filter((point) => point.x > 0); // Exclude points with no data
-
-      return {
-        label: bureau.label,
-        data: bureauDataPoints,
-        backgroundColor: bureau.background,
-        borderColor: bureau.border,
-        borderWidth: 1,
-      };
-    });
-  }, [filteredData]);
-
-  const options = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: {
-        title: {
-          display: true,
-          text: 'Volume Received',
-          color: isDarkMode ? '#fff' : '#000',
-        },
-        ticks: {
-          color: isDarkMode ? '#fff' : '#000',
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: 'Completion Rate (%)',
-          color: isDarkMode ? '#fff' : '#000',
-        },
-        ticks: {
-          color: isDarkMode ? '#fff' : '#000',
-        },
-      },
-    },
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label(context: TooltipItem<'bubble'>) {
-            const raw = context.raw as BubbleDataPoint;
-            return [
-              `${raw.bureau} - ${raw.label}`, // Use bureau from raw data
-              `Received: ${raw.x.toLocaleString()}`,
-              `Processed: ${raw.processed.toLocaleString()}`,
-              `Efficiency: ${raw.y.toFixed(2)}%`,
-            ];
-          },
-        },
-      },
-      legend: { display: false },
-    },
-  }), [isDarkMode]);
+  const labeled = [...points].sort((a, b) => b.processed - a.processed).slice(0, LABELED_BUBBLES);
+  const fmtK = (v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`);
 
   return (
     <div className="card-content">
-      <div className="mb-4 flex h-full items-center justify-between">
-        <div className="section-title">Processing Efficiency</div>
-        <select
-          className="chart-filter-select"
-          value={selectedPeriod}
-          onChange={(e) => setSelectedPeriod(e.target.value)}
+      <SeriesLegend
+        className="mb-1.5"
+        items={[...points]
+          .sort((a, b) => b.received - a.received)
+          .map((point) => ({ label: point.label, color: point.color }))}
+      />
+      <p className="mb-2 text-xxs text-muted-foreground">
+        Color = bureau (matching the Regional Map); airport offices are a dashed tint of their region&apos;s color ·
+        bubble size = applications processed over the selected period.
+      </p>
+      <div className="relative">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          className="w-full"
+          role="img"
+          aria-label="Bubble chart of completion rate against received volume per bureau; bubble size shows processed volume"
         >
-          <option value="1">Latest</option>
-          <option value="6">6 Months</option>
-          <option value="12">12 Months</option>
-          <option value="24">24 Months</option>
-          <option value="36">36 Months</option>
-          <option value="all">All Data</option>
-        </select>
-      </div>
-      <div className="chart-container">
-        <Bubble data={{ datasets: chartData }} options={options} />
+          {yScale.ticks(5).map((tick) => (
+            <g key={`y${tick}`}>
+              <line
+                x1={MARGIN.left}
+                x2={W - MARGIN.right}
+                y1={yScale(tick)}
+                y2={yScale(tick)}
+                stroke="var(--chart-grid)"
+              />
+              <text
+                x={MARGIN.left - 8}
+                y={yScale(tick) + 3}
+                textAnchor="end"
+                fontSize={10}
+                fill="var(--chart-foreground)"
+              >
+                {tick}%
+              </text>
+            </g>
+          ))}
+          {xScale.ticks(6).map((tick) => (
+            <text
+              key={`x${tick}`}
+              x={xScale(tick)}
+              y={H - MARGIN.bottom + 16}
+              textAnchor="middle"
+              fontSize={10}
+              fill="var(--chart-foreground)"
+            >
+              {fmtK(tick)}
+            </text>
+          ))}
+          <text
+            x={(MARGIN.left + W - MARGIN.right) / 2}
+            y={H - 6}
+            textAnchor="middle"
+            fontSize={10}
+            fill="var(--chart-label)"
+          >
+            Applications received
+          </text>
+          {/* 100% completion reference */}
+          <line
+            x1={MARGIN.left}
+            x2={W - MARGIN.right}
+            y1={yScale(100)}
+            y2={yScale(100)}
+            stroke="var(--chart-crosshair)"
+            strokeDasharray="4 4"
+          />
+          {points.map((point) => (
+            <circle
+              key={point.code}
+              cx={xScale(point.received)}
+              cy={yScale(point.rate)}
+              r={rScale(point.processed)}
+              fill={point.color}
+              fillOpacity={hovered?.code === point.code ? 0.85 : 0.55}
+              stroke={point.outline}
+              strokeWidth={1.5}
+              strokeDasharray={point.isAirport ? '4 2.5' : undefined}
+              className="cursor-pointer transition-[fill-opacity]"
+              onMouseEnter={() => setHovered(point)}
+              onMouseLeave={() => setHovered(null)}
+            />
+          ))}
+          {labeled.map((point) => (
+            <text
+              key={`label-${point.code}`}
+              x={xScale(point.received)}
+              y={yScale(point.rate) - rScale(point.processed) - 5}
+              textAnchor="middle"
+              fontSize={10.5}
+              fontWeight={600}
+              fill="var(--chart-label)"
+              pointerEvents="none"
+            >
+              {point.label}
+            </text>
+          ))}
+        </svg>
+        {hovered && (
+          <div
+            className="pointer-events-none absolute z-10 rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-soft-lg"
+            style={{
+              left: `${(xScale(hovered.received) / W) * 100}%`,
+              top: `${(yScale(hovered.rate) / H) * 100}%`,
+              transform: 'translate(-50%, calc(-100% - 12px))',
+            }}
+          >
+            <div className="font-semibold">{hovered.label}</div>
+            <div className="mt-1 grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 tabular-nums text-muted-foreground">
+              <span>Received</span>
+              <span className="text-right text-popover-foreground">{hovered.received.toLocaleString()}</span>
+              <span>Processed</span>
+              <span className="text-right text-popover-foreground">{hovered.processed.toLocaleString()}</span>
+              <span>Completion</span>
+              <span className="text-right text-popover-foreground">{hovered.rate.toFixed(1)}%</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -19,13 +19,13 @@ const renderInline = (text: string, keyPrefix: string): React.ReactNode[] => {
 
     if (bold !== undefined) {
       nodes.push(
-        <strong key={key} className="font-semibold text-gray-800 dark:text-gray-100">
+        <strong key={key} className="font-semibold text-foreground">
           {bold}
         </strong>,
       );
     } else if (code !== undefined) {
       nodes.push(
-        <code key={key} className="rounded bg-gray-100 px-1 py-0.5 text-xxs dark:bg-gray-600 sm:text-xs">
+        <code key={key} className="rounded bg-muted px-1 py-0.5 text-xxs sm:text-xs">
           {code}
         </code>,
       );
@@ -104,21 +104,21 @@ export const ChangelogContent: React.FC<{ markdown: string }> = ({ markdown }) =
     <div className="space-y-6">
       {months.map((month) => (
         <div key={month.heading}>
-          <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 sm:text-base">{month.heading}</h3>
+          <h3 className="text-sm font-bold text-foreground sm:text-base">{month.heading}</h3>
           <div className="mt-2 space-y-3">
             {month.sections.map((section) => (
               <div key={section.heading}>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-300 sm:text-sm">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:text-sm">
                   {section.heading}
                 </h4>
-                <ul className="mt-1 list-disc space-y-1.5 pl-5 text-xs text-gray-700 dark:text-gray-300 sm:text-sm">
+                <ul className="mt-1 list-disc space-y-1.5 pl-5 text-xs text-secondary-foreground sm:text-sm">
                   {section.items.map((item, index) => {
                     const itemKey = `${section.heading}-${index}`;
                     return (
                       <li key={itemKey}>
                         {renderInline(item.text, itemKey)}
                         {item.children.length > 0 && (
-                          <ul className="mt-1 list-[circle] space-y-1 pl-5 text-gray-600 dark:text-gray-400">
+                          <ul className="mt-1 list-[circle] space-y-1 pl-5 text-muted-foreground">
                             {item.children.map((child, childIndex) => {
                               const childKey = `${itemKey}-${childIndex}`;
                               return <li key={childKey}>{renderInline(child, childKey)}</li>;
