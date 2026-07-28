@@ -100,12 +100,16 @@ npm run build
 
 ### Build Process
 
-The build process includes:
+`npm run build` runs, in order:
 
 1. **Build Info Generation** — `react-build-info` injects version and timestamp
-2. **CHANGELOG Syncing** — Syncs `CHANGELOG.md` to the application
-3. **Next.js Build** — Compiles React + TypeScript to static HTML/JS
-4. **Output Location** — All files go to `build/` directory
+2. **CHANGELOG Syncing** — `scripts/sync-changelog.js` copies `CHANGELOG.md` into `public/`
+3. **Data Transform** — `scripts/transform-data.mts` turns `public/datastore/statData.json` (the raw e-Stat payload, or a generated fixture if it's absent) into the compact `public/data/dashboard.json` the client fetches
+4. **Next.js Build** — Compiles React + TypeScript to a static export (`output: 'export'` in `next.config.ts`)
+5. **Strip Raw Data** — `scripts/strip-raw-data.mjs` removes `datastore/` from the exported output so the verbose raw payload never ships to visitors
+6. **Output Location** — All files go to the `build/` directory
+
+`npm run dev` runs the data transform once (via the `predev` script) and then starts `next dev --turbopack` with build-info generation and CHANGELOG syncing, same as build.
 
 ### Deployment
 
@@ -129,116 +133,172 @@ See `.github/workflows/watcher.yaml` for details.
 ```
 JP_Immigration_Dashboard/
 ├── src/
+│   ├── App.tsx                        # Data-loading gate: spinner/error/DashboardShell
+│   ├── index.css                      # Tailwind v4 entry + Civic Glass @theme tokens
+│   │
 │   ├── app/
+│   │   ├── layout.tsx                 # Root layout: fonts, metadata, GoogleAnalytics
+│   │   ├── favicon.ico
+│   │   ├── robots.txt
 │   │   └── [[...slug]]/
-│   │       ├── page.tsx          # Main dashboard page
-│   │       ├── layout.tsx         # App layout wrapper
-│   │       └── error.tsx          # Error boundary
+│   │       ├── page.tsx               # generateStaticParams + renders ClientWrapper
+│   │       └── client.tsx             # Client providers: nuqs, theme, locale, tooltip, error boundary
 │   │
 │   ├── components/
-│   │   ├── layouts/
-│   │   │   ├── Header.tsx        # Top navigation
-│   │   │   └── Footer.tsx        # Footer
+│   │   ├── DashboardShell.tsx         # The single responsive shell (header, tabs, filters, estimator)
+│   │   ├── ActiveChart.tsx            # Memoized switch over the active chart registry entry
+│   │   ├── FilterPanel.tsx            # Bureau/type filter controls + compare toggle
+│   │   ├── StatsSummary.tsx           # Summary stat cards
+│   │   ├── EstimationCard.tsx         # Processing Time Estimator (sidebar/sheet)
+│   │   ├── ChartDataTable.tsx         # Collapsible data table + CSV export
+│   │   ├── ChangelogModal.tsx         # CHANGELOG.md viewer (shadcn Dialog)
+│   │   │
+│   │   ├── charts/
+│   │   │   ├── IntakeProcessingBarChart.tsx      # Bklit ComposedChart (bar + line)
+│   │   │   ├── CategorySubmissionsLineChart.tsx  # Bklit LineChart
+│   │   │   ├── OutcomesSankeyChart.tsx           # Bklit Sankey + Gauge
+│   │   │   ├── BureauDistributionRingChart.tsx   # Bklit PieChart (donut)
+│   │   │   ├── CategoryMixTreemap.tsx            # Custom zoomable treemap
+│   │   │   ├── CategoryMixSunburst.tsx           # Alternate sunburst view (same data hierarchy)
+│   │   │   ├── BureauPerformanceBubbleChart.tsx  # Custom visx scatter/bubble
+│   │   │   └── GeographicDistributionChart.tsx   # Bklit choropleth (visx + topojson)
+│   │   │
 │   │   ├── common/
-│   │   │   ├── FilterPanel.tsx   # Filter controls
-│   │   │   ├── StatsBadge.tsx    # Data summary badges
-│   │   │   └── ErrorBoundary.tsx # Error handling
-│   │   └── charts/
-│   │       ├── StackedBarChart.tsx
-│   │       ├── MultiLineChart.tsx
-│   │       ├── RingChart.tsx
-│   │       ├── BubbleChart.tsx
-│   │       ├── RadarChart.tsx
-│   │       └── ChoroplethMap.tsx
+│   │   │   ├── ChartComponents.tsx    # Chart registry: label, icon, filters, ranges per chart
+│   │   │   ├── ErrorBoundary.tsx
+│   │   │   ├── FilterInput.tsx
+│   │   │   ├── FormulaTooltip.tsx     # KaTeX formula popover for the estimator
+│   │   │   ├── IconTooltip.tsx        # Wrapper over the shadcn/Radix Tooltip
+│   │   │   ├── LoadingSpinner.tsx
+│   │   │   ├── PeriodSelector.tsx
+│   │   │   ├── SeriesLegend.tsx
+│   │   │   └── StatCard.tsx
+│   │   │
+│   │   ├── ui/                        # shadcn/Radix primitives (vendored)
+│   │   │   └── badge, button, card, dialog, label, popover, select,
+│   │   │       separator, sheet, skeleton, tabs, toggle(-group), tooltip
+│   │   │
+│   │   ├── bklit/                     # Vendored Bklit UI chart library (visx-based)
+│   │   │   ├── charts/                # Line/Bar/Pie/Sankey/Sunburst/Choropleth/Radar/Gauge primitives
+│   │   │   └── components/
+│   │   │
+│   │   └── __tests__/
+│   │       └── components.smoke.test.tsx
 │   │
 │   ├── hooks/
-│   │   ├── useImmigrationData.ts  # Data fetching hook
-│   │   ├── useFilteredData.ts     # Filtering logic
-│   │   ├── useTheme.ts            # Dark/light mode
-│   │   └── usePrefectureColors.ts # Color calculations
+│   │   └── useImmigrationData.ts      # Fetches + unpacks public/data/dashboard.json
 │   │
 │   ├── utils/
-│   │   ├── data-processing.ts    # Data transformation
-│   │   ├── estimation.ts         # Queue estimation logic
-│   │   ├── calculations.ts       # Rate calculations
-│   │   └── constants.ts          # Shared constants
-│   │
-│   ├── contexts/
-│   │   └── ThemeContext.tsx      # Theme provider
+│   │   ├── dashboardData.ts           # Pack/unpack format shared with scripts/transform-data.mts
+│   │   ├── dataTransform.ts           # e-Stat payload → ImmigrationData[] flattening
+│   │   ├── correctBureauAggregates.ts # Subtracts branch offices out of aggregate bureaus
+│   │   ├── loadLocalData.ts           # Runtime fetch of public/data/dashboard.json
+│   │   ├── selectors.ts               # BureauScope-aware data selection/filtering
+│   │   ├── calculateEstimates.ts      # Queue-position / processing-time estimation model
+│   │   ├── categoryMixTree.ts         # Shared hierarchy for the Category Mix charts
+│   │   ├── bureauColors.ts            # Per-theme bureau color helpers
+│   │   ├── getBureauData.ts           # Bureau option lookups
+│   │   ├── urlApplicationDetails.ts   # Estimator permalink <-> URL params
+│   │   ├── renderChangelog.tsx        # Minimal inline-markdown renderer for the changelog modal
+│   │   ├── logger.ts                  # Dev-only console logger
+│   │   └── __tests__/                 # Unit tests (*.test.ts)
 │   │
 │   ├── constants/
-│   │   ├── bureaus.ts            # Bureau definitions
-│   │   ├── statuses.ts           # Application status codes
-│   │   └── types.ts              # TypeScript interfaces
+│   │   ├── applicationOptions.ts
+│   │   ├── bureauOptions.ts
+│   │   ├── japanPrefectures.ts
+│   │   └── statusCodes.ts
 │   │
-│   └── __tests__/
-│       └── *.test.ts             # Unit tests
+│   ├── contexts/
+│   │   └── ThemeContext.tsx           # Thin adapter over next-themes
+│   │
+│   ├── i18n/
+│   │   ├── LocaleContext.tsx
+│   │   ├── en.ts
+│   │   └── ja.ts
+│   │
+│   └── lib/
+│       ├── utils.ts                   # cn() class-merge helper (shadcn convention)
+│       └── motion.ts                  # Anime.js scope helper + reduced-motion gate
 │
 ├── public/
-│   ├── data/
-│   │   └── stats.json            # Cached immigration data
-│   ├── geo/
-│   │   └── japan.json            # GeoJSON for map
-│   └── favicon.ico
+│   ├── data/dashboard.json            # Build-time-transformed data the client fetches
+│   ├── datastore/statData.json        # Raw e-Stat payload (build input; stripped from export output)
+│   ├── static/japan.topo.json         # TopoJSON for the regional map
+│   ├── CHANGELOG.md                   # Synced from the repo root at build time
+│   └── favicon.ico, manifest.webmanifest, og.png, ...
 │
 ├── .github/
 │   ├── workflows/
-│   │   ├── build.yaml            # CI/CD build pipeline
-│   │   └── watcher.yaml          # Automated data updates
-│   └── ISSUE_TEMPLATE/           # Issue templates
+│   │   ├── ci.yaml                # Lint, typecheck, test, fixture build on push/PR
+│   │   ├── build.yaml             # Build + deploy to GitHub Pages (manual dispatch)
+│   │   └── watcher.yaml           # Scheduled e-Stat data check
+│   └── ISSUE_TEMPLATE/            # Issue templates
 │
 ├── scripts/
-│   └── sync-changelog.js         # Sync CHANGELOG to app
+│   ├── transform-data.mts         # Build-time e-Stat → dashboard.json transform
+│   ├── generate-fixture.mjs       # Deterministic fixture data for local/CI builds
+│   ├── strip-raw-data.mjs         # Removes datastore/ from the exported build output
+│   ├── sync-changelog.js          # Copies CHANGELOG.md into public/
+│   ├── vendor-bklit.mjs           # Pulls Bklit UI registry items into the repo
+│   └── og-template.html
 │
 ├── package.json                   # Dependencies and scripts
 ├── tsconfig.json                  # TypeScript config
-├── next.config.ts                # Next.js config
-├── tailwind.config.ts            # Tailwind CSS config
-├── .eslintrc.js                  # ESLint config
-├── .prettierrc                   # Prettier config
-└── README.md                     # Project overview
+├── next.config.ts                 # Next.js config (static export)
+├── eslint.config.mjs              # Flat ESLint config
+├── vitest.config.ts               # Vitest config
+├── .prettierrc                    # Prettier config
+└── README.md                      # Project overview
 ```
+
+Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/index.css` — there is no `tailwind.config.ts`.
 
 ## Key Technologies
 
 ### Frontend Framework
 
-- **Next.js 15** — React framework with static export
-- **React 18** — Component library
-- **TypeScript 5.7** — Type-safe JavaScript
+- **Next.js 15** (`15.5.19`) — React framework, built as a static export (`output: 'export'`)
+- **React 19** (`^19.2.8`) — Component library
+- **TypeScript 5.9** (`^5.9.2`) — Strict-mode, type-safe JavaScript
 
 ### Styling
 
-- **Tailwind CSS 3** — Utility-first CSS framework
+- **Tailwind CSS v4** (`^4.3.3`) — Utility-first CSS, configured via `@theme`/`:root` tokens directly in `src/index.css` (no `tailwind.config.ts`)
 - **@tailwindcss/forms** — Form component styling
+- **tw-animate-css** — Animation utility classes
+- **class-variance-authority**, **tailwind-merge**, **clsx** — Variant and class-merging helpers (shadcn/ui convention)
 
 ### Data Visualization
 
-- **Chart.js 4** — Interactive charts
-- **react-chartjs-2** — React wrapper for Chart.js
-- **@nivo/treemap** — Hierarchical tree maps
-- **react-simple-maps** — Geographic map rendering
-- **d3-scale** — Data scaling utilities
-- **KaTeX** — Mathematical notation rendering
+- **Bklit UI** (vendored, MIT) — `src/components/bklit/` — the chart primitive library (Line/Bar/Pie/Sankey/Sunburst/Choropleth/Radar/Gauge), built on visx
+- **@visx/*** (curve, event, geo, gradient, grid, group, pattern, responsive, sankey, scale, shape, zoom) — visx primitives Bklit UI is built on
+- **d3-array**, **d3-geo**, **d3-sankey**, **d3-scale**, **d3-shape**, **topojson-client** — scales, geography, and Sankey layout helpers
+- **KaTeX** (`^0.16.28`) + **react-katex** — Mathematical notation rendering for the estimator's formulas
 
 ### UI Utilities
 
-- **@floating-ui/react** — Tooltips and popovers
-- **@iconify/react** — Icon library
+- **radix-ui** (`^1.6.7`) — Unstyled accessible primitives underlying the shadcn/ui components (Dialog, Popover, Select, Sheet, Tabs, Toggle, Tooltip, ...)
+- **lucide-react** — Icon library
+- **next-themes** — Dark/light mode, adapted by `src/contexts/ThemeContext.tsx`
+- **nuqs** — Type-safe URL query state (active chart, filters, time range, compare)
+- **animejs** (Anime.js v4) — Motion/animation layer (`src/lib/motion.ts`)
+- **@number-flow/react** — Animated number counters (StatCard)
 
 ### Development
 
-- **Vitest 4** — Unit testing framework
-- **ESLint 9** — Code linting
-- **Prettier 3** — Code formatting
+- **Vitest 4** (`^4.1.10`) — Unit testing framework (jsdom environment)
+- **@testing-library/react** — Component testing utilities
+- **ESLint 9** (`9.39.2`) — Flat config (`eslint.config.mjs`)
+- **Prettier 3** (`^3.8.1`) — Code formatting, with `prettier-plugin-tailwindcss`
 - **TypeScript ESLint** — Type-aware linting
-- **Tailwind CSS ESLint Plugin** — Tailwind-specific linting
 
 ### Build & Deployment
 
-- **GitHub Actions** — CI/CD automation
+- **GitHub Actions** — CI/CD automation (`ci.yaml`, `build.yaml`, `watcher.yaml`)
 - **GitHub Pages** — Static site hosting
-- **react-build-info** — Build metadata injection
+- **react-build-info** — Build metadata injection (version + build date)
+- **tsx** — Runs the TypeScript build-time data transform script
 
 ## Common Tasks
 
@@ -284,15 +344,16 @@ JP_Immigration_Dashboard/
 
 ### Updating Data Processing
 
-Data processing happens in `src/utils/data-processing.ts`:
+Data processing is split between a build-time transform and runtime selection:
 
-1. **Fetch data** — `useImmigrationData` hook loads from `public/data/stats.json`
-2. **Filter data** — `useFilteredData` hook applies filter selections
-3. **Calculate metrics** — Functions in `src/utils/calculations.ts`
-4. **Pass to charts** — Components receive processed data via props
+1. **Build-time transform** — `scripts/transform-data.mts` reads the raw e-Stat payload (`public/datastore/statData.json`), flattens it (`src/utils/dataTransform.ts`), corrects bureau aggregates (`src/utils/correctBureauAggregates.ts`), and packs it into `public/data/dashboard.json`
+2. **Fetch data** — `useImmigrationData` hook loads and unpacks `public/data/dashboard.json` via `src/utils/loadLocalData.ts`
+3. **Select/filter data** — `src/utils/selectors.ts` (`selectData`, `useSelectedData`) applies bureau-scope and type filters
+4. **Calculate metrics** — `src/utils/calculateEstimates.ts` (queue estimation), plus per-chart aggregation inside each chart component
+5. **Pass to charts** — Components receive processed data via props
 
 To modify calculations:
-1. Edit `src/utils/calculations.ts` or `src/utils/estimation.ts`
+1. Edit `src/utils/calculateEstimates.ts`, `src/utils/selectors.ts`, or the relevant chart component
 2. Add unit tests in `src/utils/__tests__/`
 3. Test with `npm test`
 4. Verify in dev server with `npm run dev`
@@ -333,35 +394,35 @@ npm test
 npm test -- --watch
 
 # Run specific test file
-npm test -- src/utils/__tests__/calculations.test.ts
+npm test -- src/utils/__tests__/calculateEstimates.test.ts
 ```
 
 ### Managing Dependencies
 
 #### Dependency Pinning Strategy
 
-Critical dependencies (Next.js, React, TypeScript, ESLint) are **pinned to exact versions** to ensure:
+Some critical dependencies (the Next.js ecosystem, TypeScript ESLint, ESLint itself) are **pinned to exact versions** to ensure:
 - **Stability** — Consistent behavior across all environments
 - **Reproducibility** — Same versions in CI/CD and local development
 - **Security** — Controlled updates for security-critical packages
 
 Pinned packages:
-- `next`, `react`, `react-dom` — Core framework stability
+- `next` — Core framework stability
 - `@next/third-parties`, `@next/eslint-plugin-next`, `eslint-config-next` — Next.js ecosystem
-- `typescript`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser` — Type safety
+- `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser` — Type-aware linting
 - `eslint` — Code quality enforcement
 
-Unpinned packages (using `^`) allow patch and minor updates for utilities and non-critical dependencies.
+`react`, `react-dom`, and `typescript` currently use `^` ranges rather than exact pins. Unpinned packages allow patch and minor updates for utilities and non-critical dependencies.
 
 #### Security Audits
 
-A security audit runs automatically in CI:
+There is no automated `npm audit` gate in CI today — `ci.yaml` runs lint, typecheck, test, and a fixture build; `build.yaml` builds and deploys. Run audits locally (and before merging dependency changes):
 
 ```bash
 # Run security audit locally
 npm audit
 
-# Run audit with moderate severity threshold (CI setting)
+# Run audit with a moderate severity threshold
 npm audit --audit-level=moderate
 
 # Fix vulnerabilities automatically
@@ -370,8 +431,6 @@ npm audit fix
 # Interactive fix (choose which vulnerabilities to address)
 npm audit fix --force
 ```
-
-The CI workflow (`build.yaml`) fails if any moderate-severity or higher vulnerabilities are found.
 
 #### Updating Dependencies
 
@@ -456,7 +515,7 @@ npm run build 2>&1 | head -50
 
 ### Data Not Updating
 
-1. Check that `public/data/stats.json` exists
+1. Check that `public/data/dashboard.json` exists
 2. Verify the file contains valid JSON: `npm test`
 3. Check the browser console for fetch errors
 4. Ensure the CHANGELOG has been synced: `npm run build`
@@ -501,7 +560,7 @@ npm install vulnerable-package@latest
 npm audit --audit-level=moderate
 ```
 
-**Note:** The CI build fails if any moderate-severity or higher vulnerabilities are detected. Always run `npm audit` before pushing changes.
+**Note:** CI does not currently run `npm audit` automatically. Run it locally before pushing dependency changes.
 
 ### Dependency Conflicts
 
@@ -526,7 +585,7 @@ npm install --force
 - **React Docs:** https://react.dev
 - **TypeScript Docs:** https://www.typescriptlang.org/docs
 - **Tailwind CSS Docs:** https://tailwindcss.com/docs
-- **Chart.js Docs:** https://www.chartjs.org/docs
+- **visx Docs:** https://airbnb.io/visx/ (the primitives Bklit UI's vendored charts are built on)
 - **GitHub Actions:** https://docs.github.com/en/actions
 
 Need more help? Open an [issue](https://github.com/RetroHazard/JP_Immigration_Dashboard/issues) or start a [discussion](https://github.com/RetroHazard/JP_Immigration_Dashboard/discussions).
