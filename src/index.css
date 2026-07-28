@@ -446,8 +446,8 @@
 }
 
 @utility estimator-container {
-  @apply flex flex-col h-full bg-card border border-border shadow-soft
-        sm:rounded-xl sm:p-3;
+  @apply flex flex-col h-full p-3 bg-card border border-border shadow-soft
+        sm:rounded-xl;
 }
 
 @utility flashing-chevron {

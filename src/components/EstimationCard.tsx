@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { animate } from 'animejs';
-import { AlertTriangle, Check, ChevronRight, ChevronsRight, Link as LinkIcon, OctagonAlert } from 'lucide-react';
+import { AlertTriangle, Check, ChevronRight, ChevronsRight, Link as LinkIcon, OctagonAlert, X } from 'lucide-react';
 import type React from 'react';
 import { BlockMath } from 'react-katex';
 
@@ -31,6 +31,8 @@ interface EstimationCardProps {
   onDetailsChange: (details: ApplicationDetails) => void;
   /** When provided (desktop sidebar), renders a collapse control in the header */
   onCollapse?: () => void;
+  /** When provided (mobile sheet), renders a close control in the header */
+  onClose?: () => void;
 }
 
 const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails }) => {
@@ -98,7 +100,13 @@ const formatUncertainty = (days: number): string | null => {
   return `± ${weeks} week${weeks === 1 ? '' : 's'}`;
 };
 
-export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, onDetailsChange, onCollapse }) => {
+export const EstimationCard: React.FC<EstimationCardProps> = ({
+  data,
+  details,
+  onDetailsChange,
+  onCollapse,
+  onClose,
+}) => {
   const [showMath, setShowMath] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const queueFillRef = useRef<HTMLDivElement>(null);
@@ -183,6 +191,17 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, o
                 className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <ChevronsRight className="size-4" />
+              </button>
+            </IconTooltip>
+          )}
+          {onClose && (
+            <IconTooltip label="Close the estimator">
+              <button
+                onClick={onClose}
+                aria-label="Close the Processing Time Estimator"
+                className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <X className="size-4" />
               </button>
             </IconTooltip>
           )}
@@ -309,67 +328,64 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({ data, details, o
             </button>
 
             {showMath && vars && (
-              <div className="space-y-1 text-xs">
-                <div className="rounded-xl bg-muted p-2.5 text-xxs text-secondary-foreground shadow-soft">
-                  <FormulaTooltip
-                    variables={{
-                      'D_{\\text{rem}}': variableExplanations['D_rem'],
-                      'Q_{\\text{pos}}': variableExplanations['Q_pos'],
-                      'R_{\\text{daily}}': variableExplanations['R_daily'],
-                    }}
-                  >
-                    <div className="mt-2 border-b border-border text-xxs">
-                      <BlockMath
-                        math={`
-                        \\begin{aligned}
-                        &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${vars.Q_pos.toFixed()}}}{${vars.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${vars.D_rem.toFixed()} \\ \\text{d} \\\\
-                        \\end{aligned}
-                      `}
-                      />
-                    </div>
-                  </FormulaTooltip>
-                  <FormulaTooltip
-                    variables={{
-                      'C_{\\text{proc}}': variableExplanations['C_proc'],
-                      'E_{\\text{proc}}': variableExplanations['E_proc'],
-                      '\\sum P': variableExplanations['Sigma_P'],
-                      '\\sum D': variableExplanations['Sigma_D'],
-                    }}
-                  >
-                    <div className="mt-2 border-b border-border text-xxs">
-                      <BlockMath
-                        math={`
-                        \\begin{aligned}
-                        &\\text{where}\\
-                        \\begin{cases}
-                        Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{app}}}_{${vars.Q_app.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${vars.C_proc.toFixed()}} - \\underbrace{E_{\\text{proc}}}_{${vars.E_proc.toFixed()}} \\\\
-                        \\\\
-                        R_{\\text{daily}} \\approx \\left\\lbrack\\dfrac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\dfrac{${vars.Sigma_P}}{${vars.Sigma_D}}\\right\\rbrack \\\\
-                        \\end{cases}
-                        \\end{aligned}
-                      `}
-                      />
-                    </div>
-                  </FormulaTooltip>
-                  <FormulaTooltip
-                    variables={{
-                      'Q_{\\text{app}}': variableExplanations['Q_app'],
-                      'C_{\\text{prev}}': variableExplanations['C_prev'],
-                      'N_{\\text{app}}': variableExplanations['N_app'],
-                      'P_{\\text{app}}': variableExplanations['P_app'],
-                    }}
-                  >
-                    <div className="mt-2 text-xxs">
-                      <BlockMath
-                        math={`
-                        \\begin{aligned}
-                        &Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${vars.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${vars.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${vars.P_app.toFixed()}} \\\\
-                        \\end{aligned}
-                      `}
-                      />
-                    </div>
-                  </FormulaTooltip>
-                </div>
+              <div className="space-y-2">
+                <FormulaTooltip
+                  step={1}
+                  title="Remaining days"
+                  variables={{
+                    'D_{\\text{rem}}': variableExplanations['D_rem'],
+                    'Q_{\\text{pos}}': variableExplanations['Q_pos'],
+                    'R_{\\text{daily}}': variableExplanations['R_daily'],
+                  }}
+                >
+                  <BlockMath
+                    math={`
+                    \\begin{aligned}
+                    &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${vars.Q_pos.toFixed()}}}{${vars.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${vars.D_rem.toFixed()} \\ \\text{d} \\\\
+                    \\end{aligned}
+                  `}
+                  />
+                </FormulaTooltip>
+                <FormulaTooltip
+                  step={2}
+                  title="Queue position & daily rate"
+                  variables={{
+                    'C_{\\text{proc}}': variableExplanations['C_proc'],
+                    'E_{\\text{proc}}': variableExplanations['E_proc'],
+                    '\\sum P': variableExplanations['Sigma_P'],
+                    '\\sum D': variableExplanations['Sigma_D'],
+                  }}
+                >
+                  <BlockMath
+                    math={`
+                    \\begin{aligned}
+                    &\\begin{cases}
+                    Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{app}}}_{${vars.Q_app.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${vars.C_proc.toFixed()}} - \\underbrace{E_{\\text{proc}}}_{${vars.E_proc.toFixed()}} \\\\
+                    \\\\
+                    R_{\\text{daily}} \\approx \\left\\lbrack\\dfrac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\dfrac{${vars.Sigma_P}}{${vars.Sigma_D}}\\right\\rbrack \\\\
+                    \\end{cases}
+                    \\end{aligned}
+                  `}
+                  />
+                </FormulaTooltip>
+                <FormulaTooltip
+                  step={3}
+                  title="Queue at application"
+                  variables={{
+                    'Q_{\\text{app}}': variableExplanations['Q_app'],
+                    'C_{\\text{prev}}': variableExplanations['C_prev'],
+                    'N_{\\text{app}}': variableExplanations['N_app'],
+                    'P_{\\text{app}}': variableExplanations['P_app'],
+                  }}
+                >
+                  <BlockMath
+                    math={`
+                    \\begin{aligned}
+                    &Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${vars.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${vars.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${vars.P_app.toFixed()}} \\\\
+                    \\end{aligned}
+                  `}
+                  />
+                </FormulaTooltip>
               </div>
             )}
 

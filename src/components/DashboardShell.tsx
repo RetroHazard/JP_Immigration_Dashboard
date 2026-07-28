@@ -235,7 +235,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
         </div>
         <div
           className={`grid gap-4 transition-[grid-template-columns] duration-300 lg:items-start ${
-            isEstimatorCollapsed ? 'lg:grid-cols-[minmax(0,1fr)_52px]' : 'lg:grid-cols-[minmax(0,1fr)_400px]'
+            isEstimatorCollapsed ? 'lg:grid-cols-[minmax(0,1fr)_64px]' : 'lg:grid-cols-[minmax(0,1fr)_400px]'
           }`}
         >
           {/* Main column */}
@@ -336,11 +336,16 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                 onClick={() => setEstimatorCollapsed(false)}
                 aria-label="Expand the Processing Time Estimator"
                 aria-expanded={false}
-                className="flex w-full flex-col items-center gap-3 rounded-xl border border-border bg-card py-4 text-secondary-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground"
+                className="group flex w-full flex-col items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 py-4 text-primary shadow-soft transition-colors hover:border-primary/50 hover:bg-primary/10"
               >
-                <ChevronsLeft className="size-4" aria-hidden="true" />
-                <Calculator className="size-4 text-primary" aria-hidden="true" />
-                <span className="text-xs font-semibold" style={{ writingMode: 'vertical-rl' }}>
+                <ChevronsLeft
+                  className="size-4 text-muted-foreground transition-transform group-hover:-translate-x-0.5 motion-reduce:transition-none"
+                  aria-hidden="true"
+                />
+                <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-soft">
+                  <Calculator className="size-4" aria-hidden="true" />
+                </span>
+                <span className="text-xs font-semibold tracking-wide" style={{ writingMode: 'vertical-rl' }}>
                   Estimator
                 </span>
               </button>
@@ -365,11 +370,20 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               Processing Time Estimator
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-2xl p-0">
+          <SheetContent
+            side="bottom"
+            showCloseButton={false}
+            className="max-h-[85vh] overflow-y-auto rounded-t-2xl p-0"
+          >
             <SheetHeader className="sr-only">
               <SheetTitle>Processing Time Estimator</SheetTitle>
             </SheetHeader>
-            <EstimationCard data={data} details={estimatorDetails} onDetailsChange={setEstimatorDetails} />
+            <EstimationCard
+              data={data}
+              details={estimatorDetails}
+              onDetailsChange={setEstimatorDetails}
+              onClose={() => setIsEstimatorSheetOpen(false)}
+            />
           </SheetContent>
         </Sheet>
       </div>

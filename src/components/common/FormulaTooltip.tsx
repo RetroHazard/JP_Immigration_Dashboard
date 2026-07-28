@@ -1,7 +1,9 @@
 // components/common/FormulaTooltip.tsx
-// Variable explanations for the estimator formulas. A click/tap-toggled
-// popover replaces the old hover-only tooltip, which was unreachable on
-// touch devices - exactly where the estimator sheet lives.
+// One step of the estimator's "Show the math" breakdown: a labeled card with
+// a numbered header and an inline help popover explaining the variables. The
+// popover is click/tap-toggled so it works on touch devices - exactly where
+// the estimator sheet lives. Keeping the trigger in the header row (instead
+// of overlaying the formula) also keeps it clear of the KaTeX block.
 'use client';
 
 import { CircleHelp } from 'lucide-react';
@@ -17,6 +19,8 @@ interface VariableExplanations {
 }
 
 interface FormulaTooltipProps {
+  step: number;
+  title: string;
   variables: VariableExplanations;
   children: React.ReactNode;
 }
@@ -35,16 +39,23 @@ export const variableExplanations: VariableExplanations = {
   P_app: { title: 'Processed Applications', description: 'Estimated applications processed prior to submission.' },
 };
 
-export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ variables, children }) => (
-  <div className="relative">
-    {/* z-10: the KaTeX block renders later in the DOM and would otherwise
-        paint over the trigger and swallow its clicks */}
-    <div className="absolute right-0 top-0 z-10">
+export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ step, title, variables, children }) => (
+  <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 shadow-soft">
+    <div className="flex items-center gap-2">
+      <span
+        aria-hidden="true"
+        className="flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xxs font-bold tabular-nums text-primary"
+      >
+        {step}
+      </span>
+      <span className="min-w-0 truncate text-xxs font-semibold uppercase tracking-wider text-muted-foreground">
+        {title}
+      </span>
       <Popover>
         <PopoverTrigger asChild>
           <button
-            aria-label="Explain the variables in this formula"
-            className="flex size-5 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label={`Explain the variables in the ${title} formula`}
+            className="ml-auto flex size-5 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <CircleHelp className="size-3.5" aria-hidden="true" />
           </button>
@@ -66,6 +77,6 @@ export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ variables, child
         </PopoverContent>
       </Popover>
     </div>
-    {children}
+    <div className="overflow-x-auto text-xxs text-secondary-foreground [&_.katex-display]:my-1.5">{children}</div>
   </div>
 );

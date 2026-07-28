@@ -92,9 +92,15 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
   const subtitle = typeLabel ? `${bureauLabel} (${typeLabel})` : bureauLabel;
   const spark = (pick: (m: MonthStats) => number) => monthly.map(pick);
 
+  // A single scroll-snap row at every viewport: the five cards flex to fill
+  // wide screens and scroll horizontally (with a peeking card as the cue)
+  // instead of wrapping to two or three rows on smaller ones.
+  const cardClass = 'min-w-40 flex-1 snap-start sm:min-w-44';
+
   return (
-    <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3 xl:grid-cols-5">
+    <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 md:gap-3">
       <StatCard
+        className={cardClass}
         title="Total Applications"
         subtitle={subtitle}
         value={latest.totalApplications}
@@ -105,6 +111,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         spark={spark((m) => m.totalApplications)}
       />
       <StatCard
+        className={cardClass}
         title="Pending"
         subtitle={subtitle}
         value={latest.pending}
@@ -115,6 +122,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         spark={spark((m) => m.pending)}
       />
       <StatCard
+        className={cardClass}
         title="Granted"
         subtitle={subtitle}
         value={latest.granted}
@@ -125,6 +133,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         spark={spark((m) => m.granted)}
       />
       <StatCard
+        className={cardClass}
         title="Denied"
         subtitle={subtitle}
         value={latest.denied}
@@ -135,6 +144,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         spark={spark((m) => m.denied)}
       />
       <StatCard
+        className={cardClass}
         title="Approval Rate"
         subtitle={subtitle}
         value={latest.approvalRate}
