@@ -25,6 +25,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # src/buildInfo.js is gitignored and generated at build time; typecheck
+      # and tests import it, so it must exist before they run.
+      - name: Generate build info
+        run: npx react-build-info
+
       - name: Lint
         run: npx eslint src scripts
 
