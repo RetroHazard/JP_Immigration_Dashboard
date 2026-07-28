@@ -15,12 +15,99 @@ export const en = {
   'app.title': 'Japan Immigration Statistics',
   'app.subtitle': 'Bureau processing data from e-Stat, updated with each release',
   'app.skipToContent': 'Skip to content',
+  'app.loadingData': 'Crunching Immigration Data...',
+  'app.loadingDashboard': 'Loading Dashboard...',
+  'app.retry': 'Retry',
+
+  // ── Header and settings drawer ───────────────────────────────────────────
+  'nav.version': 'v{version}',
+  'nav.switchToLightTheme': 'Switch to light theme',
+  'nav.switchToDarkTheme': 'Switch to dark theme',
+  'nav.openSettings': 'Open the settings menu',
+  'nav.settings': 'Settings',
+  'nav.theme': 'Theme',
+  'nav.themeLight': 'Light',
+  'nav.themeDark': 'Dark',
+  'nav.about': 'About',
+  'nav.changelog': 'Changelog',
+
+  // ── Dashboard chrome ─────────────────────────────────────────────────────
+  'dashboard.dataCoverage': 'Data: {range}',
+  'dashboard.coverageRange': '{from} – {to}',
+  'dashboard.comparisonSuffix': '(comparison)',
+  'dashboard.expandEstimator': 'Expand the Processing Time Estimator',
+  'dashboard.estimatorRail': 'Estimator',
+
+  // ── Filters ──────────────────────────────────────────────────────────────
+  'filters.bureau': 'Immigration Bureau',
+  'filters.appType': 'Application Type',
+  'filters.compare': 'Compare With',
+  'filters.compareNone': 'None',
+  'filters.excludeAirports': 'Exclude airport offices',
+  'filters.includeAirports': 'Include airport offices',
+  'filters.reset': 'Reset filters',
+  'filters.selectPlaceholder': 'Select',
+
+  // ── Time range selector ──────────────────────────────────────────────────
+  'period.label': 'Time range',
+  'period.latest': 'Latest month',
+  'period.all': 'All data',
+  'period.months_one': '{count} month',
+  'period.months_other': '{count} months',
+
+  // ── Stat tiles ───────────────────────────────────────────────────────────
+  'stats.totalApplications': 'Total Applications',
+  'stats.totalApplications.short': 'Total',
+  'stats.pending': 'Pending',
+  'stats.granted': 'Granted',
+  'stats.denied': 'Denied',
+  'stats.approvalRate': 'Approval Rate',
+  'stats.approvalRate.short': 'Approval',
+  'stats.scopeWithType': '{bureau} ({type})',
+  // "MoM" = month over month; the delta is already signed and formatted.
+  'stats.momDelta': '{delta} MoM',
+  'stats.empty': 'No data for this combination of filters.',
+
+  // ── Data table ───────────────────────────────────────────────────────────
+  'table.view': 'View data table',
+  'table.hide': 'Hide data table',
+  'table.downloadCsv': 'Download CSV',
+  'table.caption': 'Monthly application statistics for {bureau}',
+  'table.month': 'Month',
+  'table.carriedOver': 'Carried over',
+  'table.received': 'Received',
+  'table.processed': 'Processed',
+  'table.granted': 'Granted',
+  'table.denied': 'Denied',
+  'table.other': 'Other',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Processing Time Estimator',
 
+  // ── Changelog ────────────────────────────────────────────────────────────
+  'changelog.title': 'Changelog',
+  'changelog.loading': 'Loading...',
+
+  // ── Errors ───────────────────────────────────────────────────────────────
+  'errors.dataTitle': 'Error Loading Data',
+  'errors.noData': 'No data available',
+  'errors.unknown': 'Unknown error occurred',
+  'errors.fetchFailed': 'Failed to fetch data',
+  'errors.renderTitle': 'Something went wrong',
+  'errors.renderBody': 'An error occurred while rendering the application.',
+  'errors.reload': 'Reload Page',
+  'errors.changelogUnavailable': 'Unable to load the changelog.',
+
+  // ── Screen-reader only ───────────────────────────────────────────────────
+  'a11y.showingChart': 'Showing {chart} for {bureau}',
+  'a11y.showingChartWithType': 'Showing {chart} for {bureau}, {type}',
+
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': 'Official statistics provided by the Immigration Services Agency of Japan',
+  'footer.dataAcquisition': 'Data acquisition provided by {source}',
+  'footer.fixtureNotice': 'showing generated fixture data',
+  'footer.builtBy': 'Built by {author}',
+  'footer.dataUpdated': 'data updated {date}',
 
   // ── Domain: immigration bureaus ──────────────────────────────────────────
   // Keyed by e-Stat bureau code. `.short` is the terminal-style abbreviation

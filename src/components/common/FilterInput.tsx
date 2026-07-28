@@ -4,6 +4,8 @@ import { useId, useMemo } from 'react';
 import type React from 'react';
 import type { ChangeEvent } from 'react';
 
+import { useLocale } from '../../i18n/LocaleContext';
+
 interface FilterInputProps {
   type?: 'select' | 'text' | 'date';
   label: string;
@@ -14,6 +16,8 @@ interface FilterInputProps {
   min?: string;
   max?: string;
   includeDefaultOption?: boolean;
+  /** Placeholder row shown when `includeDefaultOption` is set. Falls back to a
+   *  generic "Select" from the catalogue. */
   defaultOptionLabel?: string;
   filterFn?: (option: { value: string; label: string }) => boolean;
   /** 'eyebrow' renders the small uppercase label style used by the stat tiles */
@@ -33,11 +37,12 @@ export const FilterInput: React.FC<FilterInputProps> = ({
   min,
   max,
   includeDefaultOption = false,
-  defaultOptionLabel = 'Select',
+  defaultOptionLabel,
   filterFn = (x) => x,
   labelVariant = 'default',
   fluid = false,
 }) => {
+  const { t } = useLocale();
   const id = useId();
   const handleChange = (e: ChangeEvent<HTMLSelectElement | HTMLInputElement>) => onChange(e.target.value);
 
@@ -68,7 +73,7 @@ export const FilterInput: React.FC<FilterInputProps> = ({
           onChange={handleChange}
           disabled={disabled}
         >
-          {includeDefaultOption && <option value="">{defaultOptionLabel}</option>}
+          {includeDefaultOption && <option value="">{defaultOptionLabel ?? t('filters.selectPlaceholder')}</option>}
           {filteredOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}

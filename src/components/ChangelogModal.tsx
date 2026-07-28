@@ -9,6 +9,8 @@ import type React from 'react';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
+import { useLocale } from '../i18n/LocaleContext';
+import type { DictionaryKey } from '../i18n/types';
 import { logger } from '../utils/logger';
 import { ChangelogContent } from '../utils/renderChangelog';
 
@@ -18,8 +20,9 @@ interface ChangelogModalProps {
 }
 
 export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose }) => {
+  const { t } = useLocale();
   const [markdown, setMarkdown] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<DictionaryKey | null>(null);
 
   useEffect(() => {
     if (!isOpen || markdown !== null) return;
@@ -32,7 +35,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
       .then(setMarkdown)
       .catch((fetchError: unknown) => {
         logger.error('Error loading changelog:', fetchError);
-        setError('Unable to load the changelog.');
+        setError('errors.changelogUnavailable');
       });
   }, [isOpen, markdown]);
 
@@ -40,11 +43,13 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="flex max-h-[80vh] flex-col overflow-hidden sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Changelog</DialogTitle>
+          <DialogTitle>{t('changelog.title')}</DialogTitle>
         </DialogHeader>
         <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          {!error && markdown === null && <p className="text-sm text-muted-foreground">Loading...</p>}
+          {error && <p className="text-sm text-destructive">{t(error)}</p>}
+          {!error && markdown === null && (
+            <p className="text-sm text-muted-foreground">{t('changelog.loading')}</p>
+          )}
           {!error && markdown !== null && <ChangelogContent markdown={markdown} />}
         </div>
       </DialogContent>

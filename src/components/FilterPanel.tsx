@@ -2,6 +2,7 @@
 import { Plane, RotateCcw } from 'lucide-react';
 import type React from 'react';
 
+import { useLocale } from '../i18n/LocaleContext';
 import { useApplicationOptions, useBureauOptions } from '../i18n/useDomainLabels';
 import { AIRPORT_BUREAU_CODES } from '../utils/getBureauData';
 import { FilterInput } from './common/FilterInput';
@@ -33,13 +34,15 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   onAirportsChange,
   onReset,
 }) => {
+  const { t } = useLocale();
   const bureauOptions = useBureauOptions();
   const applicationOptions = useApplicationOptions();
   const isPristine = filters.bureau === 'all' && filters.type === 'all' && !compare && includeAirports;
   const visibleBureauOptions = includeAirports
     ? bureauOptions
     : bureauOptions.filter((option) => !AIRPORT_BUREAU_CODES.has(option.value));
-  const airportsLabel = includeAirports ? 'Exclude airport offices' : 'Include airport offices';
+  const airportsLabel = t(includeAirports ? 'filters.excludeAirports' : 'filters.includeAirports');
+  const resetLabel = t('filters.reset');
   return (
     /* @container: inputs size against the panel's own width, not the viewport —
        the estimator sidebar narrows this panel at lg without any viewport change */
@@ -53,7 +56,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <FilterInput
             fluid
             type="select"
-            label="Immigration Bureau"
+            label={t('filters.bureau')}
             options={visibleBureauOptions}
             value={filters.bureau}
             onChange={(value) => onChange({ ...filters, bureau: value })}
@@ -63,7 +66,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <FilterInput
             fluid
             type="select"
-            label="Application Type"
+            label={t('filters.appType')}
             options={applicationOptions}
             value={filters.type}
             onChange={(value) => onChange({ ...filters, type: value })}
@@ -76,11 +79,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             <FilterInput
               fluid
               type="select"
-              label="Compare With"
+              label={t('filters.compare')}
               options={visibleBureauOptions.filter((option) => option.value !== 'all')}
               value={compare ?? ''}
               includeDefaultOption
-              defaultOptionLabel="None"
+              defaultOptionLabel={t('filters.compareNone')}
               onChange={(value) => onCompareChange(value || null)}
               disabled={!compareEnabled}
             />
@@ -112,11 +115,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             type="button"
             onClick={onReset}
             disabled={isPristine}
-            title="Reset filters"
+            title={resetLabel}
             className="flex size-9 items-center justify-center rounded-lg border border-border text-secondary-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
           >
             <RotateCcw className="size-4" aria-hidden="true" />
-            <span className="sr-only">Reset filters</span>
+            <span className="sr-only">{resetLabel}</span>
           </button>
         </div>
       </div>

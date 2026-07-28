@@ -26,6 +26,7 @@ import { bureauOptions } from '../constants/bureauOptions';
 import { useTheme } from '../contexts/ThemeContext';
 import type { DashboardMeta, ImmigrationData } from '../hooks/useImmigrationData';
 import { useLocale } from '../i18n/LocaleContext';
+import { T } from '../i18n/T';
 import { useApplicationType, useBureauLabel } from '../i18n/useDomainLabels';
 import { prefersReducedMotion, useAnimeScope } from '../lib/motion';
 import { excludeAirportData } from '../utils/excludeAirportData';
@@ -113,8 +114,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
         year: 'numeric',
       });
     };
-    return `${fmt(months[0])} – ${fmt(months[months.length - 1])}`;
-  }, [data]);
+    return t('dashboard.coverageRange', { from: fmt(months[0]), to: fmt(months[months.length - 1]) });
+  }, [data, t]);
 
   // Compare mode: a second bureau rendered as a side-by-side small multiple,
   // on views that opt in via the registry (single-view charts like the
@@ -213,11 +214,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                 className="hidden items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-secondary-foreground transition-colors hover:bg-muted sm:flex"
               >
                 <History className="size-3.5" aria-hidden="true" />
-                v{buildInfo.buildVersion}
+                {t('nav.version', { version: buildInfo.buildVersion })}
               </button>
               <button
                 onClick={toggleTheme}
-                aria-label={isDarkMode ? 'Switch to light theme' : 'Switch to dark theme'}
+                aria-label={t(isDarkMode ? 'nav.switchToLightTheme' : 'nav.switchToDarkTheme')}
                 className="hidden size-9 items-center justify-center rounded-full border border-border text-secondary-foreground transition-colors hover:bg-muted sm:flex"
               >
                 <Sun className="size-4 dark:hidden" aria-hidden="true" />
@@ -228,7 +229,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                 <SheetTrigger asChild>
                   <button
-                    aria-label="Open the settings menu"
+                    aria-label={t('nav.openSettings')}
                     className="flex size-9 items-center justify-center rounded-full border border-border text-secondary-foreground transition-colors hover:bg-muted sm:hidden"
                   >
                     <Menu className="size-4" aria-hidden="true" />
@@ -236,11 +237,13 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-72 gap-0 p-0">
                   <SheetHeader className="border-b border-border">
-                    <SheetTitle className="text-sm">Settings</SheetTitle>
+                    <SheetTitle className="text-sm">{t('nav.settings')}</SheetTitle>
                   </SheetHeader>
                   <div className="space-y-6 overflow-y-auto p-4">
-                    <section aria-label="Theme">
-                      <h3 className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">Theme</h3>
+                    <section aria-label={t('nav.theme')}>
+                      <h3 className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t('nav.theme')}
+                      </h3>
                       <div className="mt-2 grid grid-cols-2 gap-1.5">
                         <button
                           onClick={() => isDarkMode && toggleTheme()}
@@ -252,7 +255,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                           }`}
                         >
                           <Sun className="size-4" aria-hidden="true" />
-                          Light
+                          {t('nav.themeLight')}
                         </button>
                         <button
                           onClick={() => !isDarkMode && toggleTheme()}
@@ -264,12 +267,14 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                           }`}
                         >
                           <Moon className="size-4" aria-hidden="true" />
-                          Dark
+                          {t('nav.themeDark')}
                         </button>
                       </div>
                     </section>
-                    <section aria-label="About">
-                      <h3 className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">About</h3>
+                    <section aria-label={t('nav.about')}>
+                      <h3 className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t('nav.about')}
+                      </h3>
                       <button
                         onClick={() => {
                           setIsMenuOpen(false);
@@ -279,9 +284,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                       >
                         <span className="flex items-center gap-2">
                           <History className="size-4" aria-hidden="true" />
-                          Changelog
+                          {t('nav.changelog')}
                         </span>
-                        <span className="text-xs text-muted-foreground">v{buildInfo.buildVersion}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {t('nav.version', { version: buildInfo.buildVersion })}
+                        </span>
                       </button>
                     </section>
                   </div>
@@ -294,10 +301,16 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
 
       <main id="main-content" className="marginals w-full flex-1 py-6 md:py-8">
         <p className="sr-only" aria-live="polite">
-          Showing {activeChart.label} for {bureauLabel(effectiveFilters.bureau)}
-          {effectiveFilters.type !== 'all'
-            ? `, ${applicationType(effectiveFilters.type)?.label ?? ''}`
-            : ''}
+          {effectiveFilters.type === 'all'
+            ? t('a11y.showingChart', {
+                chart: activeChart.label,
+                bureau: bureauLabel(effectiveFilters.bureau),
+              })
+            : t('a11y.showingChartWithType', {
+                chart: activeChart.label,
+                bureau: bureauLabel(effectiveFilters.bureau),
+                type: applicationType(effectiveFilters.type)?.label ?? '',
+              })}
         </p>
         <div className="mb-4" data-animate="card">
           <StatsSummary data={chartData} filters={effectiveFilters} />
@@ -376,7 +389,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                           onChange={(next) => void setRangeParam(next)}
                         />
                         {coverage && (
-                          <span className="whitespace-nowrap text-xxs text-muted-foreground">Data: {coverage}</span>
+                          <span className="whitespace-nowrap text-xxs text-muted-foreground">
+                            {t('dashboard.dataCoverage', { range: coverage })}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -401,7 +416,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                           {compareBureau && (
                             <div className="hidden min-w-0 md:block md:border-l md:border-border md:pl-4">
                               <p className="mb-1 text-xs font-semibold text-secondary-foreground">
-                                {bureauLabel(compareBureau)} <span className="font-normal text-muted-foreground">(comparison)</span>
+                                {bureauLabel(compareBureau)}{' '}
+                                <span className="font-normal text-muted-foreground">
+                                  {t('dashboard.comparisonSuffix')}
+                                </span>
                               </p>
                               <ActiveChart
                                 activeChartIndex={activeIndex}
@@ -432,7 +450,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
             {isEstimatorCollapsed ? (
               <button
                 onClick={() => setEstimatorCollapsed(false)}
-                aria-label="Expand the Processing Time Estimator"
+                aria-label={t('dashboard.expandEstimator')}
                 aria-expanded={false}
                 className="group flex h-full w-full flex-col items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 py-4 text-primary shadow-soft transition-colors hover:border-primary/50 hover:bg-primary/10"
               >
@@ -444,7 +462,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                   <Calculator className="size-4" aria-hidden="true" />
                 </span>
                 <span className="text-xs font-semibold tracking-wide" style={{ writingMode: 'vertical-rl' }}>
-                  Estimator
+                  {t('dashboard.estimatorRail')}
                 </span>
               </button>
             ) : (
@@ -465,7 +483,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
           <SheetTrigger asChild>
             <Button className="w-full gap-2" size="lg">
               <Calculator className="size-4" aria-hidden="true" />
-              Processing Time Estimator
+              {t('estimator.title')}
             </Button>
           </SheetTrigger>
           <SheetContent
@@ -474,7 +492,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
             className="max-h-[85vh] overflow-y-auto rounded-t-2xl p-0"
           >
             <SheetHeader className="sr-only">
-              <SheetTitle>Processing Time Estimator</SheetTitle>
+              <SheetTitle>{t('estimator.title')}</SheetTitle>
             </SheetHeader>
             <EstimationCard
               data={data}
@@ -491,22 +509,39 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
           <div className="footer-text">
             {t('footer.attribution')}
             <br />
-            Data acquisition provided by{' '}
-            <a href="https://www.e-stat.go.jp/" target="_blank" rel="noreferrer" className="hyperlink">
-              e-Stat
-            </a>
-            {meta?.source === 'fixture' && ' · showing generated fixture data'}
+            {/* The link sits mid-sentence, so the sentence stays one catalogue
+                entry and <T> substitutes the anchor — splitting it into
+                before/after keys would leave translators unable to reorder. */}
+            <T
+              k="footer.dataAcquisition"
+              values={{
+                source: (
+                  <a href="https://www.e-stat.go.jp/" target="_blank" rel="noreferrer" className="hyperlink">
+                    e-Stat
+                  </a>
+                ),
+              }}
+            />
+            {meta?.source === 'fixture' && ` · ${t('footer.fixtureNotice')}`}
           </div>
           <div className="footer-text-small">
-            Built by{' '}
-            <a href="https://github.com/RetroHazard" className="hyperlink" target="_blank" rel="noreferrer">
-              RetroHazard
-            </a>{' '}
-            · data updated{' '}
-            {new Date(buildInfo.buildDate).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
+            <T
+              k="footer.builtBy"
+              values={{
+                author: (
+                  <a href="https://github.com/RetroHazard" className="hyperlink" target="_blank" rel="noreferrer">
+                    RetroHazard
+                  </a>
+                ),
+              }}
+            />{' '}
+            ·{' '}
+            {t('footer.dataUpdated', {
+              date: new Date(buildInfo.buildDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              }),
             })}
           </div>
         </div>
