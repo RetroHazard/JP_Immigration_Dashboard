@@ -137,9 +137,10 @@ Seven interactive charts, each answering a specific question about the data, wit
 
 ---
 
-### :globe_with_meridians: Multi-Language Support
-- English and Japanese today, switchable from the header (desktop) or the mobile settings drawer
-- Structured to add further languages without layout changes
+### :globe_with_meridians: Localization *(in progress)*
+- A language switcher in the header (desktop) or mobile settings drawer, with an i18n scaffold behind it
+- Japanese translation currently covers a handful of top-level strings (page title, subtitle, estimator header, footer attribution); everything else falls back to English while translation continues
+- Structured so additional languages and full-UI translation can be added without layout changes
 
 ---
 
