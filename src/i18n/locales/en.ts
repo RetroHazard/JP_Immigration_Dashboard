@@ -83,6 +83,76 @@ export const en = {
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Processing Time Estimator',
+  'estimator.description': 'Queue-model estimate from the last six months of bureau throughput.',
+  'estimator.selectBureau': 'Select Bureau',
+  'estimator.selectType': 'Select Type',
+  'estimator.applicationDate': 'Application Date',
+  'estimator.empty':
+    'Select your bureau, application type, and application date to estimate when your application will be processed.',
+  'estimator.estimatedCompletion': 'Estimated completion',
+  'estimator.queuePosition': 'Queue position',
+  'estimator.aheadOfYou': '≈ {count} ahead of you',
+  'estimator.howCalculated': 'How is this calculated?',
+  'estimator.showMath': 'Show the math',
+  'estimator.hideMath': 'Hide the math',
+  // Header controls: the tooltip is terse, the aria-label names the panel so
+  // it stands alone out of context.
+  'estimator.reset': 'Reset the estimator',
+  'estimator.resetAria': 'Reset the Processing Time Estimator',
+  'estimator.collapse': 'Collapse the estimator',
+  'estimator.collapseAria': 'Collapse the Processing Time Estimator',
+  'estimator.close': 'Close the estimator',
+  'estimator.closeAria': 'Close the Processing Time Estimator',
+  'estimator.copyPermalink': 'Copy a permalink to this estimate',
+  'estimator.copied': 'Copied!',
+  // Result note, joined with " · ".
+  'estimator.uncertaintyDays_one': '± {count} day',
+  'estimator.uncertaintyDays_other': '± {count} days',
+  'estimator.uncertaintyWeeks_one': '± {count} week',
+  'estimator.uncertaintyWeeks_other': '± {count} weeks',
+  'estimator.basedOnMonths_one': 'based on {count} month of throughput',
+  'estimator.basedOnMonths_other': 'based on {count} months of throughput',
+  // Warnings.
+  'estimator.limitedDataTitle': 'Estimated with limited data:',
+  'estimator.limitedDataBody_one':
+    'Your application date is beyond available data. This estimate is based on simulated processing rates from {count} month of historical data and may be less accurate.',
+  'estimator.limitedDataBody_other':
+    'Your application date is beyond available data. This estimate is based on simulated processing rates from {count} months of historical data and may be less accurate.',
+  'estimator.pastDueTitle': 'Possibly past due:',
+  'estimator.pastDueBody':
+    'Based on expected processing rates, completion of this application may be past due. If you have not yet received additional requests and/or a decision on this application, please contact the bureau for more information.',
+  // {emphasis} is the word "estimate", rendered bold and underlined.
+  'estimator.disclaimer':
+    '*This is an {emphasis} based on current processing rates, expected queue position, and pending applications. Actual processing time for your application may vary.',
+  'estimator.disclaimerEmphasis': 'estimate',
+
+  // ── Estimator: the "Show the math" breakdown ─────────────────────────────
+  'estimator.formula.step1': 'Queue at application',
+  'estimator.formula.step2': 'Queue position & daily rate',
+  'estimator.formula.step3': 'Remaining days',
+  'estimator.formula.explainAria': 'Explain the variables in the {title} formula',
+  'estimator.formula.var.dRem.title': 'Remaining Days',
+  'estimator.formula.var.dRem.description': 'Estimated days until processing completes.',
+  'estimator.formula.var.qPos.title': 'Queue Position',
+  'estimator.formula.var.qPos.description': 'Estimated position in the processing queue.',
+  'estimator.formula.var.rDaily.title': 'Daily Rate',
+  'estimator.formula.var.rDaily.description': 'Average applications processed per day.',
+  'estimator.formula.var.cProc.title': 'Confirmed Processed',
+  'estimator.formula.var.cProc.description': 'Confirmed number of applications processed since submission.',
+  'estimator.formula.var.eProc.title': 'Estimated Processed',
+  'estimator.formula.var.eProc.description': 'Estimated number of applications processed since last data point.',
+  'estimator.formula.var.sigmaP.title': 'Total Processed',
+  'estimator.formula.var.sigmaP.description': 'Sum of processed applications used for calculating averages.',
+  'estimator.formula.var.sigmaD.title': 'Total Days',
+  'estimator.formula.var.sigmaD.description': 'Sum of days used for calculating averages.',
+  'estimator.formula.var.qApp.title': 'Application Queue',
+  'estimator.formula.var.qApp.description': 'Estimated queue position at submission time.',
+  'estimator.formula.var.cPrev.title': 'Carried Over',
+  'estimator.formula.var.cPrev.description': 'Applications carried forward from the previous month.',
+  'estimator.formula.var.nApp.title': 'New Applications',
+  'estimator.formula.var.nApp.description': 'Estimated applications received prior to submission.',
+  'estimator.formula.var.pApp.title': 'Processed Applications',
+  'estimator.formula.var.pApp.description': 'Estimated applications processed prior to submission.',
 
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': 'Changelog',

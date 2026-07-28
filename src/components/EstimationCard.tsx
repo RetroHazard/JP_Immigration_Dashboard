@@ -23,6 +23,8 @@ import type React from 'react';
 import { BlockMath } from 'react-katex';
 
 import type { ImmigrationData } from '../hooks/useImmigrationData';
+import { useLocale } from '../i18n/LocaleContext';
+import { T } from '../i18n/T';
 import { useApplicationOptions, useNonAirportBureaus } from '../i18n/useDomainLabels';
 import { prefersReducedMotion } from '../lib/motion';
 import type { EstimatedDateResult } from '../utils/calculateEstimates';
@@ -30,7 +32,7 @@ import { calculateEstimatedDate } from '../utils/calculateEstimates';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { ESTIMATOR_PARAM_NAMES } from '../utils/urlApplicationDetails';
 import { FilterInput } from './common/FilterInput';
-import { FormulaTooltip, variableExplanations } from './common/FormulaTooltip';
+import { FormulaTooltip, useVariableExplanations } from './common/FormulaTooltip';
 import { IconTooltip } from './common/IconTooltip';
 
 interface EstimationCardProps {
@@ -44,6 +46,7 @@ interface EstimationCardProps {
 }
 
 const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails }) => {
+  const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -83,10 +86,10 @@ const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails 
   };
 
   return (
-    <IconTooltip label={copied ? 'Copied!' : 'Copy a permalink to this estimate'}>
+    <IconTooltip label={t(copied ? 'estimator.copied' : 'estimator.copyPermalink')}>
       <button
         onClick={doShare}
-        aria-label="Copy a permalink to this estimate"
+        aria-label={t('estimator.copyPermalink')}
         className={`flex size-7 items-center justify-center rounded-full transition-colors ${
           copied ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-primary'
         }`}
@@ -101,13 +104,6 @@ const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails 
 const formatResultDate = (date: Date) =>
   `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })} ${date.getFullYear()}`;
 
-const formatUncertainty = (days: number): string | null => {
-  if (days < 1) return null;
-  if (days < 10) return `± ${days} day${days === 1 ? '' : 's'}`;
-  const weeks = Math.round(days / 7);
-  return `± ${weeks} week${weeks === 1 ? '' : 's'}`;
-};
-
 export const EstimationCard: React.FC<EstimationCardProps> = ({
   data,
   details,
@@ -115,8 +111,10 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
   onCollapse,
   onClose,
 }) => {
+  const { t, tPlural } = useLocale();
   const nonAirportBureaus = useNonAirportBureaus();
   const applicationOptions = useApplicationOptions();
+  const variableExplanations = useVariableExplanations();
   const [showMath, setShowMath] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const queueFillRef = useRef<HTMLDivElement>(null);
@@ -176,29 +174,35 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
 
   const vars = estimatedDate?.details.modelVariables;
 
+  // Under ten days the spread reads in days, above that in weeks; both are
+  // plural families, so a locale with more than two forms gets them right.
+  const formatUncertainty = (days: number): string | null => {
+    if (days < 1) return null;
+    if (days < 10) return tPlural('estimator.uncertaintyDays', days);
+    return tPlural('estimator.uncertaintyWeeks', Math.round(days / 7));
+  };
+
   const resultNote = estimatedDate
     ? [
         formatUncertainty(estimatedDate.details.uncertaintyDays),
-        `based on ${estimatedDate.details.monthsUsed} month${
-          estimatedDate.details.monthsUsed === 1 ? '' : 's'
-        } of throughput`,
+        tPlural('estimator.basedOnMonths', estimatedDate.details.monthsUsed),
       ]
         .filter(Boolean)
         .join(' · ')
     : '';
 
   return (
-    <section aria-label="Processing Time Estimator" className="estimator-container">
+    <section aria-label={t('estimator.title')} className="estimator-container">
       <div className="flex-between gap-2 border-b border-border p-2">
         {/* Sized explicitly (not section-title): the sidebar is 360px wide at
             lg, where section-title's lg:text-lg would truncate this heading */}
-        <h2 className="min-w-0 truncate text-sm font-semibold md:text-base xl:text-lg">Processing Time Estimator</h2>
+        <h2 className="min-w-0 truncate text-sm font-semibold md:text-base xl:text-lg">{t('estimator.title')}</h2>
         <div className="flex shrink-0 items-center gap-1">
-          <IconTooltip label="Reset the estimator">
+          <IconTooltip label={t('estimator.reset')}>
             <button
               onClick={() => onDetailsChange({ bureau: '', type: '', applicationDate: '' })}
               disabled={!details.bureau && !details.type && !details.applicationDate}
-              aria-label="Reset the Processing Time Estimator"
+              aria-label={t('estimator.resetAria')}
               className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
             >
               <RotateCcw className="size-4" />
@@ -206,10 +210,10 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
           </IconTooltip>
           <ShareButton appDetails={details} />
           {onCollapse && (
-            <IconTooltip label="Collapse the estimator">
+            <IconTooltip label={t('estimator.collapse')}>
               <button
                 onClick={onCollapse}
-                aria-label="Collapse the Processing Time Estimator"
+                aria-label={t('estimator.collapseAria')}
                 className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <ChevronsRight className="size-4" />
@@ -217,10 +221,10 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
             </IconTooltip>
           )}
           {onClose && (
-            <IconTooltip label="Close the estimator">
+            <IconTooltip label={t('estimator.close')}>
               <button
                 onClick={onClose}
-                aria-label="Close the Processing Time Estimator"
+                aria-label={t('estimator.closeAria')}
                 className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <X className="size-4" />
@@ -230,36 +234,34 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
         </div>
       </div>
       <div className="card-content-padded flex-1">
-        <p className="text-xs text-muted-foreground">
-          Queue-model estimate from the last six months of bureau throughput.
-        </p>
+        <p className="text-xs text-muted-foreground">{t('estimator.description')}</p>
 
         <FilterInput
           type="select"
-          label="Immigration Bureau"
+          label={t('filters.bureau')}
           labelVariant="eyebrow"
           options={nonAirportBureaus}
           value={details.bureau}
           includeDefaultOption
-          defaultOptionLabel="Select Bureau"
+          defaultOptionLabel={t('estimator.selectBureau')}
           onChange={(value) => onDetailsChange({ ...details, bureau: value })}
         />
 
         <FilterInput
           type="select"
-          label="Application Type"
+          label={t('filters.appType')}
           labelVariant="eyebrow"
           options={applicationOptions}
           value={details.type}
           includeDefaultOption
-          defaultOptionLabel="Select Type"
+          defaultOptionLabel={t('estimator.selectType')}
           filterFn={(option) => option.value !== 'all'}
           onChange={(value) => onDetailsChange({ ...details, type: value })}
         />
 
         <FilterInput
           type="date"
-          label="Application Date"
+          label={t('estimator.applicationDate')}
           labelVariant="eyebrow"
           value={details.applicationDate}
           min={dateRange.min}
@@ -269,8 +271,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
 
         {!estimatedDate && (
           <p className="mt-3 rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
-            Select your bureau, application type, and application date to estimate when your application will be
-            processed.
+            {t('estimator.empty')}
           </p>
         )}
 
@@ -283,7 +284,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
               }`}
             >
               <div className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">
-                Estimated completion
+                {t('estimator.estimatedCompletion')}
               </div>
               <p
                 className={`mt-1 text-2xl font-bold tabular-nums ${
@@ -299,9 +300,8 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                   <div className="flex items-start gap-2">
                     <AlertTriangle className="mt-0.5 size-4 shrink-0" />
                     <div>
-                      <strong>Estimated with limited data:</strong> Your application date is beyond available data. This
-                      estimate is based on simulated processing rates from {estimatedDate.details.monthsUsed} month
-                      {estimatedDate.details.monthsUsed === 1 ? '' : 's'} of historical data and may be less accurate.
+                      <strong>{t('estimator.limitedDataTitle')}</strong>{' '}
+                      {tPlural('estimator.limitedDataBody', estimatedDate.details.monthsUsed)}
                     </div>
                   </div>
                 </div>
@@ -312,9 +312,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                   <div className="flex items-start gap-2">
                     <OctagonAlert className="mt-0.5 size-4 shrink-0" />
                     <div>
-                      <strong>Possibly past due:</strong> Based on expected processing rates, completion of this
-                      application may be past due. If you have not yet received additional requests and/or a decision on
-                      this application, please contact the bureau for more information.
+                      <strong>{t('estimator.pastDueTitle')}</strong> {t('estimator.pastDueBody')}
                     </div>
                   </div>
                 </div>
@@ -329,8 +327,8 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                   />
                 </div>
                 <div className="mt-1.5 flex justify-between gap-2 text-xxs tabular-nums text-muted-foreground">
-                  <span>Queue position</span>
-                  <span>≈ {queue.ahead.toLocaleString('en-US')} ahead of you</span>
+                  <span>{t('estimator.queuePosition')}</span>
+                  <span>{t('estimator.aheadOfYou', { count: queue.ahead.toLocaleString('en-US') })}</span>
                 </div>
               </div>
             </div>
@@ -340,9 +338,9 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
               aria-expanded={showMath}
               className="flex w-full items-center justify-between gap-2 border-t border-dashed border-border pt-3 text-xs hover:opacity-80"
             >
-              <span className="text-secondary-foreground">How is this calculated?</span>
+              <span className="text-secondary-foreground">{t('estimator.howCalculated')}</span>
               <span className="flex items-center gap-0.5 text-muted-foreground">
-                {showMath ? 'Hide the math' : 'Show the math'}
+                {t(showMath ? 'estimator.hideMath' : 'estimator.showMath')}
                 <ChevronRight
                   className={`size-3.5 transition-transform motion-reduce:transition-none ${showMath ? 'rotate-90' : ''}`}
                 />
@@ -355,12 +353,12 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
               <div className="space-y-2">
                 <FormulaTooltip
                   step={1}
-                  title="Queue at application"
+                  title={t('estimator.formula.step1')}
                   variables={{
-                    'Q_{\\text{app}}': variableExplanations['Q_app'],
-                    'C_{\\text{prev}}': variableExplanations['C_prev'],
-                    'N_{\\text{app}}': variableExplanations['N_app'],
-                    'P_{\\text{app}}': variableExplanations['P_app'],
+                    'Q_{\\text{app}}': variableExplanations.qApp,
+                    'C_{\\text{prev}}': variableExplanations.cPrev,
+                    'N_{\\text{app}}': variableExplanations.nApp,
+                    'P_{\\text{app}}': variableExplanations.pApp,
                   }}
                 >
                   <BlockMath
@@ -373,12 +371,12 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                 </FormulaTooltip>
                 <FormulaTooltip
                   step={2}
-                  title="Queue position & daily rate"
+                  title={t('estimator.formula.step2')}
                   variables={{
-                    'C_{\\text{proc}}': variableExplanations['C_proc'],
-                    'E_{\\text{proc}}': variableExplanations['E_proc'],
-                    '\\sum P': variableExplanations['Sigma_P'],
-                    '\\sum D': variableExplanations['Sigma_D'],
+                    'C_{\\text{proc}}': variableExplanations.cProc,
+                    'E_{\\text{proc}}': variableExplanations.eProc,
+                    '\\sum P': variableExplanations.sigmaP,
+                    '\\sum D': variableExplanations.sigmaD,
                   }}
                 >
                   <BlockMath
@@ -395,11 +393,11 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                 </FormulaTooltip>
                 <FormulaTooltip
                   step={3}
-                  title="Remaining days"
+                  title={t('estimator.formula.step3')}
                   variables={{
-                    'D_{\\text{rem}}': variableExplanations['D_rem'],
-                    'Q_{\\text{pos}}': variableExplanations['Q_pos'],
-                    'R_{\\text{daily}}': variableExplanations['R_daily'],
+                    'D_{\\text{rem}}': variableExplanations.dRem,
+                    'Q_{\\text{pos}}': variableExplanations.qPos,
+                    'R_{\\text{daily}}': variableExplanations.rDaily,
                   }}
                 >
                   <BlockMath
@@ -414,12 +412,18 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
             )}
 
             <p className="text-xxs italic text-muted-foreground sm:text-xs">
-              *This is an{' '}
-              <strong>
-                <u>estimate</u>
-              </strong>{' '}
-              based on current processing rates, expected queue position, and pending applications. Actual processing
-              time for your application may vary.
+              {/* The emphasised word sits mid-sentence, so the sentence stays
+                  one catalogue entry and <T> substitutes the styled span. */}
+              <T
+                k="estimator.disclaimer"
+                values={{
+                  emphasis: (
+                    <strong>
+                      <u>{t('estimator.disclaimerEmphasis')}</u>
+                    </strong>
+                  ),
+                }}
+              />
             </p>
           </div>
         )}
