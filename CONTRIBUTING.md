@@ -210,7 +210,8 @@ When adding a feature or fixing a bug:
    - **Added** — New features
    - **Changed** — Modifications to existing features
    - **Fixed** — Bug fixes
-   - **Security** — Security patches
+
+Dependency/CVE patches aren't user-facing on their own and don't belong here — git history and Dependabot already track those.
 
 Example:
 ```markdown

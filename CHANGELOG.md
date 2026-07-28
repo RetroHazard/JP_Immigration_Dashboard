@@ -44,10 +44,6 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 - Fixed the intake/processing bar chart's Y-axis scaling when overlaying processed applications. ([#37](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/37))
 - Filter selections now only apply to charts that actually support them, instead of leaking to charts they shouldn't affect. ([#40](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/40))
 
-### Security
-
-- Patched a known vulnerability ([CVE-2024-41235](https://github.com/advisories/GHSA-36jr-mh4h-2g58)) in a charting dependency. ([#40](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/40))
-
 ## 2025-10
 
 ### Changed
