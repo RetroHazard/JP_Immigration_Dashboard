@@ -30,7 +30,7 @@ Be respectful, constructive, and collaborative. We're all here to improve immigr
 
 ### Prerequisites
 
-- **Node.js** — Version 18+ (check `package.json` for exact version requirements)
+- **Node.js** — no `engines` field is pinned in `package.json`; CI runs Node 22 and the deploy workflow runs Node 20, so either is known-working
 - **npm** — Comes with Node.js
 - **Git** — For version control
 
@@ -166,22 +166,22 @@ src/
 - File naming: `*.test.ts` or `*.test.tsx`
 - Test data processing functions, hooks, and utilities
 
-Example:
+Example (adapted from the real `src/utils/__tests__/selectors.test.ts`):
 ```typescript
 import { describe, it, expect } from 'vitest';
-import { filterByBureau } from './data-utils';
+import { selectData } from '../selectors';
 
-describe('filterByBureau', () => {
-  it('returns only items matching the bureau', () => {
+describe('selectData bureau scopes', () => {
+  it('bureau scope returns exactly that bureau', () => {
     const data = [
-      { bureau: 'Tokyo', count: 100 },
-      { bureau: 'Osaka', count: 50 },
+      { month: '2025-06', bureau: '101170', type: '20', status: '300000', value: 600 },
+      { month: '2025-06', bureau: '101460', type: '20', status: '300000', value: 400 },
     ];
 
-    const result = filterByBureau(data, 'Tokyo');
+    const result = selectData(data, { scope: { kind: 'bureau', code: '101460' } });
 
     expect(result).toHaveLength(1);
-    expect(result[0].bureau).toBe('Tokyo');
+    expect(result[0].value).toBe(400);
   });
 });
 ```

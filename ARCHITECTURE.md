@@ -24,22 +24,30 @@ The dashboard is a **static single-page application (SPA)** built with Next.js t
 
 ```mermaid
 graph TB
-    subgraph "Build-Time (GitHub Actions)"
+    subgraph "Data Watcher (watcher.yaml — daily, year-round)"
         ESTAT["e-Stat API"]
-        FETCH["Fetch & Validate"]
+        FETCH["Fetch & compare<br/>SURVEY_DATE vs. last run"]
+        CHANGED{"Changed?"}
+        
+        ESTAT --> FETCH
+        FETCH --> CHANGED
+        CHANGED -->|No - most days| NOOP["Refresh cache, exit<br/>no build triggered"]
+    end
+    
+    subgraph "Build & Deploy (build.yaml — dispatched only on change)"
         RAW["statData.json<br/>(raw, cached)"]
         TRANSFORM["transform-data.mts<br/>flatten + deaggregate"]
         STATS["dashboard.json<br/>(packed, compact)"]
         BUILD["Next.js Build<br/>(static export)"]
         DEPLOY["GitHub Pages"]
         
-        ESTAT -->|Checked daily| FETCH
-        FETCH -->|Cache| RAW
         RAW --> TRANSFORM
         TRANSFORM --> STATS
         STATS -->|Reference| BUILD
         BUILD -->|Deploy| DEPLOY
     end
+    
+    CHANGED -->|Yes| RAW
     
     subgraph "Browser (Runtime)"
         USER["User"]
@@ -101,6 +109,8 @@ sequenceDiagram
     deactivate React
 ```
 
+`useImmigrationData` delegates the actual fetch/validate/unpack work to `src/utils/loadLocalData.ts`, shown here as part of the "Hook" participant for brevity — `loadLocalData.ts` is separately unit-testable.
+
 ### 2. User Interaction (Filter Selection)
 
 ```mermaid
@@ -127,31 +137,33 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    FILTERED["Filtered Data<br/>Bureau + Type"]
-    INTAKE["IntakeProcessingBarChart<br/>Group by month"]
-    TYPES["CategorySubmissionsLineChart<br/>Group by date"]
-    OUTCOMES["OutcomesSankeyChart<br/>Flow by outcome"]
-    SHARE["BureauDistributionRingChart<br/>Sum by bureau"]
-    MIX["CategoryMixTreemap<br/>Hierarchical sum"]
-    EFFICIENCY["BureauPerformanceBubbleChart<br/>Calc ratios"]
-    MAP["GeographicDistributionChart<br/>Aggregate by pref"]
+    RAW["ImmigrationData[]<br/>Passed to every chart, unfiltered, as props"]
+    INTAKE["IntakeProcessingBarChart<br/>selectData → Group by month"]
+    TYPES["CategorySubmissionsLineChart<br/>selectData → Group by date"]
+    OUTCOMES["OutcomesSankeyChart<br/>selectData → Flow by outcome"]
+    SHARE["BureauDistributionRingChart<br/>selectData → Sum by bureau"]
+    MIX["CategoryMixTreemap<br/>selectData → Hierarchical sum"]
+    EFFICIENCY["BureauPerformanceBubbleChart<br/>selectData → Calc ratios"]
+    MAP["GeographicDistributionChart<br/>selectData → Aggregate by pref"]
     
-    FILTERED --> INTAKE
-    FILTERED --> TYPES
-    FILTERED --> OUTCOMES
-    FILTERED --> SHARE
-    FILTERED --> MIX
-    FILTERED --> EFFICIENCY
-    FILTERED --> MAP
+    RAW --> INTAKE
+    RAW --> TYPES
+    RAW --> OUTCOMES
+    RAW --> SHARE
+    RAW --> MIX
+    RAW --> EFFICIENCY
+    RAW --> MAP
     
     INTAKE -.->|Render| VIZ1["Bklit ComposedChart (visx)"]
     TYPES -.->|Render| VIZ2["Bklit LineChart (visx)"]
     OUTCOMES -.->|Render| VIZ3["Bklit Sankey + Gauge (visx)"]
     SHARE -.->|Render| VIZ4["Bklit PieChart (visx)"]
-    MIX -.->|Render| VIZ5["Custom squarified treemap"]
-    EFFICIENCY -.->|Render| VIZ6["Custom visx scatter/bubble"]
+    MIX -.->|Render| VIZ5["Custom squarified treemap (no charting lib)"]
+    EFFICIENCY -.->|Render| VIZ6["Custom scatter/bubble (d3-scale, raw SVG)"]
     MAP -.->|Render| VIZ7["Bklit Choropleth (visx)"]
 ```
+
+Each chart calls `selectData` independently with its own bureau/type/range selection — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). `visx` is used inside the vendored Bklit chart library only; the two custom charts (Category Mix Treemap, Processing Efficiency) don't depend on it.
 
 A sibling `CategoryMixSunburst.tsx` renders the same hierarchy (shared `categoryMixTree.ts`) as a sunburst instead of a treemap; it isn't currently wired into the chart tab registry.
 
@@ -169,9 +181,12 @@ graph TD
     
     SHELL --> FILTER["🔍 FilterPanel<br/>Bureau & Application Type"]
     SHELL --> STATS["📊 StatsSummary<br/>Summary Stat Cards"]
-    SHELL --> CHARTS["📈 Chart Tabs<br/>ChartComponents registry"]
+    SHELL --> ACTIVE["🔀 ActiveChart<br/>Renders the selected tab"]
+    SHELL --> TABLE["📋 ChartDataTable<br/>Data table + CSV export"]
     SHELL --> ESTIMATOR["⏱️ EstimationCard<br/>Queue Predictor"]
+    SHELL --> CHANGELOG["📰 ChangelogModal<br/>Opened from the version link"]
     
+    ACTIVE --> CHARTS["ChartComponents registry"]
     CHARTS --> INTAKE["📊 IntakeProcessingBarChart"]
     CHARTS --> TYPES["📈 CategorySubmissionsLineChart"]
     CHARTS --> OUTCOMES["🔀 OutcomesSankeyChart"]
@@ -220,8 +235,8 @@ Seven chart components, registered in `src/components/common/ChartComponents.tsx
 | CategorySubmissionsLineChart | Bklit LineChart | Submission trends over time |
 | OutcomesSankeyChart | Bklit Sankey + Gauge | Application outcomes flow + approval rate |
 | BureauDistributionRingChart | Bklit PieChart | Bureau share of intake |
-| CategoryMixTreemap | Custom squarified treemap | Applications by type and bureau |
-| BureauPerformanceBubbleChart | Custom visx SVG | Intake vs. Processing efficiency |
+| CategoryMixTreemap | Custom squarified treemap (no charting lib) | Applications by type and bureau |
+| BureauPerformanceBubbleChart | Custom SVG (d3-scale) | Intake vs. Processing efficiency |
 | GeographicDistributionChart | Bklit Choropleth (visx) | Geographic distribution |
 
 An eighth component, `CategoryMixSunburst.tsx`, renders the same Category Mix hierarchy as a sunburst but isn't currently wired into the registry.
@@ -242,7 +257,7 @@ Interactive queue position estimator:
 #### **StatsSummary** (`src/components/StatsSummary.tsx`)
 
 Summary statistics display, built from `StatCard` (`src/components/common/StatCard.tsx`):
-- Shows key metrics (submissions, processed, approval rate, etc.), animated with `@number-flow/react`
+- Shows key metrics (submissions, processed, approval rate, etc.), animated with a custom `useCountUp` hook (`src/lib/motion.ts`, built on Anime.js) — `@number-flow/react` is a real dependency but is used only inside the vendored Bklit charts' gauge/ring/pie centers, not here
 - Updates based on filters
 - Responsive layout for mobile
 
@@ -279,9 +294,9 @@ graph TD
     SHELL --> ESTIMATOR
     SHELL --> UI
     
-    DATA -->|memo| FILTERED["🔄 useSelectedData<br/>Apply filters"]
-    FILTERS -->|trigger| FILTERED
-    FILTERED -->|passed to| CHARTS["7 Chart Components"]
+    DATA -->|passed as props, unfiltered| CHARTS["7 Chart Components"]
+    FILTERS -->|passed as props| CHARTS
+    CHARTS -->|each independently calls| FILTERED["🔄 selectData / useSelectedData<br/>Memoized per chart, on its own selection key"]
     
     style SHELL fill:#4CAF50,color:#fff
     style DATA fill:#2196F3,color:#fff
@@ -294,19 +309,11 @@ graph TD
 
 **Design Decision:** React's built-in state + hooks is sufficient because:
 
-1. **Simple Data Flow** — Unidirectional: Data → Filter → Calculate → Render
+1. **Simple Data Flow** — Unidirectional: raw data + URL filters flow down as props; each chart derives its own view via `selectData`
 2. **Localized Updates** — Most state changes are isolated to a few components
 3. **Performance** — Memoization (`useMemo`, `useCallback`) is sufficient
 4. **Reduced Complexity** — Smaller learning curve for contributors
 5. **Bundle Size** — No additional dependency overhead
-
-### No Redux or Complex State Management
-
-**Design Decision:** The app uses React's built-in state and hooks because:
-1. Data flow is unidirectional (top-down)
-2. Most state is derived from filters + raw data
-3. Performance is sufficient without memoization middleware
-4. Simpler codebase to maintain and understand
 
 ## Data Processing Pipeline
 
@@ -348,75 +355,72 @@ graph LR
     subgraph "Runtime (browser)"
         FETCH["📥 Fetch dashboard.json<br/>useImmigrationData"]
         UNPACK["🔓 unpackDashboardData<br/>Validate schema"]
-        FILTER["🔑 selectData / useSelectedData<br/>Bureau scope + Type"]
-        CACHE["💾 Memoize<br/>useMemo hook<br/>prevent re-calc"]
         
         FETCH --> UNPACK
-        UNPACK --> FILTER
-        FILTER --> CACHE
     end
     
     OUT -.->|served as static asset| FETCH
     
-    CACHE -->|to charts| INTAKE["IntakeProcessingBarChart"]
-    CACHE -->|to charts| TYPES["CategorySubmissionsLineChart"]
-    CACHE -->|to charts| OUTCOMES["OutcomesSankeyChart"]
-    CACHE -->|to charts| SHARE["BureauDistributionRingChart"]
-    CACHE -->|to charts| MIX["CategoryMixTreemap"]
-    CACHE -->|to charts| EFFICIENCY["BureauPerformanceBubbleChart"]
-    CACHE -->|to charts| MAP["GeographicDistributionChart"]
+    UNPACK -->|props, unfiltered| INTAKE["IntakeProcessingBarChart"]
+    UNPACK -->|props, unfiltered| TYPES["CategorySubmissionsLineChart"]
+    UNPACK -->|props, unfiltered| OUTCOMES["OutcomesSankeyChart"]
+    UNPACK -->|props, unfiltered| SHARE["BureauDistributionRingChart"]
+    UNPACK -->|props, unfiltered| MIX["CategoryMixTreemap"]
+    UNPACK -->|props, unfiltered| EFFICIENCY["BureauPerformanceBubbleChart"]
+    UNPACK -->|props, unfiltered| MAP["GeographicDistributionChart"]
 ```
+
+Each chart then independently calls `selectData`/`useSelectedData` (`src/utils/selectors.ts`), memoized on its own selection key — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)).
 
 ### 3. Data Deaggregation
 
-Some bureaus (Tokyo, Osaka, Nagoya, Fukuoka) are **aggregates** that include branch office data from e-Stat. This correction now runs once at build time (see the pipeline above), not per page load:
+Some bureaus (Shinagawa, Osaka, Nagoya, Fukuoka) are **aggregates** that include branch office data from e-Stat. Shinagawa (bureau code `101170`) is the renamed former "Tokyo" bureau (see `CHANGELOG.md` v0.5.2) — the raw e-Stat figure under that code still includes its branch offices' applications, so it isn't a separate entity sitting *alongside* Tokyo, it *is* the aggregate. This correction now runs once at build time (see the pipeline above), not per page load:
 
 ```mermaid
 graph TD
-    TOKYO["🏛️ Tokyo Bureau<br/>Aggregate"]
-    TOKYO_RAW["Includes:<br/>Tokyo + Shinagawa<br/>+ Yokohama<br/>+ Narita<br/>+ Haneda"]
-    
-    SHINAGAWA["🏢 Shinagawa<br/>Separate"]
-    YOKOHAMA["🏢 Yokohama<br/>Separate"]
-    NARITA["✈️ Narita Airport<br/>Separate"]
-    HANEDA["✈️ Haneda Airport<br/>Separate"]
-    
-    DEAGG["➖ Deaggregate<br/>Subtract branch counts<br/>from aggregate"]
-    
-    TOKYO --> TOKYO_RAW
-    TOKYO_RAW --> DEAGG
-    DEAGG --> SHINAGAWA
+    SHINAGAWA_AGG["🏛️ Shinagawa Bureau<br/>Aggregate (raw)"]
+    SHINAGAWA_RAW["Raw total includes:<br/>Shinagawa HQ<br/>+ Yokohama<br/>+ Narita Airport<br/>+ Haneda Airport"]
+
+    YOKOHAMA["🏢 Yokohama<br/>Reported separately"]
+    NARITA["✈️ Narita Airport<br/>Reported separately"]
+    HANEDA["✈️ Haneda Airport<br/>Reported separately"]
+
+    DEAGG["➖ Deaggregate<br/>Subtract branch counts<br/>from the aggregate"]
+
+    SHINAGAWA_AGG --> SHINAGAWA_RAW
+    SHINAGAWA_RAW --> DEAGG
+    DEAGG --> SHINAGAWA_HQ["🏢 Shinagawa HQ<br/>Corrected"]
     DEAGG --> YOKOHAMA
     DEAGG --> NARITA
     DEAGG --> HANEDA
-    
-    RESULT["✅ Result: 7 unique entities<br/>No double-counting"]
-    SHINAGAWA --> RESULT
+
+    RESULT["✅ Result: 4 unique entities<br/>No double-counting"]
+    SHINAGAWA_HQ --> RESULT
     YOKOHAMA --> RESULT
     NARITA --> RESULT
     HANEDA --> RESULT
 ```
 
-**Code Location:** `src/utils/correctBureauAggregates.ts` → `makeCorrectedAccessor()`, called from `src/utils/dataTransform.ts` → `transformData()` during `scripts/transform-data.mts` (build time). If a branch office hasn't published data for a period yet, that aggregate-bureau entry is skipped rather than emitted with an inflated value (see `isBranchDataIncomplete`).
+**Code Location:** `src/utils/correctBureauAggregates.ts` → `makeCorrectedAccessor()`, called from `src/utils/dataTransform.ts` → `transformData()` during `scripts/transform-data.mts` (build time). `getCorrectedValue()` subtracts the sum of a bureau's `children` codes (from `src/constants/bureauOptions.ts`) from its own raw value, so the aggregate code (e.g. `101170`) ends up representing only its own HQ processing, while each branch's own code (e.g. `101210` Yokohama) is left untouched. If a branch office hasn't published data for a period yet, that aggregate-bureau entry is skipped rather than emitted with an inflated value (see `isBranchDataIncomplete`).
 
 ### 4. Filtering & Memoization
 
+This runs independently **inside each of the 7 chart components** — there is no single shared cache distributed to all of them:
+
 ```mermaid
 stateDiagram-v2
-    [*] --> RAW: Raw Data Loaded
+    [*] --> RAW: Chart receives raw data + filters as props
 
-    RAW --> LISTEN: Listen for<br/>Filter Changes
+    RAW --> SHOULD_UPDATE: This chart's selection key<br/>changed? (bureau, type, range, ...)
 
-    LISTEN --> SHOULD_UPDATE: ?bureau or ?type<br/>URL param changed?
+    SHOULD_UPDATE --> |YES| FILTER: Apply selectData<br/>with this chart's selection
+    SHOULD_UPDATE --> |NO| CACHE: Return this chart's<br/>memoized result (useMemo)
 
-    SHOULD_UPDATE --> |YES| FILTER: Apply Filters<br/>useSelectedData
-    SHOULD_UPDATE --> |NO| CACHE: Return cached<br/>result from useMemo
-
-    FILTER --> MEMOIZE: Save to memo
+    FILTER --> MEMOIZE: Save to this chart's memo
     MEMOIZE --> CACHE
 
-    CACHE --> DIST: Distribute to<br/>7 chart components
-    DIST --> [*]
+    CACHE --> RENDER: This chart renders
+    RENDER --> [*]
 ```
 
 ### 5. Estimation Model
@@ -468,7 +472,7 @@ graph TD
     PERF --> BUILD["🔨 Production Build<br/>Minified & tree-shaken"]
     
     MEMO --> EXAMPLE1["Prevent re-filtering<br/>on every render"]
-    LAZY --> EXAMPLE2["KaTeX ~100KB<br/>loaded on demand"]
+    LAZY --> EXAMPLE2["KaTeX ~100KB<br/>deferred with the app chunk"]
     SINGLE --> EXAMPLE3["useSelectedData<br/>memoized per chart"]
     PRECOMP --> EXAMPLE4["Color scales<br/>calculated once"]
     BUILD --> EXAMPLE5["JS ~150KB gzipped<br/>Fast delivery"]
@@ -545,16 +549,18 @@ graph TD
     style RUNTIME fill:#2196F3,color:#fff
 ```
 
+This "no `any`" policy applies to the app's own code (`src/` outside `src/components/bklit/`). The vendored Bklit chart library retains a handful of internal `any`s from its own upstream source, with lint-ignore comments from that project's own linter.
+
 ### Strict TypeScript Configuration
 
 ```json
-// tsconfig.json
+// tsconfig.json (real excerpt)
 {
   "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true
+    "strict": true
+    // strict: true implies noImplicitAny, strictNullChecks,
+    // strictFunctionTypes, and the rest of the strict-family flags — they
+    // aren't declared individually in the file.
   }
 }
 ```
@@ -718,21 +724,23 @@ graph TD
     CHARTS["📊 Bklit UI (visx)<br/>Over Chart.js"]
     CHARTS_PROS["✅ Vendored source<br/>✅ Design-token theming<br/>✅ SVG accessibility<br/>✅ Composable API"]
     
-    NIVO["🌳 visx primitives<br/>For custom charts"]
-    NIVO_PROS["✅ Purpose-built<br/>✅ Mobile-ready<br/>✅ Interactive<br/>✅ Less boilerplate"]
+    CUSTOM["🎨 Hand-rolled SVG<br/>For 2 charts Bklit can't express"]
+    CUSTOM_PROS["✅ No forced constraints<br/>✅ Matches design tokens<br/>✅ Small footprint<br/>✅ Full control"]
     
     STATIC --> STATIC_PROS
     TS --> TS_PROS
     STATE --> STATE_PROS
     CHARTS --> CHARTS_PROS
-    NIVO --> NIVO_PROS
+    CUSTOM --> CUSTOM_PROS
     
     style STATIC fill:#4CAF50,color:#fff
     style TS fill:#2196F3,color:#fff
     style STATE fill:#9C27B0,color:#fff
     style CHARTS fill:#FF9800,color:#fff
-    style NIVO fill:#00BCD4,color:#fff
+    style CUSTOM fill:#00BCD4,color:#fff
 ```
+
+The Processing Efficiency and Category Mix charts don't use `visx` at all — Bklit's chart primitives couldn't express what they needed (e.g. Bklit's `ScatterChart` is time-x with a fixed 0-100 y-domain, which can't show volume-vs-rate with a size channel), so both are hand-rolled SVG instead (`d3-scale` for Processing Efficiency, no charting library at all for Category Mix).
 
 ### Why Static Export?
 
@@ -768,10 +776,16 @@ graph TD
 
 ```typescript
 // Test pure functions (src/utils/__tests__/calculateEstimates.test.ts)
-test('calculateEstimatedDate projects a completion date', () => {
-  const data = buildMonthlyData(/* ... */);
-  const result = calculateEstimatedDate(data, { bureau: 'Osaka', type: 'X', applicationDate: '2025-04-01' });
-  expect(result?.details.isPastDue).toBe(false);
+describe('calculateEstimatedDate month-boundary sensitivity', () => {
+  it('documents that the estimate can jump sharply the moment a new month is first published', () => {
+    // Simulate "today" landing right before vs. right after a slow month's
+    // figures are first published, and confirm the estimate legitimately
+    // shifts once real (slower) throughput is known.
+    const before = calculateEstimatedDate(dataThroughJune, { bureau: 'Osaka', type: 'X', applicationDate: '2025-07-30' });
+    const after = calculateEstimatedDate(dataThroughJuly, { bureau: 'Osaka', type: 'X', applicationDate: '2025-07-31' });
+    expect(before?.details.dataQuality).toBe('low');
+    expect(after?.details.dataQuality).toBe('high');
+  });
 });
 ```
 
@@ -851,10 +865,10 @@ npm install parent-package@latest          # Update parent if needed
 
 ## Glossary
 
-- **Bureau** — Regional Immigration Bureau (e.g., Tokyo, Osaka)
+- **Bureau** — Regional Immigration Bureau (e.g., Shinagawa, Osaka)
 - **Status** — Application processing status (e.g., "Processing", "Approved")
 - **Aggregate Bureau** — Bureau with branch offices (data includes branches)
-- **Branch Office** — Sub-bureau reporting separately (e.g., Yokohama under Tokyo)
+- **Branch Office** — Sub-bureau reporting separately (e.g., Yokohama under Shinagawa)
 - **e-Stat** — Official Japanese statistics API
 - **SURVEY_DATE** — Date of data collection in e-Stat
 

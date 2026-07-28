@@ -161,13 +161,15 @@ Seven interactive charts, each answering a specific question about the data, wit
 - `Tailwind CSS v4` – Utility-first styling with a CSS-variable design-token system ("Civic Glass")
 - `shadcn/ui` (vendored) – Radix-based UI primitives (tabs, dialog, sheet, select, tooltip)
 - `Bklit UI` (vendored, MIT) – visx-based chart components (line, composed, pie, sunburst, radar, sankey, gauge, choropleth)
-- `visx` / `d3` – Chart internals and the custom bubble chart
-- `Anime.js v4` – Motion layer (entrances, count-ups, chart transitions) with a single reduced-motion chokepoint
+- `visx` – Used internally by the vendored Bklit charts (not by the two hand-rolled custom charts, Category Mix Treemap and Processing Efficiency, which use no charting library / `d3-scale` respectively)
+- `Anime.js v4` – App-level motion layer (entrances, count-ups, chart transitions) with a single reduced-motion chokepoint (`src/lib/motion.ts`); the vendored Bklit charts animate internally via `motion` (motion/react) instead, with their own independent reduced-motion handling
+- `@number-flow/react` – Animated number counters inside the Bklit charts' gauge/ring/pie centers (StatCard uses its own Anime.js-based `useCountUp` instead)
 - `nuqs` – URL state (chart tab, filters, time range, compare mode are all shareable links)
 - `next-themes` – Flash-free dark/light theme on static export
 - `KaTeX` – Mathematical notation rendering in the estimator
 - `Lucide` – Icon system
 - `Fontsource` – Self-hosted Inter Variable + Noto Sans JP Variable
+- `@next/third-parties` (Google Analytics) – Loaded only when a `GA_MEASUREMENT_ID` is configured at build time
 
 ### DevOps & Automation:
 - `GitHub Actions` – CI (lint, typecheck, tests, fixture build) and deploy automation
@@ -261,7 +263,7 @@ The dashboard automatically monitors and updates immigration statistics from the
 ### TypeScript Implementation
 - **Strict Type Safety:** `strict: true` enabled for comprehensive type checking
 - **Custom Type Definitions:** Explicit types for all immigration data structures
-- **Zero `any` Usage:** Complete elimination of implicit and explicit `any` types
+- **Zero `any` Usage in App Code:** No implicit or explicit `any` in `src/` outside the vendored Bklit library, which retains a handful of internal `any`s (with upstream lint-ignore comments) carried over from its own source
 
 ### Code Organization
 - **Shared Hooks & Selectors:** `useImmigrationData` for fetching, `selectData` (`src/utils/selectors.ts`) for consistent, bureau-scope-aware filtering

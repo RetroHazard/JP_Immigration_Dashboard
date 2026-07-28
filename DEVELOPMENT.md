@@ -17,7 +17,7 @@ Comprehensive guide for setting up, running, and developing the Japan Immigratio
 
 ### Required
 
-- **Node.js** — 18.0.0 or higher
+- **Node.js** — `package.json` has no `engines` field pinning a minimum; CI runs Node 22 (`ci.yaml`) and the deploy workflow runs Node 20 (`build.yaml`), so either is known-working
   - Download from [nodejs.org](https://nodejs.org/)
   - Verify: `node --version`
 
@@ -309,18 +309,35 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
    git checkout -b feature/feature-name
    ```
 
-2. **Create component (if needed):**
-   ```bash
-   # Example: src/components/charts/NewChart.tsx
-   export default function NewChart() {
+2. **Create the chart component** (named export, `ImmigrationChartData` props):
+   ```typescript
+   // src/components/charts/NewChart.tsx
+   import type { ImmigrationChartData } from '../common/ChartComponents';
+
+   export const NewChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
      return <div>Chart here</div>;
-   }
+   };
    ```
 
-3. **Import in main page:**
+3. **Register it in the chart registry** — charts aren't imported into a page directly; they're added to the `CHART_COMPONENTS` array, which drives the tabs, card header, and period selector:
    ```typescript
-   // src/app/[[...slug]]/page.tsx
-   import NewChart from '@/components/charts/NewChart';
+   // src/components/common/ChartComponents.tsx
+   import { NewChart } from '../charts/NewChart';
+
+   export const CHART_COMPONENTS: ChartDefinition[] = [
+     // ...existing entries
+     {
+       key: 'new-chart',
+       label: 'New Chart',
+       description: 'One sentence: what question this chart answers.',
+       icon: SomeLucideIcon,
+       component: NewChart,
+       filters: { bureau: true, appType: true },
+       compare: false,
+       ranges: ['6', '12', '24', '36', 'all'],
+       defaultRange: '12',
+     },
+   ];
    ```
 
 4. **Test in dev server:**
@@ -411,6 +428,7 @@ Pinned packages:
 - `@next/third-parties`, `@next/eslint-plugin-next`, `eslint-config-next` — Next.js ecosystem
 - `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser` — Type-aware linting
 - `eslint` — Code quality enforcement
+- `@types/node` — Matches the pinned toolchain's Node types
 
 `react`, `react-dom`, and `typescript` currently use `^` ranges rather than exact pins. Unpinned packages allow patch and minor updates for utilities and non-critical dependencies.
 
@@ -472,8 +490,9 @@ npm run dev -- -p 3001
 ### Stale Cache Issues
 
 ```bash
-# Clear Next.js cache
-rm -rf .next
+# Clear the build output/cache — next.config.ts sets distDir: 'build',
+# so this project uses build/ instead of the default .next/
+rm -rf build
 
 # Clear node_modules and reinstall
 rm -rf node_modules package-lock.json
@@ -586,6 +605,9 @@ npm install --force
 - **TypeScript Docs:** https://www.typescriptlang.org/docs
 - **Tailwind CSS Docs:** https://tailwindcss.com/docs
 - **visx Docs:** https://airbnb.io/visx/ (the primitives Bklit UI's vendored charts are built on)
+- **KaTeX Docs:** https://katex.org/docs/ (estimator formula rendering)
+- **nuqs Docs:** https://nuqs.dev/ (URL state for filters, chart tab, and the estimator)
+- **Anime.js Docs:** https://animejs.com/documentation/ (app-level motion layer)
 - **GitHub Actions:** https://docs.github.com/en/actions
 
 Need more help? Open an [issue](https://github.com/RetroHazard/JP_Immigration_Dashboard/issues) or start a [discussion](https://github.com/RetroHazard/JP_Immigration_Dashboard/discussions).
