@@ -6,12 +6,15 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
+- **v1.1.0**: Refinements on top of the Civic Glass redesign —
+  - Processing Efficiency swapped to a ranked lollipop chart — bureaus ordered by completion rate, stem weight carrying intake volume, against a nationwide-rate guide line
+  - A global airport toggle in the filter bar: one click removes the airport branch offices (Narita, Haneda, Kansai, Chubu) from every chart, stat, and table — nationwide totals shrink accordingly instead of quietly still counting them, and the toggle's icon crosses out while engaged
+  - Chart tab bar collapsed to icons, with the active tab expanding to show its label, so it never needs horizontal scrolling
 - **v1.0.0**: Civic Glass — a complete visual and technical redesign, marking the dashboard's first official production release —
   - Rebuilt on Tailwind CSS v4, shadcn/ui, and a vendored Bklit chart library, with a new design system, dark mode carried through every surface, and Anime.js-driven motion (a single reduced-motion chokepoint for accessibility)
-  - Single unified dashboard shell with a scroll-free chart tab bar (icon tabs, the active chart expanding its label) and shareable URL state for filters, chart selection, and the estimator
-  - Two new charts — Outcomes (Sankey flow into granted/denied/other, plus an approval-rate gauge) and Processing Efficiency (bureaus ranked by completion rate against the nationwide pace, with intake volume carried in each bar's weight) — alongside a rebuilt interactive Regional Map and a per-bureau Category Mix view
+  - Single unified dashboard shell with labeled chart tabs and shareable URL state for filters, chart selection, and the estimator
+  - Two new charts — Outcomes (Sankey flow into granted/denied/other, plus an approval-rate gauge) and Processing Efficiency (bubble chart) — alongside a rebuilt interactive Regional Map and a per-bureau Category Mix view
   - Bureau-to-bureau comparison mode with side-by-side charts
-  - A global airport toggle in the filter bar: one click removes the airport branch offices (Narita, Haneda, Kansai, Chubu) from every chart, stat, and table — nationwide totals shrink accordingly instead of quietly still counting them
   - Reworked Processing Time Estimator: collapsible on desktop, a bottom sheet on mobile, a reset button, a LaTeX-rendered formula breakdown, and a shareable permalink for a filled-out estimate
   - Mobile-first pass: a no-scroll summary card mosaic and a settings drawer for theme, language, and the changelog
   - A full data table + CSV export alternative to every chart, plus an accessibility pass (keyboard navigation, screen-reader labels)
@@ -28,10 +31,10 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.1.0**: Fixed the estimator's formula breakdown listing its steps in reverse — the final calculation was shown first, ahead of the values it depends on.
+- **v1.1.0**: Fixed the filter bar's controls wrapping and crowding each other at the layout widths where the estimator sidebar narrows the panel.
+- **v1.1.0**: Fixed the outcomes Sankey chart's layout breaking down on narrow and mobile viewports.
 - Fixed aggregate bureaus (Osaka, Fukuoka, Nagoya, Shinagawa) briefly showing inflated processing-time estimates when a branch office's data hadn't been published yet for the period. ([#44](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/44))
-- Fixed the estimator's formula breakdown listing its steps in reverse — the final calculation was shown first, ahead of the values it depends on.
-- Fixed the filter bar's controls wrapping and crowding each other at the layout widths where the estimator sidebar narrows the panel.
-- Fixed the outcomes Sankey chart's layout breaking down on narrow and mobile viewports.
 
 ## 2026-02
 
