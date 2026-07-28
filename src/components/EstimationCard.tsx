@@ -346,21 +346,24 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
               </span>
             </button>
 
+            {/* Steps follow the dependency order: the queue at application
+                feeds the current position and rate, which feed the estimate */}
             {showMath && vars && (
               <div className="space-y-2">
                 <FormulaTooltip
                   step={1}
-                  title="Remaining days"
+                  title="Queue at application"
                   variables={{
-                    'D_{\\text{rem}}': variableExplanations['D_rem'],
-                    'Q_{\\text{pos}}': variableExplanations['Q_pos'],
-                    'R_{\\text{daily}}': variableExplanations['R_daily'],
+                    'Q_{\\text{app}}': variableExplanations['Q_app'],
+                    'C_{\\text{prev}}': variableExplanations['C_prev'],
+                    'N_{\\text{app}}': variableExplanations['N_app'],
+                    'P_{\\text{app}}': variableExplanations['P_app'],
                   }}
                 >
                   <BlockMath
                     math={`
                     \\begin{aligned}
-                    &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${vars.Q_pos.toFixed()}}}{${vars.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${vars.D_rem.toFixed()} \\ \\text{d} \\\\
+                    &Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${vars.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${vars.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${vars.P_app.toFixed()}} \\\\
                     \\end{aligned}
                   `}
                   />
@@ -389,18 +392,17 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
                 </FormulaTooltip>
                 <FormulaTooltip
                   step={3}
-                  title="Queue at application"
+                  title="Remaining days"
                   variables={{
-                    'Q_{\\text{app}}': variableExplanations['Q_app'],
-                    'C_{\\text{prev}}': variableExplanations['C_prev'],
-                    'N_{\\text{app}}': variableExplanations['N_app'],
-                    'P_{\\text{app}}': variableExplanations['P_app'],
+                    'D_{\\text{rem}}': variableExplanations['D_rem'],
+                    'Q_{\\text{pos}}': variableExplanations['Q_pos'],
+                    'R_{\\text{daily}}': variableExplanations['R_daily'],
                   }}
                 >
                   <BlockMath
                     math={`
                     \\begin{aligned}
-                    &Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${vars.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${vars.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${vars.P_app.toFixed()}} \\\\
+                    &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${vars.Q_pos.toFixed()}}}{${vars.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${vars.D_rem.toFixed()} \\ \\text{d} \\\\
                     \\end{aligned}
                   `}
                   />
