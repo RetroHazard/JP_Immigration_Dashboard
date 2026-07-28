@@ -87,7 +87,9 @@ Seven interactive charts, each answering a specific question about the data, wit
 #### **Processing Efficiency**
 - **Purpose:** Completion rate against intake volume, per bureau.
 - **Features:**
-  - Purpose-built bubble chart: bubble size shows processed volume, position shows intake vs. completion rate
+  - Quadrant scatter: bubble size shows processed volume, and median guides split the plot so high-volume bureaus falling behind stand out — the shaded quadrant is the watch-list
+  - Crosshair guides and a hover card with each bureau's received/processed/completion figures
+  - Rate axis zooms to the data, with a dashed 100%-of-intake reference line
   - Filterable by bureau and application type
   - Configurable cumulative time range
 
@@ -102,6 +104,7 @@ Seven interactive charts, each answering a specific question about the data, wit
 
 ### :mag: Dynamic Filtering
 - Per-chart filter availability (bureau, application type) — only the filters that apply to the active chart are enabled
+- Global airport toggle — a one-click filter that removes the airport branch offices (Narita, Haneda, Kansai, Chubu) from every chart, stat, and table
 - One-click filter reset
 - Bureau-to-bureau comparison view for charts that support it, hidden below the `md` breakpoint where a side-by-side layout has no room
 - Statistics summary on charts

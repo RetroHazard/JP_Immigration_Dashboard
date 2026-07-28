@@ -13,7 +13,7 @@ import { useSearchParams } from 'next/navigation';
 
 import { animate, stagger } from 'animejs';
 import { Calculator, Check, ChevronsLeft, History, Menu, Moon, Sun } from 'lucide-react';
-import { parseAsStringLiteral, useQueryState } from 'nuqs';
+import { parseAsBoolean, parseAsStringLiteral, useQueryState } from 'nuqs';
 import type React from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import type { DashboardMeta, ImmigrationData } from '../hooks/useImmigrationData';
 import { useLocale } from '../i18n/LocaleContext';
 import { prefersReducedMotion, useAnimeScope } from '../lib/motion';
-import { getBureauLabel } from '../utils/getBureauData';
+import { AIRPORT_BUREAU_CODES, getBureauLabel } from '../utils/getBureauData';
 import type { ChartRange } from '../utils/selectors';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { getApplicationDetailsFromParams, isEstimatorPermalink } from '../utils/urlApplicationDetails';
@@ -64,6 +64,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
   const [type, setType] = useQueryState('type', parseAsStringLiteral(TYPE_VALUES).withDefault('all'));
   const [rangeParam, setRangeParam] = useQueryState('range', parseAsStringLiteral(RANGE_VALUES));
   const [compare, setCompare] = useQueryState('compare', parseAsStringLiteral(COMPARE_VALUES));
+  // Global airport toggle: when off, the airport branch offices drop out of
+  // every chart, stat, and table (the estimator keeps the full dataset).
+  const [includeAirports, setIncludeAirports] = useQueryState('airports', parseAsBoolean.withDefault(true));
 
   const activeIndex = Math.max(
     0,
@@ -77,12 +80,23 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
 
   // Filters the active chart doesn't support are neutralized so the chart,
   // stat badges, and estimator always agree on what a filter value means.
+  // An airport bureau selection is likewise neutralized while airports are
+  // excluded (hand-edited URLs can still produce that combination).
   const effectiveFilters = useMemo(
     () => ({
-      bureau: activeChart.filters.bureau ? bureau : 'all',
+      bureau:
+        activeChart.filters.bureau && (includeAirports || !AIRPORT_BUREAU_CODES.has(bureau)) ? bureau : 'all',
       type: activeChart.filters.appType ? type : 'all',
     }),
-    [activeChart.filters.bureau, activeChart.filters.appType, bureau, type]
+    [activeChart.filters.bureau, activeChart.filters.appType, bureau, type, includeAirports]
+  );
+
+  // What the charts, stats, and data table see; the airport branch offices
+  // are removed as rows, leaving the parent bureaus and the official
+  // nationwide aggregate untouched.
+  const chartData = useMemo(
+    () => (includeAirports ? data : data.filter((entry) => !AIRPORT_BUREAU_CODES.has(entry.bureau))),
+    [data, includeAirports]
   );
 
   // Data coverage, shown beside the period selector (moved out of the
@@ -104,7 +118,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
   // on views that opt in via the registry (single-view charts like the
   // treemap, sankey, and bubble plot already show every bureau at once).
   const compareEnabled = activeChart.filters.bureau && activeChart.compare;
-  const compareBureau = compareEnabled && compare && compare !== bureau ? compare : null;
+  const compareBureau =
+    compareEnabled && compare && compare !== bureau && (includeAirports || !AIRPORT_BUREAU_CODES.has(compare))
+      ? compare
+      : null;
 
   // --- Estimator state, lifted so the sidebar and the mobile sheet share it ---
   const [estimatorDetails, setEstimatorDetails] = useState<ApplicationDetails>(() =>
@@ -326,7 +343,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
             : ''}
         </p>
         <div className="mb-4" data-animate="card">
-          <StatsSummary data={data} filters={effectiveFilters} />
+          <StatsSummary data={chartData} filters={effectiveFilters} />
         </div>
         <div
           className={`grid gap-4 transition-[grid-template-columns] duration-300 lg:items-start ${
@@ -346,10 +363,20 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               compare={compare}
               compareEnabled={compareEnabled}
               onCompareChange={(next) => void setCompare(next)}
+              includeAirports={includeAirports}
+              onAirportsChange={(include) => {
+                // null clears the param back to its default (included)
+                void setIncludeAirports(include ? null : false);
+                if (!include) {
+                  if (AIRPORT_BUREAU_CODES.has(bureau)) void setBureau(null);
+                  if (compare && AIRPORT_BUREAU_CODES.has(compare)) void setCompare(null);
+                }
+              }}
               onReset={() => {
                 void setBureau(null);
                 void setType(null);
                 void setCompare(null);
+                void setIncludeAirports(null);
               }}
             />
             </div>
@@ -395,7 +422,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                             )}
                             <ActiveChart
                               activeChartIndex={activeIndex}
-                              data={data}
+                              data={chartData}
                               filters={effectiveFilters}
                               range={range}
                             />
@@ -409,14 +436,14 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                               </p>
                               <ActiveChart
                                 activeChartIndex={activeIndex}
-                                data={data}
+                                data={chartData}
                                 filters={{ bureau: compareBureau, type: effectiveFilters.type }}
                                 range={range}
                               />
                             </div>
                           )}
                         </div>
-                        <ChartDataTable data={data} filters={effectiveFilters} range={range} />
+                        <ChartDataTable data={chartData} filters={effectiveFilters} range={range} />
                       </>
                     )}
                   </div>

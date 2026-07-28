@@ -147,7 +147,7 @@ JP_Immigration_Dashboard/
 │   ├── components/
 │   │   ├── DashboardShell.tsx         # The single responsive shell (header, tabs, filters, estimator)
 │   │   ├── ActiveChart.tsx            # Memoized switch over the active chart registry entry
-│   │   ├── FilterPanel.tsx            # Bureau/type filter controls + compare toggle
+│   │   ├── FilterPanel.tsx            # Bureau/type filter controls + compare + airport toggle
 │   │   ├── StatsSummary.tsx           # Summary stat cards
 │   │   ├── EstimationCard.tsx         # Processing Time Estimator (sidebar/sheet)
 │   │   ├── ChartDataTable.tsx         # Collapsible data table + CSV export
@@ -160,7 +160,9 @@ JP_Immigration_Dashboard/
 │   │   │   ├── BureauDistributionRingChart.tsx   # Bklit PieChart (donut)
 │   │   │   ├── CategoryMixTreemap.tsx            # Custom zoomable treemap
 │   │   │   ├── CategoryMixSunburst.tsx           # Alternate sunburst view (same data hierarchy)
-│   │   │   ├── BureauPerformanceBubbleChart.tsx  # Custom visx scatter/bubble
+│   │   │   ├── ProcessingEfficiencyQuadrantChart.tsx  # Custom quadrant scatter (d3-scale, raw SVG)
+│   │   │   ├── ProcessingEfficiencyLollipop.tsx  # Alternate ranked lollipop view (same data)
+│   │   │   ├── EfficiencyHoverCard.tsx           # Shared hover card for the efficiency views
 │   │   │   └── GeographicDistributionChart.tsx   # Bklit choropleth (visx + topojson)
 │   │   │
 │   │   ├── common/

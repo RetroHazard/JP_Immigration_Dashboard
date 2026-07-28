@@ -137,13 +137,13 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    RAW["ImmigrationData[]<br/>Passed to every chart, unfiltered, as props"]
+    RAW["ImmigrationData[]<br/>Passed to every chart as props<br/>(only the global airport toggle pre-applied)"]
     INTAKE["IntakeProcessingBarChart<br/>selectData → Group by month"]
     TYPES["CategorySubmissionsLineChart<br/>selectData → Group by date"]
     OUTCOMES["OutcomesSankeyChart<br/>selectData → Flow by outcome"]
     SHARE["BureauDistributionRingChart<br/>selectData → Sum by bureau"]
     MIX["CategoryMixTreemap<br/>selectData → Hierarchical sum"]
-    EFFICIENCY["BureauPerformanceBubbleChart<br/>selectData → Calc ratios"]
+    EFFICIENCY["ProcessingEfficiencyQuadrantChart<br/>selectData → Calc ratios"]
     MAP["GeographicDistributionChart<br/>selectData → Aggregate by pref"]
     
     RAW --> INTAKE
@@ -159,13 +159,13 @@ graph TD
     OUTCOMES -.->|Render| VIZ3["Bklit Sankey + Gauge (visx)"]
     SHARE -.->|Render| VIZ4["Bklit PieChart (visx)"]
     MIX -.->|Render| VIZ5["Custom squarified treemap (no charting lib)"]
-    EFFICIENCY -.->|Render| VIZ6["Custom scatter/bubble (d3-scale, raw SVG)"]
+    EFFICIENCY -.->|Render| VIZ6["Custom quadrant scatter (d3-scale, raw SVG)"]
     MAP -.->|Render| VIZ7["Bklit Choropleth (visx)"]
 ```
 
-Each chart calls `selectData` independently with its own bureau/type/range selection — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). `visx` is used inside the vendored Bklit chart library only; the two custom charts (Category Mix Treemap, Processing Efficiency) don't depend on it.
+Each chart calls `selectData` independently with its own bureau/type/range selection — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). The one global exception is the airport toggle: when airport offices are excluded, `DashboardShell` removes their rows from the array before it reaches any chart, stat, or table (the estimator keeps the full dataset). `visx` is used inside the vendored Bklit chart library only; the two custom charts (Category Mix Treemap, Processing Efficiency) don't depend on it.
 
-A sibling `CategoryMixSunburst.tsx` renders the same hierarchy (shared `categoryMixTree.ts`) as a sunburst instead of a treemap; it isn't currently wired into the chart tab registry.
+A sibling `CategoryMixSunburst.tsx` renders the same hierarchy (shared `categoryMixTree.ts`) as a sunburst instead of a treemap, and `ProcessingEfficiencyLollipop.tsx` renders the efficiency data (shared `processingEfficiency.ts`) as a ranked lollipop; neither is currently wired into the chart tab registry.
 
 ## Component Architecture
 
@@ -192,7 +192,7 @@ graph TD
     CHARTS --> OUTCOMES["🔀 OutcomesSankeyChart"]
     CHARTS --> SHARE["🍩 BureauDistributionRingChart"]
     CHARTS --> MIX["🗂️ CategoryMixTreemap"]
-    CHARTS --> EFFICIENCY["🫧 BureauPerformanceBubbleChart"]
+    CHARTS --> EFFICIENCY["🫧 ProcessingEfficiencyQuadrantChart"]
     CHARTS --> MAP["🗾 GeographicDistributionChart"]
     
     style APP fill:#4CAF50,color:#fff
@@ -213,7 +213,7 @@ graph TD
 
 The single responsive shell that:
 - Renders the header, chart tabs, filter bar, data table, and footer
-- Owns the URL-first state (`chart`, `bureau`, `type`, `range`, `compare` query params via nuqs)
+- Owns the URL-first state (`chart`, `bureau`, `type`, `range`, `compare`, `airports` query params via nuqs)
 - Hosts the Processing Time Estimator as a collapsible desktop sidebar or a mobile bottom sheet
 - Coordinates all child components
 
@@ -222,6 +222,7 @@ The single responsive shell that:
 Controls for filtering data:
 - Bureau selection (single-select, plus an optional "Compare With" second bureau)
 - Application type selection
+- A global airport toggle (beside the reset button) that removes the airport branch offices from every chart, stat, and table — and from the bureau/compare dropdowns while active
 - Filter availability is driven per-chart by the `ChartComponents` registry
 - Filters are applied to whichever chart is active
 
@@ -236,10 +237,10 @@ Seven chart components, registered in `src/components/common/ChartComponents.tsx
 | OutcomesSankeyChart | Bklit Sankey + Gauge | Application outcomes flow + approval rate |
 | BureauDistributionRingChart | Bklit PieChart | Bureau share of intake |
 | CategoryMixTreemap | Custom squarified treemap (no charting lib) | Applications by type and bureau |
-| BureauPerformanceBubbleChart | Custom SVG (d3-scale) | Intake vs. Processing efficiency |
+| ProcessingEfficiencyQuadrantChart | Custom SVG (d3-scale) | Completion rate vs. intake, split into median quadrants |
 | GeographicDistributionChart | Bklit Choropleth (visx) | Geographic distribution |
 
-An eighth component, `CategoryMixSunburst.tsx`, renders the same Category Mix hierarchy as a sunburst but isn't currently wired into the registry.
+Two swap-ready alternates live beside them, unwired from the registry: `CategoryMixSunburst.tsx` (the Category Mix hierarchy as a sunburst) and `ProcessingEfficiencyLollipop.tsx` (Processing Efficiency as a ranked lollipop — bureaus sorted by completion rate, stem weight carrying intake volume). Each shares its live sibling's data contract, so swapping is a one-line registry change.
 
 Each chart:
 - Receives pre-filtered data as props
@@ -294,7 +295,7 @@ graph TD
     SHELL --> ESTIMATOR
     SHELL --> UI
     
-    DATA -->|passed as props, unfiltered| CHARTS["7 Chart Components"]
+    DATA -->|passed as props, airport toggle pre-applied| CHARTS["7 Chart Components"]
     FILTERS -->|passed as props| CHARTS
     CHARTS -->|each independently calls| FILTERED["🔄 selectData / useSelectedData<br/>Memoized per chart, on its own selection key"]
     
@@ -366,11 +367,11 @@ graph LR
     UNPACK -->|props, unfiltered| OUTCOMES["OutcomesSankeyChart"]
     UNPACK -->|props, unfiltered| SHARE["BureauDistributionRingChart"]
     UNPACK -->|props, unfiltered| MIX["CategoryMixTreemap"]
-    UNPACK -->|props, unfiltered| EFFICIENCY["BureauPerformanceBubbleChart"]
+    UNPACK -->|props, unfiltered| EFFICIENCY["ProcessingEfficiencyQuadrantChart"]
     UNPACK -->|props, unfiltered| MAP["GeographicDistributionChart"]
 ```
 
-Each chart then independently calls `selectData`/`useSelectedData` (`src/utils/selectors.ts`), memoized on its own selection key — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)).
+Each chart then independently calls `selectData`/`useSelectedData` (`src/utils/selectors.ts`), memoized on its own selection key — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). "Unfiltered" has one global exception: with the airport toggle off, `DashboardShell` strips the airport branch offices' rows before the props are passed.
 
 ### 3. Data Deaggregation
 

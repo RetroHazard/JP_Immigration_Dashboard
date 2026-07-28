@@ -11,6 +11,13 @@ export const getBureauLabel = (bureauCode: string): string => {
   return bureau ? bureau.label : bureauCode;
 };
 
+export const isAirportLabel = (label: string): boolean => label.toLowerCase().includes('airport');
+
 export const nonAirportBureaus = bureauOptions.filter((option: BureauOption) => {
-  return option.value !== 'all' && !option.label.toLowerCase().includes('airport');
+  return option.value !== 'all' && !isAirportLabel(option.label);
 });
+
+/** Bureau codes of the airport branch offices (Narita, Haneda, Kansai, Chubu) */
+export const AIRPORT_BUREAU_CODES: ReadonlySet<string> = new Set(
+  bureauOptions.filter((option) => isAirportLabel(option.label)).map((option) => option.value)
+);

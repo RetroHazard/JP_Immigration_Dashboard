@@ -9,12 +9,12 @@ import type React from 'react';
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
 import type { ChartRange } from '../../utils/selectors';
 import { BureauDistributionRingChart } from '../charts/BureauDistributionRingChart';
-import { BureauPerformanceBubbleChart } from '../charts/BureauPerformanceBubbleChart';
 import { CategoryMixTreemap } from '../charts/CategoryMixTreemap';
 import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineChart';
 import { GeographicDistributionChart } from '../charts/GeographicDistributionChart';
 import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
 import { OutcomesSankeyChart } from '../charts/OutcomesSankeyChart';
+import { ProcessingEfficiencyQuadrantChart } from '../charts/ProcessingEfficiencyQuadrantChart';
 
 export type { ChartRange };
 
@@ -102,9 +102,9 @@ export const CHART_COMPONENTS: ChartDefinition[] = [
   {
     key: 'efficiency',
     label: 'Processing Efficiency',
-    description: 'Completion rate against intake volume per bureau; bubble size shows processed volume.',
+    description: 'Completion rate against intake volume per bureau — quadrants split at the period medians.',
     icon: ChartScatter,
-    component: BureauPerformanceBubbleChart,
+    component: ProcessingEfficiencyQuadrantChart,
     filters: { bureau: true, appType: true },
     compare: false,
     ranges: ['latest', '6', '12', '24', '36', 'all'],

@@ -1,9 +1,10 @@
 // src/components/FilterPanel.tsx
-import { RotateCcw } from 'lucide-react';
+import { Plane, RotateCcw } from 'lucide-react';
 import type React from 'react';
 
 import { applicationOptions } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
+import { AIRPORT_BUREAU_CODES } from '../utils/getBureauData';
 import { FilterInput } from './common/FilterInput';
 
 interface FilterPanelProps {
@@ -15,7 +16,10 @@ interface FilterPanelProps {
   /** Whether the active chart supports the comparison view at all */
   compareEnabled: boolean;
   onCompareChange: (compare: string | null) => void;
-  /** Restore every filter (bureau, type, comparison) to its default */
+  /** Whether airport branch offices are included in the charts (global) */
+  includeAirports: boolean;
+  onAirportsChange: (include: boolean) => void;
+  /** Restore every filter (bureau, type, comparison, airports) to its default */
   onReset: () => void;
 }
 
@@ -26,9 +30,15 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   compare,
   compareEnabled,
   onCompareChange,
+  includeAirports,
+  onAirportsChange,
   onReset,
 }) => {
-  const isPristine = filters.bureau === 'all' && filters.type === 'all' && !compare;
+  const isPristine = filters.bureau === 'all' && filters.type === 'all' && !compare && includeAirports;
+  const visibleBureauOptions = includeAirports
+    ? bureauOptions
+    : bureauOptions.filter((option) => !AIRPORT_BUREAU_CODES.has(option.value));
+  const airportsLabel = includeAirports ? 'Exclude airport offices' : 'Include airport offices';
   return (
     <div className="base-container">
       <div className="flex items-end gap-3">
@@ -36,7 +46,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <FilterInput
             type="select"
             label="Immigration Bureau"
-            options={bureauOptions}
+            options={visibleBureauOptions}
             value={filters.bureau}
             onChange={(value) => onChange({ ...filters, bureau: value })}
             disabled={!filterConfig.bureau}
@@ -57,7 +67,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             <FilterInput
               type="select"
               label="Compare With"
-              options={bureauOptions.filter((option) => option.value !== 'all')}
+              options={visibleBureauOptions.filter((option) => option.value !== 'all')}
               value={compare ?? ''}
               includeDefaultOption
               defaultOptionLabel="No comparison"
@@ -66,16 +76,33 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             />
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onReset}
-          disabled={isPristine}
-          title="Reset filters"
-          className="mb-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border border-border text-secondary-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
-        >
-          <RotateCcw className="size-4" aria-hidden="true" />
-          <span className="sr-only">Reset filters</span>
-        </button>
+        <div className="mb-0.5 flex shrink-0 gap-2">
+          {/* Accent = the exclusion filter is engaged */}
+          <button
+            type="button"
+            onClick={() => onAirportsChange(!includeAirports)}
+            aria-pressed={!includeAirports}
+            title={airportsLabel}
+            className={`flex size-9 items-center justify-center rounded-lg border transition-colors ${
+              includeAirports
+                ? 'border-border text-secondary-foreground hover:bg-muted hover:text-foreground'
+                : 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15'
+            }`}
+          >
+            <Plane className="size-4" aria-hidden="true" />
+            <span className="sr-only">{airportsLabel}</span>
+          </button>
+          <button
+            type="button"
+            onClick={onReset}
+            disabled={isPristine}
+            title="Reset filters"
+            className="flex size-9 items-center justify-center rounded-lg border border-border text-secondary-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+          >
+            <RotateCcw className="size-4" aria-hidden="true" />
+            <span className="sr-only">Reset filters</span>
+          </button>
+        </div>
       </div>
     </div>
   );
