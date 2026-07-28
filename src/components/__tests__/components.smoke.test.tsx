@@ -1,9 +1,10 @@
 // Smoke tests for redesigned components (jsdom).
 import { FileStack } from 'lucide-react';
 import { describe, expect, it } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
+import { renderWithProviders, screen } from '../../test-utils';
 import { ChartDataTable } from '../ChartDataTable';
 import { SeriesLegend } from '../common/SeriesLegend';
 import { StatCard } from '../common/StatCard';
@@ -19,7 +20,7 @@ const entry = (overrides: Partial<ImmigrationData>): ImmigrationData => ({
 
 describe('StatCard', () => {
   it('renders title, formatted value, and MoM delta', () => {
-    render(
+    renderWithProviders(
       <StatCard
         title="Total Applications"
         subtitle="Nationwide"
@@ -38,7 +39,7 @@ describe('StatCard', () => {
 
 describe('SeriesLegend', () => {
   it('renders one entry per series', () => {
-    render(
+    renderWithProviders(
       <SeriesLegend
         items={[
           { id: 'received', label: 'Received', color: 'var(--chart-1)' },
@@ -58,7 +59,7 @@ describe('ChartDataTable', () => {
       entry({ status: '300000', value: 400 }),
       entry({ bureau: '101170', status: '103000', value: 200 }), // excluded: nationwide scope
     ];
-    render(<ChartDataTable data={data} filters={{ bureau: 'all', type: 'all' }} range="all" />);
+    renderWithProviders(<ChartDataTable data={data} filters={{ bureau: 'all', type: 'all' }} range="all" />);
 
     fireEvent.click(screen.getByText('View data table'));
     expect(screen.getByText('2025-06')).toBeTruthy();

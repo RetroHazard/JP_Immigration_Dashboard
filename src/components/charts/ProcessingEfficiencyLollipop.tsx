@@ -12,6 +12,7 @@ import { animate } from 'animejs';
 import type React from 'react';
 
 import { useTheme } from '../../contexts/ThemeContext';
+import { useBureauLabel } from '../../i18n/useDomainLabels';
 import { useAnimeScope } from '../../lib/motion';
 import type { EfficiencyPoint } from '../../utils/processingEfficiency';
 import { computeEfficiencyPoints, fmtCount, nationwideCompletionRate } from '../../utils/processingEfficiency';
@@ -30,11 +31,12 @@ interface Hover {
 
 export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { isDarkMode } = useTheme();
+  const bureauLabel = useBureauLabel();
   const [hovered, setHovered] = useState<Hover | null>(null);
 
   const points = useMemo(
-    () => computeEfficiencyPoints(data, filters, range, isDarkMode),
-    [data, filters, range, isDarkMode]
+    () => computeEfficiencyPoints(data, filters, range, isDarkMode, bureauLabel),
+    [data, filters, range, isDarkMode, bureauLabel]
   );
   const nationwide = useMemo(() => nationwideCompletionRate(data, filters, range), [data, filters, range]);
   const ranked = useMemo(() => [...points].sort((a, b) => b.rate - a.rate), [points]);

@@ -9,8 +9,8 @@ import { useMemo } from 'react';
 import type React from 'react';
 import useMeasure from 'react-use-measure';
 
-import { applicationOptions } from '../../constants/applicationOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
+import { useApplicationOptions } from '../../i18n/useDomainLabels';
 import { bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import { Gauge } from '../bklit/charts/gauge';
 import { SankeyChart } from '../bklit/charts/sankey/sankey-chart';
@@ -19,7 +19,6 @@ import { SankeyNode } from '../bklit/charts/sankey/sankey-node';
 import { SankeyTooltip } from '../bklit/charts/sankey/sankey-tooltip';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
-const TYPES = applicationOptions.filter((option) => option.value !== 'all');
 const OUTCOMES = [
   { label: 'Granted', compact: 'Granted', status: STATUS_CODES.GRANTED },
   { label: 'Denied', compact: 'Denied', status: STATUS_CODES.DENIED },
@@ -38,6 +37,8 @@ const NARROW_WIDTH = 500;
 export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const [measureRef, bounds] = useMeasure({ debounce: 10 });
   const isNarrow = bounds.width > 0 && bounds.width < NARROW_WIDTH;
+  const applicationOptions = useApplicationOptions();
+  const types = useMemo(() => applicationOptions.filter((option) => option.value !== 'all'), [applicationOptions]);
 
   const { sankeyData, approvalRate, processed } = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
@@ -51,7 +52,7 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
     // Narrow containers get the one-word forms, which each option now carries
     // itself rather than being looked up by its English label.
     const displayName = (entry: { label: string; compact: string }) => (isNarrow ? entry.compact : entry.label);
-    const activeTypes = filters.type === 'all' ? TYPES : TYPES.filter((type) => type.value === filters.type);
+    const activeTypes = filters.type === 'all' ? types : types.filter((type) => type.value === filters.type);
     const nodes = [
       ...activeTypes.map((type) => ({ name: displayName(type), category: 'source' as const })),
       ...OUTCOMES.map((outcome) => ({ name: displayName(outcome), category: 'outcome' as const })),
@@ -79,7 +80,7 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
       approvalRate: totalProcessed > 0 ? (granted / totalProcessed) * 100 : 0,
       processed: totalProcessed,
     };
-  }, [data, filters.bureau, filters.type, range, isNarrow]);
+  }, [data, filters.bureau, filters.type, range, isNarrow, types]);
 
   if (sankeyData.links.length === 0) {
     return (

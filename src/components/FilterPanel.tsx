@@ -2,8 +2,7 @@
 import { Plane, RotateCcw } from 'lucide-react';
 import type React from 'react';
 
-import { applicationOptions } from '../constants/applicationOptions';
-import { bureauOptions } from '../constants/bureauOptions';
+import { useApplicationOptions, useBureauOptions } from '../i18n/useDomainLabels';
 import { AIRPORT_BUREAU_CODES } from '../utils/getBureauData';
 import { FilterInput } from './common/FilterInput';
 
@@ -34,6 +33,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   onAirportsChange,
   onReset,
 }) => {
+  const bureauOptions = useBureauOptions();
+  const applicationOptions = useApplicationOptions();
   const isPristine = filters.bureau === 'all' && filters.type === 'all' && !compare && includeAirports;
   const visibleBureauOptions = includeAirports
     ? bureauOptions

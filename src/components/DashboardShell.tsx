@@ -26,9 +26,10 @@ import { bureauOptions } from '../constants/bureauOptions';
 import { useTheme } from '../contexts/ThemeContext';
 import type { DashboardMeta, ImmigrationData } from '../hooks/useImmigrationData';
 import { useLocale } from '../i18n/LocaleContext';
+import { useApplicationType, useBureauLabel } from '../i18n/useDomainLabels';
 import { prefersReducedMotion, useAnimeScope } from '../lib/motion';
 import { excludeAirportData } from '../utils/excludeAirportData';
-import { AIRPORT_BUREAU_CODES, getBureauLabel } from '../utils/getBureauData';
+import { AIRPORT_BUREAU_CODES } from '../utils/getBureauData';
 import type { ChartRange } from '../utils/selectors';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { getApplicationDetailsFromParams, isEstimatorPermalink } from '../utils/urlApplicationDetails';
@@ -54,6 +55,8 @@ interface DashboardShellProps {
 export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { t } = useLocale();
+  const bureauLabel = useBureauLabel();
+  const applicationType = useApplicationType();
   const searchParams = useSearchParams();
 
   // --- URL state (shareable): active chart, global filters, time range ---
@@ -291,9 +294,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
 
       <main id="main-content" className="marginals w-full flex-1 py-6 md:py-8">
         <p className="sr-only" aria-live="polite">
-          Showing {activeChart.label} for {getBureauLabel(effectiveFilters.bureau)}
+          Showing {activeChart.label} for {bureauLabel(effectiveFilters.bureau)}
           {effectiveFilters.type !== 'all'
-            ? `, ${applicationOptions.find((option) => option.value === effectiveFilters.type)?.label ?? ''}`
+            ? `, ${applicationType(effectiveFilters.type)?.label ?? ''}`
             : ''}
         </p>
         <div className="mb-4" data-animate="card">
@@ -383,7 +386,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                           <div className="min-w-0">
                             {compareBureau && (
                               <p className="mb-1 hidden text-xs font-semibold text-secondary-foreground md:block">
-                                {getBureauLabel(effectiveFilters.bureau)}
+                                {bureauLabel(effectiveFilters.bureau)}
                               </p>
                             )}
                             <ActiveChart
@@ -398,7 +401,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                           {compareBureau && (
                             <div className="hidden min-w-0 md:block md:border-l md:border-border md:pl-4">
                               <p className="mb-1 text-xs font-semibold text-secondary-foreground">
-                                {getBureauLabel(compareBureau)} <span className="font-normal text-muted-foreground">(comparison)</span>
+                                {bureauLabel(compareBureau)} <span className="font-normal text-muted-foreground">(comparison)</span>
                               </p>
                               <ActiveChart
                                 activeChartIndex={activeIndex}

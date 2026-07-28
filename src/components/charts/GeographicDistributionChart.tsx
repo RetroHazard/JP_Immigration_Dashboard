@@ -14,10 +14,11 @@ import { feature } from 'topojson-client';
 import type { Topology } from 'topojson-specification';
 
 import { bureauOptions } from '../../constants/bureauOptions';
-import { japanPrefectures, prefectureById } from '../../constants/japanPrefectures';
+import { japanPrefectures } from '../../constants/japanPrefectures';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useBureauLabel, useBureauOptions, usePrefectureById } from '../../i18n/useDomainLabels';
 import { visibleBureauColor, withAlpha } from '../../utils/bureauColors';
-import { nonAirportBureaus } from '../../utils/getBureauData';
+import { AIRPORT_BUREAU_CODES } from '../../utils/getBureauData';
 import { logger } from '../../utils/logger';
 import {
   ChoroplethChart,
@@ -47,7 +48,7 @@ const bureauByCode = new Map(bureauOptions.map((bureau) => [bureau.value, bureau
  * what we join on — matching on the English `properties.name` would break as
  * soon as prefecture names come from the catalogue.
  */
-const prefectureOf = (geoFeature: ChoroplethFeature) => prefectureById.get(Number(geoFeature.properties?.id));
+const prefectureIdOf = (geoFeature: ChoroplethFeature) => Number(geoFeature.properties?.id);
 
 interface MarkerInfo {
   code: string;
@@ -58,13 +59,14 @@ interface MarkerInfo {
   area: number;
 }
 
-const MARKERS: MarkerInfo[] = bureauOptions
+// Pin geometry is language-neutral and computed once; only the label depends
+// on the locale, so it is joined in at render.
+const MARKER_GEOMETRY = bureauOptions
   .filter((bureau) => bureau.value !== 'all' && bureau.coordinates)
   .map((bureau) => {
     const served = japanPrefectures.filter((prefecture) => prefecture.bureau === bureau.value);
     return {
       code: bureau.value,
-      label: bureau.label,
       isAirport: bureau.isAirport,
       coordinates: bureau.coordinates as [number, number],
       population: served.reduce((sum, prefecture) => sum + prefecture.population, 0),
@@ -77,6 +79,11 @@ const BureauMarkers: React.FC = () => {
   const { projectPoint, width, height } = useChoropleth();
   const { zoom } = useChoroplethZoom();
   const [hovered, setHovered] = useState<MarkerInfo | null>(null);
+  const bureaus = useBureauOptions();
+  const markers: MarkerInfo[] = useMemo(() => {
+    const labelByCode = new Map(bureaus.map((bureau) => [bureau.value, bureau.label]));
+    return MARKER_GEOMETRY.map((marker) => ({ ...marker, label: labelByCode.get(marker.code) ?? marker.code }));
+  }, [bureaus]);
 
   const transform = zoom?.transformMatrix;
   const project = (coords: [number, number]): [number, number] | null => {
@@ -88,7 +95,7 @@ const BureauMarkers: React.FC = () => {
 
   return (
     <div className="pointer-events-none absolute inset-0">
-      {MARKERS.map((marker) => {
+      {markers.map((marker) => {
         const point = project(marker.coordinates);
         if (!point || point[0] < 0 || point[1] < 0 || point[0] > width || point[1] > height) return null;
         const Icon = marker.isAirport ? Plane : Building2;
@@ -163,6 +170,10 @@ const ZoomControls: React.FC = () => {
 
 export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () => {
   const { isDarkMode } = useTheme();
+  const prefectureById = usePrefectureById();
+  const bureaus = useBureauOptions();
+  const bureauLabelOf = useBureauLabel();
+  const legendBureaus = bureaus.filter((bureau) => !AIRPORT_BUREAU_CODES.has(bureau.value) && bureau.value !== 'all');
   const [features, setFeatures] = useState<FeatureCollection<Geometry, ChoroplethFeatureProperties> | null>(null);
   const [loadError, setLoadError] = useState(false);
 
@@ -190,12 +201,12 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
 
   const getFeatureColor = useMemo(
     () => (geoFeature: ChoroplethFeature) => {
-      const prefecture = prefectureOf(geoFeature);
+      const prefecture = prefectureById(prefectureIdOf(geoFeature));
       const bureau = prefecture ? bureauByCode.get(prefecture.bureau) : undefined;
       if (!prefecture || !bureau?.border) return 'var(--muted)';
       return withAlpha(visibleBureauColor(bureau.border, isDarkMode), DENSITY_ALPHAS[densityBin(prefecture.density)]);
     },
-    [isDarkMode]
+    [isDarkMode, prefectureById]
   );
 
   if (loadError) {
@@ -219,7 +230,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
       <div className="mb-2 flex flex-wrap items-start justify-between gap-x-4 gap-y-2 text-xxs text-muted-foreground">
         <div className="min-w-0">
           <SeriesLegend
-            items={nonAirportBureaus
+            items={legendBureaus
               .filter((bureau) => bureau.border)
               .map((bureau) => ({
                 id: bureau.value,
@@ -260,23 +271,24 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
         />
         <ChoroplethTooltip
           content={({ feature: geoFeature }) => {
-            const prefecture = prefectureOf(geoFeature);
+            const prefecture = prefectureById(prefectureIdOf(geoFeature));
             const name = prefecture?.name ?? String(geoFeature.properties?.name ?? '');
-            const bureau = prefecture ? bureauByCode.get(prefecture.bureau) : undefined;
+            // The Japanese name rides along as a secondary, but only when it
+            // isn't already what the catalogue resolved to — otherwise the
+            // Japanese locale would print the same name twice.
+            const nameJa = String(geoFeature.properties?.name_ja ?? '');
             return (
               <div className="px-3 py-2.5 text-xs">
                 <div className="font-semibold">
                   {name}
-                  {geoFeature.properties?.name_ja ? (
-                    <span className="ml-1.5 font-normal text-muted-foreground">
-                      {String(geoFeature.properties.name_ja)}
-                    </span>
+                  {nameJa && nameJa !== name ? (
+                    <span className="ml-1.5 font-normal text-muted-foreground">{nameJa}</span>
                   ) : null}
                 </div>
                 {prefecture && (
                   <div className="mt-1 grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 tabular-nums text-muted-foreground">
                     <span>Service bureau</span>
-                    <span className="text-right">{bureau?.label ?? prefecture.bureau}</span>
+                    <span className="text-right">{bureauLabelOf(prefecture.bureau)}</span>
                     <span>Population</span>
                     <span className="text-right">{prefecture.population.toLocaleString()}</span>
                     <span>Area</span>

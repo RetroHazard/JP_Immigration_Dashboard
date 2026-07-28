@@ -10,6 +10,7 @@ import type React from 'react';
 
 import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
+import { useBureauLabel } from '../../i18n/useDomainLabels';
 import { getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import { PieCenter } from '../bklit/charts/pie-center';
 import { PieChart } from '../bklit/charts/pie-chart';
@@ -30,6 +31,7 @@ const SLICE_COLORS = [
 
 export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const bureauLabel = useBureauLabel();
 
   const { slices, total } = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
@@ -43,7 +45,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
     const byBureau = bureauOptions
       .filter((bureau) => bureau.value !== 'all')
       .map((bureau) => ({
-        label: bureau.label,
+        label: bureauLabel(bureau.value),
         value: rows.reduce((sum, entry) => (entry.bureau === bureau.value ? sum + entry.value : sum), 0),
       }))
       .filter((bureau) => bureau.value > 0)
@@ -58,7 +60,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
       slices: result.map((slice, index) => ({ ...slice, color: SLICE_COLORS[index] })),
       total: byBureau.reduce((sum, bureau) => sum + bureau.value, 0),
     };
-  }, [data, filters.type, range]);
+  }, [data, filters.type, range, bureauLabel]);
 
   if (slices.length === 0) {
     return (

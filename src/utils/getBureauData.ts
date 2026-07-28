@@ -1,12 +1,8 @@
 // src/utils/getBureauData.ts
+// Identity-only bureau helpers. Anything that needs a bureau's *name* goes
+// through the hooks in src/i18n/useDomainLabels.ts instead — names live in the
+// catalogue now, and resolving one requires the active locale.
 import { bureauOptions } from '../constants/bureauOptions';
-
-export const getBureauLabel = (bureauCode: string): string => {
-  const bureau = bureauOptions.find((option) => option.value === bureauCode);
-  return bureau ? bureau.label : bureauCode;
-};
-
-export const nonAirportBureaus = bureauOptions.filter((option) => option.value !== 'all' && !option.isAirport);
 
 /** Bureau codes of the airport branch offices (Narita, Haneda, Kansai, Chubu) */
 export const AIRPORT_BUREAU_CODES: ReadonlySet<string> = new Set(

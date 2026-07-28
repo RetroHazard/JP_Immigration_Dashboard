@@ -52,7 +52,10 @@ export function computeEfficiencyPoints(
   data: ImmigrationData[],
   filters: EfficiencyFilters,
   range: ChartRange,
-  isDarkMode: boolean
+  isDarkMode: boolean,
+  /** Resolves a bureau code to its display name — supplied by the caller,
+   *  since names come from the locale catalogue and this is not a component. */
+  bureauLabel: (code: string) => string
 ): EfficiencyPoint[] {
   const months = monthsForRange(getAllMonths(data), range);
   const rows = selectData(data, {
@@ -75,7 +78,7 @@ export function computeEfficiencyPoints(
       const { color, outline } = colorsFor(bureau.value, bureau.isAirport, isDarkMode);
       return {
         code: bureau.value,
-        label: bureau.label,
+        label: bureauLabel(bureau.value),
         color,
         outline,
         isAirport: bureau.isAirport,

@@ -1,9 +1,8 @@
 // src/constants/bureauOptions.ts
 
 export interface BureauOption {
+  /** e-Stat bureau code — the stable identifier, and the catalogue key suffix. */
   value: string;
-  label: string;
-  short: string;
   /**
    * Whether this is a port-of-entry branch office rather than a regional
    * bureau. Stated explicitly rather than sniffed out of the label, which is
@@ -22,11 +21,9 @@ export interface BureauOption {
 // https://www.flagcolorcodes.com/
 
 export const bureauOptions: BureauOption[] = [
-  { value: 'all', label: 'Nationwide', short: 'ALL', isAirport: false },
+  { value: 'all', isAirport: false },
   {
     value: '101720',
-    label: 'Fukuoka',
-    short: 'FUK',
     isAirport: false,
     coordinates: [130.38832, 33.59066],
     border: 'rgba(0,104,178, 1)',
@@ -35,8 +32,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101580',
-    label: 'Hiroshima',
-    short: 'HIJ',
     isAirport: false,
     coordinates: [132.46367, 34.40062],
     border: 'rgba(139, 0, 0, 1)',
@@ -44,8 +39,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101490',
-    label: 'Kobe',
-    short: 'UKB',
     isAirport: false,
     coordinates: [135.19474, 34.68662],
     border: 'rgba(100, 153, 205, 1)',
@@ -53,8 +46,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101350',
-    label: 'Nagoya',
-    short: 'NAG',
     isAirport: false,
     coordinates: [136.86337, 35.11406],
     border: 'rgba(180, 65, 80, 1)',
@@ -63,8 +54,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101740',
-    label: 'Naha',
-    short: 'OKA',
     isAirport: false,
     coordinates: [127.6867, 26.2078],
     border: 'rgba(0, 0, 0, 1)',
@@ -72,8 +61,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101460',
-    label: 'Osaka',
-    short: 'ITM',
     isAirport: false,
     coordinates: [135.41185, 34.64141],
     border: 'rgba(51, 65, 154, 1)',
@@ -82,8 +69,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101010',
-    label: 'Sapporo',
-    short: 'CTS',
     isAirport: false,
     coordinates: [141.33889, 43.05975],
     border: 'rgba(47, 48, 78, 1)',
@@ -91,8 +76,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101090',
-    label: 'Sendai',
-    short: 'SDJ',
     isAirport: false,
     coordinates: [140.89861, 38.2626],
     border: 'rgba(0, 89, 76, 1)',
@@ -100,8 +83,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101170',
-    label: 'Shinagawa',
-    short: 'SGW',
     isAirport: false,
     coordinates: [139.75653, 35.62823],
     border: 'rgba(75, 0, 130, 1)',
@@ -110,8 +91,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101670',
-    label: 'Takamatsu',
-    short: 'TAK',
     isAirport: false,
     coordinates: [134.04924, 34.34798],
     border: 'rgba(85, 107, 47, 1)',
@@ -119,8 +98,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101210',
-    label: 'Yokohama',
-    short: 'YOK',
     isAirport: false,
     coordinates: [139.6483, 35.38773],
     border: 'rgba(255, 100, 0, 1)',
@@ -128,8 +105,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101190',
-    label: 'Narita Airport',
-    short: 'NRT',
     isAirport: true,
     coordinates: [140.38439, 35.77004],
     border: 'rgba(0, 0, 0, 0.5)',
@@ -137,8 +112,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101200',
-    label: 'Haneda Airport',
-    short: 'HND',
     isAirport: true,
     coordinates: [139.78609, 35.55032],
     border: 'rgba(0, 0, 0, 0.5)',
@@ -146,8 +119,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101480',
-    label: 'Kansai Airport',
-    short: 'KIX',
     isAirport: true,
     coordinates: [135.23645, 34.43191],
     border: 'rgba(0, 0, 0, 0.5)',
@@ -155,8 +126,6 @@ export const bureauOptions: BureauOption[] = [
   },
   {
     value: '101370',
-    label: 'Chubu Airport',
-    short: 'NGO',
     isAirport: true,
     coordinates: [136.81064, 34.85724],
     border: 'rgba(0, 0, 0, 0.5)',

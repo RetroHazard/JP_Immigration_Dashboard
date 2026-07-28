@@ -13,17 +13,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
 
-import { applicationOptions } from '../../constants/applicationOptions';
+import { useApplicationType, useBureauLabel } from '../../i18n/useDomainLabels';
 import type { MixTree } from '../../utils/categoryMixTree';
 import { buildCategoryMixTree, mixLeafColor } from '../../utils/categoryMixTree';
-import { getBureauLabel } from '../../utils/getBureauData';
 import type { ImmigrationChartData } from '../common/ChartComponents';
-
-// The tree carries codes only; display names are resolved here so the plotted
-// hierarchy (and the tile keys that drive its animation) stay language-neutral.
-const typeByCode = new Map(applicationOptions.map((option) => [option.value, option]));
-const typeLabel = (code: string) => typeByCode.get(code)?.label ?? code;
-const typeShort = (code: string) => typeByCode.get(code)?.short ?? code;
 
 interface Rect {
   x: number;
@@ -174,6 +167,12 @@ const TILE_TRANSITION =
 
 export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const tree = useMemo(() => buildCategoryMixTree(data, filters, range), [data, filters, range]);
+  // The tree carries codes only, so the tile keys that drive its zoom
+  // animation stay language-neutral; display names are resolved here.
+  const applicationType = useApplicationType();
+  const getBureauLabel = useBureauLabel();
+  const typeLabel = (code: string) => applicationType(code)?.label ?? code;
+  const typeShort = (code: string) => applicationType(code)?.short ?? code;
   const [focusKey, setFocusKey] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);

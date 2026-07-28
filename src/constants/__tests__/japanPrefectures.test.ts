@@ -7,7 +7,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
+import { en } from '../../i18n/locales/en';
 import { japanPrefectures, prefectureById } from '../japanPrefectures';
+
+const catalogueName = (id: number) => en[`prefecture.${id}` as keyof typeof en];
 
 interface TopoGeometry {
   properties: { id: number; name: string; name_ja?: string };
@@ -30,17 +33,18 @@ describe('japanPrefectures', () => {
     );
   });
 
-  it('matches the TopoJSON on every id', () => {
+  it('matches the TopoJSON on every id, via the catalogue names', () => {
     const mismatched = japanPrefectures
-      .filter((prefecture) => topoNameById.get(prefecture.id) !== prefecture.name)
-      .map((prefecture) => `${prefecture.id}: ${prefecture.name} != ${topoNameById.get(prefecture.id)}`);
+      .filter((prefecture) => topoNameById.get(prefecture.id) !== catalogueName(prefecture.id))
+      .map((prefecture) => `${prefecture.id}: ${catalogueName(prefecture.id)} != ${topoNameById.get(prefecture.id)}`);
     expect(mismatched).toEqual([]);
   });
 
   it('indexes every prefecture by id', () => {
     expect(prefectureById.size).toBe(47);
-    expect(prefectureById.get(1)?.name).toBe('Hokkaido');
-    expect(prefectureById.get(47)?.name).toBe('Okinawa');
+    expect(prefectureById.get(1)?.bureau).toBe('101010');
+    expect(catalogueName(1)).toBe('Hokkaido');
+    expect(catalogueName(47)).toBe('Okinawa');
   });
 
   it('exposes density as a number derived from population and area', () => {

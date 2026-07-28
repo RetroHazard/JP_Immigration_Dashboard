@@ -9,13 +9,12 @@
 // ChartComponents.tsx to switch back.
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type React from 'react';
 
-import { applicationOptions } from '../../constants/applicationOptions';
+import { useApplicationType, useBureauLabel } from '../../i18n/useDomainLabels';
 import { buildCategoryMixTree, mixLeafColor } from '../../utils/categoryMixTree';
-import { getBureauLabel } from '../../utils/getBureauData';
 import { buildArcs } from '../bklit/charts/sunburst';
 import { SunburstBreadcrumb, useSunburstBreadcrumbItems } from '../bklit/charts/sunburst-breadcrumb';
 import { SunburstCenter } from '../bklit/charts/sunburst-center';
@@ -47,12 +46,12 @@ const BreadcrumbTrail: React.FC = () => {
   );
 };
 
-// The tree carries codes only; display names are resolved here.
-const typeByCode = new Map(applicationOptions.map((option) => [option.value, option]));
-const typeLabel = (code: string) => typeByCode.get(code)?.label ?? code;
-
 export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const tree = useMemo(() => buildCategoryMixTree(data, filters, range), [data, filters, range]);
+  // The tree carries codes only; display names are resolved here.
+  const applicationType = useApplicationType();
+  const getBureauLabel = useBureauLabel();
+  const typeLabel = useCallback((code: string) => applicationType(code)?.label ?? code, [applicationType]);
 
   const sunburstData: SunburstNode = useMemo(
     () => ({
@@ -67,7 +66,7 @@ export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filt
         })),
       })),
     }),
-    [tree]
+    [tree, typeLabel, getBureauLabel]
   );
 
   const arcs = useMemo(() => buildArcs(sunburstData).arcs, [sunburstData]);

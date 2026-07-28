@@ -22,12 +22,11 @@ import {
 import type React from 'react';
 import { BlockMath } from 'react-katex';
 
-import { applicationOptions } from '../constants/applicationOptions';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
+import { useApplicationOptions, useNonAirportBureaus } from '../i18n/useDomainLabels';
 import { prefersReducedMotion } from '../lib/motion';
 import type { EstimatedDateResult } from '../utils/calculateEstimates';
 import { calculateEstimatedDate } from '../utils/calculateEstimates';
-import { nonAirportBureaus } from '../utils/getBureauData';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { ESTIMATOR_PARAM_NAMES } from '../utils/urlApplicationDetails';
 import { FilterInput } from './common/FilterInput';
@@ -116,6 +115,8 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
   onCollapse,
   onClose,
 }) => {
+  const nonAirportBureaus = useNonAirportBureaus();
+  const applicationOptions = useApplicationOptions();
   const [showMath, setShowMath] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const queueFillRef = useRef<HTMLDivElement>(null);

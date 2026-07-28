@@ -9,7 +9,6 @@ export interface Prefecture {
    * working the moment names are translated.
    */
   id: number;
-  name: string;
   bureau: string;
   population: number;
   area: number;
@@ -17,13 +16,15 @@ export interface Prefecture {
   density: number;
 }
 
+// The English name stays here as a readability anchor for the data — the
+// name actually rendered comes from the catalogue key `prefecture.<id>`,
+// asserted against this list in __tests__/japanPrefectures.test.ts.
 const createPrefecture = (
-  name: string,
+  _name: string,
   bureau: string,
   population: number,
   area: number
 ): Omit<Prefecture, 'id'> => ({
-  name,
   bureau,
   population,
   area,
