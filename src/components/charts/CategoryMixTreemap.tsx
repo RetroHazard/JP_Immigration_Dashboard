@@ -13,9 +13,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
 
+import { applicationOptions } from '../../constants/applicationOptions';
 import type { MixTree } from '../../utils/categoryMixTree';
 import { buildCategoryMixTree, mixLeafColor } from '../../utils/categoryMixTree';
+import { getBureauLabel } from '../../utils/getBureauData';
 import type { ImmigrationChartData } from '../common/ChartComponents';
+
+// The tree carries codes only; display names are resolved here so the plotted
+// hierarchy (and the tile keys that drive its animation) stay language-neutral.
+const typeByCode = new Map(applicationOptions.map((option) => [option.value, option]));
+const typeLabel = (code: string) => typeByCode.get(code)?.label ?? code;
+const typeShort = (code: string) => typeByCode.get(code)?.short ?? code;
 
 interface Rect {
   x: number;
@@ -121,7 +129,7 @@ const computeLayout = (tree: MixTree, focusKey: string | null, width: number, he
       out['c:' + category.key] = { ...inset, op: 1 };
       const shown = category.children.slice(0, TOP_N);
       const rest = category.children.slice(TOP_N).reduce((sum, leaf) => sum + leaf.value, 0);
-      const items = shown.map((leaf) => ({ key: `b:${category.key}:${leaf.name}`, value: leaf.value }));
+      const items = shown.map((leaf) => ({ key: `b:${category.key}:${leaf.code}`, value: leaf.value }));
       if (rest > 0) items.push({ key: `b:${category.key}:__rest`, value: rest });
       const leafRects = squarify(items, inset.x + 4, inset.y + HEAD, Math.max(0, inset.w - 8), Math.max(0, inset.h - HEAD - 4));
       for (const key in leafRects) {
@@ -129,7 +137,7 @@ const computeLayout = (tree: MixTree, focusKey: string | null, width: number, he
         out[key] = { x: leaf.x + 1, y: leaf.y + 1, w: Math.max(0, leaf.w - 2), h: Math.max(0, leaf.h - 2), op: 1 };
       }
       for (const leaf of category.children.slice(TOP_N)) {
-        out[`b:${category.key}:${leaf.name}`] = { x: inset.x + inset.w / 2, y: inset.y + inset.h / 2, w: 0, h: 0, op: 0 };
+        out[`b:${category.key}:${leaf.code}`] = { x: inset.x + inset.w / 2, y: inset.y + inset.h / 2, w: 0, h: 0, op: 0 };
       }
     }
   } else {
@@ -137,7 +145,7 @@ const computeLayout = (tree: MixTree, focusKey: string | null, width: number, he
       if (category.key === focusKey) {
         out['c:' + category.key] = { x: 0, y: 0, w: width, h: height, op: 1 };
         const leafRects = squarify(
-          category.children.map((leaf) => ({ key: `b:${category.key}:${leaf.name}`, value: leaf.value })),
+          category.children.map((leaf) => ({ key: `b:${category.key}:${leaf.code}`, value: leaf.value })),
           5,
           HEAD + 2,
           width - 10,
@@ -151,7 +159,7 @@ const computeLayout = (tree: MixTree, focusKey: string | null, width: number, he
       } else {
         const gone = { x: width / 2, y: height, w: 0, h: 0, op: 0 };
         out['c:' + category.key] = gone;
-        for (const leaf of category.children) out[`b:${category.key}:${leaf.name}`] = gone;
+        for (const leaf of category.children) out[`b:${category.key}:${leaf.code}`] = gone;
         out[`b:${category.key}:__rest`] = gone;
       }
     }
@@ -271,7 +279,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
           {focused && (
             <>
               <span aria-hidden="true">›</span>
-              <span className="font-semibold text-foreground">{focused.name}</span>
+              <span className="font-semibold text-foreground">{typeLabel(focused.key)}</span>
             </>
           )}
         </nav>
@@ -292,7 +300,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
           return (
             <button
               key={category.key}
-              aria-label={`${category.name}: ${fmt(category.value)} applications. Zoom in.`}
+              aria-label={`${typeLabel(category.key)}: ${fmt(category.value)} applications. Zoom in.`}
               onClick={(event) => {
                 event.stopPropagation();
                 hideTip();
@@ -301,7 +309,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
               onMouseMove={(event) =>
                 showTip(
                   event,
-                  category.name,
+                  typeLabel(category.key),
                   category.color,
                   `${fmt(category.value)} applications · ${((category.value / tree.total) * 100).toFixed(1)}% of all applications`
                 )
@@ -316,7 +324,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
             >
               {!tiny && (
                 <span className="flex items-baseline justify-between gap-2 whitespace-nowrap px-2.5 pt-1.5 text-xs font-bold text-background">
-                  <span className="overflow-hidden text-ellipsis">{category.name}</span>
+                  <span className="overflow-hidden text-ellipsis">{typeLabel(category.key)}</span>
                   {!compact && (
                     <span className="font-mono text-xxs font-semibold opacity-85">
                       {((category.value / tree.total) * 100).toFixed(1)}%
@@ -331,10 +339,10 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
           const base = focusKey === category.key ? category.value : tree.total;
           const leaves = [
             ...category.children.map((leaf, rank) => ({ leaf, rank, rest: false })),
-            { leaf: { name: '__rest', value: 0 }, rank: TOP_N + 1, rest: true },
+            { leaf: { code: '__rest', value: 0 }, rank: TOP_N + 1, rest: true },
           ];
           return leaves.map(({ leaf, rank, rest }) => {
-            const key = `b:${category.key}:${leaf.name}`;
+            const key = `b:${category.key}:${leaf.code}`;
             const rect = layout[key];
             const showLabel = rect !== undefined && rect.w > 74 && rect.h > 30;
             return (
@@ -354,10 +362,10 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
                 onMouseMove={(event) => {
                   event.stopPropagation();
                   if (rest) return;
-                  const ofLabel = focusKey === category.key ? category.name : 'all applications';
+                  const ofLabel = focusKey === category.key ? typeLabel(category.key) : 'all applications';
                   showTip(
                     event,
-                    `${leaf.name} · ${category.short}`,
+                    `${getBureauLabel(leaf.code)} · ${typeShort(category.key)}`,
                     mixLeafColor(category.color, rank),
                     `${fmt(leaf.value)} applications · ${((leaf.value / base) * 100).toFixed(1)}% of ${ofLabel}`
                   );
@@ -366,7 +374,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
               >
                 {showLabel && (
                   <span className="flex flex-col px-2 py-1 text-xs font-semibold leading-tight">
-                    <span>{rest ? 'Others' : leaf.name}</span>
+                    <span>{rest ? 'Others' : getBureauLabel(leaf.code)}</span>
                     {!rest && (
                       <span className="font-mono text-xxs font-medium opacity-75">
                         {fmt(leaf.value)} · {((leaf.value / base) * 100).toFixed(1)}%

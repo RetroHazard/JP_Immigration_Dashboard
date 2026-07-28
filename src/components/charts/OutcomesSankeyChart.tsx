@@ -21,9 +21,9 @@ import type { ImmigrationChartData } from '../common/ChartComponents';
 
 const TYPES = applicationOptions.filter((option) => option.value !== 'all');
 const OUTCOMES = [
-  { name: 'Granted', status: STATUS_CODES.GRANTED },
-  { name: 'Denied', status: STATUS_CODES.DENIED },
-  { name: 'Other / Withdrawn', status: STATUS_CODES.OTHER },
+  { label: 'Granted', compact: 'Granted', status: STATUS_CODES.GRANTED },
+  { label: 'Denied', compact: 'Denied', status: STATUS_CODES.DENIED },
+  { label: 'Other / Withdrawn', compact: 'Other', status: STATUS_CODES.OTHER },
 ];
 
 // Bklit's Sankey reserves fixed 180px label margins per side, so a narrow
@@ -34,15 +34,6 @@ const OUTCOMES = [
 // desktop row (a ~520px slot beside the gauge) on the full treatment while
 // catching phones and the tighter lg row.
 const NARROW_WIDTH = 500;
-const SHORT_NAMES: Record<string, string> = {
-  'Status Acquisition': 'Acquisition',
-  'Extension of Stay': 'Extension',
-  'Change of Status': 'Change',
-  'Permission for Activities': 'Permission',
-  'Re-entry': 'Re-entry',
-  'Permanent Residence': 'Permanent',
-  'Other / Withdrawn': 'Other',
-};
 
 export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const [measureRef, bounds] = useMeasure({ debounce: 10 });
@@ -57,11 +48,13 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
       (entry) => months.includes(entry.month)
     );
 
-    const displayName = (name: string) => (isNarrow ? (SHORT_NAMES[name] ?? name) : name);
+    // Narrow containers get the one-word forms, which each option now carries
+    // itself rather than being looked up by its English label.
+    const displayName = (entry: { label: string; compact: string }) => (isNarrow ? entry.compact : entry.label);
     const activeTypes = filters.type === 'all' ? TYPES : TYPES.filter((type) => type.value === filters.type);
     const nodes = [
-      ...activeTypes.map((type) => ({ name: displayName(type.label), category: 'source' as const })),
-      ...OUTCOMES.map((outcome) => ({ name: displayName(outcome.name), category: 'outcome' as const })),
+      ...activeTypes.map((type) => ({ name: displayName(type), category: 'source' as const })),
+      ...OUTCOMES.map((outcome) => ({ name: displayName(outcome), category: 'outcome' as const })),
     ];
     const links: { source: number; target: number; value: number }[] = [];
     activeTypes.forEach((type, typeIndex) => {

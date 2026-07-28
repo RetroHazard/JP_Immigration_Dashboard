@@ -13,7 +13,9 @@ import { useMemo } from 'react';
 
 import type React from 'react';
 
+import { applicationOptions } from '../../constants/applicationOptions';
 import { buildCategoryMixTree, mixLeafColor } from '../../utils/categoryMixTree';
+import { getBureauLabel } from '../../utils/getBureauData';
 import { buildArcs } from '../bklit/charts/sunburst';
 import { SunburstBreadcrumb, useSunburstBreadcrumbItems } from '../bklit/charts/sunburst-breadcrumb';
 import { SunburstCenter } from '../bklit/charts/sunburst-center';
@@ -45,6 +47,10 @@ const BreadcrumbTrail: React.FC = () => {
   );
 };
 
+// The tree carries codes only; display names are resolved here.
+const typeByCode = new Map(applicationOptions.map((option) => [option.value, option]));
+const typeLabel = (code: string) => typeByCode.get(code)?.label ?? code;
+
 export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const tree = useMemo(() => buildCategoryMixTree(data, filters, range), [data, filters, range]);
 
@@ -52,10 +58,10 @@ export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filt
     () => ({
       name: 'All applications',
       children: tree.categories.map((category) => ({
-        name: category.name,
+        name: typeLabel(category.key),
         color: category.color,
         children: category.children.map((leaf, rank) => ({
-          name: leaf.name,
+          name: getBureauLabel(leaf.code),
           value: leaf.value,
           color: mixLeafColor(category.color, rank),
         })),
@@ -78,7 +84,11 @@ export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filt
     <div className="card-content">
       <SeriesLegend
         className="mb-2"
-        items={tree.categories.map((category) => ({ label: category.name, color: category.color }))}
+        items={tree.categories.map((category) => ({
+          id: category.key,
+          label: typeLabel(category.key),
+          color: category.color,
+        }))}
       />
       <div aria-label="Sunburst of applications by type and bureau; interactive drill-down">
         {/* ~80 bureau arcs: compress the per-segment stagger so the enter

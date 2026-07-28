@@ -22,10 +22,31 @@ import { YAxis } from '../bklit/charts/y-axis';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { SeriesLegend } from '../common/SeriesLegend';
 
+// `id` is the data-row property and the chart's dataKey; `label` is display
+// text only. They used to be the same string, which made the plotted data
+// shape depend on the UI language.
 const SERIES = [
-  { key: 'Pending (carried over)', color: 'var(--chart-1)', shape: 'square' as const },
-  { key: 'Received', color: 'var(--chart-2)', shape: 'square' as const },
-  { key: 'Processed', color: 'var(--chart-3)', shape: 'line' as const },
+  {
+    id: 'pending',
+    label: 'Pending (carried over)',
+    status: STATUS_CODES.OLD_APPLICATIONS,
+    color: 'var(--chart-1)',
+    shape: 'square' as const,
+  },
+  {
+    id: 'received',
+    label: 'Received',
+    status: STATUS_CODES.NEW_APPLICATIONS,
+    color: 'var(--chart-2)',
+    shape: 'square' as const,
+  },
+  {
+    id: 'processed',
+    label: 'Processed',
+    status: STATUS_CODES.PROCESSED,
+    color: 'var(--chart-3)',
+    shape: 'line' as const,
+  },
 ];
 
 export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
@@ -40,18 +61,15 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
       });
       const sumOf = (status: string) =>
         monthData.reduce((sum, entry) => (entry.status === status ? sum + entry.value : sum), 0);
-      return {
-        date: new Date(`${month}-01T00:00:00`),
-        'Pending (carried over)': sumOf(STATUS_CODES.OLD_APPLICATIONS),
-        Received: sumOf(STATUS_CODES.NEW_APPLICATIONS),
-        Processed: sumOf(STATUS_CODES.PROCESSED),
-      };
+      const row: Record<string, unknown> = { date: new Date(`${month}-01T00:00:00`) };
+      for (const series of SERIES) row[series.id] = sumOf(series.status);
+      return row;
     });
   }, [data, filters, range]);
 
   return (
     <div className="card-content">
-      <SeriesLegend className="mb-2" items={SERIES.map((s) => ({ label: s.key, color: s.color, shape: s.shape }))} />
+      <SeriesLegend className="mb-2" items={SERIES} />
       <div
         className="chart-container"
         role="img"
@@ -60,11 +78,21 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
         <ComposedChart data={chartData} stacked stackGap={2} maxBarSize={30} aspectRatio="16 / 8">
           <Grid horizontal />
           <YAxis />
-          <SeriesBar dataKey="Pending (carried over)" fill="var(--chart-1)" />
-          <SeriesBar dataKey="Received" fill="var(--chart-2)" radius={3} />
-          <Line dataKey="Processed" stroke="var(--chart-3)" curve={curveMonotoneX} strokeWidth={2.25} fadeEdges={false} />
+          <SeriesBar dataKey="pending" fill="var(--chart-1)" />
+          <SeriesBar dataKey="received" fill="var(--chart-2)" radius={3} />
+          <Line dataKey="processed" stroke="var(--chart-3)" curve={curveMonotoneX} strokeWidth={2.25} fadeEdges={false} />
           <XAxis />
-          <ChartTooltip />
+          {/* Rows are named explicitly: the tooltip would otherwise show the
+              raw series ids now that those are no longer display text. */}
+          <ChartTooltip
+            rows={(point) =>
+              SERIES.map((series) => ({
+                color: series.color,
+                label: series.label,
+                value: Number(point[series.id] ?? 0),
+              }))
+            }
+          />
         </ComposedChart>
       </div>
     </div>

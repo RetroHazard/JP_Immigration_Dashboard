@@ -14,7 +14,7 @@ import { feature } from 'topojson-client';
 import type { Topology } from 'topojson-specification';
 
 import { bureauOptions } from '../../constants/bureauOptions';
-import { japanPrefectures } from '../../constants/japanPrefectures';
+import { japanPrefectures, prefectureById } from '../../constants/japanPrefectures';
 import { useTheme } from '../../contexts/ThemeContext';
 import { visibleBureauColor, withAlpha } from '../../utils/bureauColors';
 import { nonAirportBureaus } from '../../utils/getBureauData';
@@ -40,8 +40,14 @@ const densityBin = (density: number) => DENSITY_BINS.filter((edge) => density >=
 const DENSITY_ALPHAS = [0.3, 0.45, 0.6, 0.78, 0.92];
 
 
-const prefectureByName = new Map(japanPrefectures.map((prefecture) => [prefecture.name, prefecture]));
 const bureauByCode = new Map(bureauOptions.map((bureau) => [bureau.value, bureau]));
+
+/**
+ * The TopoJSON carries the JIS prefecture code as `properties.id`, which is
+ * what we join on — matching on the English `properties.name` would break as
+ * soon as prefecture names come from the catalogue.
+ */
+const prefectureOf = (geoFeature: ChoroplethFeature) => prefectureById.get(Number(geoFeature.properties?.id));
 
 interface MarkerInfo {
   code: string;
@@ -59,7 +65,7 @@ const MARKERS: MarkerInfo[] = bureauOptions
     return {
       code: bureau.value,
       label: bureau.label,
-      isAirport: bureau.label.toLowerCase().includes('airport'),
+      isAirport: bureau.isAirport,
       coordinates: bureau.coordinates as [number, number],
       population: served.reduce((sum, prefecture) => sum + prefecture.population, 0),
       area: served.reduce((sum, prefecture) => sum + prefecture.area, 0),
@@ -184,13 +190,10 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
 
   const getFeatureColor = useMemo(
     () => (geoFeature: ChoroplethFeature) => {
-      const prefecture = prefectureByName.get(String(geoFeature.properties?.name));
+      const prefecture = prefectureOf(geoFeature);
       const bureau = prefecture ? bureauByCode.get(prefecture.bureau) : undefined;
       if (!prefecture || !bureau?.border) return 'var(--muted)';
-      return withAlpha(
-        visibleBureauColor(bureau.border, isDarkMode),
-        DENSITY_ALPHAS[densityBin(Number(prefecture.density))]
-      );
+      return withAlpha(visibleBureauColor(bureau.border, isDarkMode), DENSITY_ALPHAS[densityBin(prefecture.density)]);
     },
     [isDarkMode]
   );
@@ -219,6 +222,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
             items={nonAirportBureaus
               .filter((bureau) => bureau.border)
               .map((bureau) => ({
+                id: bureau.value,
                 label: bureau.label,
                 color: visibleBureauColor(bureau.border as string, isDarkMode),
               }))}
@@ -256,8 +260,8 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
         />
         <ChoroplethTooltip
           content={({ feature: geoFeature }) => {
-            const name = String(geoFeature.properties?.name ?? '');
-            const prefecture = prefectureByName.get(name);
+            const prefecture = prefectureOf(geoFeature);
+            const name = prefecture?.name ?? String(geoFeature.properties?.name ?? '');
             const bureau = prefecture ? bureauByCode.get(prefecture.bureau) : undefined;
             return (
               <div className="px-3 py-2.5 text-xs">
@@ -278,7 +282,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
                     <span>Area</span>
                     <span className="text-right">{prefecture.area.toLocaleString()} km²</span>
                     <span>Density</span>
-                    <span className="text-right">{prefecture.density} /km²</span>
+                    <span className="text-right">{prefecture.density.toFixed(2)} /km²</span>
                   </div>
                 )}
               </div>

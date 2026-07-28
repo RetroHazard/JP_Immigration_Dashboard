@@ -18,24 +18,28 @@ import { YAxis } from '../bklit/charts/y-axis';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { SeriesLegend } from '../common/SeriesLegend';
 
+// `id` is the data-row property, the chart's dataKey, and the hide/show
+// identity; `type` is the e-Stat application code the values come from;
+// `label` is display text only. All three used to be one string, so toggling a
+// series and plotting it both depended on the UI language.
 const SERIES = [
-  { key: 'Acquisition', type: '10', color: 'var(--chart-1)' },
-  { key: 'Extension', type: '20', color: 'var(--chart-2)' },
-  { key: 'Change of Status', type: '30', color: 'var(--chart-3)' },
-  { key: 'Activity Permission', type: '40', color: 'var(--chart-4)' },
-  { key: 'Re-entry', type: '50', color: 'var(--chart-5)' },
-  { key: 'Permanent Residence', type: '60', color: 'var(--chart-6)' },
+  { id: 'acquisition', label: 'Acquisition', type: '10', color: 'var(--chart-1)' },
+  { id: 'extension', label: 'Extension', type: '20', color: 'var(--chart-2)' },
+  { id: 'change', label: 'Change of Status', type: '30', color: 'var(--chart-3)' },
+  { id: 'activity', label: 'Activity Permission', type: '40', color: 'var(--chart-4)' },
+  { id: 'reentry', label: 'Re-entry', type: '50', color: 'var(--chart-5)' },
+  { id: 'permanent', label: 'Permanent Residence', type: '60', color: 'var(--chart-6)' },
 ] as const;
 
 export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const [hiddenSeries, setHiddenSeries] = useState<ReadonlySet<string>>(() => new Set());
-  const toggleSeries = (label: string) =>
+  const toggleSeries = (id: string) =>
     setHiddenSeries((previous) => {
       const next = new Set(previous);
-      if (!next.delete(label)) next.add(label);
+      if (!next.delete(id)) next.add(id);
       return next;
     });
-  const visibleSeries = SERIES.filter((series) => !hiddenSeries.has(series.key));
+  const visibleSeries = SERIES.filter((series) => !hiddenSeries.has(series.id));
 
   const chartData = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
@@ -48,7 +52,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
       });
       const row: Record<string, unknown> = { date: new Date(`${month}-01T00:00:00`) };
       for (const series of SERIES) {
-        row[series.key] = monthData.reduce((sum, entry) => (entry.type === series.type ? sum + entry.value : sum), 0);
+        row[series.id] = monthData.reduce((sum, entry) => (entry.type === series.type ? sum + entry.value : sum), 0);
       }
       return row;
     });
@@ -59,12 +63,14 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
       <SeriesLegend
         className="mb-2"
         items={SERIES.map((series) => ({
-          label: series.key,
+          id: series.id,
+          label: series.label,
           color: series.color,
           shape: 'line',
-          hidden: hiddenSeries.has(series.key),
+          hidden: hiddenSeries.has(series.id),
         }))}
         onToggle={toggleSeries}
+        toggleTitle={(item) => (item.hidden ? `Show ${item.label}` : `Hide ${item.label}`)}
       />
       {visibleSeries.length === 0 ? (
         <div className="flex min-h-[280px] items-center justify-center text-sm text-muted-foreground">
@@ -81,8 +87,8 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
             <YAxis />
             {visibleSeries.map((series) => (
               <Line
-                key={series.key}
-                dataKey={series.key}
+                key={series.id}
+                dataKey={series.id}
                 curve={curveMonotoneX}
                 stroke={series.color}
                 strokeWidth={2}
@@ -90,7 +96,17 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
               />
             ))}
             <XAxis />
-            <ChartTooltip />
+            {/* Rows are named explicitly: the tooltip would otherwise show the
+                raw series ids now that those are no longer display text. */}
+            <ChartTooltip
+              rows={(point) =>
+                visibleSeries.map((series) => ({
+                  color: series.color,
+                  label: series.label,
+                  value: Number(point[series.id] ?? 0),
+                }))
+              }
+            />
           </LineChart>
         </div>
       )}

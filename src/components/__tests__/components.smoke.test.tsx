@@ -41,8 +41,8 @@ describe('SeriesLegend', () => {
     render(
       <SeriesLegend
         items={[
-          { label: 'Received', color: 'var(--chart-1)' },
-          { label: 'Processed', color: 'var(--chart-2)', shape: 'line' },
+          { id: 'received', label: 'Received', color: 'var(--chart-1)' },
+          { id: 'processed', label: 'Processed', color: 'var(--chart-2)', shape: 'line' },
         ]}
       />
     );

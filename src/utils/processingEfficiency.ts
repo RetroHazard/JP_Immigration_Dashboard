@@ -9,7 +9,6 @@ import { bureauOptions } from '../constants/bureauOptions';
 import { STATUS_CODES } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { tintToward, visibleBureauColor } from './bureauColors';
-import { isAirportLabel } from './getBureauData';
 import type { ChartRange } from './selectors';
 import { breakdownScopeFromFilter, bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from './selectors';
 
@@ -42,9 +41,9 @@ for (const bureau of bureauOptions) {
 }
 
 /** Airports render as a tint of their parent region's flag color. */
-const colorsFor = (code: string, label: string, isDarkMode: boolean): { color: string; outline: string } => {
+const colorsFor = (code: string, isAirport: boolean, isDarkMode: boolean): { color: string; outline: string } => {
   const own = visibleBureauColor(bureauColor.get(code) ?? 'var(--chart-1)', isDarkMode);
-  if (!isAirportLabel(label)) return { color: own, outline: own };
+  if (!isAirport) return { color: own, outline: own };
   const parent = visibleBureauColor(bureauColor.get(parentOf.get(code) ?? '') ?? own, isDarkMode);
   return { color: tintToward(parent, 0.45), outline: parent };
 };
@@ -73,13 +72,13 @@ export function computeEfficiencyPoints(
         (sum, entry) => (entry.status === STATUS_CODES.PROCESSED ? sum + entry.value : sum),
         0
       );
-      const { color, outline } = colorsFor(bureau.value, bureau.label, isDarkMode);
+      const { color, outline } = colorsFor(bureau.value, bureau.isAirport, isDarkMode);
       return {
         code: bureau.value,
         label: bureau.label,
         color,
         outline,
-        isAirport: isAirportLabel(bureau.label),
+        isAirport: bureau.isAirport,
         received,
         processed,
         rate: received > 0 ? (processed / received) * 100 : 0,
