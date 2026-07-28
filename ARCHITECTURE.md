@@ -163,7 +163,7 @@ graph TD
     MAP -.->|Render| VIZ7["Bklit Choropleth (visx)"]
 ```
 
-Each chart calls `selectData` independently with its own bureau/type/range selection — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). The one global exception is the airport toggle: when airport offices are excluded, `DashboardShell` removes their rows from the array before it reaches any chart, stat, or table (the estimator keeps the full dataset). `visx` is used inside the vendored Bklit chart library only; the two custom charts (Category Mix Treemap, Processing Efficiency) don't depend on it.
+Each chart calls `selectData` independently with its own bureau/type/range selection — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). The one global exception is the airport toggle: when airport offices are excluded, `DashboardShell` runs the array through `excludeAirportData` before it reaches any chart, stat, or table — the airport rows are dropped and their volumes subtracted from the nationwide aggregate row, so totals reflect only the visible bureaus (the estimator keeps the full dataset). `visx` is used inside the vendored Bklit chart library only; the two custom charts (Category Mix Treemap, Processing Efficiency) don't depend on it.
 
 A sibling `CategoryMixSunburst.tsx` renders the same hierarchy (shared `categoryMixTree.ts`) as a sunburst instead of a treemap, and `ProcessingEfficiencyLollipop.tsx` renders the efficiency data (shared `processingEfficiency.ts`) as a ranked lollipop; neither is currently wired into the chart tab registry.
 
@@ -222,7 +222,7 @@ The single responsive shell that:
 Controls for filtering data:
 - Bureau selection (single-select, plus an optional "Compare With" second bureau)
 - Application type selection
-- A global airport toggle (beside the reset button) that removes the airport branch offices from every chart, stat, and table — and from the bureau/compare dropdowns while active
+- A global airport toggle (beside the reset button) that removes the airport branch offices from every chart, stat, and table — their volumes are also subtracted from the nationwide totals, and they drop out of the bureau/compare dropdowns while active
 - Filter availability is driven per-chart by the `ChartComponents` registry
 - Filters are applied to whichever chart is active
 
@@ -371,7 +371,7 @@ graph LR
     UNPACK -->|props, unfiltered| MAP["GeographicDistributionChart"]
 ```
 
-Each chart then independently calls `selectData`/`useSelectedData` (`src/utils/selectors.ts`), memoized on its own selection key — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). "Unfiltered" has one global exception: with the airport toggle off, `DashboardShell` strips the airport branch offices' rows before the props are passed.
+Each chart then independently calls `selectData`/`useSelectedData` (`src/utils/selectors.ts`), memoized on its own selection key — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). "Unfiltered" has one global exception: with the airport toggle off, `DashboardShell` drops the airport branch offices' rows and subtracts their volumes from the nationwide aggregate before the props are passed (`src/utils/excludeAirportData.ts`).
 
 ### 3. Data Deaggregation
 

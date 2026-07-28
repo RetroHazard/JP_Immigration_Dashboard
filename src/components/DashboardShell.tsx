@@ -27,6 +27,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import type { DashboardMeta, ImmigrationData } from '../hooks/useImmigrationData';
 import { useLocale } from '../i18n/LocaleContext';
 import { prefersReducedMotion, useAnimeScope } from '../lib/motion';
+import { excludeAirportData } from '../utils/excludeAirportData';
 import { AIRPORT_BUREAU_CODES, getBureauLabel } from '../utils/getBureauData';
 import type { ChartRange } from '../utils/selectors';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
@@ -92,12 +93,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
   );
 
   // What the charts, stats, and data table see; the airport branch offices
-  // are removed as rows, leaving the parent bureaus and the official
-  // nationwide aggregate untouched.
-  const chartData = useMemo(
-    () => (includeAirports ? data : data.filter((entry) => !AIRPORT_BUREAU_CODES.has(entry.bureau))),
-    [data, includeAirports]
-  );
+  // are removed as rows AND subtracted from the nationwide aggregate, so
+  // totals reflect only the visible bureaus (parents already exclude their
+  // branches via the build-time deaggregation).
+  const chartData = useMemo(() => (includeAirports ? data : excludeAirportData(data)), [data, includeAirports]);
 
   // Data coverage, shown beside the period selector (moved out of the
   // filter card to keep it a single row).

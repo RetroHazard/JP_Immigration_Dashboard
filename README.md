@@ -104,7 +104,7 @@ Seven interactive charts, each answering a specific question about the data, wit
 
 ### :mag: Dynamic Filtering
 - Per-chart filter availability (bureau, application type) — only the filters that apply to the active chart are enabled
-- Global airport toggle — a one-click filter that removes the airport branch offices (Narita, Haneda, Kansai, Chubu) from every chart, stat, and table
+- Global airport toggle — a one-click filter that removes the airport branch offices (Narita, Haneda, Kansai, Chubu) from every chart, stat, and table, subtracting their volumes from the nationwide totals rather than merely hiding them
 - One-click filter reset
 - Bureau-to-bureau comparison view for charts that support it, hidden below the `md` breakpoint where a side-by-side layout has no room
 - Statistics summary on charts
