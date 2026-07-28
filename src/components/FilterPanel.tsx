@@ -51,16 +51,20 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             disabled={!filterConfig.appType}
           />
 
-          <FilterInput
-            type="select"
-            label="Compare With"
-            options={bureauOptions.filter((option) => option.value !== 'all')}
-            value={compare ?? ''}
-            includeDefaultOption
-            defaultOptionLabel="No comparison"
-            onChange={(value) => onCompareChange(value || null)}
-            disabled={!compareEnabled}
-          />
+          {/* Comparison is a desktop affordance: on phones the side-by-side
+              view has no room, so the control is hidden below md */}
+          <div className="hidden md:block">
+            <FilterInput
+              type="select"
+              label="Compare With"
+              options={bureauOptions.filter((option) => option.value !== 'all')}
+              value={compare ?? ''}
+              includeDefaultOption
+              defaultOptionLabel="No comparison"
+              onChange={(value) => onCompareChange(value || null)}
+              disabled={!compareEnabled}
+            />
+          </div>
         </div>
         <button
           type="button"

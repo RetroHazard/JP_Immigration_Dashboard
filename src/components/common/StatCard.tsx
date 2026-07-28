@@ -27,6 +27,8 @@ export type StatDelta = {
 
 interface StatCardProps {
   title: string;
+  /** Compact title shown below the lg breakpoint, where the cards are narrow */
+  shortTitle?: string;
   subtitle: string;
   value: number;
   formatValue: (value: number) => string;
@@ -59,6 +61,7 @@ const Sparkline: React.FC<{ points: number[]; className?: string }> = ({ points,
 
 const StatCardComponent: React.FC<StatCardProps> = ({
   title,
+  shortTitle,
   subtitle,
   value,
   formatValue,
@@ -78,17 +81,18 @@ const StatCardComponent: React.FC<StatCardProps> = ({
 
   return (
     <div
-      className={`relative flex flex-col gap-0.5 overflow-hidden rounded-xl border border-border bg-card p-3 shadow-soft transition-shadow hover:shadow-soft-lg md:p-4 ${className ?? ''}`}
+      className={`relative flex flex-col gap-0.5 overflow-hidden rounded-xl border border-border bg-card p-2 shadow-soft transition-shadow hover:shadow-soft-lg sm:p-3 lg:p-4 ${className ?? ''}`}
     >
       <div className="flex items-center justify-between gap-2">
         <span className="truncate text-xxs font-semibold uppercase tracking-wider text-muted-foreground sm:text-xs">
-          {title}
+          {shortTitle && <span className="lg:hidden">{shortTitle}</span>}
+          <span className={shortTitle ? 'hidden lg:inline' : undefined}>{title}</span>
         </span>
         <span className={`flex size-6 shrink-0 items-center justify-center rounded-md ${BADGE_CLASSES[color]}`}>
           <Icon className="size-3.5" aria-hidden="true" />
         </span>
       </div>
-      <span ref={valueRef} className="text-lg font-bold tabular-nums text-foreground md:text-2xl">
+      <span ref={valueRef} className="text-base font-bold tabular-nums text-foreground sm:text-lg lg:text-2xl">
         {formatValue(value)}
       </span>
       <div className="flex items-end justify-between gap-2">
@@ -98,9 +102,9 @@ const StatCardComponent: React.FC<StatCardProps> = ({
               ? `${delta.percent >= 0 ? '+' : '−'}${Math.abs(delta.percent).toFixed(1)}% MoM`
               : subtitle}
           </span>
-          {delta && <span className="block truncate text-xxs text-muted-foreground">{subtitle}</span>}
+          {delta && <span className="hidden truncate text-xxs text-muted-foreground lg:block">{subtitle}</span>}
         </span>
-        {spark && <Sparkline points={spark} className="shrink-0 text-chart-1" />}
+        {spark && <Sparkline points={spark} className="hidden shrink-0 text-chart-1 lg:block" />}
       </div>
     </div>
   );

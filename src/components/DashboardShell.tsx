@@ -329,14 +329,19 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
 
           </div>
 
-          {/* Estimator: collapsible sidebar on desktop */}
-          <aside className="sticky top-4 hidden lg:block" data-animate="card">
+          {/* Estimator: collapsible sidebar on desktop. Collapsed, the rail
+              stretches to the bottom of the main column (self-stretch beats
+              the grid's items-start) so it lines up with the chart card. */}
+          <aside
+            className={`hidden lg:block ${isEstimatorCollapsed ? 'self-stretch' : 'sticky top-4'}`}
+            data-animate="card"
+          >
             {isEstimatorCollapsed ? (
               <button
                 onClick={() => setEstimatorCollapsed(false)}
                 aria-label="Expand the Processing Time Estimator"
                 aria-expanded={false}
-                className="group flex w-full flex-col items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 py-4 text-primary shadow-soft transition-colors hover:border-primary/50 hover:bg-primary/10"
+                className="group flex h-full w-full flex-col items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 py-4 text-primary shadow-soft transition-colors hover:border-primary/50 hover:bg-primary/10"
               >
                 <ChevronsLeft
                   className="size-4 text-muted-foreground transition-transform group-hover:-translate-x-0.5 motion-reduce:transition-none"
