@@ -35,6 +35,7 @@ import type { ChartRange } from '../utils/selectors';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { getApplicationDetailsFromParams, isEstimatorPermalink } from '../utils/urlApplicationDetails';
 import { CHART_KEYS } from './common/ChartComponents';
+import { LanguageSwitcher } from './common/LanguageSwitcher';
 import { PeriodSelector } from './common/PeriodSelector';
 import { ActiveChart } from './ActiveChart';
 import { ChangelogModal } from './ChangelogModal';
@@ -203,10 +204,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
-              {/* Language selector hidden: the i18n scaffold only covers a
-                  handful of strings so far, and offering the switch reads as
-                  a promise the localization isn't ready to keep yet. Revisit
-                  when full-coverage localization becomes its own initiative. */}
+              {/* Renders nothing while LOCALE_SWITCHER_ENABLED is false — see
+                  src/i18n/config.ts. Every string is addressable now, but the
+                  switch stays hidden until a locale is actually translated. */}
+              <LanguageSwitcher />
               <button
                 onClick={() => setIsChangelogOpen(true)}
                 className="hidden items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-secondary-foreground transition-colors hover:bg-muted sm:flex"
@@ -238,6 +239,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                     <SheetTitle className="text-sm">{t('nav.settings')}</SheetTitle>
                   </SheetHeader>
                   <div className="space-y-6 overflow-y-auto p-4">
+                    <LanguageSwitcher variant="rows" />
                     <section aria-label={t('nav.theme')}>
                       <h3 className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">
                         {t('nav.theme')}

@@ -10,6 +10,7 @@ import type { ImmigrationData } from '../../hooks/useImmigrationData';
 import { en } from '../../i18n/locales/en';
 import { renderWithProviders, screen } from '../../test-utils';
 import { ChartDataTable } from '../ChartDataTable';
+import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { SeriesLegend } from '../common/SeriesLegend';
 import { StatCard } from '../common/StatCard';
 
@@ -82,5 +83,14 @@ describe('ChartDataTable', () => {
     });
     expect(screen.getByText(en['table.view'])).toBeTruthy();
     expect(screen.queryByText('table.view')).toBeNull();
+  });
+});
+
+describe('LanguageSwitcher', () => {
+  it('renders nothing while the switcher is gated off', () => {
+    // The counterpart — that it works once enabled — is in
+    // LanguageSwitcher.test.tsx, which mocks the flag on.
+    const { container } = renderWithProviders(<LanguageSwitcher />);
+    expect(container.innerHTML).toBe('');
   });
 });

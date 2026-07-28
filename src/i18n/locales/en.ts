@@ -19,8 +19,19 @@ export const en = {
   'app.loadingDashboard': 'Loading Dashboard...',
   'app.retry': 'Retry',
 
+  // ── Document metadata ────────────────────────────────────────────────────
+  // Read at module scope by src/app/layout.tsx. The static export prerenders
+  // one HTML document, so these can't vary per visitor — they live here to
+  // keep one source of truth, and to be ready for per-locale routes.
+  'meta.title': 'Japan Immigration Statistics Dashboard',
+  'meta.description':
+    'Visa processing times, bureau workloads, and a queue-model estimator for your own application - built on official Immigration Services Agency statistics, updated whenever e-Stat releases new data (typically monthly).',
+  'meta.keywords':
+    'Japan visa processing times, immigration bureau statistics, visa application tracker, Immigration Services Agency, e-Stat',
+
   // ── Header and settings drawer ───────────────────────────────────────────
   'nav.version': 'v{version}',
+  'nav.language': 'Language',
   'nav.switchToLightTheme': 'Switch to light theme',
   'nav.switchToDarkTheme': 'Switch to dark theme',
   'nav.openSettings': 'Open the settings menu',
