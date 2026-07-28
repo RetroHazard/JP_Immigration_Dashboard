@@ -21,6 +21,10 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Opening a permalink automatically expands the estimator with those filters pre-filled
   ([#45](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/45))
 
+### Changed
+
+- Updated prefectural population data on the Regional Map to the Statistics Bureau of Japan's official October 1, 2024 estimates. ([#52](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/52))
+
 ### Fixed
 
 - Fixed aggregate bureaus (Osaka, Fukuoka, Nagoya, Shinagawa) briefly showing inflated processing-time estimates when a branch office's data hadn't been published yet for the period. ([#44](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/44))

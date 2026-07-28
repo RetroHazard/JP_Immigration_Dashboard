@@ -44,93 +44,109 @@ For detailed setup instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
 ## :sparkles: Features
 
 ### :bar_chart: Data Visualization
-This project offers a suite of interactive and configurable charts to analyze data trends and distributions. 
-Each chart is designed to provide clear insights while allowing flexibility through filters and customization.
+Seven interactive charts, each answering a specific question about the data, with per-chart filtering
+(bureau and/or application type, where relevant) and a configurable time range.
 
-#### **Stacked Bar Chart**
-- **Purpose:** Represents intake and processing trends.
+#### **Intake & Processing**
+- **Purpose:** Applications carried over and newly received each month, against the volume the bureaus completed.
 - **Features:**
-  - Displays:
-    - Previously received applications
-    - Newly received applications
-    - Processed applications per month
+  - Stacked bars for carried-over + newly received applications, with completed volume as a line on the same axis
   - Filterable by bureau and application type
-  - Indexed tooltips for detailed viewing
-  - Configurable time range display
+  - Bureau-to-bureau comparison view
+  - Configurable time range (6/12/24/36 months, or all)
 
-#### **Multi-Line Chart**
-- **Purpose:** Represents submission trends.
+#### **Application Types**
+- **Purpose:** Monthly new submissions broken down by application type.
 - **Features:**
-  - Tracks all category types
-  - Filterable by individual bureaus
-  - Exclude specific application types via UI
-  - Indexed tooltips for detailed viewing
-  - Configurable time range display
+  - Click a legend entry to toggle a type's series; the axis rescales to the visible set
+  - Filterable by bureau
+  - Bureau-to-bureau comparison view
+  - Configurable time range
 
-#### **Ring Chart**
-- **Purpose:** Represents distribution of workload.
+#### **Outcomes**
+- **Purpose:** Where applications end up — granted, denied, or otherwise resolved.
 - **Features:**
-  - Visualizes load distribution by application type
-  - Exclude specific bureaus via UI
-  - Configurable cumulative time range display
-
-#### **Bubble Chart**
-- **Purpose:** Measure processing efficiency.
-- **Features:**
-  - Visualizes monthly intake vs. processing rates
-  - Normalized bubble sizes for large datasets
+  - Sankey flow from application type into outcome, with an approval-rate gauge for the same selection
   - Filterable by bureau and application type
-  - Clear, concise tooltips
-  - Configurable cumulative time range display
+  - Configurable time range, including a latest-month view
 
-#### **Radar Chart**
-- **Purpose:** Highlight category spread.
+#### **Bureau Share**
+- **Purpose:** Each bureau's share of total intake.
 - **Features:**
-  - Visualize category distributions
-  - Filterable by individual bureaus
-  - Configurable cumulative time range display
+  - Donut chart of the top bureaus by volume, with an explicit "Other" fold for the long tail
+  - Filterable by application type
+  - Configurable cumulative time range
 
-#### **Choropleth Map**
-- **Purpose:** Show service density.
+#### **Category Mix**
+- **Purpose:** Every bureau's application-type composition, side by side.
 - **Features:**
-  - Interactive, topographical map of Japan, at a Prefectural level
-  - Prefectures colored based on Service Bureau and overall Density rating
-  - Prefecture tooltips with vital statistics
-  - Bureau/Airport markers placed via GPS coordinates
-  - Bureau tooltips with Service Area statistics
+  - Zoomable hierarchical treemap — click a category to zoom into its bureau breakdown, click the background (or `Esc`) to zoom back out
+  - Filterable by bureau
+  - Configurable cumulative time range
+
+#### **Processing Efficiency**
+- **Purpose:** Completion rate against intake volume, per bureau.
+- **Features:**
+  - Purpose-built bubble chart: bubble size shows processed volume, position shows intake vs. completion rate
+  - Filterable by bureau and application type
+  - Configurable cumulative time range
+
+#### **Regional Map**
+- **Purpose:** Geographic service coverage and density across Japan.
+- **Features:**
+  - Interactive choropleth of Japan at the prefectural level, shaded by population density (Statistics Bureau of Japan estimates)
+  - Bureau and airport office markers with location-specific tooltips
+  - Built-in zoom and pan
 
 ---
 
 ### :mag: Dynamic Filtering
-- Dynamic filter availability:
-  - Immigration bureau selection
-  - Application type selection
+- Per-chart filter availability (bureau, application type) — only the filters that apply to the active chart are enabled
+- One-click filter reset
+- Bureau-to-bureau comparison view for charts that support it, hidden below the `md` breakpoint where a side-by-side layout has no room
 - Statistics summary on charts
-- On-chart series pruning for better insights
+- On-chart series pruning (Application Types legend toggles)
 
 ---
 
 ### :clock2: Processing Time Estimator
 - Smart Estimation Panel:
-  - Collapsible interface
+  - Collapsible sidebar on desktop (collapses to a full-height rail), a bottom sheet on mobile
   - Queue position tracking
-  - Historical processing rate analysis
-  - Predictive modeling with detailed calculation formulas
-    - Tooltip reference /w variable explanations
+  - Historical processing rate analysis (rolling 6-month average)
+  - Predictive modeling with a step-by-step calculation breakdown rendered in LaTeX (KaTeX)
+    - Inline tooltip reference w/ variable explanations
+  - One-click reset
+  - Shareable permalink for a filled-out estimate (bureau, application type, and date)
   - Past-due notifications
 
 ---
 
-### :pencil: Summary Badges
-- Effortlessly reference the most recent data points
+### :pencil: Stats Summary
+- At-a-glance totals for the current filter selection: total applications, pending, granted, denied, and approval rate
+- Month-over-month delta and a miniature sparkline trend per metric
 - Filterable by Immigration Bureau and Application Type
+- Adaptive layout — a single row on desktop, a no-scroll mosaic on mobile that never requires horizontal scrolling
 - Responsive tooltips for mobile users
+
+---
+
+### :clipboard: Data Table & Export
+- Collapsible monthly data table for the current chart selection — also serves as an accessible text alternative to the SVG charts
+- One-click CSV export
+
+---
+
+### :globe_with_meridians: Multi-Language Support
+- English and Japanese today, switchable from the header (desktop) or the mobile settings drawer
+- Structured to add further languages without layout changes
 
 ---
 
 ### :iphone: Responsive Design
 - Mobile-friendly with adaptive breakpoints
-- Fluid layout for all screen sizes
+- Fluid layout for all screen sizes — no horizontal scrolling anywhere, including the stats summary row
+- Mobile settings drawer for theme, language, and the in-app changelog, which live inline in the header on desktop
 - Responsive user interface with light/dark mode support
 
 ---
@@ -143,7 +159,7 @@ Each chart is designed to provide clear insights while allowing flexibility thro
 - `TypeScript` (strict) – Type-safe JavaScript
 - `Tailwind CSS v4` – Utility-first styling with a CSS-variable design-token system ("Civic Glass")
 - `shadcn/ui` (vendored) – Radix-based UI primitives (tabs, dialog, sheet, select, tooltip)
-- `Bklit UI` (vendored, MIT) – visx-based chart components (line, composed, pie, radar, sankey, gauge, choropleth)
+- `Bklit UI` (vendored, MIT) – visx-based chart components (line, composed, pie, sunburst, radar, sankey, gauge, choropleth)
 - `visx` / `d3` – Chart internals and the custom bubble chart
 - `Anime.js v4` – Motion layer (entrances, count-ups, chart transitions) with a single reduced-motion chokepoint
 - `nuqs` – URL state (chart tab, filters, time range, compare mode are all shareable links)
@@ -197,7 +213,7 @@ The dashboard automatically monitors and updates immigration statistics from the
 
 ### Data Deaggregation:
 - Regional Immigration Bureaus (denominated as **出入国在留管理局管内**) are aggregate representations of all data sources in the region; Special Branch Offices which are also responsible for processing are individually noted in the e-Stat data.
-- To account for this, aggregated data is restructured within the Regional Bureau dataset at runtime. This allows for a more accurate representation of the regional bureau's overall processing capacity and prevents unintentional duplication of data.
+- To account for this, aggregated data is restructured within the Regional Bureau dataset once at build time (`scripts/transform-data.mts`), before the client ever loads it. This allows for a more accurate representation of the regional bureau's overall processing capacity and prevents unintentional duplication of data.
 ####
     - Within the Original Dataset:
         - Tokyo Regional Immigration Bureau (東京出入国在留管理局管内) is inclusive of Shinagawa, Yokohama, Narita Airport, and Haneda Airport.
@@ -217,8 +233,8 @@ The dashboard automatically monitors and updates immigration statistics from the
 ####
 
 ### Runtime Processing:
-- **Type Safety:** Full TypeScript implementation with `noImplicitAny` enabled
-- **Centralized Filtering:** Shared `useFilteredData` hook for consistent data operations
+- **Type Safety:** Full TypeScript implementation in strict mode
+- **Centralized Filtering:** Shared `selectData` selector (`src/utils/selectors.ts`), explicit about bureau scope (nationwide, a single bureau, or a per-bureau breakdown) instead of overloading a single "all" value
 - **Performance Optimization:**
   - Memoized calculations to prevent unnecessary re-renders
   - Lazy loading of KaTeX library for mathematical formulas
@@ -243,20 +259,20 @@ The dashboard automatically monitors and updates immigration statistics from the
 ## :building_construction: Architecture & Code Quality
 
 ### TypeScript Implementation
-- **Strict Type Safety:** Enabled `noImplicitAny` for comprehensive type checking
+- **Strict Type Safety:** `strict: true` enabled for comprehensive type checking
 - **Custom Type Definitions:** Explicit types for all immigration data structures
 - **Zero `any` Usage:** Complete elimination of implicit and explicit `any` types
 
 ### Code Organization
-- **Shared Hooks:** Centralized data manipulation (`useFilteredData`, `useImmigrationData`)
-- **Context Providers:** Theme management with localStorage persistence and system preference fallback
+- **Shared Hooks & Selectors:** `useImmigrationData` for fetching, `selectData` (`src/utils/selectors.ts`) for consistent, bureau-scope-aware filtering
+- **Context Providers:** Theme (via `next-themes`) and locale providers, both with persistence and system-preference fallback
 - **Error Boundaries:** Application-level error catching with graceful user feedback
 - **Logger Utility:** Environment-aware logging (development-only verbose logs)
 
 ### Performance Optimizations
 - **React Memoization:** `useMemo` and `useCallback` for expensive calculations
 - **Lazy Loading:** Dynamic imports for heavy dependencies (KaTeX ~100KB)
-- **Single-Pass Filtering:** Centralized filtering eliminates duplicate operations across 6 chart components
+- **Single-Pass Filtering:** Centralized filtering eliminates duplicate operations across all 7 chart components
 - **Pre-computed Data:** Color scales and static configurations calculated once at mount
 
 ### Build Configuration
