@@ -122,9 +122,9 @@ The project uses **GitHub Pages** for hosting:
 
 Data is automatically updated via the **Data Watcher Workflow**:
 
-- **Schedule:** Daily at 10:05 AM JST (23rd–28th of each month)
-- **Trigger:** New data detected via e-Stat API
-- **Action:** Automatically builds and deploys if new data is found
+- **Schedule:** Daily at 10:05 AM JST, year-round (not just around the expected release window)
+- **Trigger:** A changed `SURVEY_DATE` in the e-Stat API response vs. the previous run
+- **Action:** Builds and deploys only when a change is actually detected; most daily runs just refresh the cache
 
 See `.github/workflows/watcher.yaml` for details.
 

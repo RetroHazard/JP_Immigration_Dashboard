@@ -191,11 +191,10 @@ Seven interactive charts, each answering a specific question about the data, wit
 The dashboard automatically monitors and updates immigration statistics from the e-Stat API:
 
 ### Data Watcher Workflow
-- **Schedule:** Runs daily at 10:05 AM JST from the 23rd-28th of each month
-- **Detection:** Compares `SURVEY_DATE` in e-Stat API responses to detect new data releases
-- **Auto-Build:** Automatically triggers build and deployment when new data is detected
-- **Cache Management:** Maintains efficient GitHub Actions cache, automatically cleaning old entries
-- **Smart Scheduling:** Targets e-Stat's typical release window (25th of each month, weekdays only)
+- **Schedule:** Runs daily at 10:05 AM JST, year-round — not just around the expected release window, so it also catches retroactive corrections e-Stat occasionally publishes mid-month
+- **Detection:** Compares `SURVEY_DATE` in e-Stat API responses against the previous run's data to detect new or corrected releases
+- **Conditional Publish:** A build and deploy is only triggered when `SURVEY_DATE` has actually changed — most daily runs find nothing new and simply refresh the cache without publishing anything
+- **Cache Management:** Maintains efficient GitHub Actions cache, automatically cleaning out stale/replaced entries
 
 ---
 
