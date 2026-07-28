@@ -95,13 +95,14 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
   // No wrapping and no horizontal scroll at any viewport: phones get a
   // filled 3 + 2 mosaic of compact cards; from md up the five cards share
   // one row, shrinking evenly (truncating) instead of overflowing.
-  const cardClass = 'col-span-2 md:min-w-0 md:flex-1';
-  const wideCardClass = 'col-span-3 md:min-w-0 md:flex-1';
+  // The mosaic reorders via CSS only - Total/Pending/Approval on top,
+  // Granted/Denied below - while the md+ row keeps the DOM order.
+  const row = 'md:order-none md:min-w-0 md:flex-1';
 
   return (
     <div className="grid grid-cols-6 gap-2 md:flex md:gap-3">
       <StatCard
-        className={cardClass}
+        className={`order-1 col-span-2 ${row}`}
         title="Total Applications"
         shortTitle="Total"
         subtitle={subtitle}
@@ -113,7 +114,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         spark={spark((m) => m.totalApplications)}
       />
       <StatCard
-        className={cardClass}
+        className={`order-2 col-span-2 ${row}`}
         title="Pending"
         subtitle={subtitle}
         value={latest.pending}
@@ -124,7 +125,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         spark={spark((m) => m.pending)}
       />
       <StatCard
-        className={cardClass}
+        className={`order-4 col-span-3 ${row}`}
         title="Granted"
         subtitle={subtitle}
         value={latest.granted}
@@ -135,7 +136,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         spark={spark((m) => m.granted)}
       />
       <StatCard
-        className={wideCardClass}
+        className={`order-5 col-span-3 ${row}`}
         title="Denied"
         subtitle={subtitle}
         value={latest.denied}
@@ -146,7 +147,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
         spark={spark((m) => m.denied)}
       />
       <StatCard
-        className={wideCardClass}
+        className={`order-3 col-span-2 ${row}`}
         title="Approval Rate"
         shortTitle="Approval"
         subtitle={subtitle}
