@@ -40,10 +40,17 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     : bureauOptions.filter((option) => !AIRPORT_BUREAU_CODES.has(option.value));
   const airportsLabel = includeAirports ? 'Exclude airport offices' : 'Include airport offices';
   return (
-    <div className="base-container">
-      <div className="flex items-end gap-3">
-        <div className="grid flex-1 grid-cols-2 gap-4 sm:gap-3 md:grid-cols-3 md:gap-6">
+    /* @container: inputs size against the panel's own width, not the viewport —
+       the estimator sidebar narrows this panel at lg without any viewport change */
+    <div className="base-container @container">
+      {/* flex-wrap: on very narrow panels the button pair drops to its own
+          row (ml-auto keeps it right-aligned) instead of squeezing the selects */}
+      <div className="flex flex-wrap items-end gap-3">
+        {/* basis-60 (not flex-1's basis 0) so the wrap actually happens once
+            the selects would drop below a usable width */}
+        <div className="grid grow basis-60 grid-cols-2 gap-2 @lg:gap-3 @2xl:gap-6 md:grid-cols-3">
           <FilterInput
+            fluid
             type="select"
             label="Immigration Bureau"
             options={visibleBureauOptions}
@@ -53,6 +60,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           />
 
           <FilterInput
+            fluid
             type="select"
             label="Application Type"
             options={applicationOptions}
@@ -63,20 +71,21 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
           {/* Comparison is a desktop affordance: on phones the side-by-side
               view has no room, so the control is hidden below md */}
-          <div className="hidden md:block">
+          <div className="hidden md:grid">
             <FilterInput
+              fluid
               type="select"
               label="Compare With"
               options={visibleBureauOptions.filter((option) => option.value !== 'all')}
               value={compare ?? ''}
               includeDefaultOption
-              defaultOptionLabel="No comparison"
+              defaultOptionLabel="None"
               onChange={(value) => onCompareChange(value || null)}
               disabled={!compareEnabled}
             />
           </div>
         </div>
-        <div className="mb-0.5 flex shrink-0 gap-2">
+        <div className="mb-0.5 ml-auto flex shrink-0 gap-2">
           {/* Accent = the exclusion filter is engaged */}
           <button
             type="button"

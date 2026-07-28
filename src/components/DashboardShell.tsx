@@ -346,7 +346,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
         </div>
         <div
           className={`grid gap-4 transition-[grid-template-columns] duration-300 lg:items-start ${
-            isEstimatorCollapsed ? 'lg:grid-cols-[minmax(0,1fr)_64px]' : 'lg:grid-cols-[minmax(0,1fr)_400px]'
+            isEstimatorCollapsed
+              ? 'lg:grid-cols-[minmax(0,1fr)_64px]'
+              : // Narrower sidebar at lg: the main column is at its most cramped
+                // right where the sidebar first engages
+                'lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]'
           }`}
         >
           {/* Main column */}

@@ -189,7 +189,9 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
   return (
     <section aria-label="Processing Time Estimator" className="estimator-container">
       <div className="flex-between gap-2 border-b border-border p-2">
-        <h2 className="section-title min-w-0 truncate">Processing Time Estimator</h2>
+        {/* Sized explicitly (not section-title): the sidebar is 360px wide at
+            lg, where section-title's lg:text-lg would truncate this heading */}
+        <h2 className="min-w-0 truncate text-sm font-semibold md:text-base xl:text-lg">Processing Time Estimator</h2>
         <div className="flex shrink-0 items-center gap-1">
           <IconTooltip label="Reset the estimator">
             <button

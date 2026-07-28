@@ -27,7 +27,8 @@ export type StatDelta = {
 
 interface StatCardProps {
   title: string;
-  /** Compact title shown below the lg breakpoint, where the cards are narrow */
+  /** Compact title shown below the xl breakpoint — five-across tiles are at
+      their narrowest from lg (where the row forms) until xl */
   shortTitle?: string;
   subtitle: string;
   value: number;
@@ -101,8 +102,8 @@ const StatCardComponent: React.FC<StatCardProps> = ({
     >
       <div className="flex items-center justify-between gap-2">
         <span className="truncate text-xxs font-semibold uppercase tracking-wider text-muted-foreground sm:text-xs">
-          {shortTitle && <span className="lg:hidden">{shortTitle}</span>}
-          <span className={shortTitle ? 'hidden lg:inline' : undefined}>{title}</span>
+          {shortTitle && <span className="xl:hidden">{shortTitle}</span>}
+          <span className={shortTitle ? 'hidden xl:inline' : undefined}>{title}</span>
         </span>
         <span className={`flex size-6 shrink-0 items-center justify-center rounded-md ${BADGE_CLASSES[color]}`}>
           <Icon className="size-3.5" aria-hidden="true" />
