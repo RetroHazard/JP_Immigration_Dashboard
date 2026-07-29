@@ -145,6 +145,7 @@ Data is automatically updated via the **Data Watcher Workflow**:
 - **Trigger:** A changed `SURVEY_DATE` in the e-Stat API response vs. the previous run
 - **Action:** Deploys only when a change is actually detected. The daily run also refreshes the cache's last-accessed time, which is what keeps it from being evicted.
 - **Cache:** the watcher owns the `estat-data-*` cache and saves under a key derived from the payload's content hash; `deploy.yaml` only reads it, resolving the newest entry through the `estat-data-` restore-key prefix.
+- **Failure modes:** a missing or null `SURVEY_DATE` in a freshly downloaded payload fails the run rather than being read as "no change" — a silent stall is the one outcome a change detector must never produce, so a schema change on e-Stat's side surfaces as a red run. An unreadable *previous* payload (a corrupted cache entry) only warns and re-baselines, since failing there would leave the bad entry in place and wedge every later run.
 
 See `.github/workflows/watcher.yaml` for details.
 

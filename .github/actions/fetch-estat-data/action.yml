@@ -57,7 +57,19 @@ runs:
           if [ "$had_previous" = "false" ]; then
             echo "::notice::No cached payload present - downloading a fresh copy."
           fi
+          # e-Stat is the pipeline's only external dependency and it does go
+          # down. --max-time bounds a single hung transfer; --retry-max-time
+          # bounds the whole retry window, so the worst case stays below the
+          # calling jobs' timeout-minutes rather than being truncated by them.
+          # --retry-all-errors is needed because plain --retry ignores
+          # connection-level failures.
           curl -sS -L --fail \
+            --connect-timeout 20 \
+            --max-time 300 \
+            --retry 3 \
+            --retry-delay 15 \
+            --retry-max-time 600 \
+            --retry-all-errors \
             --get "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData" \
             --data-urlencode "appId=${ESTAT_APP_ID}" \
             --data-urlencode "lang=J" \
