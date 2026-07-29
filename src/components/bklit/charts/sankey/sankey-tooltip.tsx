@@ -33,6 +33,8 @@ export interface SankeyTooltipProps {
   }) => React.ReactNode;
   /** Value formatter function */
   formatValue?: (value: number) => string;
+  /** Row label for the node value. Default: "Sessions" (local extension) */
+  valueLabel?: string;
   /** Custom class name */
   className?: string;
 }
@@ -41,6 +43,7 @@ export function SankeyTooltip({
   nodeContent,
   linkContent,
   formatValue = intFmt,
+  valueLabel = "Sessions",
   className = "",
 }: SankeyTooltipProps) {
   const {
@@ -93,7 +96,7 @@ export function SankeyTooltip({
     const rows: TooltipRow[] = [
       {
         color: "var(--chart-line-primary)",
-        label: "Sessions",
+        label: valueLabel,
         value: formatValue(totalValue),
       },
     ];
