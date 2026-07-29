@@ -40,6 +40,15 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
   const ranked = useMemo(() => [...points].sort((a, b) => b.rate - a.rate), [points]);
   const maxReceived = Math.max(...points.map((point) => point.received), 1);
 
+  // Backlog-clearing months can push completion rates past 100%, so the axis
+  // grows to fit the highest value (rounded up to a clean tick) and never
+  // shrinks below the full 0-100% range.
+  const maxRate = Math.max(...points.map((point) => point.rate), nationwide ?? 0, 100);
+  const tickStep = maxRate <= 125 ? 25 : maxRate <= 250 ? 50 : 100;
+  const axisMax = Math.ceil(maxRate / tickStep) * tickStep;
+  const ticks = Array.from({ length: axisMax / tickStep + 1 }, (_, i) => i * tickStep);
+  const toTrackPct = (rate: number) => (rate / axisMax) * 100;
+
   const selectionKey = `${filters.bureau}|${filters.type}|${range}`;
   useEffect(() => setHovered(null), [selectionKey]);
   const motionRoot = useAnimeScope<HTMLDivElement>(() => {
@@ -87,8 +96,7 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
       <div ref={motionRoot}>
         <div className="relative">
           {ranked.map((point) => {
-            // Position on the 0-100% track; backlog-clearing months can exceed 100
-            const pct = Math.min(point.rate, 100);
+            const pct = toTrackPct(point.rate);
             const stemWeight = 2 + Math.sqrt(point.received / maxReceived) * 8;
             return (
               <div
@@ -146,7 +154,7 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
               <div className="relative">
                 <div
                   className="absolute inset-y-0 opacity-80"
-                  style={{ left: `${Math.min(nationwide, 100)}%`, borderLeft: '2px dashed var(--chart-crosshair)' }}
+                  style={{ left: `${toTrackPct(nationwide)}%`, borderLeft: '2px dashed var(--chart-crosshair)' }}
                 />
               </div>
               <div />
@@ -156,15 +164,15 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
         <div className={`${ROW_GRID} px-1.5 pt-1`} aria-hidden="true">
           <div />
           <div className="relative h-[30px] text-xxs" style={{ color: 'var(--chart-foreground)' }}>
-            {[0, 25, 50, 75, 100].map((tick) => (
-              <span key={tick} className="absolute bottom-0 -translate-x-1/2" style={{ left: `${tick}%` }}>
+            {ticks.map((tick) => (
+              <span key={tick} className="absolute bottom-0 -translate-x-1/2" style={{ left: `${toTrackPct(tick)}%` }}>
                 {tick}%
               </span>
             ))}
             {nationwide !== null && (
               <span
                 className="absolute top-0 -translate-x-1/2 whitespace-nowrap font-semibold text-muted-foreground"
-                style={{ left: `${Math.min(nationwide, 100)}%` }}
+                style={{ left: `${toTrackPct(nationwide)}%` }}
               >
                 Nationwide {nationwide.toFixed(1)}%
               </span>
