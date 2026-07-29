@@ -224,6 +224,7 @@ export const en = {
   'chart.outcomes.otherWithdrawn': 'Other / Withdrawn',
   'chart.outcomes.valueUnit': 'applications',
   'chart.outcomes.tooltipValueLabel': 'Applications',
+  'chart.outcomes.tooltipFlowLabel': 'Flow',
   'chart.outcomes.approvalRate': 'Approval rate',
   'chart.outcomes.ofProcessed': 'of {count} processed applications',
   'chart.outcomes.empty': 'No processed applications in this period.',

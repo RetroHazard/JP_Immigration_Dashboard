@@ -101,9 +101,11 @@ doesn't inflect.
 | `T.tsx` | For the few sentences that wrap a link or emphasis mid-clause. |
 | `config.ts` | `LOCALE_SWITCHER_ENABLED`, plus the storage and query-param keys. |
 
-Three files under `components/bklit/charts/` are locally modified so chart axis
+Four files under `components/bklit/charts/` are locally modified so chart axis
 ticks and tooltips follow the locale too: `chart-formatters.ts`,
-`chart-stat-flow.tsx`, and `y-axis.tsx`. A re-vendor would overwrite them.
+`chart-stat-flow.tsx`, `y-axis.tsx`, and `sankey/sankey-tooltip.tsx` (its row
+labels take `valueLabel` / `linkLabel` props rather than the upstream
+hardcoded "Sessions" and "Flow"). A re-vendor would overwrite them.
 
 Locale detection runs `?lang=` → `localStorage` → browser language → English.
 The browser step is gated on `LOCALE_SWITCHER_ENABLED`: while the switcher is
@@ -129,7 +131,7 @@ text children, and a `no-restricted-syntax` rule catches string literals in
 
 ## Current state
 
-The extraction is complete — 312 keys, covering the whole interface. Japanese
+The extraction is complete — 314 keys, covering the whole interface. Japanese
 is a stub of five strings, and **the language switcher is deliberately hidden**
 (`LOCALE_SWITCHER_ENABLED` in `config.ts`). Offering the switch before a
 language is actually translated is what got the original switcher pulled in

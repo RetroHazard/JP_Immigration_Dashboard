@@ -1,6 +1,6 @@
 // vitest.setup.ts — jsdom gaps the components rely on.
-import { cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
 
 // Testing Library only auto-registers its cleanup when Vitest globals are on,
 // and they aren't here — so without this, a file that renders in more than one
