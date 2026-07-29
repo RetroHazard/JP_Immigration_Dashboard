@@ -473,6 +473,14 @@ npm audit fix
 npm audit fix --force
 ```
 
+#### Lockfile dev flags
+
+`package-lock.json` is kept "shaken": `lockfile-shaker` re-flags 64 entries as dev-only that npm would otherwise count as production — the `@img/sharp-*` and other cross-platform binaries, and the `@types/*` packages. None of them is a runtime dependency of a static export: there is no server doing image optimization, and types do not exist at runtime. The practical effect is that `npm audit --omit=dev` reports 3 production advisories instead of 4 (`sharp` drops off).
+
+This is re-applied by the `postinstall` hook, because **npm recomputes the flags from scratch on every `npm install` and reverts all 64**. The hook is what keeps the committed lockfile accurate — do not remove it, and do not "correct" the flags by regenerating the lockfile with `--ignore-scripts`.
+
+`npm ci` does not rewrite the lockfile, so the hook deliberately skips that path (`npm_command != 'ci'`) and CI never needs to re-shake. That is why the deploy workflow installs with `npm ci` alone.
+
 #### Updating Dependencies
 
 ```bash
