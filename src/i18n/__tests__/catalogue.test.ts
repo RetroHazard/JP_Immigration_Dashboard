@@ -7,10 +7,10 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { buildTemplate, EN_RELATIVE, TEMPLATE_RELATIVE } from '../../../scripts/localeTemplate';
-import type { LocaleMeta } from '../locales';
+import type { Locale, LocaleMeta } from '../locales';
 import { LOCALE_CODES, LOCALES } from '../locales';
 import { en } from '../locales/en';
-import type { PluralSuffix } from '../types';
+import type { DictionaryKey, PluralSuffix } from '../types';
 
 const PLURAL_SUFFIXES: PluralSuffix[] = ['zero', 'one', 'two', 'few', 'many', 'other'];
 const PLACEHOLDER = /\{(\w+)\}/g;
@@ -117,6 +117,50 @@ describe.each(translatedLocales)('%s catalogue', (code) => {
     const missing = [...bases].filter((base) => dictionary[`${base}_other`] === undefined);
     expect(missing).toEqual([]);
   });
+});
+
+// Coverage is only half of "translated". A key can be present and still be the
+// English string — copied across and never revisited — which the checks above
+// count as done. These two catch that, and they run per locale rather than for
+// `ja` specifically, so the next language inherits them.
+//
+// Values a complete locale is expected to leave in Latin script: airport-style
+// bureau codes, a version number, and a value carrying nothing but an SI unit
+// symbol. Anything else still reading as English is an oversight, not a choice.
+const LATIN_BY_DESIGN = new Set<string>([
+  'nav.version',
+  'map.areaValue',
+  ...Object.keys(en).filter((key) => key.startsWith('bureau.') && key.endsWith('.short')),
+]);
+
+/** Strips placeholders, digits, and punctuation — what's left is prose, if any. */
+const proseOf = (value: string): string => value.replace(PLACEHOLDER, '').replace(/[\s\d\p{P}\p{S}]/gu, '');
+
+/** Kana and kanji — the scripts a Japanese value has to be written in. */
+const SCRIPT_OF = { ja: /[぀-ヿ㐀-䶿一-鿿]/ } as const satisfies Partial<Record<Locale, RegExp>>;
+
+describe.each(translatedLocales)('%s catalogue, beyond coverage', (code) => {
+  const meta: LocaleMeta = LOCALES[code];
+  const dictionary = meta.dictionary as Record<string, string>;
+  // Only a key the locale actually claims: an in-progress file is expected to
+  // be missing keys, but the ones it does define should be real translations.
+  const translatable = Object.keys(dictionary).filter(
+    (key) => !LATIN_BY_DESIGN.has(key) && proseOf(dictionary[key]) !== ''
+  );
+
+  it('leaves nothing sitting at its English value by accident', () => {
+    const untouched = translatable.filter((key) => dictionary[key] === en[key as DictionaryKey]);
+    expect(untouched).toEqual([]);
+  });
+
+  const script = SCRIPT_OF[code as keyof typeof SCRIPT_OF];
+  if (script) {
+    it("writes every prose value in the language's own script", () => {
+      // Catches what the equality check above misses: a value edited just
+      // enough to differ from English while still being English.
+      expect(translatable.filter((key) => !script.test(dictionary[key]))).toEqual([]);
+    });
+  }
 });
 
 describe('locale registry', () => {

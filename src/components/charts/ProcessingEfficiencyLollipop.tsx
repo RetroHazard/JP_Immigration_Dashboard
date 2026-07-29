@@ -13,7 +13,7 @@ import type React from 'react';
 
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLocale } from '../../i18n/LocaleContext';
-import { useBureauLabel } from '../../i18n/useDomainLabels';
+import { useBureauCompact, useBureauLabel } from '../../i18n/useDomainLabels';
 import { useAnimeScope } from '../../lib/motion';
 import type { EfficiencyPoint } from '../../utils/processingEfficiency';
 import { computeEfficiencyPoints, nationwideCompletionRate } from '../../utils/processingEfficiency';
@@ -34,6 +34,7 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
   const { isDarkMode } = useTheme();
   const { t, formatters } = useLocale();
   const bureauLabel = useBureauLabel();
+  const bureauCompact = useBureauCompact();
   const [hovered, setHovered] = useState<Hover | null>(null);
 
   const points = useMemo(
@@ -114,8 +115,12 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
                 className={`${ROW_GRID} min-h-[27px] items-center rounded-[8px] px-1.5 py-1 outline-none hover:bg-accent focus-visible:bg-accent`}
                 {...hoverProps(point)}
               >
+                {/* The compact name, not `point.label`: this cell is 92px and
+                    truncates, and the full official names of a region's offices
+                    share a long prefix. The aria-label above keeps the full
+                    name, so nothing is lost to a screen reader. */}
                 <div className="truncate text-xs font-semibold" style={{ color: 'var(--chart-label)' }}>
-                  {point.label}
+                  {bureauCompact(point.code)}
                   {point.isAirport && (
                     <span className="block text-xxs font-medium text-muted-foreground">
                       {t('chart.efficiency.branchOffice')}
