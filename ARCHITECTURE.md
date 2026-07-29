@@ -34,20 +34,25 @@ graph TB
         CHANGED -->|No - most days| NOOP["Exit; the restore already<br/>kept the cache alive<br/>no deploy triggered"]
     end
     
-    subgraph "Build & Deploy (deploy.yaml — on data change, or source changes on main)"
+    PUSH["Push to main<br/>(src, public, scripts,<br/>build config, CHANGELOG)"]
+    
+    subgraph "Build & Deploy (deploy.yaml)"
+        VERIFY["verify.yaml<br/>lint + typecheck + test"]
         RAW["statData.json<br/>(raw, cached)"]
         TRANSFORM["transform-data.mts<br/>flatten + deaggregate"]
         STATS["dashboard.json<br/>(packed, compact)"]
         BUILD["Next.js Build<br/>(static export)"]
         DEPLOY["GitHub Pages"]
         
+        VERIFY --> RAW
         RAW --> TRANSFORM
         TRANSFORM --> STATS
         STATS -->|Reference| BUILD
         BUILD -->|Deploy| DEPLOY
     end
     
-    CHANGED -->|Yes| RAW
+    CHANGED -->|Yes| VERIFY
+    PUSH --> VERIFY
     
     subgraph "Browser (Runtime)"
         USER["User"]

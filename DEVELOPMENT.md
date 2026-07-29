@@ -54,9 +54,12 @@ This installs all dependencies from `package-lock.json` (locked versions for con
 
 ```bash
 npm run lint        # Check that ESLint works
+npm run typecheck   # Check that TypeScript resolves
 npm test            # Verify tests run
 npm run build       # Ensure production build succeeds
 ```
+
+These are the same four commands `verify.yaml` runs in CI, in the same order.
 
 ## Running the Project
 
@@ -119,14 +122,14 @@ The project uses **GitHub Pages** for hosting, driven by `.github/workflows/depl
 2. **On new data** — the Data Watcher calls the deploy workflow directly when e-Stat publishes new figures.
 3. **Manually** — via `workflow_dispatch` on the Deploy workflow.
 
-Every path runs the same checks first: `deploy.yaml` calls the reusable `verify.yaml` (lint, typecheck, test) before publishing, so nothing reaches production unverified.
+Every path runs the same checks first: `deploy.yaml` calls the reusable `verify.yaml` (lint, typecheck, test) before publishing, so nothing reaches production unverified. Two of `verify.yaml`'s steps are inputs rather than fixtures of it — the fixture build (`run-build`) and the lockfile check (`check-lockfile`) — and the deploy turns both off: it builds against real data itself, and lockfile dev flags do not affect the built output.
 
 ### Workflow layout
 
 | File | Trigger | Purpose |
 | --- | --- | --- |
-| `verify.yaml` | `workflow_call` | Reusable quality gate: lint, typecheck, test, optional build |
-| `ci.yaml` | `pull_request` | Calls `verify.yaml` with the fixture build enabled |
+| `verify.yaml` | `workflow_call` | Reusable quality gate: lockfile check, lint, typecheck, test, optional build |
+| `ci.yaml` | `pull_request` | Calls `verify.yaml` with the fixture build and lockfile check enabled; reports as `verify / verify` |
 | `deploy.yaml` | push to `main` (path-filtered), dispatch, `workflow_call` | Verifies, then builds against real data and publishes to Pages |
 | `watcher.yaml` | daily cron, dispatch | Checks e-Stat for new data; calls `deploy.yaml` when it changes |
 
