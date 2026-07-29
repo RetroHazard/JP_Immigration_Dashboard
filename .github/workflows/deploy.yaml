@@ -35,6 +35,9 @@ jobs:
     uses: ./.github/workflows/verify.yaml
     with:
       run-build: false
+      # Lockfile dev flags do not affect the built output, so drift should
+      # block a pull request, not a publish.
+      check-lockfile: false
 
   deploy:
     needs: verify

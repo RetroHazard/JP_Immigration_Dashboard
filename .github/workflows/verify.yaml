@@ -13,6 +13,14 @@ on:
         type: boolean
         required: false
         default: true
+      check-lockfile:
+        description: >-
+          Fail if package-lock.json is not in its shaken state. Worth gating a
+          pull request on; not worth blocking a deploy, since the dev flags do
+          not affect the built output.
+        type: boolean
+        required: false
+        default: true
 
 permissions:
   contents: read
@@ -29,6 +37,22 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
+
+      # npm recomputes the lockfile's dev flags on every `npm install`, undoing
+      # the 64 that lockfile-shaker sets. The postinstall hook re-applies them,
+      # but anything that bypasses lifecycle scripts — `npm install
+      # --ignore-scripts`, or Dependabot regenerating the lockfile — silently
+      # reverts it. The shaker is idempotent and runs in ~0.3s against the
+      # already-installed node_modules, so re-running it and diffing catches
+      # that without paying for a second install.
+      - name: Check lockfile is shaken
+        if: ${{ inputs.check-lockfile }}
+        run: |
+          node node_modules/lockfile-shaker/lib/bin.js
+          git diff --exit-code package-lock.json || {
+            echo "::error file=package-lock.json::package-lock.json is not in its shaken state. Run 'npm install' locally and commit the resulting package-lock.json."
+            exit 1
+          }
 
       - name: Lint
         run: npm run lint

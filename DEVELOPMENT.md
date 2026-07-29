@@ -481,6 +481,15 @@ This is re-applied by the `postinstall` hook, because **npm recomputes the flags
 
 `npm ci` does not rewrite the lockfile, so the hook deliberately skips that path (`npm_command != 'ci'`) and CI never needs to re-shake. That is why the deploy workflow installs with `npm ci` alone.
 
+Because the hook only fires on `npm install`, anything that bypasses lifecycle scripts silently reverts all 64 flags — `npm install --ignore-scripts`, or **Dependabot**, which regenerates lockfiles with its own resolver. `verify.yaml` therefore re-runs the shaker on pull requests and fails if it produces a diff:
+
+```
+::error file=package-lock.json::package-lock.json is not in its shaken state.
+Run 'npm install' locally and commit the resulting package-lock.json.
+```
+
+If you see that on a Dependabot PR, run `npm install` on the branch and commit the lockfile. The shaker is idempotent and runs in ~0.3s against the already-installed `node_modules`, so the check costs nothing and needs no second install. The deploy path passes `check-lockfile: false` — the dev flags do not affect the built output, so drift should block a pull request, not a publish.
+
 #### Updating Dependencies
 
 ```bash
