@@ -32,6 +32,7 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.1.2**: The Outcomes Sankey chart's tooltip labelled application counts "Sessions" — a leftover from the chart library's web-analytics defaults — instead of "Applications".
 - **v1.1.1**: The Processing Efficiency chart clamped its axis at 100%, so bureaus clearing backlog above 100% all pinned to the right edge at the same position — the axis now scales past 100% to fit the highest rate. ([#57](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/57))
 - **v1.1.0**: Layout and estimator fixes —
   - The formula breakdown listed its steps in reverse — the final calculation was shown first, ahead of the values it depends on

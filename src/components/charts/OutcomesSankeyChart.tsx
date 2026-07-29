@@ -114,7 +114,7 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
             >
               <SankeyLink />
               <SankeyNode valueUnit="applications" showValueLabels={!isNarrow} />
-              <SankeyTooltip />
+              <SankeyTooltip valueLabel="Applications" />
             </SankeyChart>
           )}
         </div>
