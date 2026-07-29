@@ -7,6 +7,16 @@ import type { Dictionary } from '../types';
 import { en } from './en';
 import { ja } from './ja';
 
+/**
+ * How complete a translation claims to be.
+ *
+ * `complete` is a promise the catalogue tests enforce: the locale must define
+ * every key English defines, and CI fails if English later adds one it lacks.
+ * `in-progress` only reports its coverage, so a translation can land a section
+ * at a time without wedging the build.
+ */
+export type LocaleStatus = 'complete' | 'in-progress';
+
 export interface LocaleMeta {
   /** Short code used in `?lang=`, localStorage, and `<html lang>`. */
   code: string;
@@ -14,12 +24,14 @@ export interface LocaleMeta {
   nativeName: string;
   /** BCP 47 tag handed to `Intl.*` for number, date, and plural formatting. */
   intlTag: string;
+  /** Flip to `complete` once the file covers every English key. */
+  status: LocaleStatus;
   dictionary: Dictionary;
 }
 
 export const LOCALES = {
-  en: { code: 'en', nativeName: 'English', intlTag: 'en-US', dictionary: en },
-  ja: { code: 'ja', nativeName: '日本語', intlTag: 'ja-JP', dictionary: ja },
+  en: { code: 'en', nativeName: 'English', intlTag: 'en-US', status: 'complete', dictionary: en },
+  ja: { code: 'ja', nativeName: '日本語', intlTag: 'ja-JP', status: 'in-progress', dictionary: ja },
 } as const satisfies Record<string, LocaleMeta>;
 
 export type Locale = keyof typeof LOCALES;

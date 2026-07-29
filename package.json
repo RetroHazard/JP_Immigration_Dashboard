@@ -90,6 +90,7 @@
   "scripts": {
     "lint": "eslint src scripts",
     "typecheck": "tsc --noEmit",
+    "i18n:template": "tsx scripts/generate-locale-template.mts",
     "start": "react-build-info && node scripts/sync-changelog.js && next build && npx serve@latest ./build",
     "build": "react-build-info && node scripts/sync-changelog.js && tsx scripts/transform-data.mts && next build && node scripts/strip-raw-data.mjs",
     "dev": "react-build-info && node scripts/sync-changelog.js && next dev --turbopack",

@@ -2,8 +2,12 @@
 // Integrity checks every locale file must pass. These are what make a
 // community-contributed language file safe to accept: a reviewer does not have
 // to diff 300 keys by eye to know it lines up with English.
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
+import { buildTemplate, EN_RELATIVE, TEMPLATE_RELATIVE } from '../../../scripts/localeTemplate';
+import type { LocaleMeta } from '../locales';
 import { LOCALE_CODES, LOCALES } from '../locales';
 import { en } from '../locales/en';
 import type { PluralSuffix } from '../types';
@@ -40,9 +44,50 @@ describe('English catalogue', () => {
   });
 });
 
+/**
+ * The keys a locale must define to call itself complete.
+ *
+ * Not simply "every English key": plural families are the exception. English
+ * needs `_one` and `_other`, but Japanese has a single CLDR category, so
+ * demanding a `period.months_one` from it would force a meaningless duplicate.
+ * Each language owes only the members its own `Intl.PluralRules` can select,
+ * plus `_other` as the universal fallback.
+ */
+const requiredKeysFor = (intlTag: string): string[] => {
+  const categories = new Set<string>([...new Intl.PluralRules(intlTag).resolvedOptions().pluralCategories, 'other']);
+  return Object.keys(en).filter((key) => {
+    const base = pluralBaseOf(key);
+    if (base === null) return true;
+    return categories.has(key.slice(base.length + 1));
+  });
+};
+
 describe.each(translatedLocales)('%s catalogue', (code) => {
-  const dictionary = LOCALES[code].dictionary as Record<string, string>;
+  // Read through LocaleMeta rather than off the `as const` registry: with one
+  // translated locale today, the literal types collapse to it and the
+  // completeness branch below would read as dead code.
+  const meta: LocaleMeta = LOCALES[code];
+  const dictionary = meta.dictionary as Record<string, string>;
   const entries = Object.entries(dictionary);
+  const required = requiredKeysFor(meta.intlTag);
+  const missing = required.filter((key) => dictionary[key] === undefined);
+
+  if (meta.status === 'complete') {
+    it('covers every English key', () => {
+      // English is the ground truth. A locale that claims completeness fails
+      // here the moment English gains a key it does not carry.
+      expect(missing).toEqual([]);
+    });
+  } else {
+    it('reports its coverage while translation is in progress', () => {
+      const done = required.length - missing.length;
+      const pct = ((done / required.length) * 100).toFixed(1);
+      console.log(`  ${code}: ${done}/${required.length} keys (${pct}%) — ${missing.length} missing, in progress`);
+      // A registered locale with an empty dictionary renders entirely in
+      // English while still offering itself in the switcher.
+      expect(entries.length).toBeGreaterThan(0);
+    });
+  }
 
   it('defines no key that English does not', () => {
     const unknown = Object.keys(dictionary).filter((key) => !englishKeys.has(key));
@@ -86,5 +131,24 @@ describe('locale registry', () => {
     for (const code of LOCALE_CODES) {
       expect(LOCALES[code].code).toBe(code);
     }
+  });
+
+  it('holds English to being complete, since everything falls back to it', () => {
+    expect(LOCALES.en.status).toBe('complete');
+  });
+});
+
+describe('contributor template', () => {
+  const template = readFileSync(resolve(process.cwd(), TEMPLATE_RELATIVE), 'utf8');
+
+  it('matches the English catalogue it is generated from', () => {
+    // Regenerating is one command; a stale template silently hands the next
+    // translator a key list that no longer matches the app.
+    expect(template).toBe(buildTemplate(readFileSync(resolve(process.cwd(), EN_RELATIVE), 'utf8')));
+  });
+
+  it('offers every English key, commented out', () => {
+    const missing = Object.keys(en).filter((key) => !template.includes(`// '${key}':`));
+    expect(missing).toEqual([]);
   });
 });

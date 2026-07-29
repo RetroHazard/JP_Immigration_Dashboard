@@ -7,36 +7,70 @@ means writing one file. You do not need to touch a component.
 
 ## Adding a language
 
-1. **Copy the English catalogue.** `locales/en.ts` is the source of truth and
-   the only complete file. Copy it to `locales/<code>.ts`, using the two-letter
-   code your language is normally written with (`ko`, `zh`, `vi`, `pt`).
-
-2. **Change the header and the type.** Translations are `Dictionary`, not
-   `as const`:
+1. **Copy the template.** `locales/_template.ts` is every key in the catalogue,
+   commented out, with the English text beside it. Copy it to
+   `locales/<code>.ts`, using the two-letter code your language is normally
+   written with (`ko`, `zh`, `vi`, `pt`), and rename the exported constant.
 
    ```ts
    import type { Dictionary } from '../types';
 
    export const ko: Dictionary = {
      'app.title': '일본 출입국 통계',
-     // …
+     // 'app.subtitle': 'Bureau processing data from e-Stat, updated with each release',
    };
    ```
 
-3. **Register it.** In `locales/index.ts`, import the file and add one entry:
+   Uncomment a line and replace its value as you translate it. Leave the rest
+   commented: an absent key falls back to English, which reads better than a
+   blank space.
+
+2. **Register it.** In `locales/index.ts`, import the file and add one entry:
 
    ```ts
-   ko: { code: 'ko', nativeName: '한국어', intlTag: 'ko-KR', dictionary: ko },
+   ko: { code: 'ko', nativeName: '한국어', intlTag: 'ko-KR', status: 'in-progress', dictionary: ko },
    ```
 
    `nativeName` is what the language switcher shows, written in that language.
    `intlTag` is the BCP 47 tag used for number, date, and plural formatting.
+   `status` is covered below — start at `in-progress`.
 
-4. **Check it.** `npx vitest run src/i18n` runs the catalogue tests described
-   below, and `npx tsc --noEmit` catches any key that isn't real.
+3. **Check it.** `npx vitest run src/i18n` runs the catalogue tests described
+   below, and `npx tsc --noEmit` catches any key that isn't real. The test run
+   prints your coverage, e.g. `ko: 120/309 keys (38.8%) — 189 missing`.
 
 You can translate as much or as little as you like — a partial file is safe to
 ship. Anything you leave out falls back to English rather than rendering blank.
+
+## Completeness, and what CI enforces
+
+Each locale declares a `status` in the registry:
+
+| Status | What CI does |
+| --- | --- |
+| `in-progress` | Reports coverage on every run. Never fails for missing keys. |
+| `complete` | **Must** define every key English defines. Missing one fails the build. |
+
+English is the ground truth and is always `complete`. Flip your own locale to
+`complete` once it covers everything — from then on, any key added to English
+that yours lacks turns CI red, which is what stops a finished translation from
+quietly rotting as the app grows.
+
+Completeness is measured per language, not key-for-key. Plural families are the
+exception: English defines `period.months_one` and `period.months_other`, but
+Japanese has a single plural category, so it owes only `_other` — 309 keys
+rather than 314. You are never asked for a form your language doesn't use.
+
+### After adding or removing an English key
+
+Regenerate the template so the next translator gets an accurate list:
+
+```
+npm run i18n:template
+```
+
+A test compares the committed template against the English catalogue, so
+forgetting this fails CI rather than going unnoticed.
 
 ## Rules a catalogue file must follow
 
@@ -93,7 +127,8 @@ doesn't inflect.
 | --- | --- |
 | `locales/en.ts` | Source of truth. `DictionaryKey` is derived from it, so `tsc` rejects a key that isn't defined. |
 | `locales/<code>.ts` | Partial override. Missing keys fall back to English. |
-| `locales/index.ts` | The registry. One entry per language; everything else reads from here. |
+| `locales/_template.ts` | Generated starting point for a new language. Not a locale, and not registered. |
+| `locales/index.ts` | The registry. One entry per language, carrying its `status`; everything else reads from here. |
 | `translate.ts` | Lookup, `{placeholder}` interpolation, plural selection. No React — unit tested directly. |
 | `formatters.ts` | Locale-bound number, percent, and date formatting. |
 | `LocaleContext.tsx` | `useLocale()` → `{ t, tPlural, formatters, locale, setLocale, availableLocales }`. |
