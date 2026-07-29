@@ -31,10 +31,10 @@ graph TB
         
         ESTAT --> FETCH
         FETCH --> CHANGED
-        CHANGED -->|No - most days| NOOP["Refresh cache, exit<br/>no build triggered"]
+        CHANGED -->|No - most days| NOOP["Exit; the restore already<br/>kept the cache alive<br/>no deploy triggered"]
     end
     
-    subgraph "Build & Deploy (build.yaml — dispatched only on change)"
+    subgraph "Build & Deploy (deploy.yaml — on data change, or source changes on main)"
         RAW["statData.json<br/>(raw, cached)"]
         TRANSFORM["transform-data.mts<br/>flatten + deaggregate"]
         STATS["dashboard.json<br/>(packed, compact)"]
@@ -826,7 +826,7 @@ test('StatCard renders title, formatted value, and MoM delta', () => {
 
 ### Security Audits
 
-There is currently no automated `npm audit` step in CI (`.github/workflows/ci.yaml` runs lint, typecheck, test, and a fixture build; `build.yaml` builds and deploys). Audits are a manual, pre-merge step:
+There is currently no automated `npm audit` step in CI (`.github/workflows/verify.yaml` runs lint, typecheck, test, and a fixture build; `deploy.yaml` verifies, builds and deploys). Audits are a manual, pre-merge step:
 
 ```bash
 npm audit --audit-level=moderate

@@ -1,0 +1,46 @@
+name: Verify
+
+# Reusable quality gate. Called by ci.yaml on pull requests and by deploy.yaml
+# before it publishes, so the same checks guard both paths.
+on:
+  workflow_call:
+    inputs:
+      run-build:
+        description: >-
+          Run the fixture production build. Callers that perform a real build
+          against the cached e-Stat payload afterwards should pass false to
+          avoid building the site twice in one run.
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      # Builds against the deterministic fixture (no e-Stat secret needed);
+      # scripts/transform-data.mts generates it when raw data is absent.
+      - name: Build
+        if: ${{ inputs.run-build }}
+        run: npm run build

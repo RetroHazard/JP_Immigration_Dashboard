@@ -30,7 +30,7 @@ Be respectful, constructive, and collaborative. We're all here to improve immigr
 
 ### Prerequisites
 
-- **Node.js** — no `engines` field is pinned in `package.json`; CI runs Node 22 and the deploy workflow runs Node 20, so either is known-working
+- **Node.js** — pinned in `.nvmrc` (Node 22); CI and the deploy both read it from there. Run `nvm use` to adopt it locally
 - **npm** — Comes with Node.js
 - **Git** — For version control
 

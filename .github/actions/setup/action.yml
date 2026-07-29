@@ -1,0 +1,23 @@
+name: 'Setup project'
+description: 'Installs Node (version from .nvmrc), restores the npm cache, installs dependencies and generates src/buildInfo.js.'
+
+runs:
+  using: composite
+  steps:
+    # node-version-file keeps the runtime pinned in exactly one place (.nvmrc),
+    # so CI and the deploy can never drift apart again.
+    - name: Setup Node
+      uses: actions/setup-node@v7
+      with:
+        node-version-file: .nvmrc
+        cache: 'npm'
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    # src/buildInfo.js is gitignored and generated at build time; the typecheck
+    # imports it transitively via DashboardShell, so it must exist beforehand.
+    - name: Generate build info
+      shell: bash
+      run: npx react-build-info
