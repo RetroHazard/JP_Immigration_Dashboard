@@ -239,7 +239,8 @@ JP_Immigration_Dashboard/
 │   │   ├── locales/
 │   │   │   ├── en.ts                  # Source of truth; DictionaryKey derives from it
 │   │   │   ├── ja.ts                  # Partial override, falls back to English
-│   │   │   └── index.ts               # Locale registry — one entry per language
+│   │   │   ├── _template.ts           # Generated starting point (npm run i18n:template)
+│   │   │   └── index.ts               # Registry — one entry per language, with its status
 │   │   ├── LocaleContext.tsx          # Provider + useLocale()
 │   │   ├── translate.ts               # Lookup, interpolation, plural selection
 │   │   ├── formatters.ts              # Locale-bound number / percent / date
