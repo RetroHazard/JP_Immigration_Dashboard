@@ -17,7 +17,7 @@ Comprehensive guide for setting up, running, and developing the Japan Immigratio
 
 ### Required
 
-- **Node.js** — `package.json` has no `engines` field pinning a minimum; CI runs Node 22 (`ci.yaml`) and the deploy workflow runs Node 20 (`build.yaml`), so either is known-working
+- **Node.js** — the version is pinned in `.nvmrc` (Node 22); every workflow reads it from there via `node-version-file`, so CI and the deploy always match. Run `nvm use` to adopt it locally
   - Download from [nodejs.org](https://nodejs.org/)
   - Verify: `node --version`
 
@@ -54,9 +54,12 @@ This installs all dependencies from `package-lock.json` (locked versions for con
 
 ```bash
 npm run lint        # Check that ESLint works
+npm run typecheck   # Check that TypeScript resolves
 npm test            # Verify tests run
 npm run build       # Ensure production build succeeds
 ```
+
+These are the same four commands `verify.yaml` runs in CI, in the same order.
 
 ## Running the Project
 
@@ -113,10 +116,26 @@ npm run build
 
 ### Deployment
 
-The project uses **GitHub Pages** for hosting:
+The project uses **GitHub Pages** for hosting, driven by `.github/workflows/deploy.yaml`:
 
-1. **Automatic via GitHub Actions** — Pushes to `main` trigger the build workflow
-2. **Manual deployment** — Not typically needed (see `.github/workflows/build.yaml`)
+1. **On push to `main`** — a path filter restricts this to commits that actually reach the built site (`src/`, `public/`, `scripts/`, the build config, and `CHANGELOG.md`, which is synced into `public/`). Documentation-only commits do not redeploy.
+2. **On new data** — the Data Watcher calls the deploy workflow directly when e-Stat publishes new figures.
+3. **Manually** — via `workflow_dispatch` on the Deploy workflow.
+
+Every path runs the same checks first: `deploy.yaml` calls the reusable `verify.yaml` (lint, typecheck, test) before publishing, so nothing reaches production unverified. Two of `verify.yaml`'s steps are inputs rather than fixtures of it — the fixture build (`run-build`) and the lockfile check (`check-lockfile`) — and the deploy turns both off: it builds against real data itself, and lockfile dev flags do not affect the built output.
+
+### Workflow layout
+
+| File | Trigger | Purpose |
+| --- | --- | --- |
+| `verify.yaml` | `workflow_call` | Reusable quality gate: lockfile check, lint, typecheck, test, optional build |
+| `ci.yaml` | `pull_request` | Calls `verify.yaml` with the fixture build and lockfile check enabled; reports as `verify / verify` |
+| `deploy.yaml` | push to `main` (path-filtered), dispatch, `workflow_call` | Verifies, then builds against real data and publishes to Pages |
+| `watcher.yaml` | daily cron, dispatch | Checks e-Stat for new data; calls `deploy.yaml` when it changes |
+
+`.github/actions/setup` (Node + install + build info) and `.github/actions/fetch-estat-data` (download + validate) are composite actions shared across the above.
+
+CI runs on pull requests only. A `push` trigger would duplicate every run for branches with an open PR; pushes to `main` are covered by `deploy.yaml`'s verify job.
 
 ### Data Updates
 
@@ -124,7 +143,9 @@ Data is automatically updated via the **Data Watcher Workflow**:
 
 - **Schedule:** Daily at 10:05 AM JST, year-round (not just around the expected release window)
 - **Trigger:** A changed `SURVEY_DATE` in the e-Stat API response vs. the previous run
-- **Action:** Builds and deploys only when a change is actually detected; most daily runs just refresh the cache
+- **Action:** Deploys only when a change is actually detected. The daily run also refreshes the cache's last-accessed time, which is what keeps it from being evicted.
+- **Cache:** the watcher owns the `estat-data-*` cache and saves under a key derived from the payload's content hash; `deploy.yaml` only reads it, resolving the newest entry through the `estat-data-` restore-key prefix.
+- **Failure modes:** a missing or null `SURVEY_DATE` in a freshly downloaded payload fails the run rather than being read as "no change" — a silent stall is the one outcome a change detector must never produce, so a schema change on e-Stat's side surfaces as a red run. An unreadable *previous* payload (a corrupted cache entry) only warns and re-baselines, since failing there would leave the bad entry in place and wedge every later run.
 
 See `.github/workflows/watcher.yaml` for details.
 
@@ -232,9 +253,13 @@ JP_Immigration_Dashboard/
 │
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yaml                # Lint, typecheck, test, fixture build on push/PR
-│   │   ├── build.yaml             # Build + deploy to GitHub Pages (manual dispatch)
-│   │   └── watcher.yaml           # Scheduled e-Stat data check
+│   │   ├── verify.yaml            # Reusable gate: lint, typecheck, test, optional build
+│   │   ├── ci.yaml                # Calls verify.yaml on pull requests
+│   │   ├── deploy.yaml            # Verify + build + deploy to Pages (push to main, dispatch, called)
+│   │   └── watcher.yaml           # Scheduled e-Stat data check; calls deploy.yaml on change
+│   ├── actions/
+│   │   ├── setup/                 # Composite: Node from .nvmrc, npm ci, build info
+│   │   └── fetch-estat-data/      # Composite: download + validate the e-Stat payload
 │   └── ISSUE_TEMPLATE/            # Issue templates
 │
 ├── scripts/
@@ -297,7 +322,7 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
 
 ### Build & Deployment
 
-- **GitHub Actions** — CI/CD automation (`ci.yaml`, `build.yaml`, `watcher.yaml`)
+- **GitHub Actions** — CI/CD automation (`verify.yaml`, `ci.yaml`, `deploy.yaml`, `watcher.yaml`)
 - **GitHub Pages** — Static site hosting
 - **react-build-info** — Build metadata injection (version + build date)
 - **tsx** — Runs the TypeScript build-time data transform script
@@ -436,7 +461,7 @@ Pinned packages:
 
 #### Security Audits
 
-There is no automated `npm audit` gate in CI today — `ci.yaml` runs lint, typecheck, test, and a fixture build; `build.yaml` builds and deploys. Run audits locally (and before merging dependency changes):
+There is no automated `npm audit` gate in CI today — `verify.yaml` runs lint, typecheck, test, and (on PRs) a fixture build; `deploy.yaml` verifies, builds and deploys. Run audits locally (and before merging dependency changes):
 
 ```bash
 # Run security audit locally
@@ -451,6 +476,23 @@ npm audit fix
 # Interactive fix (choose which vulnerabilities to address)
 npm audit fix --force
 ```
+
+#### Lockfile dev flags
+
+`package-lock.json` is kept "shaken": `lockfile-shaker` re-flags 64 entries as dev-only that npm would otherwise count as production — the `@img/sharp-*` and other cross-platform binaries, and the `@types/*` packages. None of them is a runtime dependency of a static export: there is no server doing image optimization, and types do not exist at runtime. The practical effect is that `npm audit --omit=dev` reports 3 production advisories instead of 4 (`sharp` drops off).
+
+This is re-applied by the `postinstall` hook, because **npm recomputes the flags from scratch on every `npm install` and reverts all 64**. The hook is what keeps the committed lockfile accurate — do not remove it, and do not "correct" the flags by regenerating the lockfile with `--ignore-scripts`.
+
+`npm ci` does not rewrite the lockfile, so the hook deliberately skips that path (`npm_command != 'ci'`) and CI never needs to re-shake. That is why the deploy workflow installs with `npm ci` alone.
+
+Because the hook only fires on `npm install`, anything that bypasses lifecycle scripts silently reverts all 64 flags — `npm install --ignore-scripts`, or **Dependabot**, which regenerates lockfiles with its own resolver. `verify.yaml` therefore re-runs the shaker on pull requests and fails if it produces a diff:
+
+```
+::error file=package-lock.json::package-lock.json is not in its shaken state.
+Run 'npm install' locally and commit the resulting package-lock.json.
+```
+
+If you see that on a Dependabot PR, run `npm install` on the branch and commit the lockfile. The shaker is idempotent and runs in ~0.3s against the already-installed `node_modules`, so the check costs nothing and needs no second install. The deploy path passes `check-lockfile: false` — the dev flags do not affect the built output, so drift should block a pull request, not a publish.
 
 #### Updating Dependencies
 

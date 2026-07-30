@@ -30,7 +30,7 @@ Be respectful, constructive, and collaborative. We're all here to improve immigr
 
 ### Prerequisites
 
-- **Node.js** — no `engines` field is pinned in `package.json`; CI runs Node 22 and the deploy workflow runs Node 20, so either is known-working
+- **Node.js** — pinned in `.nvmrc` (Node 22); CI and the deploy both read it from there. Run `nvm use` to adopt it locally
 - **npm** — Comes with Node.js
 - **Git** — For version control
 
@@ -79,12 +79,17 @@ Use descriptive branch names:
    npm run lint
    ```
 
-4. **Run tests** — Verify tests pass:
+4. **Typecheck** — CI gates on this, so catch type errors before pushing:
+   ```bash
+   npm run typecheck
+   ```
+
+5. **Run tests** — Verify tests pass:
    ```bash
    npm test
    ```
 
-5. **Build locally** — Test that production build succeeds:
+6. **Build locally** — Test that production build succeeds:
    ```bash
    npm run build
    ```
@@ -242,10 +247,14 @@ Example:
 
 2. **Run all checks:**
    ```bash
-   npm run lint    # Check code style
-   npm test        # Run tests
-   npm run build   # Verify production build
+   npm run lint        # Check code style
+   npm run typecheck   # Check types
+   npm test            # Run tests
+   npm run build       # Verify production build
    ```
+
+   These are exactly what `verify.yaml` runs on your PR, so a clean pass here
+   means a green check.
 
 3. **Test in browser:**
    - Test across different screen sizes (mobile + desktop)
@@ -273,7 +282,7 @@ Example:
 
 ### What to Expect
 
-1. **Automated checks** — GitHub Actions runs linting, tests, and builds
+1. **Automated checks** — `ci.yaml` calls the reusable `verify.yaml`, which runs the lockfile check, lint, typecheck, tests, and a production build against the fixture data. It reports as a single `verify / verify` check. CI runs on pull requests only, so you get one run per push rather than two
 2. **Code review** — Maintainers or contributors may review and suggest changes
 3. **Responsiveness** — Be prepared to respond to feedback and make updates
 

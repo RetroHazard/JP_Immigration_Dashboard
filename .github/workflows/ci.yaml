@@ -1,48 +1,18 @@
 name: CI
 
+# Pull requests only. A `push` trigger here would fire a second, identical run
+# for every push to a branch that has a PR open. Pushes to main are verified by
+# deploy.yaml, which runs the same checks before publishing.
 on:
-  push:
-    branches-ignore: [gh-pages]
   pull_request:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      # src/buildInfo.js is gitignored and generated at build time; typecheck
-      # and tests import it, so it must exist before they run.
-      - name: Generate build info
-        run: npx react-build-info
-
-      - name: Lint
-        run: npx eslint src scripts
-
-      - name: Typecheck
-        run: npx tsc --noEmit
-
-      - name: Test
-        run: npx vitest run
-
-      # Builds against the deterministic fixture (no e-Stat secret needed);
-      # the transform step generates it automatically when raw data is absent.
-      - name: Build
-        run: npm run build
+    uses: ./.github/workflows/verify.yaml

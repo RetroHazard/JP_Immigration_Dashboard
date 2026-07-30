@@ -1,0 +1,97 @@
+name: 'Fetch e-Stat data'
+description: 'Downloads and validates the e-Stat statistics payload, optionally keeping the previous copy for comparison.'
+
+inputs:
+  app-id:
+    description: 'e-Stat application ID (secrets.ESTAT_APP_ID).'
+    required: true
+  path:
+    description: 'Destination for the raw payload.'
+    required: false
+    default: 'public/datastore/statData.json'
+  force:
+    description: 'Download even when a copy is already present. When false, an existing file is validated and kept.'
+    required: false
+    default: 'false'
+
+outputs:
+  had-previous:
+    description: 'true when a copy already existed before this action ran.'
+    value: ${{ steps.fetch.outputs.had-previous }}
+  previous-path:
+    description: 'Path the pre-existing copy was preserved at (empty when there was none).'
+    value: ${{ steps.fetch.outputs.previous-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Fetch and validate
+      id: fetch
+      shell: bash
+      # The app ID is passed through env rather than interpolated into the URL
+      # so it never appears in the rendered command line.
+      env:
+        ESTAT_APP_ID: ${{ inputs.app-id }}
+        DATA_PATH: ${{ inputs.path }}
+        FORCE: ${{ inputs.force }}
+      run: |
+        set -euo pipefail
+
+        mkdir -p "$(dirname "$DATA_PATH")"
+
+        prev_path=""
+        had_previous=false
+        if [ -f "$DATA_PATH" ]; then
+          had_previous=true
+          # Only preserve a comparison copy when we are about to overwrite the
+          # file; on the deploy path the existing copy is used as-is.
+          if [ "$FORCE" = "true" ]; then
+            prev_path="$(dirname "$DATA_PATH")/prev-$(basename "$DATA_PATH")"
+            cp "$DATA_PATH" "$prev_path"
+          fi
+        fi
+        echo "had-previous=$had_previous" >> "$GITHUB_OUTPUT"
+        echo "previous-path=$prev_path" >> "$GITHUB_OUTPUT"
+
+        if [ "$FORCE" = "true" ] || [ ! -f "$DATA_PATH" ]; then
+          if [ "$had_previous" = "false" ]; then
+            echo "::notice::No cached payload present - downloading a fresh copy."
+          fi
+          # e-Stat is the pipeline's only external dependency and it does go
+          # down. --max-time bounds a single hung transfer; --retry-max-time
+          # bounds the whole retry window, so the worst case stays below the
+          # calling jobs' timeout-minutes rather than being truncated by them.
+          # --retry-all-errors is needed because plain --retry ignores
+          # connection-level failures.
+          curl -sS -L --fail \
+            --connect-timeout 20 \
+            --max-time 300 \
+            --retry 3 \
+            --retry-delay 15 \
+            --retry-max-time 600 \
+            --retry-all-errors \
+            --get "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData" \
+            --data-urlencode "appId=${ESTAT_APP_ID}" \
+            --data-urlencode "lang=J" \
+            --data-urlencode "statsDataId=0003449073" \
+            --data-urlencode "metaGetFlg=Y" \
+            --data-urlencode "sectionHeaderFlg=2" \
+            --data-urlencode "replaceSpChars=0" \
+            -o "$DATA_PATH" || {
+              echo "::error::e-Stat API request failed"
+              exit 1
+            }
+        else
+          echo "::notice::Using the cached payload."
+        fi
+
+        jq -e . "$DATA_PATH" >/dev/null || {
+          echo "::error::Invalid JSON structure in $DATA_PATH"
+          exit 1
+        }
+
+        jq -e '.GET_STATS_DATA.STATISTICAL_DATA' "$DATA_PATH" >/dev/null || {
+          echo "::error::Missing GET_STATS_DATA.STATISTICAL_DATA - the API likely returned an error envelope."
+          jq -r '.GET_STATS_DATA.RESULT // .' "$DATA_PATH" | head -20
+          exit 1
+        }

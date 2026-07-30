@@ -3,7 +3,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![Build and Deploy to GitHub Pages](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/build.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/build.yaml) [![Data Watcher](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml)
+[![Deploy](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/deploy.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/deploy.yaml) [![CI](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/ci.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/ci.yaml) [![Data Watcher](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml)
 
 ## Overview
 A Next.js-based dashboard for visualizing and analyzing application processing statistics at Japan's Regional
@@ -173,7 +173,8 @@ Seven interactive charts, each answering a specific question about the data, wit
 - `@next/third-parties` (Google Analytics) – Loaded only when a `GA_MEASUREMENT_ID` is configured at build time
 
 ### DevOps & Automation:
-- `GitHub Actions` – CI (lint, typecheck, tests, fixture build) and deploy automation
+- `GitHub Actions` – CI (lockfile check, lint, typecheck, tests, fixture build) and deploy automation, sharing one reusable `verify.yaml` so pull requests and publishes run identical checks
+- `Continuous deployment` – Pushes to `main` that touch the site (source, assets, build config, changelog) publish to GitHub Pages automatically; documentation-only commits do not
 - `Data Watcher Workflow` – Automated e-Stat data monitoring
 - `Build-time data transform` – e-Stat payload flattened and bureau-corrected once at build (~10x smaller client payload)
 - `react-build-info` – Build metadata generation
@@ -196,8 +197,8 @@ The dashboard automatically monitors and updates immigration statistics from the
 ### Data Watcher Workflow
 - **Schedule:** Runs daily at 10:05 AM JST, year-round — not just around the expected release window, so it also catches retroactive corrections e-Stat occasionally publishes mid-month
 - **Detection:** Compares `SURVEY_DATE` in e-Stat API responses against the previous run's data to detect new or corrected releases
-- **Conditional Publish:** A build and deploy is only triggered when `SURVEY_DATE` has actually changed — most daily runs find nothing new and simply refresh the cache without publishing anything
-- **Cache Management:** Maintains efficient GitHub Actions cache, automatically cleaning out stale/replaced entries
+- **Conditional Publish:** A build and deploy is only triggered when `SURVEY_DATE` has actually changed — most daily runs find nothing new and exit without publishing anything. When it does change, the watcher calls the deploy workflow directly, so the check and the publish are one linked run
+- **Cache Management:** The watcher owns the e-Stat cache, saving under a key derived from the payload's content hash and pruning superseded entries; the deploy only reads it. Reading the cache daily is also what keeps it from being evicted
 
 ---
 
@@ -281,6 +282,7 @@ The dashboard automatically monitors and updates immigration statistics from the
 ### Build Configuration
 - **Static Export:** Next.js configured for SPA output (`output: 'export'`)
 - **Custom Build Directory:** Outputs to `build/` for GitHub Pages compatibility
+- **Custom Domain:** `public/CNAME` is committed, so the static export always carries the domain into the published artifact
 - **Build Metadata:** Automatic version and timestamp injection via `react-build-info`
 
 ---
