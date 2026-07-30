@@ -159,7 +159,7 @@ src/
 ├── utils/            # Utility functions and data selectors (+ __tests__/)
 ├── constants/        # Constants (bureaus, application types, status codes, ...)
 ├── contexts/         # React context providers (theme)
-├── i18n/             # Locale strings and the locale context
+├── i18n/             # Locale catalogues, translation runtime, and formatters
 └── lib/              # Small shared helpers (class-merge, motion)
 ```
 

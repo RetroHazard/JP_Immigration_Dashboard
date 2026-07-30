@@ -16,8 +16,10 @@ import type { Topology } from 'topojson-specification';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../i18n/LocaleContext';
+import { useBureauLabel, useBureauOptions, usePrefectureById } from '../../i18n/useDomainLabels';
 import { visibleBureauColor, withAlpha } from '../../utils/bureauColors';
-import { nonAirportBureaus } from '../../utils/getBureauData';
+import { AIRPORT_BUREAU_CODES } from '../../utils/getBureauData';
 import { logger } from '../../utils/logger';
 import {
   ChoroplethChart,
@@ -40,8 +42,14 @@ const densityBin = (density: number) => DENSITY_BINS.filter((edge) => density >=
 const DENSITY_ALPHAS = [0.3, 0.45, 0.6, 0.78, 0.92];
 
 
-const prefectureByName = new Map(japanPrefectures.map((prefecture) => [prefecture.name, prefecture]));
 const bureauByCode = new Map(bureauOptions.map((bureau) => [bureau.value, bureau]));
+
+/**
+ * The TopoJSON carries the JIS prefecture code as `properties.id`, which is
+ * what we join on — matching on the English `properties.name` would break as
+ * soon as prefecture names come from the catalogue.
+ */
+const prefectureIdOf = (geoFeature: ChoroplethFeature) => Number(geoFeature.properties?.id);
 
 interface MarkerInfo {
   code: string;
@@ -52,14 +60,15 @@ interface MarkerInfo {
   area: number;
 }
 
-const MARKERS: MarkerInfo[] = bureauOptions
+// Pin geometry is language-neutral and computed once; only the label depends
+// on the locale, so it is joined in at render.
+const MARKER_GEOMETRY = bureauOptions
   .filter((bureau) => bureau.value !== 'all' && bureau.coordinates)
   .map((bureau) => {
     const served = japanPrefectures.filter((prefecture) => prefecture.bureau === bureau.value);
     return {
       code: bureau.value,
-      label: bureau.label,
-      isAirport: bureau.label.toLowerCase().includes('airport'),
+      isAirport: bureau.isAirport,
       coordinates: bureau.coordinates as [number, number],
       population: served.reduce((sum, prefecture) => sum + prefecture.population, 0),
       area: served.reduce((sum, prefecture) => sum + prefecture.area, 0),
@@ -71,6 +80,12 @@ const BureauMarkers: React.FC = () => {
   const { projectPoint, width, height } = useChoropleth();
   const { zoom } = useChoroplethZoom();
   const [hovered, setHovered] = useState<MarkerInfo | null>(null);
+  const { t, formatters } = useLocale();
+  const bureaus = useBureauOptions();
+  const markers: MarkerInfo[] = useMemo(() => {
+    const labelByCode = new Map(bureaus.map((bureau) => [bureau.value, bureau.label]));
+    return MARKER_GEOMETRY.map((marker) => ({ ...marker, label: labelByCode.get(marker.code) ?? marker.code }));
+  }, [bureaus]);
 
   const transform = zoom?.transformMatrix;
   const project = (coords: [number, number]): [number, number] | null => {
@@ -82,14 +97,16 @@ const BureauMarkers: React.FC = () => {
 
   return (
     <div className="pointer-events-none absolute inset-0">
-      {MARKERS.map((marker) => {
+      {markers.map((marker) => {
         const point = project(marker.coordinates);
         if (!point || point[0] < 0 || point[1] < 0 || point[0] > width || point[1] > height) return null;
         const Icon = marker.isAirport ? Plane : Building2;
         return (
           <button
             key={marker.code}
-            aria-label={`${marker.label} ${marker.isAirport ? 'airport office' : 'bureau'}`}
+            aria-label={t(marker.isAirport ? 'map.airportMarkerAria' : 'map.bureauMarkerAria', {
+              bureau: marker.label,
+            })}
             className={`pointer-events-auto absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border shadow-soft transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-ring ${
               marker.isAirport
                 ? 'size-5 border-border bg-card text-secondary-foreground'
@@ -109,22 +126,25 @@ const BureauMarkers: React.FC = () => {
         <div className="pointer-events-none absolute bottom-2 left-2 z-10 rounded-lg border border-border bg-popover/95 px-3 py-2 text-xs text-popover-foreground shadow-soft-lg backdrop-blur">
           <div className="flex items-center gap-1.5 font-semibold">
             {hovered.isAirport ? <Plane className="size-3.5" /> : <Building2 className="size-3.5" />}
-            {hovered.label}
-            {hovered.isAirport ? ' Airport Office' : ' Bureau'}
+            {/* One entry per shape rather than a name plus an appended
+                 word: the office type precedes the name in many languages. */}
+            {t(hovered.isAirport ? 'map.airportSuffix' : 'map.bureauSuffix', { bureau: hovered.label })}
           </div>
           {hovered.population > 0 ? (
             <div className="mt-1 grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 tabular-nums text-muted-foreground">
-              <span>Service population</span>
-              <span className="text-right text-popover-foreground">{hovered.population.toLocaleString()}</span>
-              <span>Service area</span>
-              <span className="text-right text-popover-foreground">{hovered.area.toLocaleString()} km²</span>
-              <span>Density</span>
+              <span>{t('map.servicePopulation')}</span>
+              <span className="text-right text-popover-foreground">{formatters.number(hovered.population)}</span>
+              <span>{t('map.serviceArea')}</span>
               <span className="text-right text-popover-foreground">
-                {(hovered.population / hovered.area).toFixed(1)} /km²
+                {t('map.areaValue', { value: formatters.number(hovered.area) })}
+              </span>
+              <span>{t('metric.density')}</span>
+              <span className="text-right text-popover-foreground">
+                {t('map.densityValue', { value: formatters.number(Math.round((hovered.population / hovered.area) * 10) / 10) })}
               </span>
             </div>
           ) : (
-            <div className="mt-1 text-muted-foreground">Port-of-entry office</div>
+            <div className="mt-1 text-muted-foreground">{t('map.portOfEntry')}</div>
           )}
         </div>
       )}
@@ -134,21 +154,22 @@ const BureauMarkers: React.FC = () => {
 
 /** Zoom controls using the chart's own zoom instance (labeled, iconized). */
 const ZoomControls: React.FC = () => {
+  const { t } = useLocale();
   const { zoom } = useChoroplethZoom();
   if (!zoom) return null;
   return (
     <div className="absolute right-2 top-2 flex flex-col gap-1.5">
-      <button onClick={() => zoom.scale({ scaleX: 1.4, scaleY: 1.4 })} className="zoom-button" aria-label="Zoom in">
+      <button onClick={() => zoom.scale({ scaleX: 1.4, scaleY: 1.4 })} className="zoom-button" aria-label={t('map.zoomIn')}>
         <Plus className="size-4" aria-hidden="true" />
       </button>
       <button
         onClick={() => zoom.scale({ scaleX: 1 / 1.4, scaleY: 1 / 1.4 })}
         className="zoom-button"
-        aria-label="Zoom out"
+        aria-label={t('map.zoomOut')}
       >
         <Minus className="size-4" aria-hidden="true" />
       </button>
-      <button onClick={() => zoom.reset()} className="zoom-button" aria-label="Reset view">
+      <button onClick={() => zoom.reset()} className="zoom-button" aria-label={t('map.resetView')}>
         <RotateCcw className="size-4" aria-hidden="true" />
       </button>
     </div>
@@ -156,7 +177,12 @@ const ZoomControls: React.FC = () => {
 };
 
 export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () => {
+  const { t, formatters } = useLocale();
   const { isDarkMode } = useTheme();
+  const prefectureById = usePrefectureById();
+  const bureaus = useBureauOptions();
+  const bureauLabelOf = useBureauLabel();
+  const legendBureaus = bureaus.filter((bureau) => !AIRPORT_BUREAU_CODES.has(bureau.value) && bureau.value !== 'all');
   const [features, setFeatures] = useState<FeatureCollection<Geometry, ChoroplethFeatureProperties> | null>(null);
   const [loadError, setLoadError] = useState(false);
 
@@ -184,21 +210,18 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
 
   const getFeatureColor = useMemo(
     () => (geoFeature: ChoroplethFeature) => {
-      const prefecture = prefectureByName.get(String(geoFeature.properties?.name));
+      const prefecture = prefectureById(prefectureIdOf(geoFeature));
       const bureau = prefecture ? bureauByCode.get(prefecture.bureau) : undefined;
       if (!prefecture || !bureau?.border) return 'var(--muted)';
-      return withAlpha(
-        visibleBureauColor(bureau.border, isDarkMode),
-        DENSITY_ALPHAS[densityBin(Number(prefecture.density))]
-      );
+      return withAlpha(visibleBureauColor(bureau.border, isDarkMode), DENSITY_ALPHAS[densityBin(prefecture.density)]);
     },
-    [isDarkMode]
+    [isDarkMode, prefectureById]
   );
 
   if (loadError) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
-        Unable to load the map data. Try reloading the page.
+        {t('map.loadError')}
       </div>
     );
   }
@@ -206,7 +229,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
   if (!features) {
     return (
       <div className="map-container">
-        <LoadingSpinner fullScreen={false} message="Loading Map Data..." />
+        <LoadingSpinner fullScreen={false} message={t('map.loading')} />
       </div>
     );
   }
@@ -216,27 +239,28 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
       <div className="mb-2 flex flex-wrap items-start justify-between gap-x-4 gap-y-2 text-xxs text-muted-foreground">
         <div className="min-w-0">
           <SeriesLegend
-            items={nonAirportBureaus
+            items={legendBureaus
               .filter((bureau) => bureau.border)
               .map((bureau) => ({
+                id: bureau.value,
                 label: bureau.label,
                 color: visibleBureauColor(bureau.border as string, isDarkMode),
               }))}
           />
-          <p className="mt-1">Color = service bureau · intensity = population density</p>
+          <p className="mt-1">{t('map.legendNote')}</p>
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <span className="inline-flex items-center gap-1">
             <span className="flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <Building2 className="size-2.5" aria-hidden="true" />
             </span>
-            Bureau
+            {t('map.bureau')}
           </span>
           <span className="inline-flex items-center gap-1">
             <span className="flex size-4 items-center justify-center rounded-full border border-border bg-card text-secondary-foreground">
               <Plane className="size-2.5" aria-hidden="true" />
             </span>
-            Airport office
+            {t('map.airportOffice')}
           </span>
         </div>
       </div>
@@ -256,29 +280,30 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
         />
         <ChoroplethTooltip
           content={({ feature: geoFeature }) => {
-            const name = String(geoFeature.properties?.name ?? '');
-            const prefecture = prefectureByName.get(name);
-            const bureau = prefecture ? bureauByCode.get(prefecture.bureau) : undefined;
+            const prefecture = prefectureById(prefectureIdOf(geoFeature));
+            const name = prefecture?.name ?? String(geoFeature.properties?.name ?? '');
+            // The Japanese name rides along as a secondary, but only when it
+            // isn't already what the catalogue resolved to — otherwise the
+            // Japanese locale would print the same name twice.
+            const nameJa = String(geoFeature.properties?.name_ja ?? '');
             return (
               <div className="px-3 py-2.5 text-xs">
                 <div className="font-semibold">
                   {name}
-                  {geoFeature.properties?.name_ja ? (
-                    <span className="ml-1.5 font-normal text-muted-foreground">
-                      {String(geoFeature.properties.name_ja)}
-                    </span>
+                  {nameJa && nameJa !== name ? (
+                    <span className="ml-1.5 font-normal text-muted-foreground">{nameJa}</span>
                   ) : null}
                 </div>
                 {prefecture && (
                   <div className="mt-1 grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 tabular-nums text-muted-foreground">
-                    <span>Service bureau</span>
-                    <span className="text-right">{bureau?.label ?? prefecture.bureau}</span>
-                    <span>Population</span>
-                    <span className="text-right">{prefecture.population.toLocaleString()}</span>
-                    <span>Area</span>
-                    <span className="text-right">{prefecture.area.toLocaleString()} km²</span>
-                    <span>Density</span>
-                    <span className="text-right">{prefecture.density} /km²</span>
+                    <span>{t('map.serviceBureau')}</span>
+                    <span className="text-right">{bureauLabelOf(prefecture.bureau)}</span>
+                    <span>{t('metric.population')}</span>
+                    <span className="text-right">{formatters.number(prefecture.population)}</span>
+                    <span>{t('metric.area')}</span>
+                    <span className="text-right">{t('map.areaValue', { value: formatters.number(prefecture.area) })}</span>
+                    <span>{t('metric.density')}</span>
+                    <span className="text-right">{t('map.densityValue', { value: formatters.number(Math.round(prefecture.density * 100) / 100) })}</span>
                   </div>
                 )}
               </div>

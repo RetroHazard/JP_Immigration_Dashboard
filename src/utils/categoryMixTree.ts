@@ -10,15 +10,15 @@ import type { ChartRange } from './selectors';
 import { breakdownScopeFromFilter, getAllMonths, monthsForRange, selectData } from './selectors';
 
 export interface MixLeaf {
-  name: string;
+  /** Bureau code. The bureau's display name used to live here, which made the
+   *  treemap's animation keys change with the UI language. */
+  code: string;
   value: number;
 }
 
 export interface MixCategory {
   /** Application type code ('10'…'60') */
   key: string;
-  name: string;
-  short: string;
   /** Category hue from the --chart-mix-* palette, stable per type */
   color: string;
   value: number;
@@ -52,7 +52,7 @@ export const buildCategoryMixTree = (
       const children = bureauOptions
         .filter((bureau) => bureau.value !== 'all')
         .map((bureau) => ({
-          name: bureau.label,
+          code: bureau.value,
           value: rows.reduce(
             (sum, entry) => (entry.bureau === bureau.value && entry.type === option.value ? sum + entry.value : sum),
             0
@@ -63,8 +63,6 @@ export const buildCategoryMixTree = (
 
       return {
         key: option.value,
-        name: option.label,
-        short: option.short,
         color: `var(--chart-mix-${typeIndex + 1})`,
         value: children.reduce((sum, leaf) => sum + leaf.value, 0),
         children,

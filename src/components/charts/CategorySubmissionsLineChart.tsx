@@ -9,6 +9,7 @@ import type React from 'react';
 import { curveMonotoneX } from '@visx/curve';
 
 import { STATUS_CODES } from '../../constants/statusCodes';
+import { useLocale } from '../../i18n/LocaleContext';
 import { bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import { Grid } from '../bklit/charts/grid';
 import { Line, LineChart } from '../bklit/charts/line-chart';
@@ -18,24 +19,30 @@ import { YAxis } from '../bklit/charts/y-axis';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { SeriesLegend } from '../common/SeriesLegend';
 
+// `id` is the data-row property, the chart's dataKey, and the hide/show
+// identity; `type` is the e-Stat application code the values come from;
+// `label` is display text only. All three used to be one string, so toggling a
+// series and plotting it both depended on the UI language.
 const SERIES = [
-  { key: 'Acquisition', type: '10', color: 'var(--chart-1)' },
-  { key: 'Extension', type: '20', color: 'var(--chart-2)' },
-  { key: 'Change of Status', type: '30', color: 'var(--chart-3)' },
-  { key: 'Activity Permission', type: '40', color: 'var(--chart-4)' },
-  { key: 'Re-entry', type: '50', color: 'var(--chart-5)' },
-  { key: 'Permanent Residence', type: '60', color: 'var(--chart-6)' },
+  { id: 'acquisition', labelKey: 'chart.types.series.acquisition', type: '10', color: 'var(--chart-1)' },
+  { id: 'extension', labelKey: 'chart.types.series.extension', type: '20', color: 'var(--chart-2)' },
+  { id: 'change', labelKey: 'chart.types.series.change', type: '30', color: 'var(--chart-3)' },
+  { id: 'activity', labelKey: 'chart.types.series.activity', type: '40', color: 'var(--chart-4)' },
+  { id: 'reentry', labelKey: 'chart.types.series.reentry', type: '50', color: 'var(--chart-5)' },
+  { id: 'permanent', labelKey: 'chart.types.series.permanent', type: '60', color: 'var(--chart-6)' },
 ] as const;
 
 export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
+  const { t } = useLocale();
+  const series = useMemo(() => SERIES.map((entry) => ({ ...entry, label: t(entry.labelKey) })), [t]);
   const [hiddenSeries, setHiddenSeries] = useState<ReadonlySet<string>>(() => new Set());
-  const toggleSeries = (label: string) =>
+  const toggleSeries = (id: string) =>
     setHiddenSeries((previous) => {
       const next = new Set(previous);
-      if (!next.delete(label)) next.add(label);
+      if (!next.delete(id)) next.add(id);
       return next;
     });
-  const visibleSeries = SERIES.filter((series) => !hiddenSeries.has(series.key));
+  const visibleSeries = series.filter((entry) => !hiddenSeries.has(entry.id));
 
   const chartData = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
@@ -48,7 +55,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
       });
       const row: Record<string, unknown> = { date: new Date(`${month}-01T00:00:00`) };
       for (const series of SERIES) {
-        row[series.key] = monthData.reduce((sum, entry) => (entry.type === series.type ? sum + entry.value : sum), 0);
+        row[series.id] = monthData.reduce((sum, entry) => (entry.type === series.type ? sum + entry.value : sum), 0);
       }
       return row;
     });
@@ -58,39 +65,51 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     <div className="card-content">
       <SeriesLegend
         className="mb-2"
-        items={SERIES.map((series) => ({
-          label: series.key,
-          color: series.color,
+        items={series.map((entry) => ({
+          id: entry.id,
+          label: entry.label,
+          color: entry.color,
           shape: 'line',
-          hidden: hiddenSeries.has(series.key),
+          hidden: hiddenSeries.has(entry.id),
         }))}
         onToggle={toggleSeries}
+        toggleTitle={(item) => t(item.hidden ? 'chart.legendShow' : 'chart.legendHide', { series: item.label })}
       />
       {visibleSeries.length === 0 ? (
         <div className="flex min-h-[280px] items-center justify-center text-sm text-muted-foreground">
-          All series hidden — click a legend entry to show one.
+          {t('chart.allSeriesHidden')}
         </div>
       ) : (
         <div
           className="chart-container"
           role="img"
-          aria-label="Line chart of monthly new submissions per application type"
+          aria-label={t('charts.types.aria')}
         >
           <LineChart data={chartData} aspectRatio="16 / 8">
             <Grid horizontal />
             <YAxis />
-            {visibleSeries.map((series) => (
+            {visibleSeries.map((entry) => (
               <Line
-                key={series.key}
-                dataKey={series.key}
+                key={entry.id}
+                dataKey={entry.id}
                 curve={curveMonotoneX}
-                stroke={series.color}
+                stroke={entry.color}
                 strokeWidth={2}
                 fadeEdges={false}
               />
             ))}
             <XAxis />
-            <ChartTooltip />
+            {/* Rows are named explicitly: the tooltip would otherwise show the
+                raw series ids now that those are no longer display text. */}
+            <ChartTooltip
+              rows={(point) =>
+                visibleSeries.map((entry) => ({
+                  color: entry.color,
+                  label: entry.label,
+                  value: Number(point[entry.id] ?? 0),
+                }))
+              }
+            />
           </LineChart>
         </div>
       )}

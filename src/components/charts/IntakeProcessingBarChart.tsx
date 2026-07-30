@@ -11,6 +11,7 @@ import type React from 'react';
 import { curveMonotoneX } from '@visx/curve';
 
 import { STATUS_CODES } from '../../constants/statusCodes';
+import { useLocale } from '../../i18n/LocaleContext';
 import { bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import { ComposedChart } from '../bklit/charts/composed-chart';
 import { Grid } from '../bklit/charts/grid';
@@ -22,13 +23,18 @@ import { YAxis } from '../bklit/charts/y-axis';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { SeriesLegend } from '../common/SeriesLegend';
 
+// `id` is the data-row property and the chart's dataKey; `label` is display
+// text only. They used to be the same string, which made the plotted data
+// shape depend on the UI language.
 const SERIES = [
-  { key: 'Pending (carried over)', color: 'var(--chart-1)', shape: 'square' as const },
-  { key: 'Received', color: 'var(--chart-2)', shape: 'square' as const },
-  { key: 'Processed', color: 'var(--chart-3)', shape: 'line' as const },
-];
+  { id: 'pending', labelKey: 'metric.pending', status: STATUS_CODES.OLD_APPLICATIONS, color: 'var(--chart-1)', shape: 'square' },
+  { id: 'received', labelKey: 'metric.received', status: STATUS_CODES.NEW_APPLICATIONS, color: 'var(--chart-2)', shape: 'square' },
+  { id: 'processed', labelKey: 'metric.processed', status: STATUS_CODES.PROCESSED, color: 'var(--chart-3)', shape: 'line' },
+] as const;
 
 export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
+  const { t } = useLocale();
+  const series = useMemo(() => SERIES.map((entry) => ({ ...entry, label: t(entry.labelKey) })), [t]);
   const chartData = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
     return months.map((month) => {
@@ -40,31 +46,38 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
       });
       const sumOf = (status: string) =>
         monthData.reduce((sum, entry) => (entry.status === status ? sum + entry.value : sum), 0);
-      return {
-        date: new Date(`${month}-01T00:00:00`),
-        'Pending (carried over)': sumOf(STATUS_CODES.OLD_APPLICATIONS),
-        Received: sumOf(STATUS_CODES.NEW_APPLICATIONS),
-        Processed: sumOf(STATUS_CODES.PROCESSED),
-      };
+      const row: Record<string, unknown> = { date: new Date(`${month}-01T00:00:00`) };
+      for (const series of SERIES) row[series.id] = sumOf(series.status);
+      return row;
     });
   }, [data, filters, range]);
 
   return (
     <div className="card-content">
-      <SeriesLegend className="mb-2" items={SERIES.map((s) => ({ label: s.key, color: s.color, shape: s.shape }))} />
+      <SeriesLegend className="mb-2" items={series} />
       <div
         className="chart-container"
         role="img"
-        aria-label="Stacked bars of pending and received applications per month, with processed volume as a line"
+        aria-label={t('charts.intake.aria')}
       >
         <ComposedChart data={chartData} stacked stackGap={2} maxBarSize={30} aspectRatio="16 / 8">
           <Grid horizontal />
           <YAxis />
-          <SeriesBar dataKey="Pending (carried over)" fill="var(--chart-1)" />
-          <SeriesBar dataKey="Received" fill="var(--chart-2)" radius={3} />
-          <Line dataKey="Processed" stroke="var(--chart-3)" curve={curveMonotoneX} strokeWidth={2.25} fadeEdges={false} />
+          <SeriesBar dataKey="pending" fill="var(--chart-1)" />
+          <SeriesBar dataKey="received" fill="var(--chart-2)" radius={3} />
+          <Line dataKey="processed" stroke="var(--chart-3)" curve={curveMonotoneX} strokeWidth={2.25} fadeEdges={false} />
           <XAxis />
-          <ChartTooltip />
+          {/* Rows are named explicitly: the tooltip would otherwise show the
+              raw series ids now that those are no longer display text. */}
+          <ChartTooltip
+            rows={(point) =>
+              series.map((entry) => ({
+                color: entry.color,
+                label: entry.label,
+                value: Number(point[entry.id] ?? 0),
+              }))
+            }
+          />
         </ComposedChart>
       </div>
     </div>

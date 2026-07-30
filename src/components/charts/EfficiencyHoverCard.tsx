@@ -9,6 +9,7 @@
 import type React from 'react';
 import { createPortal } from 'react-dom';
 
+import { useLocale } from '../../i18n/LocaleContext';
 import type { EfficiencyPoint } from '../../utils/processingEfficiency';
 
 interface EfficiencyHoverCardProps {
@@ -18,7 +19,9 @@ interface EfficiencyHoverCardProps {
   y: number;
 }
 
-export const EfficiencyHoverCard: React.FC<EfficiencyHoverCardProps> = ({ point, x, y }) => createPortal(
+export const EfficiencyHoverCard: React.FC<EfficiencyHoverCardProps> = ({ point, x, y }) => {
+  const { t, formatters } = useLocale();
+  return createPortal(
   <div
     role="status"
     className="pointer-events-none fixed z-50 min-w-[168px] rounded-[10px] border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-soft-lg"
@@ -37,13 +40,14 @@ export const EfficiencyHoverCard: React.FC<EfficiencyHoverCardProps> = ({ point,
       {point.label}
     </div>
     <div className="mt-[5px] grid grid-cols-[auto_auto] gap-x-3.5 gap-y-0.5 text-muted-foreground tabular-nums">
-      <span>Received</span>
-      <span className="text-right text-popover-foreground">{point.received.toLocaleString()}</span>
-      <span>Processed</span>
-      <span className="text-right text-popover-foreground">{point.processed.toLocaleString()}</span>
-      <span>Completion</span>
-      <span className="text-right text-popover-foreground">{point.rate.toFixed(1)}%</span>
+      <span>{t('metric.received')}</span>
+      <span className="text-right text-popover-foreground">{formatters.number(point.received)}</span>
+      <span>{t('metric.processed')}</span>
+      <span className="text-right text-popover-foreground">{formatters.number(point.processed)}</span>
+      <span>{t('metric.completion')}</span>
+      <span className="text-right text-popover-foreground">{formatters.percent(point.rate)}</span>
     </div>
   </div>,
-  document.body
-);
+    document.body
+  );
+};

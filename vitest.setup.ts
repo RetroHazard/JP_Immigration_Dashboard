@@ -1,4 +1,12 @@
 // vitest.setup.ts — jsdom gaps the components rely on.
+import { afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
+
+// Testing Library only auto-registers its cleanup when Vitest globals are on,
+// and they aren't here — so without this, a file that renders in more than one
+// test accumulates DOM and every query fails with "multiple elements found".
+afterEach(cleanup);
+
 if (typeof window !== 'undefined' && !window.matchMedia) {
   window.matchMedia = (query: string) =>
     ({

@@ -1,6 +1,7 @@
 // src/utils/urlApplicationDetails.ts
 import { applicationOptions } from '../constants/applicationOptions';
-import { nonAirportBureaus } from './getBureauData';
+import { bureauOptions } from '../constants/bureauOptions';
+import { AIRPORT_BUREAU_CODES } from './getBureauData';
 
 export interface ApplicationDetails {
   bureau: string;
@@ -21,7 +22,10 @@ export const ESTIMATOR_PARAM_NAMES: Record<keyof ApplicationDetails, string> = {
 // so links shared before the rename still restore the estimate.
 const LEGACY_DATE_PARAM = 'applicationDate';
 
-const isValidBureau = (value: string): boolean => nonAirportBureaus.some((bureau) => bureau.value === value);
+// Validation is identity-only, so it stays a plain module function rather than
+// following the display names into the locale-bound hooks.
+const isValidBureau = (value: string): boolean =>
+  value !== 'all' && !AIRPORT_BUREAU_CODES.has(value) && bureauOptions.some((bureau) => bureau.value === value);
 
 const isValidType = (value: string): boolean =>
   value !== 'all' && applicationOptions.some((option) => option.value === value);

@@ -4,33 +4,40 @@ import type { Metadata, Viewport } from 'next';
 import type React from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
 
+import { DEFAULT_LOCALE } from '../i18n/config';
+import { LOCALES } from '../i18n/locales';
+import { en } from '../i18n/locales/en';
+
 import '../index.css';
 
 import '@fontsource-variable/inter';
 import '@fontsource-variable/noto-sans-jp';
 
-const description =
-  'Visa processing times, bureau workloads, and a queue-model estimator for your own application - built on official Immigration Services Agency statistics, updated whenever e-Stat releases new data (typically monthly).';
+// Metadata is emitted at build time into a single prerendered document, so it
+// can't follow the visitor's locale — `output: 'export'` leaves no server to
+// negotiate one. Reading the English catalogue directly still keeps one source
+// of truth, and is what per-locale routes would build on.
+const title = en['meta.title'];
+const description = en['meta.description'];
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dashboard.retrohazard.jp'),
-  title: 'Japan Immigration Statistics Dashboard',
+  title,
   description,
-  keywords:
-    'Japan visa processing times, immigration bureau statistics, visa application tracker, Immigration Services Agency, e-Stat',
+  keywords: en['meta.keywords'],
   manifest: '/manifest.webmanifest',
   openGraph: {
-    title: 'Japan Immigration Statistics Dashboard',
+    title,
     description,
     url: 'https://dashboard.retrohazard.jp',
-    siteName: 'Japan Immigration Statistics Dashboard',
+    siteName: title,
     images: [{ url: '/og.png', width: 1200, height: 630 }],
-    locale: 'en_US',
+    locale: LOCALES[DEFAULT_LOCALE].intlTag.replace('-', '_'),
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Japan Immigration Statistics Dashboard',
+    title,
     description,
     images: ['/og.png'],
   },
@@ -55,7 +62,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     // suppressHydrationWarning: next-themes stamps the theme class on <html>
     // before hydration, which intentionally differs from the server markup.
-    <html lang="en" suppressHydrationWarning>
+    // lang is the build-time default; LocaleProvider corrects it client-side
+    // once detection runs (the app itself is ssr:false).
+    <html lang={DEFAULT_LOCALE} suppressHydrationWarning>
       <body>
         <div id="root">{children}</div>
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (

@@ -4,6 +4,12 @@ import NumberFlow from "@number-flow/react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
+// LOCAL MODIFICATION: upstream formats with `undefined` (the browser locale),
+// which disagrees with every other number on the page once the app's own
+// locale differs from the browser's. Reads the same module state as
+// chart-formatters.ts. Re-apply after a re-vendor.
+import { chartFormatterLocale } from "./chart-formatters";
+
 /** Subset of `Intl.NumberFormatOptions` supported by NumberFlow */
 export interface ChartStatFlowFormat {
   notation?: "standard" | "compact";
@@ -31,9 +37,10 @@ function formatStatValue(
   prefix?: string,
   suffix?: string
 ): string {
-  const formatted = new Intl.NumberFormat(undefined, formatOptions).format(
-    value
-  );
+  const formatted = new Intl.NumberFormat(
+    chartFormatterLocale(),
+    formatOptions
+  ).format(value);
   return `${prefix ?? ""}${formatted}${suffix ?? ""}`;
 }
 

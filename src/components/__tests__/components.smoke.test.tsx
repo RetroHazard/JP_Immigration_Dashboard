@@ -1,10 +1,16 @@
 // Smoke tests for redesigned components (jsdom).
+// Assertions read their expected text out of the English catalogue rather than
+// repeating it, so extracting or rewording a string doesn't quietly break the
+// test — only removing the key does.
 import { FileStack } from 'lucide-react';
 import { describe, expect, it } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
+import { en } from '../../i18n/locales/en';
+import { renderWithProviders, screen } from '../../test-utils';
 import { ChartDataTable } from '../ChartDataTable';
+import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { SeriesLegend } from '../common/SeriesLegend';
 import { StatCard } from '../common/StatCard';
 
@@ -19,10 +25,10 @@ const entry = (overrides: Partial<ImmigrationData>): ImmigrationData => ({
 
 describe('StatCard', () => {
   it('renders title, formatted value, and MoM delta', () => {
-    render(
+    renderWithProviders(
       <StatCard
-        title="Total Applications"
-        subtitle="Nationwide"
+        title={en['stats.totalApplications']}
+        subtitle={en['bureau.all']}
         value={12345}
         formatValue={(v) => Math.round(v).toLocaleString('en-US')}
         color="blue"
@@ -30,19 +36,19 @@ describe('StatCard', () => {
         delta={{ percent: 3.2, direction: 'neutral' }}
       />
     );
-    expect(screen.getByText('Total Applications')).toBeTruthy();
+    expect(screen.getByText(en['stats.totalApplications'])).toBeTruthy();
     expect(screen.getByText('12,345')).toBeTruthy();
-    expect(screen.getByText(/\+3\.2% MoM/)).toBeTruthy();
+    expect(screen.getByText(en['stats.momDelta'].replace('{delta}', '+3.2%'))).toBeTruthy();
   });
 });
 
 describe('SeriesLegend', () => {
   it('renders one entry per series', () => {
-    render(
+    renderWithProviders(
       <SeriesLegend
         items={[
-          { label: 'Received', color: 'var(--chart-1)' },
-          { label: 'Processed', color: 'var(--chart-2)', shape: 'line' },
+          { id: 'received', label: 'Received', color: 'var(--chart-1)' },
+          { id: 'processed', label: 'Processed', color: 'var(--chart-2)', shape: 'line' },
         ]}
       />
     );
@@ -52,19 +58,39 @@ describe('SeriesLegend', () => {
 });
 
 describe('ChartDataTable', () => {
-  it('opens the table and shows monthly sums for the nationwide scope', () => {
-    const data = [
-      entry({ status: '103000', value: 500 }),
-      entry({ status: '300000', value: 400 }),
-      entry({ bureau: '101170', status: '103000', value: 200 }), // excluded: nationwide scope
-    ];
-    render(<ChartDataTable data={data} filters={{ bureau: 'all', type: 'all' }} range="all" />);
+  const data = [
+    entry({ status: '103000', value: 500 }),
+    entry({ status: '300000', value: 400 }),
+    entry({ bureau: '101170', status: '103000', value: 200 }), // excluded: nationwide scope
+  ];
 
-    fireEvent.click(screen.getByText('View data table'));
+  it('opens the table and shows monthly sums for the nationwide scope', () => {
+    renderWithProviders(<ChartDataTable data={data} filters={{ bureau: 'all', type: 'all' }} range="all" />);
+
+    fireEvent.click(screen.getByText(en['table.view']));
     expect(screen.getByText('2025-06')).toBeTruthy();
     expect(screen.getByText('500')).toBeTruthy();
     expect(screen.getByText('400')).toBeTruthy();
     expect(screen.queryByText('200')).toBeNull();
-    expect(screen.getByText('Download CSV')).toBeTruthy();
+    expect(screen.getByText(en['table.downloadCsv'])).toBeTruthy();
+  });
+
+  it('renders the same English text under an untranslated locale', () => {
+    // ja.ts has no `table.*` keys yet, so this exercises the fallback path an
+    // in-progress translation depends on — nothing should render as a raw key.
+    renderWithProviders(<ChartDataTable data={data} filters={{ bureau: 'all', type: 'all' }} range="all" />, {
+      locale: 'ja',
+    });
+    expect(screen.getByText(en['table.view'])).toBeTruthy();
+    expect(screen.queryByText('table.view')).toBeNull();
+  });
+});
+
+describe('LanguageSwitcher', () => {
+  it('renders nothing while the switcher is gated off', () => {
+    // The counterpart — that it works once enabled — is in
+    // LanguageSwitcher.test.tsx, which mocks the flag on.
+    const { container } = renderWithProviders(<LanguageSwitcher />);
+    expect(container.innerHTML).toBe('');
   });
 });

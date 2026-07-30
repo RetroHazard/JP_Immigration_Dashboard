@@ -4,6 +4,7 @@ import { memo } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type React from 'react';
 
+import { useLocale } from '../../i18n/LocaleContext';
 import { useCountUp } from '../../lib/motion';
 
 type StatBadgeColor = 'blue' | 'yellow' | 'green' | 'red' | 'gray';
@@ -88,6 +89,7 @@ const StatCardComponent: React.FC<StatCardProps> = ({
   spark,
   className,
 }) => {
+  const { t, formatters } = useLocale();
   const valueRef = useCountUp(value, formatValue);
   const deltaClass =
     !delta || delta.direction === 'neutral'
@@ -116,7 +118,9 @@ const StatCardComponent: React.FC<StatCardProps> = ({
         <span className="min-w-0 flex-1">
           <span className={`block truncate text-xxs tabular-nums sm:text-xs ${deltaClass}`}>
             {delta
-              ? `${delta.percent >= 0 ? '+' : '−'}${Math.abs(delta.percent).toFixed(1)}% MoM`
+              ? t('stats.momDelta', {
+                  delta: `${delta.percent >= 0 ? '+' : '−'}${formatters.percent(Math.abs(delta.percent))}`,
+                })
               : subtitle}
           </span>
           {delta && <span className="hidden truncate text-xxs text-muted-foreground lg:block">{subtitle}</span>}

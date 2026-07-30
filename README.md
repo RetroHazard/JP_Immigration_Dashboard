@@ -1,5 +1,5 @@
 # Japan Immigration Statistics Dashboard
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -139,16 +139,18 @@ Seven interactive charts, each answering a specific question about the data, wit
 
 ---
 
-### :globe_with_meridians: Localization *(in progress, switcher hidden)*
-- An i18n scaffold exists (`?lang=ja` for testing), but the language switcher is hidden from the UI until full-coverage translation is ready — Japanese currently only covers a handful of top-level strings (page title, subtitle, estimator header, footer attribution)
-- Structured so additional languages and full-UI translation can be added without layout changes; the switcher returns once localization is a completed feature, not a partial one
+### :globe_with_meridians: Localization *(foundation complete, translations open)*
+- Every string in the interface — text, ARIA labels, chart legends, tooltips, table headers, empty and error states — comes from a single catalogue file per language, so **adding a language means writing one file** and touching no components (see [`src/i18n/README.md`](src/i18n/README.md))
+- Numbers, percentages, and dates follow the active locale, including chart axis ticks and tooltips; counted phrases use real plural rules rather than an English "s"
+- A partial translation is safe to ship: anything a language leaves out falls back to English rather than rendering blank
+- The language switcher is built but **deliberately hidden** — Japanese is still a stub, and offering the switch before a language is actually translated is what got the original switcher pulled. `?lang=ja` works for testing. Flipping `LOCALE_SWITCHER_ENABLED` in `src/i18n/config.ts` is the whole change when a locale is ready
 
 ---
 
 ### :iphone: Responsive Design
 - Mobile-friendly with adaptive breakpoints
 - Fluid layout for all screen sizes — no horizontal scrolling anywhere, including the stats summary row
-- Mobile settings drawer for theme and the in-app changelog, which live inline in the header on desktop (the language section is hidden for now, see Localization above)
+- Mobile settings drawer for language, theme, and the in-app changelog, which live inline in the header on desktop (the language section stays hidden while the switcher is gated, see Localization above)
 - Responsive user interface with light/dark mode support
 
 ---
@@ -269,7 +271,7 @@ The dashboard automatically monitors and updates immigration statistics from the
 
 ### Code Organization
 - **Shared Hooks & Selectors:** `useImmigrationData` for fetching, `selectData` (`src/utils/selectors.ts`) for consistent, bureau-scope-aware filtering
-- **Context Providers:** Theme (via `next-themes`) and locale providers, both with persistence and system-preference fallback
+- **Context Providers:** Theme (via `next-themes`) and locale providers, both with persistence; the locale provider also carries the translation and formatting API (`t`, `tPlural`, `formatters`)
 - **Error Boundaries:** Application-level error catching with graceful user feedback
 - **Logger Utility:** Environment-aware logging (development-only verbose logs)
 

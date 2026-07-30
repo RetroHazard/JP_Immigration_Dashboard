@@ -21,9 +21,11 @@ import type React from 'react';
 import useMeasure from 'react-use-measure';
 
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../i18n/LocaleContext';
+import { useBureauLabel } from '../../i18n/useDomainLabels';
 import { useAnimeScope } from '../../lib/motion';
 import type { EfficiencyPoint } from '../../utils/processingEfficiency';
-import { computeEfficiencyPoints, fmtCount, median } from '../../utils/processingEfficiency';
+import { computeEfficiencyPoints, median } from '../../utils/processingEfficiency';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { EfficiencyHoverCard } from './EfficiencyHoverCard';
 
@@ -40,13 +42,15 @@ interface Hover {
 
 export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { isDarkMode } = useTheme();
+  const { t, formatters } = useLocale();
+  const bureauLabel = useBureauLabel();
   const clipId = `reveal-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const [measureRef, bounds] = useMeasure({ debounce: 10 });
   const [hovered, setHovered] = useState<Hover | null>(null);
 
   const points = useMemo(
-    () => computeEfficiencyPoints(data, filters, range, isDarkMode),
-    [data, filters, range, isDarkMode]
+    () => computeEfficiencyPoints(data, filters, range, isDarkMode, bureauLabel),
+    [data, filters, range, isDarkMode, bureauLabel]
   );
 
   const W = Math.round(bounds.width);
@@ -87,7 +91,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
   if (points.length === 0) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
-        No data for this combination of filters.
+        {t('common.noDataForFilters')}
       </div>
     );
   }
@@ -126,7 +130,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
             className="block w-full"
             style={{ touchAction: 'pan-y' }}
             role="img"
-            aria-label="Quadrant chart of completion rate against received volume per bureau; bubble size shows processed volume"
+            aria-label={t('charts.efficiencyQuadrant.aria')}
             onPointerLeave={() => setHovered(null)}
           >
             {/* Grid + axes */}
@@ -146,7 +150,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
                   fontSize={10.5}
                   fill="var(--chart-foreground)"
                 >
-                  {tick}%
+                  {formatters.percent(tick, 0)}
                 </text>
               </g>
             ))}
@@ -159,7 +163,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
                 fontSize={10.5}
                 fill="var(--chart-foreground)"
               >
-                {fmtCount(tick)}
+                {formatters.compactNumber(tick)}
               </text>
             ))}
             <text
@@ -169,7 +173,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
               fontSize={10.5}
               fill="var(--chart-label)"
             >
-              Applications received
+              {t('chart.efficiency.xAxis')}
             </text>
 
             {/* 100% completion reference */}
@@ -182,7 +186,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
               strokeDasharray="4 4"
             />
             <text x={W - MARGIN.right} y={yScale(100) - 5} textAnchor="end" fontSize={9.5} fill="var(--chart-foreground)">
-              100% of intake completed
+              {t('chart.efficiency.fullCompletion')}
             </text>
 
             {/* Median quadrants; the shaded region is the watch-list */}
@@ -223,7 +227,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
                   letterSpacing="0.06em"
                   fill="var(--chart-foreground)"
                 >
-                  HIGH VOLUME · KEEPING PACE
+                  {t('chart.efficiency.quadrantKeepingPace')}
                 </text>
                 <text
                   x={W - MARGIN.right - 6}
@@ -234,7 +238,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
                   letterSpacing="0.06em"
                   fill="var(--chart-foreground)"
                 >
-                  HIGH VOLUME · FALLING BEHIND
+                  {t('chart.efficiency.quadrantFallingBehind')}
                 </text>
               </g>
             )}

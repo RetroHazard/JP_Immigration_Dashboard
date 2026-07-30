@@ -35,6 +35,8 @@ export interface SankeyTooltipProps {
   formatValue?: (value: number) => string;
   /** Row label for the node value. Default: "Sessions" (local extension) */
   valueLabel?: string;
+  /** Row label for the link value. Default: "Flow" (local extension) */
+  linkLabel?: string;
   /** Custom class name */
   className?: string;
 }
@@ -44,6 +46,7 @@ export function SankeyTooltip({
   linkContent,
   formatValue = intFmt,
   valueLabel = "Sessions",
+  linkLabel = "Flow",
   className = "",
 }: SankeyTooltipProps) {
   const {
@@ -154,7 +157,7 @@ export function SankeyTooltip({
     const rows: TooltipRow[] = [
       {
         color: "var(--chart-foreground-muted)",
-        label: "Flow",
+        label: linkLabel,
         value: formatValue(link.value),
       },
     ];

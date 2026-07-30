@@ -1,0 +1,154 @@
+// src/i18n/__tests__/catalogue.test.ts
+// Integrity checks every locale file must pass. These are what make a
+// community-contributed language file safe to accept: a reviewer does not have
+// to diff 300 keys by eye to know it lines up with English.
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
+
+import { buildTemplate, EN_RELATIVE, TEMPLATE_RELATIVE } from '../../../scripts/localeTemplate';
+import type { LocaleMeta } from '../locales';
+import { LOCALE_CODES, LOCALES } from '../locales';
+import { en } from '../locales/en';
+import type { PluralSuffix } from '../types';
+
+const PLURAL_SUFFIXES: PluralSuffix[] = ['zero', 'one', 'two', 'few', 'many', 'other'];
+const PLACEHOLDER = /\{(\w+)\}/g;
+
+const englishKeys = new Set(Object.keys(en));
+const translatedLocales = LOCALE_CODES.filter((code) => code !== 'en');
+
+const placeholdersIn = (value: string): Set<string> =>
+  new Set(Array.from(value.matchAll(PLACEHOLDER), (match) => match[1]));
+
+const pluralBaseOf = (key: string): string | null => {
+  const suffix = PLURAL_SUFFIXES.find((candidate) => key.endsWith(`_${candidate}`));
+  return suffix ? key.slice(0, -(suffix.length + 1)) : null;
+};
+
+describe('English catalogue', () => {
+  it('has no empty or whitespace-only values', () => {
+    const blank = Object.entries(en).filter(([, value]) => value.trim() === '');
+    expect(blank).toEqual([]);
+  });
+
+  it('gives every plural family an _other member', () => {
+    const bases = new Set(Object.keys(en).map(pluralBaseOf).filter((base): base is string => base !== null));
+    const missing = [...bases].filter((base) => !englishKeys.has(`${base}_other`));
+    expect(missing).toEqual([]);
+  });
+
+  it('reserves underscores for plural suffixes', () => {
+    const misused = Object.keys(en).filter((key) => key.includes('_') && pluralBaseOf(key) === null);
+    expect(misused).toEqual([]);
+  });
+});
+
+/**
+ * The keys a locale must define to call itself complete.
+ *
+ * Not simply "every English key": plural families are the exception. English
+ * needs `_one` and `_other`, but Japanese has a single CLDR category, so
+ * demanding a `period.months_one` from it would force a meaningless duplicate.
+ * Each language owes only the members its own `Intl.PluralRules` can select,
+ * plus `_other` as the universal fallback.
+ */
+const requiredKeysFor = (intlTag: string): string[] => {
+  const categories = new Set<string>([...new Intl.PluralRules(intlTag).resolvedOptions().pluralCategories, 'other']);
+  return Object.keys(en).filter((key) => {
+    const base = pluralBaseOf(key);
+    if (base === null) return true;
+    return categories.has(key.slice(base.length + 1));
+  });
+};
+
+describe.each(translatedLocales)('%s catalogue', (code) => {
+  // Read through LocaleMeta rather than off the `as const` registry: with one
+  // translated locale today, the literal types collapse to it and the
+  // completeness branch below would read as dead code.
+  const meta: LocaleMeta = LOCALES[code];
+  const dictionary = meta.dictionary as Record<string, string>;
+  const entries = Object.entries(dictionary);
+  const required = requiredKeysFor(meta.intlTag);
+  const missing = required.filter((key) => dictionary[key] === undefined);
+
+  if (meta.status === 'complete') {
+    it('covers every English key', () => {
+      // English is the ground truth. A locale that claims completeness fails
+      // here the moment English gains a key it does not carry.
+      expect(missing).toEqual([]);
+    });
+  } else {
+    it('reports its coverage while translation is in progress', () => {
+      const done = required.length - missing.length;
+      const pct = ((done / required.length) * 100).toFixed(1);
+      console.log(`  ${code}: ${done}/${required.length} keys (${pct}%) — ${missing.length} missing, in progress`);
+      // A registered locale with an empty dictionary renders entirely in
+      // English while still offering itself in the switcher.
+      expect(entries.length).toBeGreaterThan(0);
+    });
+  }
+
+  it('defines no key that English does not', () => {
+    const unknown = Object.keys(dictionary).filter((key) => !englishKeys.has(key));
+    expect(unknown).toEqual([]);
+  });
+
+  it('has no empty or whitespace-only values', () => {
+    const blank = entries.filter(([, value]) => value.trim() === '').map(([key]) => key);
+    expect(blank).toEqual([]);
+  });
+
+  it('uses the same placeholders as the English string', () => {
+    const mismatched = entries
+      .filter(([key, value]) => {
+        const source = en[key as keyof typeof en];
+        if (source === undefined) return false;
+        const expected = placeholdersIn(source);
+        const actual = placeholdersIn(value);
+        return expected.size !== actual.size || [...expected].some((name) => !actual.has(name));
+      })
+      .map(([key]) => key);
+    expect(mismatched).toEqual([]);
+  });
+
+  it('covers the _other member of any plural family it translates', () => {
+    const bases = new Set(Object.keys(dictionary).map(pluralBaseOf).filter((base): base is string => base !== null));
+    const missing = [...bases].filter((base) => dictionary[`${base}_other`] === undefined);
+    expect(missing).toEqual([]);
+  });
+});
+
+describe('locale registry', () => {
+  it('gives every locale a usable Intl tag', () => {
+    for (const code of LOCALE_CODES) {
+      const { intlTag } = LOCALES[code];
+      expect(Intl.DateTimeFormat.supportedLocalesOf([intlTag])).toEqual([intlTag]);
+    }
+  });
+
+  it('keys every entry by its own code', () => {
+    for (const code of LOCALE_CODES) {
+      expect(LOCALES[code].code).toBe(code);
+    }
+  });
+
+  it('holds English to being complete, since everything falls back to it', () => {
+    expect(LOCALES.en.status).toBe('complete');
+  });
+});
+
+describe('contributor template', () => {
+  const template = readFileSync(resolve(process.cwd(), TEMPLATE_RELATIVE), 'utf8');
+
+  it('matches the English catalogue it is generated from', () => {
+    // Regenerating is one command; a stale template silently hands the next
+    // translator a key list that no longer matches the app.
+    expect(template).toBe(buildTemplate(readFileSync(resolve(process.cwd(), EN_RELATIVE), 'utf8')));
+  });
+
+  it('offers every English key, commented out', () => {
+    const missing = Object.keys(en).filter((key) => !template.includes(`// '${key}':`));
+    expect(missing).toEqual([]);
+  });
+});

@@ -9,10 +9,12 @@
 // ChartComponents.tsx to switch back.
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type React from 'react';
 
+import { useLocale } from '../../i18n/LocaleContext';
+import { useApplicationType, useBureauLabel } from '../../i18n/useDomainLabels';
 import { buildCategoryMixTree, mixLeafColor } from '../../utils/categoryMixTree';
 import { buildArcs } from '../bklit/charts/sunburst';
 import { SunburstBreadcrumb, useSunburstBreadcrumbItems } from '../bklit/charts/sunburst-breadcrumb';
@@ -47,21 +49,26 @@ const BreadcrumbTrail: React.FC = () => {
 
 export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const tree = useMemo(() => buildCategoryMixTree(data, filters, range), [data, filters, range]);
+  // The tree carries codes only; display names are resolved here.
+  const { t, formatters } = useLocale();
+  const applicationType = useApplicationType();
+  const getBureauLabel = useBureauLabel();
+  const typeLabel = useCallback((code: string) => applicationType(code)?.label ?? code, [applicationType]);
 
   const sunburstData: SunburstNode = useMemo(
     () => ({
-      name: 'All applications',
+      name: t('chart.mix.root'),
       children: tree.categories.map((category) => ({
-        name: category.name,
+        name: typeLabel(category.key),
         color: category.color,
         children: category.children.map((leaf, rank) => ({
-          name: leaf.name,
+          name: getBureauLabel(leaf.code),
           value: leaf.value,
           color: mixLeafColor(category.color, rank),
         })),
       })),
     }),
-    [tree]
+    [tree, typeLabel, getBureauLabel, t]
   );
 
   const arcs = useMemo(() => buildArcs(sunburstData).arcs, [sunburstData]);
@@ -69,7 +76,7 @@ export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filt
   if (tree.total === 0) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
-        No data for this combination of filters.
+        {t('common.noDataForFilters')}
       </div>
     );
   }
@@ -78,9 +85,13 @@ export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filt
     <div className="card-content">
       <SeriesLegend
         className="mb-2"
-        items={tree.categories.map((category) => ({ label: category.name, color: category.color }))}
+        items={tree.categories.map((category) => ({
+          id: category.key,
+          label: typeLabel(category.key),
+          color: category.color,
+        }))}
       />
-      <div aria-label="Sunburst of applications by type and bureau; interactive drill-down">
+      <div aria-label={t('charts.mixSunburst.aria')}>
         {/* ~80 bureau arcs: compress the per-segment stagger so the enter
             sweep (and the labels gated behind it) lands in ~2s, not ~7s */}
         <SunburstChart data={sunburstData} size={430} className="mx-auto" enterStaggerScale={0.3}>
@@ -95,8 +106,11 @@ export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filt
           <SunburstHint className="mt-2 min-h-5 text-center text-xs text-muted-foreground">
             {({ hintText, hoveredArc }) =>
               hoveredArc
-                ? `${hoveredArc.trail.join(' › ')} — ${hoveredArc.value.toLocaleString()} applications` +
-                  ` (${((hoveredArc.value / tree.total) * 100).toFixed(1)}% of total)`
+                ? t('chart.mix.sunburstHint', {
+                    trail: hoveredArc.trail.join(' › '),
+                    count: formatters.number(hoveredArc.value),
+                    percent: formatters.percent((hoveredArc.value / tree.total) * 100),
+                  })
                 : hintText
             }
           </SunburstHint>

@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
+import { en } from '../../i18n/locales/en';
 import { computeEfficiencyPoints, median, nationwideCompletionRate } from '../processingEfficiency';
+
+// Display names come from the locale catalogue, so the resolver is supplied by
+// the caller. English is what this suite asserts against.
+const bureauLabel = (code: string) => en[`bureau.${code}` as keyof typeof en] ?? code;
 
 const entry = (overrides: Partial<ImmigrationData>): ImmigrationData => ({
   month: '2025-06',
@@ -26,17 +31,18 @@ const data: ImmigrationData[] = [
 
 describe('computeEfficiencyPoints', () => {
   it('produces one point per bureau with data, with the completion rate derived from received/processed', () => {
-    const points = computeEfficiencyPoints(data, { bureau: 'all', type: 'all' }, 'all', false);
+    const points = computeEfficiencyPoints(data, { bureau: 'all', type: 'all' }, 'all', false, bureauLabel);
     expect(points.map((p) => p.code).sort()).toEqual(['101170', '101190']);
 
     const shinagawa = points.find((p) => p.code === '101170');
     expect(shinagawa?.received).toBe(600);
     expect(shinagawa?.processed).toBe(450);
     expect(shinagawa?.rate).toBeCloseTo(75);
+    expect(shinagawa?.label).toBe('Shinagawa');
   });
 
   it('marks airport offices and outlines them with their parent region color', () => {
-    const points = computeEfficiencyPoints(data, { bureau: 'all', type: 'all' }, 'all', false);
+    const points = computeEfficiencyPoints(data, { bureau: 'all', type: 'all' }, 'all', false, bureauLabel);
     const narita = points.find((p) => p.code === '101190');
     const shinagawa = points.find((p) => p.code === '101170');
     expect(narita?.isAirport).toBe(true);
@@ -47,7 +53,7 @@ describe('computeEfficiencyPoints', () => {
   });
 
   it('excludes the nationwide aggregate row from the breakdown', () => {
-    const points = computeEfficiencyPoints(data, { bureau: 'all', type: 'all' }, 'all', false);
+    const points = computeEfficiencyPoints(data, { bureau: 'all', type: 'all' }, 'all', false, bureauLabel);
     expect(points.every((p) => p.code !== '100000')).toBe(true);
   });
 });

@@ -12,9 +12,11 @@ import { animate } from 'animejs';
 import type React from 'react';
 
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../i18n/LocaleContext';
+import { useBureauLabel } from '../../i18n/useDomainLabels';
 import { useAnimeScope } from '../../lib/motion';
 import type { EfficiencyPoint } from '../../utils/processingEfficiency';
-import { computeEfficiencyPoints, fmtCount, nationwideCompletionRate } from '../../utils/processingEfficiency';
+import { computeEfficiencyPoints, nationwideCompletionRate } from '../../utils/processingEfficiency';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { EfficiencyHoverCard } from './EfficiencyHoverCard';
 
@@ -30,11 +32,13 @@ interface Hover {
 
 export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { isDarkMode } = useTheme();
+  const { t, formatters } = useLocale();
+  const bureauLabel = useBureauLabel();
   const [hovered, setHovered] = useState<Hover | null>(null);
 
   const points = useMemo(
-    () => computeEfficiencyPoints(data, filters, range, isDarkMode),
-    [data, filters, range, isDarkMode]
+    () => computeEfficiencyPoints(data, filters, range, isDarkMode, bureauLabel),
+    [data, filters, range, isDarkMode, bureauLabel]
   );
   const nationwide = useMemo(() => nationwideCompletionRate(data, filters, range), [data, filters, range]);
   const ranked = useMemo(() => [...points].sort((a, b) => b.rate - a.rate), [points]);
@@ -75,7 +79,7 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
   if (points.length === 0) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
-        No data for this combination of filters.
+        {t('common.noDataForFilters')}
       </div>
     );
   }
@@ -102,14 +106,20 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
               <div
                 key={point.code}
                 tabIndex={0}
-                aria-label={`${point.label}: ${point.rate.toFixed(1)} percent completion, ${point.received.toLocaleString()} applications received`}
+                aria-label={t('chart.efficiency.pointAria', {
+                  bureau: point.label,
+                  rate: point.rate.toFixed(1),
+                  count: formatters.number(point.received),
+                })}
                 className={`${ROW_GRID} min-h-[27px] items-center rounded-[8px] px-1.5 py-1 outline-none hover:bg-accent focus-visible:bg-accent`}
                 {...hoverProps(point)}
               >
                 <div className="truncate text-xs font-semibold" style={{ color: 'var(--chart-label)' }}>
                   {point.label}
                   {point.isAirport && (
-                    <span className="block text-xxs font-medium text-muted-foreground">branch office</span>
+                    <span className="block text-xxs font-medium text-muted-foreground">
+                      {t('chart.efficiency.branchOffice')}
+                    </span>
                   )}
                 </div>
                 <div className="relative h-[18px]">
@@ -141,8 +151,10 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
                   />
                 </div>
                 <div className="whitespace-nowrap text-right text-xs tabular-nums">
-                  <span className="font-semibold text-foreground">{point.rate.toFixed(1)}%</span>
-                  <span className="block text-xxs text-muted-foreground">{fmtCount(point.received)} received</span>
+                  <span className="font-semibold text-foreground">{formatters.percent(point.rate)}</span>
+                  <span className="block text-xxs text-muted-foreground">
+                    {t('chart.efficiency.receivedCount', { count: formatters.compactNumber(point.received) })}
+                  </span>
                 </div>
               </div>
             );
@@ -166,7 +178,7 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
           <div className="relative h-[30px] text-xxs" style={{ color: 'var(--chart-foreground)' }}>
             {ticks.map((tick) => (
               <span key={tick} className="absolute bottom-0 -translate-x-1/2" style={{ left: `${toTrackPct(tick)}%` }}>
-                {tick}%
+                {formatters.percent(tick, 0)}
               </span>
             ))}
             {nationwide !== null && (
@@ -174,7 +186,7 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
                 className="absolute top-0 -translate-x-1/2 whitespace-nowrap font-semibold text-muted-foreground"
                 style={{ left: `${toTrackPct(nationwide)}%` }}
               >
-                Nationwide {nationwide.toFixed(1)}%
+                {t('chart.efficiency.nationwide', { rate: formatters.percent(nationwide) })}
               </span>
             )}
           </div>

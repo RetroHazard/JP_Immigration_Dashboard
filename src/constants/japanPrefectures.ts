@@ -1,25 +1,41 @@
 // src/constants/japanPrefectures.ts
 // noinspection SpellCheckingInspection
 
-interface Prefecture {
-  name: string;
+export interface Prefecture {
+  /**
+   * JIS prefecture code (1 Hokkaido … 47 Okinawa). This is the join key
+   * against `public/static/japan.topo.json`, which carries the same code as
+   * `properties.id`. The English `name` used to serve that role, which stops
+   * working the moment names are translated.
+   */
+  id: number;
   bureau: string;
   population: number;
   area: number;
-  density: string;
+  /** People per km². Formatted at render so it can follow the locale. */
+  density: number;
 }
 
-const createPrefecture = (name: string, bureau: string, population: number, area: number): Prefecture => ({
-  name,
+// The English name stays here as a readability anchor for the data — the
+// name actually rendered comes from the catalogue key `prefecture.<id>`,
+// asserted against this list in __tests__/japanPrefectures.test.ts.
+const createPrefecture = (
+  _name: string,
+  bureau: string,
+  population: number,
+  area: number
+): Omit<Prefecture, 'id'> => ({
   bureau,
   population,
   area,
   get density() {
-    return (this.population / this.area).toFixed(2);
+    return this.population / this.area;
   },
 });
 
-export const japanPrefectures: Prefecture[] = [
+// Listed in JIS order, so the array index carries the code — asserted against
+// the TopoJSON in __tests__/japanPrefectures.test.ts rather than left to trust.
+export const japanPrefectures: Prefecture[] = ([
   createPrefecture('Hokkaido', '101010', 5038741, 83422),
   createPrefecture('Aomori', '101090', 1163739, 9645),
   createPrefecture('Iwate', '101090', 1138978, 15275),
@@ -67,7 +83,10 @@ export const japanPrefectures: Prefecture[] = [
   createPrefecture('Miyazaki', '101720', 1027557, 7734),
   createPrefecture('Kagoshima', '101720', 1535145, 9186),
   createPrefecture('Okinawa', '101740', 1460864, 2282),
-];
+] as Omit<Prefecture, 'id'>[]).map((prefecture, index) => ({ ...prefecture, id: index + 1 }));
+
+export const prefectureById = new Map(japanPrefectures.map((prefecture) => [prefecture.id, prefecture]));
+
 // Population and area data as of October 1, 2024
 // Source: Statistics Bureau of Japan (stat.go.jp) - Official Population Estimates
 // Area figures are from the Geospatial Information Authority of Japan

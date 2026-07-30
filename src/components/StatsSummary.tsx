@@ -4,10 +4,10 @@ import { useMemo } from 'react';
 import { CircleSlash, FileStack, Hourglass, Percent, Stamp } from 'lucide-react';
 import type React from 'react';
 
-import { applicationOptions } from '../constants/applicationOptions';
 import { STATUS_CODES } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
-import { getBureauLabel } from '../utils/getBureauData';
+import { useLocale } from '../i18n/LocaleContext';
+import { useApplicationType, useBureauLabel } from '../i18n/useDomainLabels';
 import { bureauScopeFromFilter, getAllMonths, selectData } from '../utils/selectors';
 import type { StatDelta } from './common/StatCard';
 import { StatCard } from './common/StatCard';
@@ -63,13 +63,15 @@ const statsForRows = (rows: ImmigrationData[]): MonthStats => {
   };
 };
 
-const formatInt = (value: number) => Math.round(value).toLocaleString('en-US');
-const formatPercent = (value: number) => `${value.toFixed(1)}%`;
-
 const deltaOf = (current: number, previous: number | undefined, direction: StatDelta extends null ? never : NonNullable<StatDelta>['direction']): StatDelta =>
   previous === undefined || previous === 0 ? null : { percent: ((current - previous) / previous) * 100, direction };
 
 export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => {
+  const { t, formatters } = useLocale();
+  const formatInt = (value: number) => formatters.number(Math.round(value));
+  const formatPercent = (value: number) => formatters.percent(value);
+  const bureauLabel = useBureauLabel();
+  const applicationType = useApplicationType();
   const monthly = useMemo(() => {
     const scoped = selectData(data, { scope: bureauScopeFromFilter(filters.bureau), type: filters.type });
     const months = getAllMonths(scoped).slice(-SPARK_MONTHS);
@@ -79,17 +81,16 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
   if (monthly.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-        No data for this combination of filters.
+        {t('common.noDataForFilters')}
       </div>
     );
   }
 
   const latest = monthly[monthly.length - 1];
   const previous = monthly.length > 1 ? monthly[monthly.length - 2] : undefined;
-  const bureauLabel = getBureauLabel(filters.bureau);
-  const typeLabel =
-    filters.type !== 'all' ? applicationOptions.find((option) => option.value === filters.type)?.short : undefined;
-  const subtitle = typeLabel ? `${bureauLabel} (${typeLabel})` : bureauLabel;
+  const scopeLabel = bureauLabel(filters.bureau);
+  const typeShort = filters.type !== 'all' ? applicationType(filters.type)?.short : undefined;
+  const subtitle = typeShort ? t('stats.scopeWithType', { bureau: scopeLabel, type: typeShort }) : scopeLabel;
   const spark = (pick: (m: MonthStats) => number) => monthly.map(pick);
 
   // No wrapping and no horizontal scroll at any viewport: phones get a
@@ -103,8 +104,8 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
     <div className="grid grid-cols-6 gap-2 md:flex md:gap-3">
       <StatCard
         className={`col-span-3 ${row}`}
-        title="Total Applications"
-        shortTitle="Total"
+        title={t('stats.totalApplications')}
+        shortTitle={t('stats.totalApplications.short')}
         subtitle={subtitle}
         value={latest.totalApplications}
         formatValue={formatInt}
@@ -115,7 +116,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       />
       <StatCard
         className={`col-span-3 ${row}`}
-        title="Pending"
+        title={t('stats.pending')}
         subtitle={subtitle}
         value={latest.pending}
         formatValue={formatInt}
@@ -126,7 +127,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       />
       <StatCard
         className={`col-span-2 ${row}`}
-        title="Granted"
+        title={t('stats.granted')}
         subtitle={subtitle}
         value={latest.granted}
         formatValue={formatInt}
@@ -137,7 +138,7 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       />
       <StatCard
         className={`col-span-2 ${row}`}
-        title="Denied"
+        title={t('stats.denied')}
         subtitle={subtitle}
         value={latest.denied}
         formatValue={formatInt}
@@ -148,8 +149,8 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
       />
       <StatCard
         className={`col-span-2 ${row}`}
-        title="Approval Rate"
-        shortTitle="Approval"
+        title={t('stats.approvalRate')}
+        shortTitle={t('stats.approvalRate.short')}
         subtitle={subtitle}
         value={latest.approvalRate}
         formatValue={formatPercent}

@@ -214,6 +214,15 @@ graph TD
 
 `page.tsx` is a thin static-params wrapper; `client.tsx` sets up the client providers (nuqs URL adapter, ThemeProvider, LocaleProvider, TooltipProvider, ErrorBoundary) and dynamically imports `App.tsx` (`ssr: false`). `App.tsx` calls `useImmigrationData` and renders `DashboardShell` once data is loaded.
 
+#### **Localization** (`src/i18n/`)
+
+Every user-visible string resolves through a per-language catalogue; `src/i18n/README.md` is the reference. Two things are worth knowing before working elsewhere in the tree:
+
+- **Domain constants carry no display text.** `bureauOptions`, `applicationOptions`, `japanPrefectures`, and `CHART_COMPONENTS` hold codes, geometry, and capability flags only. Names come from the catalogue, joined back by the hooks in `useDomainLabels.ts`. Consequently a bureau's name can only be resolved inside a component — utilities that need one take a resolver argument (`computeEfficiencyPoints`).
+- **Four vendored Bklit files are locally modified.** `charts/chart-formatters.ts` and `charts/chart-stat-flow.tsx` had their `Intl` locale hardcoded to `en-US` (and, in one case, left to the browser); `charts/y-axis.tsx` built tick labels with an English `${n / 1000}k` suffix. Those three now read module state that `LocaleProvider` sets during render. `charts/sankey/sankey-tooltip.tsx` hardcoded its two row labels, and takes `valueLabel` / `linkLabel` props instead. `scripts/vendor-bklit.mjs` would overwrite all four — re-apply after a re-vendor. Each file says so at the point of change.
+
+The language switcher exists but is gated behind `LOCALE_SWITCHER_ENABLED` in `src/i18n/config.ts`, which also gates browser-language detection.
+
 #### **DashboardShell** (`src/components/DashboardShell.tsx`)
 
 The single responsive shell that:
@@ -269,7 +278,7 @@ Summary statistics display, built from `StatCard` (`src/components/common/StatCa
 
 ### Header & Footer
 
-There is no separate `layouts/` directory — the header (branding, language toggle, theme toggle, changelog trigger) and footer (attribution, e-Stat credit) markup live directly inside `DashboardShell.tsx`.
+There is no separate `layouts/` directory — the header (branding, language switcher, theme toggle, changelog trigger) and footer (attribution, e-Stat credit) markup live directly inside `DashboardShell.tsx`. The language switcher renders nothing while `LOCALE_SWITCHER_ENABLED` is false (see below).
 
 #### **ErrorBoundary** (`src/components/common/ErrorBoundary.tsx`)
 - Catches React errors

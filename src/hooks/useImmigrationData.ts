@@ -1,6 +1,7 @@
 // src/hooks/useImmigrationData.ts
 import { useEffect, useState } from 'react';
 
+import type { DictionaryKey } from '../i18n/types';
 import type { DashboardDataFile } from '../utils/dashboardData';
 import { loadLocalData } from '../utils/loadLocalData';
 import { logger } from '../utils/logger';
@@ -19,7 +20,9 @@ export const useImmigrationData = () => {
   const [data, setData] = useState<ImmigrationData[] | null>(null);
   const [meta, setMeta] = useState<DashboardMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  // The hook reports a catalogue key rather than a message: it runs outside
+  // the render tree's locale context, and the caller has to translate anyway.
+  const [error, setError] = useState<DictionaryKey | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,10 +32,14 @@ export const useImmigrationData = () => {
           setData(loaded.records);
           setMeta(loaded.meta);
         } else {
-          setError('No data available');
+          setError('errors.noData');
         }
       } catch (error: unknown) {
-        setError(error instanceof Error ? error.message : 'Unknown error occurred');
+        // The underlying message ("HTTP 404", a JSON parse failure) is
+        // diagnostic rather than actionable, and can't be translated — it goes
+        // to the log, and the user gets a sentence they can read.
+        logger.error('Error loading dashboard data:', error);
+        setError('errors.unknown');
       } finally {
         setLoading(false);
       }
@@ -40,7 +47,7 @@ export const useImmigrationData = () => {
 
     fetchData().catch((error: unknown) => {
       logger.error('Unexpected error in fetchData:', error);
-      setError('Failed to fetch data');
+      setError('errors.fetchFailed');
     });
   }, []);
 

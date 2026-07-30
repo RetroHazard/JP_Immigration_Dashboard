@@ -235,10 +235,19 @@ JP_Immigration_Dashboard/
 │   ├── contexts/
 │   │   └── ThemeContext.tsx           # Thin adapter over next-themes
 │   │
-│   ├── i18n/
-│   │   ├── LocaleContext.tsx
-│   │   ├── en.ts
-│   │   └── ja.ts
+│   ├── i18n/                          # See src/i18n/README.md
+│   │   ├── locales/
+│   │   │   ├── en.ts                  # Source of truth; DictionaryKey derives from it
+│   │   │   ├── ja.ts                  # Partial override, falls back to English
+│   │   │   ├── _template.ts           # Generated starting point (npm run i18n:template)
+│   │   │   └── index.ts               # Registry — one entry per language, with its status
+│   │   ├── LocaleContext.tsx          # Provider + useLocale()
+│   │   ├── translate.ts               # Lookup, interpolation, plural selection
+│   │   ├── formatters.ts              # Locale-bound number / percent / date
+│   │   ├── useDomainLabels.ts         # Joins code-only constants to catalogue text
+│   │   ├── T.tsx                      # Strings that wrap a link or emphasis
+│   │   ├── types.ts
+│   │   └── config.ts                  # LOCALE_SWITCHER_ENABLED, storage keys
 │   │
 │   └── lib/
 │       ├── utils.ts                   # cn() class-merge helper (shadcn convention)

@@ -6,6 +6,11 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
+- **v1.2.0**: Localization foundation — every string in the interface is now translatable —
+  - Text, ARIA labels, chart legends and tooltips, table headers, and empty and error states all come from a single catalogue file per language, so adding a language means writing one file rather than editing components. A partial translation is safe to ship: anything left out falls back to English instead of rendering blank
+  - Numbers, percentages, and dates follow the chosen language, including chart axis ticks and tooltips, and counted phrases ("6 months", "± 3 days") use real plural rules rather than an English "s". Chart y-axis labels also read better in English as a side effect — a million now shows as "1M" rather than "1000k"
+  - The language switcher is rebuilt but stays hidden until a language is actually translated — Japanese is still only a handful of strings. `?lang=ja` continues to work for testing
+  - Contributors can add a language without touching the app: a generated template lists every string to translate, and a language that declares itself finished is held to it — if a later release adds a string that language lacks, the build fails rather than quietly falling back. See `src/i18n/README.md`
 - **v1.1.0**: Refinements on top of the Civic Glass redesign —
   - Processing Efficiency swapped to a ranked lollipop chart — bureaus ordered by completion rate, stem weight carrying intake volume, against a nationwide-rate guide line
   - A global airport toggle in the filter bar: one click removes the airport branch offices (Narita, Haneda, Kansai, Chubu) from every chart, stat, and table — nationwide totals shrink accordingly instead of quietly still counting them, and the toggle's icon crosses out while engaged
@@ -27,6 +32,7 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Changed
 
+- **v1.2.0**: The estimator's completion date now follows the chosen language's date order (English reads "Sep 22, 2026" where it previously read "22 Sep 2026") — the old form was assembled by hand and couldn't reorder for languages that need a different one.
 - **v1.1.0**: Hid the language switcher — the Japanese translation only covers a handful of strings so far, and full localization is planned as its own initiative rather than something to expose partially in the meantime.
 - Updated prefectural population data on the Regional Map to the Statistics Bureau of Japan's official October 1, 2024 estimates. ([#52](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/52))
 

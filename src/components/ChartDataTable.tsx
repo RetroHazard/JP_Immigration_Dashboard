@@ -8,10 +8,12 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, Download } from 'lucide-react';
 import type React from 'react';
 
-import { applicationOptions } from '../constants/applicationOptions';
 import { STATUS_CODES } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
-import { getBureauLabel } from '../utils/getBureauData';
+import { useLocale } from '../i18n/LocaleContext';
+import { en } from '../i18n/locales/en';
+import type { DictionaryKey } from '../i18n/types';
+import { useBureauLabel } from '../i18n/useDomainLabels';
 import type { ChartRange } from '../utils/selectors';
 import { bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../utils/selectors';
 
@@ -21,17 +23,19 @@ interface ChartDataTableProps {
   range: ChartRange;
 }
 
-const COLUMNS = [
-  { label: 'Carried over', status: STATUS_CODES.OLD_APPLICATIONS },
-  { label: 'Received', status: STATUS_CODES.NEW_APPLICATIONS },
-  { label: 'Processed', status: STATUS_CODES.PROCESSED },
-  { label: 'Granted', status: STATUS_CODES.GRANTED },
-  { label: 'Denied', status: STATUS_CODES.DENIED },
-  { label: 'Other', status: STATUS_CODES.OTHER },
+const COLUMNS: { key: DictionaryKey; status: string }[] = [
+  { key: 'metric.carriedOver', status: STATUS_CODES.OLD_APPLICATIONS },
+  { key: 'metric.received', status: STATUS_CODES.NEW_APPLICATIONS },
+  { key: 'metric.processed', status: STATUS_CODES.PROCESSED },
+  { key: 'metric.granted', status: STATUS_CODES.GRANTED },
+  { key: 'metric.denied', status: STATUS_CODES.DENIED },
+  { key: 'metric.other', status: STATUS_CODES.OTHER },
 ];
 
 export const ChartDataTable: React.FC<ChartDataTableProps> = ({ data, filters, range }) => {
   const [open, setOpen] = useState(false);
+  const { t, formatters } = useLocale();
+  const bureauLabel = useBureauLabel();
 
   const rows = useMemo(() => {
     if (!open) return [];
@@ -48,14 +52,17 @@ export const ChartDataTable: React.FC<ChartDataTableProps> = ({ data, filters, r
     });
   }, [data, filters.bureau, filters.type, range, open]);
 
+  // The export deliberately stays English regardless of the UI locale, so
+  // downstream spreadsheets and scripts keep parsing the same column names.
+  // Reading `en` directly is what pins that.
   const downloadCsv = () => {
-    const typeLabel = applicationOptions.find((option) => option.value === filters.type)?.label ?? 'All Types';
-    const header = ['Month', ...COLUMNS.map((column) => column.label)].join(',');
+    const typeLabel = en[`appType.${filters.type}` as keyof typeof en] ?? en['appType.all'];
+    const bureau = en[`bureau.${filters.bureau}` as keyof typeof en] ?? filters.bureau;
+    const header = [en['table.month'], ...COLUMNS.map((column) => en[column.key])].join(',');
     const body = rows.map((row) => [row.month, ...row.values].join(',')).join('\n');
-    const blob = new Blob(
-      [`# ${getBureauLabel(filters.bureau)} / ${typeLabel}\n${header}\n${body}\n`],
-      { type: 'text/csv;charset=utf-8' }
-    );
+    const blob = new Blob([`# ${bureau} / ${typeLabel}\n${header}\n${body}\n`], {
+      type: 'text/csv;charset=utf-8',
+    });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -73,7 +80,7 @@ export const ChartDataTable: React.FC<ChartDataTableProps> = ({ data, filters, r
           className="flex items-center gap-1 text-xs text-primary hover:opacity-80"
         >
           {open ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
-          {open ? 'Hide data table' : 'View data table'}
+          {t(open ? 'table.hide' : 'table.view')}
         </button>
         {open && (
           <button
@@ -81,7 +88,7 @@ export const ChartDataTable: React.FC<ChartDataTableProps> = ({ data, filters, r
             className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs text-secondary-foreground hover:bg-muted"
           >
             <Download className="size-3.5" aria-hidden="true" />
-            Download CSV
+            {t('table.downloadCsv')}
           </button>
         )}
       </div>
@@ -89,16 +96,16 @@ export const ChartDataTable: React.FC<ChartDataTableProps> = ({ data, filters, r
         <div className="mt-2 max-h-72 overflow-auto rounded-lg border border-border">
           <table className="w-full min-w-[560px] text-xs">
             <caption className="sr-only">
-              Monthly application statistics for {getBureauLabel(filters.bureau)}
+              {t('table.caption', { bureau: bureauLabel(filters.bureau) })}
             </caption>
             <thead className="sticky top-0 bg-muted text-left">
               <tr>
                 <th scope="col" className="px-3 py-2 font-semibold">
-                  Month
+                  {t('table.month')}
                 </th>
                 {COLUMNS.map((column) => (
-                  <th key={column.label} scope="col" className="px-3 py-2 text-right font-semibold">
-                    {column.label}
+                  <th key={column.key} scope="col" className="px-3 py-2 text-right font-semibold">
+                    {t(column.key)}
                   </th>
                 ))}
               </tr>
@@ -110,8 +117,8 @@ export const ChartDataTable: React.FC<ChartDataTableProps> = ({ data, filters, r
                     {row.month}
                   </th>
                   {row.values.map((value, index) => (
-                    <td key={COLUMNS[index].label} className="px-3 py-1.5 text-right tabular-nums">
-                      {value.toLocaleString()}
+                    <td key={COLUMNS[index].key} className="px-3 py-1.5 text-right tabular-nums">
+                      {formatters.number(value)}
                     </td>
                   ))}
                 </tr>
