@@ -6,6 +6,7 @@
 import type { Dictionary } from '../types';
 import { de } from './de';
 import { en } from './en';
+import { es } from './es';
 import { fr } from './fr';
 import { ja } from './ja';
 import { pt } from './pt';
@@ -38,6 +39,7 @@ export const LOCALES = {
   fr: { code: 'fr', nativeName: 'Français', intlTag: 'fr-FR', status: 'complete', dictionary: fr },
   de: { code: 'de', nativeName: 'Deutsch', intlTag: 'de-DE', status: 'complete', dictionary: de },
   pt: { code: 'pt', nativeName: 'Português', intlTag: 'pt-PT', status: 'complete', dictionary: pt },
+  es: { code: 'es', nativeName: 'Español', intlTag: 'es-ES', status: 'complete', dictionary: es },
 } as const satisfies Record<string, LocaleMeta>;
 
 export type Locale = keyof typeof LOCALES;
