@@ -147,7 +147,8 @@ const LATIN_BY_DESIGN = new Set<string>([
  * actually happens (北海道, not "Hokkaido"). Applied only below, and only to
  * locales without a `SCRIPT_OF` entry.
  */
-const isRomanizedProperNoun = (key: string): boolean => key.startsWith('prefecture.') || /^bureau\.\d+$/.test(key);
+const isRomanizedProperNoun = (key: string): boolean =>
+  key.startsWith('prefecture.') || /^bureau\.\d+(\.compact)?$/.test(key);
 
 /** Strips placeholders, digits, and punctuation — what's left is prose, if any. */
 const proseOf = (value: string): string => value.replace(PLACEHOLDER, '').replace(/[\s\d\p{P}\p{S}]/gu, '');
