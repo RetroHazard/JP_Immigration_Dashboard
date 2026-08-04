@@ -1,7 +1,8 @@
 // src/components/__tests__/LanguageSwitcher.test.tsx
-// The switcher is built but gated off, so the thing worth pinning is that the
-// gate actually holds — and that the control works when it's opened, so
-// flipping the flag isn't a leap of faith.
+// The switcher's enabled half: every registered locale offered, the active one
+// marked, and a click that both switches and persists. The flag is mocked on
+// rather than read, so this keeps testing the control itself even as the
+// shipped default changes; the gated-off half is LanguageSwitcherGate.test.tsx.
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent } from '@testing-library/react';
 

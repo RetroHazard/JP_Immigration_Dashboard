@@ -25,6 +25,8 @@ import type { DictionaryKey } from './types';
 export interface LabeledBureau extends BureauOption {
   label: string;
   short: string;
+  /** The form the width-constrained surfaces use — see `bureau.*.compact`. */
+  compact: string;
 }
 
 export interface LabeledApplicationType extends ApplicationOption {
@@ -67,6 +69,7 @@ export const useBureauOptions = (): LabeledBureau[] => {
         ...option,
         label: t(`bureau.${option.value}` as DictionaryKey),
         short: t(`bureau.${option.value}.short` as DictionaryKey),
+        compact: t(`bureau.${option.value}.compact` as DictionaryKey),
       })),
     [t]
   );
@@ -86,6 +89,19 @@ export const useBureauLabel = (): ((code: string) => string) => {
   const bureaus = useBureauOptions();
   return useMemo(() => {
     const byCode = new Map(bureaus.map((option) => [option.value, option.label]));
+    return (code: string) => byCode.get(code) ?? code;
+  }, [bureaus]);
+};
+
+/**
+ * `(code) => short name`, for the surfaces that measure in pixels rather than
+ * words: the efficiency chart's label column, the ring-chart legend, and the
+ * treemap's on-tile label. Same fallback as `useBureauLabel`.
+ */
+export const useBureauCompact = (): ((code: string) => string) => {
+  const bureaus = useBureauOptions();
+  return useMemo(() => {
+    const byCode = new Map(bureaus.map((option) => [option.value, option.compact]));
     return (code: string) => byCode.get(code) ?? code;
   }, [bureaus]);
 };

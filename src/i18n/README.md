@@ -37,7 +37,7 @@ means writing one file. You do not need to touch a component.
 
 3. **Check it.** `npx vitest run src/i18n` runs the catalogue tests described
    below, and `npx tsc --noEmit` catches any key that isn't real. The test run
-   prints your coverage, e.g. `ko: 120/309 keys (38.8%) — 189 missing`.
+   prints your coverage, e.g. `ko: 120/325 keys (36.9%) — 205 missing`.
 
 You can translate as much or as little as you like — a partial file is safe to
 ship. Anything you leave out falls back to English rather than rendering blank.
@@ -58,8 +58,8 @@ quietly rotting as the app grows.
 
 Completeness is measured per language, not key-for-key. Plural families are the
 exception: English defines `period.months_one` and `period.months_other`, but
-Japanese has a single plural category, so it owes only `_other` — 309 keys
-rather than 314. You are never asked for a form your language doesn't use.
+Japanese has a single plural category, so it owes only `_other` — 325 keys
+rather than 330. You are never asked for a form your language doesn't use.
 
 ### After adding or removing an English key
 
@@ -107,6 +107,31 @@ doesn't inflect.
 
 [cldr]: https://cldr.unicode.org/index/cldr-spec/plural-rules
 
+## Names that come in three widths
+
+Bureaus and application types each carry `.label`, `.short`, and `.compact`,
+because the interface asks for the same name in places with very different room:
+
+| Key | Where it renders | Budget |
+| --- | --- | --- |
+| `bureau.101210` | filter options, map hover card, table caption, screen-reader text | room to spare |
+| `bureau.101210.compact` | efficiency-chart label column, ring-chart legend, treemap tile | ~92px, truncates |
+| `bureau.101210.short` | nothing today; an IATA-style code — leave it Latin | 3 characters |
+| `appType.20` | filter options, estimator, tooltips | room to spare |
+| `appType.20.compact` | the Sankey's narrow layout, below 500px | ~90px, **no truncation** |
+| `appType.20.short` | stat-tile subtitle, treemap tooltip title | ~3 characters |
+
+Translate each width to fit its own budget rather than repeating the full name
+three times. Japanese is the worked example: `bureau.101210` is the full
+official 東京出入国在留管理局横浜支局, but `.compact` is just 横浜 — without that,
+every Tokyo-area office truncates to the same 「東京出入国在留」 and the efficiency
+chart stops being able to tell them apart. `appType.*.short` is the reverse
+case: English uses `EXT`, but a Latin abbreviation means nothing to a Japanese
+reader, so ja uses 更新 instead of copying the code.
+
+Nothing truncates the Sankey's `.compact` labels — an over-long one is drawn
+straight off the edge of the chart.
+
 ## What isn't translated, and why
 
 - **CSV exports** keep English column headers regardless of the interface
@@ -139,8 +164,16 @@ doesn't inflect.
 Four files under `components/bklit/charts/` are locally modified so chart axis
 ticks and tooltips follow the locale too: `chart-formatters.ts`,
 `chart-stat-flow.tsx`, `y-axis.tsx`, and `sankey/sankey-tooltip.tsx` (its row
-labels take `valueLabel` / `linkLabel` props rather than the upstream
-hardcoded "Sessions" and "Flow"). A re-vendor would overwrite them.
+labels take `valueLabel` / `linkLabel` props rather than the upstream hardcoded
+"Sessions" and "Flow"). A re-vendor would overwrite them; each carries a
+`LOCAL MODIFICATION` comment at the point of change.
+
+Two of those changes came out of translating Japanese rather than extracting
+English: `chart-stat-flow.tsx` also passes `locales` to `NumberFlow` (without
+it the animated value silently reverted to the browser's locale once the
+animation library loaded), and `y-axis.tsx` marks tick labels
+`whitespace-nowrap` (`100万` is wide enough to break across two lines in a 40px
+axis margin).
 
 Locale detection runs `?lang=` → `localStorage` → browser language → English.
 The browser step is gated on `LOCALE_SWITCHER_ENABLED`: while the switcher is
@@ -166,9 +199,37 @@ text children, and a `no-restricted-syntax` rule catches string literals in
 
 ## Current state
 
-The extraction is complete — 314 keys, covering the whole interface. Japanese
-is a stub of five strings, and **the language switcher is deliberately hidden**
-(`LOCALE_SWITCHER_ENABLED` in `config.ts`). Offering the switch before a
-language is actually translated is what got the original switcher pulled in
-v1.1.0. Turn the flag on once a locale has meaningful coverage; `?lang=ja`
-works regardless, for testing and for translators checking their work.
+330 keys, covering the whole interface, in two languages both marked
+`complete`: English and Japanese (325 keys — Japanese owes no `_one` members).
+**The language switcher is on** (`LOCALE_SWITCHER_ENABLED` in `config.ts`),
+which also turns on browser-language detection — the two are one flag precisely
+because auto-detecting a language is only safe while the visitor can switch
+back. A locale still at `in-progress` is safe to register and offer: it renders
+what it has and falls back to English for the rest.
+
+### Two checks coverage can't make
+
+Counting keys proves a locale isn't *missing* anything. It can't tell whether a
+key that is present was ever actually translated — a value copied over from
+English satisfies every count. So each locale also gets:
+
+- **Nothing left sitting at its English value.** An exact match with the
+  English source is an oversight rather than a decision.
+- **Every prose value written in the language's own script.** This catches what
+  the equality check misses: a line edited just enough to differ from English
+  while still being English. Registered per locale in `SCRIPT_OF`, so a
+  language whose script overlaps Latin simply opts out.
+
+Both skip values that are Latin on purpose — `nav.version`, `bureau.*.short`,
+`appType.*.short`, `map.areaValue`, `map.densityValue` — listed in
+`LATIN_BY_DESIGN`, and both apply to whatever a locale defines, so an
+`in-progress` file is held to the same standard on the part it has finished.
+
+The equality check has one further, narrower exemption: `prefecture.*` and the
+bare `bureau.<code>` keys are Japanese proper nouns, and every Latin-script
+locale romanizes them the same way English does — "Hokkaido" is "Hokkaido" in
+French too. That's a correct translation, not a leftover, so a locale without
+a `SCRIPT_OF` entry is allowed to leave them matching English. A locale with
+its own script gets no such pass and is still held to translating them (北海道,
+not "Hokkaido") — the script check enforces that directly, since these keys
+stay in its `translatable` set regardless.

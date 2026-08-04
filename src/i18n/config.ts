@@ -12,14 +12,19 @@ export const LOCALE_QUERY_PARAM = 'lang';
 /**
  * Whether the language switcher is offered in the UI.
  *
- * The extraction work is done — every string is addressable — but the
- * Japanese catalogue is still mostly English fallbacks, and shipping a visible
- * switcher before a locale is actually translated is what got the original
- * switcher pulled in v1.1.0. Flip this to `true` once a locale reaches
- * meaningful coverage; `?lang=` works regardless, for testing.
+ * On since the Japanese catalogue reached full coverage — the condition this
+ * flag was waiting for. It stayed off through v1.1.0 because shipping a
+ * visible switcher over a five-string stub is what got the original switcher
+ * pulled, and a partially translated dashboard reads as broken rather than
+ * multilingual.
  *
- * This flag also gates browser-language detection: auto-detecting Japanese
- * while the switcher is hidden would strand Japanese visitors in a
- * mostly-English dashboard with no way back to English.
+ * The flag also gates browser-language detection, and the two belong together:
+ * auto-detecting Japanese is only safe while the switcher is visible, because
+ * that is what gives a visitor a way back to English. Turning one on without
+ * the other is the failure mode this single flag exists to prevent.
+ *
+ * A locale that is still in progress should be kept out of the registry (or
+ * shipped behind `?lang=`, which works regardless) rather than handled by
+ * flipping this off again — that would take Japanese down with it.
  */
-export const LOCALE_SWITCHER_ENABLED = false;
+export const LOCALE_SWITCHER_ENABLED = true;
