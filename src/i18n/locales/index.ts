@@ -32,7 +32,7 @@ export interface LocaleMeta {
 
 export const LOCALES = {
   en: { code: 'en', nativeName: 'English', intlTag: 'en-US', status: 'complete', dictionary: en },
-  ja: { code: 'ja', nativeName: '日本語', intlTag: 'ja-JP', status: 'in-progress', dictionary: ja },
+  ja: { code: 'ja', nativeName: '日本語', intlTag: 'ja-JP', status: 'complete', dictionary: ja },
   de: { code: 'de', nativeName: 'Deutsch', intlTag: 'de-DE', status: 'complete', dictionary: de },
 } as const satisfies Record<string, LocaleMeta>;
 
