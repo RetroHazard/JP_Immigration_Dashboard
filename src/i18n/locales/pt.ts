@@ -1,0 +1,415 @@
+// src/i18n/locales/pt.ts
+// Portuguese (European, pt-PT) overrides. Complete: every key English defines
+// has a translation here.
+//
+// Portuguese uses the CLDR `one` / `other` plural categories for pt-PT (only
+// the exact value 1 selects `one`), the same shape as English, so every
+// plural family below carries both members.
+import type { Dictionary } from '../types';
+
+export const pt: Dictionary = {
+  // ── App shell ────────────────────────────────────────────────────────────
+  'app.title': 'Estatísticas de Imigração do Japão',
+  'app.subtitle': 'Dados de processamento dos gabinetes fornecidos pelo e-Stat, atualizados a cada publicação',
+  'app.skipToContent': 'Saltar para o conteúdo',
+  'app.loadingData': 'A processar dados de imigração...',
+  'app.loadingDashboard': 'A carregar o painel...',
+  'app.retry': 'Tentar novamente',
+
+  // ── Document metadata ────────────────────────────────────────────────────
+  // Read at module scope by src/app/layout.tsx. The static export prerenders
+  // one HTML document, so these can't vary per visitor — they live here to
+  // keep one source of truth, and to be ready for per-locale routes.
+  'meta.title': 'Painel de Estatísticas de Imigração do Japão',
+  'meta.description':
+    'Tempos de processamento de vistos, carga de trabalho dos gabinetes e um estimador baseado num modelo de fila para a sua candidatura - construído com estatísticas oficiais da Agência de Serviços de Imigração, atualizado sempre que o e-Stat publica novos dados (normalmente mensal).',
+  'meta.keywords':
+    'tempos de processamento de vistos no Japão, estatísticas dos gabinetes de imigração, acompanhamento de candidaturas de visto, Agência de Serviços de Imigração, e-Stat',
+
+  // ── Header and settings drawer ───────────────────────────────────────────
+  'nav.version': 'v{version}',
+  'nav.language': 'Idioma',
+  'nav.switchToLightTheme': 'Mudar para o tema claro',
+  'nav.switchToDarkTheme': 'Mudar para o tema escuro',
+  'nav.openSettings': 'Abrir o menu de definições',
+  'nav.settings': 'Definições',
+  'nav.theme': 'Tema',
+  'nav.themeLight': 'Claro',
+  'nav.themeDark': 'Escuro',
+  'nav.about': 'Sobre',
+  'nav.changelog': 'Registo de alterações',
+
+  // ── Dashboard chrome ─────────────────────────────────────────────────────
+  'dashboard.dataCoverage': 'Dados: {range}',
+  'dashboard.coverageRange': '{from} – {to}',
+  'dashboard.comparisonSuffix': '(comparação)',
+  'dashboard.expandEstimator': 'Expandir o Estimador de Tempo de Processamento',
+  'dashboard.estimatorRail': 'Estimador',
+
+  // ── Filters ──────────────────────────────────────────────────────────────
+  'filters.bureau': 'Gabinete de Imigração',
+  'filters.appType': 'Tipo de Candidatura',
+  'filters.compare': 'Comparar Com',
+  'filters.compareNone': 'Nenhum',
+  'filters.excludeAirports': 'Excluir gabinetes aeroportuários',
+  'filters.includeAirports': 'Incluir gabinetes aeroportuários',
+  'filters.reset': 'Repor filtros',
+  'filters.selectPlaceholder': 'Selecionar',
+
+  // ── Time range selector ──────────────────────────────────────────────────
+  'period.label': 'Intervalo de tempo',
+  'period.latest': 'Último mês',
+  'period.all': 'Todos os dados',
+  'period.months_one': '{count} mês',
+  'period.months_other': '{count} meses',
+
+  // ── Stat tiles ───────────────────────────────────────────────────────────
+  'stats.totalApplications': 'Total de Candidaturas',
+  'stats.totalApplications.short': 'Total',
+  'stats.pending': 'Pendentes',
+  'stats.granted': 'Concedidas',
+  'stats.denied': 'Recusadas',
+  'stats.approvalRate': 'Taxa de Aprovação',
+  'stats.approvalRate.short': 'Aprovação',
+  'stats.scopeWithType': '{bureau} ({type})',
+  // "MoM" = month over month; the delta is already signed and formatted.
+  'stats.momDelta': '{delta} m/m',
+
+  // ── Shared vocabulary ────────────────────────────────────────────────────
+  // Metric names reused across the table, chart legends, and hover cards.
+  'metric.carriedOver': 'Transitadas',
+  'metric.pending': 'Pendentes (transitadas)',
+  'metric.received': 'Recebidas',
+  'metric.processed': 'Processadas',
+  'metric.granted': 'Concedidas',
+  'metric.denied': 'Recusadas',
+  'metric.other': 'Outras',
+  'metric.completion': 'Conclusão',
+  'metric.applications': 'Candidaturas',
+  'metric.population': 'População',
+  'metric.area': 'Área',
+  'metric.density': 'Densidade',
+  'common.noDataForFilters': 'Sem dados para esta combinação de filtros.',
+
+  // ── Data table ───────────────────────────────────────────────────────────
+  'table.view': 'Ver tabela de dados',
+  'table.hide': 'Ocultar tabela de dados',
+  'table.downloadCsv': 'Transferir CSV',
+  'table.caption': 'Estatísticas mensais de candidaturas para {bureau}',
+  'table.month': 'Mês',
+
+  // ── Estimator ────────────────────────────────────────────────────────────
+  'estimator.title': 'Estimador de Tempo de Processamento',
+  'estimator.description':
+    'Estimativa baseada num modelo de fila a partir do volume de processamento do gabinete nos últimos seis meses.',
+  'estimator.selectBureau': 'Selecionar Gabinete',
+  'estimator.selectType': 'Selecionar Tipo',
+  'estimator.applicationDate': 'Data da Candidatura',
+  'estimator.empty':
+    'Selecione o seu gabinete, o tipo de candidatura e a data da candidatura para estimar quando a sua candidatura será processada.',
+  'estimator.estimatedCompletion': 'Conclusão estimada',
+  'estimator.queuePosition': 'Posição na fila',
+  'estimator.aheadOfYou': '≈ {count} à sua frente',
+  'estimator.howCalculated': 'Como é feito este cálculo?',
+  'estimator.showMath': 'Mostrar o cálculo',
+  'estimator.hideMath': 'Ocultar o cálculo',
+  // Header controls: the tooltip is terse, the aria-label names the panel so
+  // it stands alone out of context.
+  'estimator.reset': 'Repor o estimador',
+  'estimator.resetAria': 'Repor o Estimador de Tempo de Processamento',
+  'estimator.collapse': 'Recolher o estimador',
+  'estimator.collapseAria': 'Recolher o Estimador de Tempo de Processamento',
+  'estimator.close': 'Fechar o estimador',
+  'estimator.closeAria': 'Fechar o Estimador de Tempo de Processamento',
+  'estimator.copyPermalink': 'Copiar uma hiperligação permanente para esta estimativa',
+  'estimator.copied': 'Copiado!',
+  // Result note, joined with " · ".
+  'estimator.uncertaintyDays_one': '± {count} dia',
+  'estimator.uncertaintyDays_other': '± {count} dias',
+  'estimator.uncertaintyWeeks_one': '± {count} semana',
+  'estimator.uncertaintyWeeks_other': '± {count} semanas',
+  'estimator.basedOnMonths_one': 'com base em {count} mês de volume processado',
+  'estimator.basedOnMonths_other': 'com base em {count} meses de volume processado',
+  // Warnings.
+  'estimator.limitedDataTitle': 'Estimativa com dados limitados:',
+  'estimator.limitedDataBody_one':
+    'A data da sua candidatura está além dos dados disponíveis. Esta estimativa baseia-se em taxas de processamento simuladas a partir de {count} mês de dados históricos e pode ser menos precisa.',
+  'estimator.limitedDataBody_other':
+    'A data da sua candidatura está além dos dados disponíveis. Esta estimativa baseia-se em taxas de processamento simuladas a partir de {count} meses de dados históricos e pode ser menos precisa.',
+  'estimator.pastDueTitle': 'Possivelmente em atraso:',
+  'estimator.pastDueBody':
+    'Com base nas taxas de processamento esperadas, a conclusão desta candidatura poderá estar em atraso. Se ainda não recebeu pedidos adicionais e/ou uma decisão sobre esta candidatura, contacte o gabinete para mais informações.',
+  // {emphasis} is the word "estimate", rendered bold and underlined.
+  'estimator.disclaimer':
+    '*Isto é uma {emphasis} baseada nas taxas de processamento atuais, na posição esperada na fila e nas candidaturas pendentes. O tempo real de processamento da sua candidatura pode variar.',
+  'estimator.disclaimerEmphasis': 'estimativa',
+
+  // ── Estimator: the "Show the math" breakdown ─────────────────────────────
+  'estimator.formula.step1': 'Fila no momento da candidatura',
+  'estimator.formula.step2': 'Posição na fila e taxa diária',
+  'estimator.formula.step3': 'Dias restantes',
+  'estimator.formula.explainAria': 'Explicar as variáveis da fórmula de {title}',
+  'estimator.formula.var.dRem.title': 'Dias Restantes',
+  'estimator.formula.var.dRem.description': 'Dias estimados até à conclusão do processamento.',
+  'estimator.formula.var.qPos.title': 'Posição na Fila',
+  'estimator.formula.var.qPos.description': 'Posição estimada na fila de processamento.',
+  'estimator.formula.var.rDaily.title': 'Taxa Diária',
+  'estimator.formula.var.rDaily.description': 'Média de candidaturas processadas por dia.',
+  'estimator.formula.var.cProc.title': 'Processadas Confirmadas',
+  'estimator.formula.var.cProc.description': 'Número confirmado de candidaturas processadas desde a submissão.',
+  'estimator.formula.var.eProc.title': 'Processadas Estimadas',
+  'estimator.formula.var.eProc.description':
+    'Número estimado de candidaturas processadas desde o último ponto de dados.',
+  'estimator.formula.var.sigmaP.title': 'Total Processado',
+  'estimator.formula.var.sigmaP.description': 'Soma das candidaturas processadas utilizada para calcular médias.',
+  'estimator.formula.var.sigmaD.title': 'Total de Dias',
+  'estimator.formula.var.sigmaD.description': 'Soma de dias utilizada para calcular médias.',
+  'estimator.formula.var.qApp.title': 'Fila de Candidaturas',
+  'estimator.formula.var.qApp.description': 'Posição estimada na fila no momento da submissão.',
+  'estimator.formula.var.cPrev.title': 'Transitadas',
+  'estimator.formula.var.cPrev.description': 'Candidaturas transitadas do mês anterior.',
+  'estimator.formula.var.nApp.title': 'Novas Candidaturas',
+  'estimator.formula.var.nApp.description': 'Candidaturas estimadas recebidas antes da submissão.',
+  'estimator.formula.var.pApp.title': 'Candidaturas Processadas',
+  'estimator.formula.var.pApp.description': 'Candidaturas estimadas processadas antes da submissão.',
+
+  // ── Charts: registry ─────────────────────────────────────────────────────
+  // `.label` names the tab and the card heading, `.description` is the card
+  // subtitle, `.aria` describes the graphic to a screen reader.
+  'charts.intake.label': 'Entradas e Processamento',
+  'charts.intake.description':
+    'Candidaturas transitadas e recebidas em cada mês, face ao volume concluído pelos gabinetes.',
+  'charts.intake.aria':
+    'Barras empilhadas de candidaturas pendentes e recebidas por mês, com o volume processado representado por uma linha',
+  'charts.types.label': 'Tipos de Candidatura',
+  'charts.types.description':
+    'Novas submissões mensais discriminadas por tipo de candidatura — clique numa entrada da legenda para ativar ou desativar uma série.',
+  'charts.types.aria': 'Gráfico de linhas das novas submissões mensais por tipo de candidatura',
+  'charts.outcomes.label': 'Resultados',
+  'charts.outcomes.description':
+    'Onde acabam as candidaturas: o fluxo de cada tipo para concedidas, recusadas ou outros resultados.',
+  'charts.outcomes.aria': 'Diagrama de Sankey dos tipos de candidatura a fluir para os resultados',
+  'charts.share.label': 'Quota por Gabinete',
+  'charts.share.description': 'Onde as candidaturas foram submetidas: a quota de cada gabinete no total de entradas.',
+  'charts.share.aria': 'Gráfico circular (donut) da quota de cada gabinete nas candidaturas recebidas',
+  'charts.mix.label': 'Distribuição por Categoria',
+  'charts.mix.description':
+    'Todas as candidaturas por tipo e gabinete — clique numa categoria para ampliar a sua discriminação.',
+  'charts.efficiency.label': 'Eficiência de Processamento',
+  'charts.efficiency.description':
+    'Gabinetes classificados pela taxa de conclusão — a espessura da haste representa o volume de entradas, com a taxa nacional como referência.',
+  'charts.efficiency.aria':
+    'Gabinetes classificados pela taxa de conclusão, com o volume de entradas representado pela espessura da haste',
+  'charts.map.label': 'Mapa Regional',
+  'charts.map.description':
+    'Áreas de serviço dos gabinetes e densidade populacional, com a localização dos gabinetes e gabinetes aeroportuários.',
+  // Alternate views, kept swap-ready but not currently registered.
+  'charts.mixSunburst.aria':
+    'Gráfico sunburst de candidaturas por tipo e gabinete, com exploração interativa em profundidade',
+  'charts.efficiencyQuadrant.aria':
+    'Gráfico de quadrantes da taxa de conclusão face ao volume recebido por gabinete; o tamanho da bolha indica o volume processado',
+
+  // ── Charts: shared ───────────────────────────────────────────────────────
+  'chart.legendShow': 'Mostrar {series}',
+  'chart.legendHide': 'Ocultar {series}',
+  'chart.allSeriesHidden': 'Todas as séries ocultas — clique numa entrada da legenda para mostrar uma.',
+
+  // ── Chart: Application Types ─────────────────────────────────────────────
+  // Compact per-type series names. Deliberately separate from
+  // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
+  'chart.types.series.acquisition': 'Aquisição',
+  'chart.types.series.extension': 'Prorrogação',
+  'chart.types.series.change': 'Mudança de Estatuto',
+  'chart.types.series.activity': 'Autorização de Atividade',
+  'chart.types.series.reentry': 'Reentrada',
+  'chart.types.series.permanent': 'Residência Permanente',
+
+  // ── Chart: Outcomes ──────────────────────────────────────────────────────
+  'chart.outcomes.otherWithdrawn': 'Outro / Retirado',
+  'chart.outcomes.valueUnit': 'candidaturas',
+  'chart.outcomes.tooltipValueLabel': 'Candidaturas',
+  'chart.outcomes.tooltipFlowLabel': 'Fluxo',
+  'chart.outcomes.approvalRate': 'Taxa de aprovação',
+  'chart.outcomes.ofProcessed': 'de {count} candidaturas processadas',
+  'chart.outcomes.empty': 'Sem candidaturas processadas neste período.',
+
+  // ── Chart: Bureau Share ──────────────────────────────────────────────────
+  'chart.share.otherSlice': 'Outros ({count})',
+
+  // ── Chart: Category Mix ──────────────────────────────────────────────────
+  'chart.mix.root': 'Todas as candidaturas',
+  'chart.mix.breadcrumbAria': 'Caminho de exploração do treemap',
+  'chart.mix.zoomInHint': 'Clique numa categoria para ampliar',
+  'chart.mix.zoomOutHint': 'Clique no fundo (ou prima Esc) para reduzir',
+  'chart.mix.others': 'Outros',
+  'chart.mix.categoryAria': '{category}: {count} candidaturas. Ampliar.',
+  'chart.mix.tooltipValue': '{count} candidaturas · {percent} de {scope}',
+  'chart.mix.scopeAll': 'todas as candidaturas',
+  'chart.mix.sunburstHint': '{trail} — {count} candidaturas ({percent} do total)',
+
+  // ── Chart: Processing Efficiency ─────────────────────────────────────────
+  'chart.efficiency.branchOffice': 'sucursal',
+  'chart.efficiency.receivedCount': '{count} recebidas',
+  'chart.efficiency.nationwide': 'Nacional {rate}',
+  'chart.efficiency.pointAria': '{bureau}: {rate} por cento de conclusão, {count} candidaturas recebidas',
+  'chart.efficiency.xAxis': 'Candidaturas recebidas',
+  'chart.efficiency.fullCompletion': '100% das entradas concluído',
+  'chart.efficiency.quadrantKeepingPace': 'VOLUME ELEVADO · A ACOMPANHAR O RITMO',
+  'chart.efficiency.quadrantFallingBehind': 'VOLUME ELEVADO · A FICAR PARA TRÁS',
+
+  // ── Chart: Regional Map ──────────────────────────────────────────────────
+  'map.bureauMarkerAria': 'Gabinete de {bureau}',
+  'map.airportMarkerAria': 'Gabinete aeroportuário de {bureau}',
+  'map.bureauSuffix': 'Gabinete de {bureau}',
+  'map.airportSuffix': 'Gabinete Aeroportuário de {bureau}',
+  'map.servicePopulation': 'População servida',
+  'map.serviceArea': 'Área de serviço',
+  'map.serviceBureau': 'Gabinete responsável',
+  'map.portOfEntry': 'Posto de entrada',
+  'map.legendNote': 'Cor = gabinete responsável · intensidade = densidade populacional',
+  'map.bureau': 'Gabinete',
+  'map.airportOffice': 'Gabinete aeroportuário',
+  'map.zoomIn': 'Ampliar',
+  'map.zoomOut': 'Reduzir',
+  'map.resetView': 'Repor vista',
+  'map.loadError': 'Não foi possível carregar os dados do mapa. Tente recarregar a página.',
+  'map.loading': 'A carregar os dados do mapa...',
+  'map.areaValue': '{value} km²',
+  'map.densityValue': '{value} /km²',
+
+  // ── Changelog ────────────────────────────────────────────────────────────
+  'changelog.title': 'Registo de Alterações',
+  'changelog.loading': 'A carregar...',
+
+  // ── Errors ───────────────────────────────────────────────────────────────
+  'errors.dataTitle': 'Erro ao Carregar os Dados',
+  'errors.noData': 'Sem dados disponíveis',
+  'errors.unknown': 'Ocorreu um erro desconhecido',
+  'errors.fetchFailed': 'Falha ao obter os dados',
+  'errors.renderTitle': 'Algo correu mal',
+  'errors.renderBody': 'Ocorreu um erro ao apresentar a aplicação.',
+  'errors.reload': 'Recarregar Página',
+  'errors.changelogUnavailable': 'Não foi possível carregar o registo de alterações.',
+
+  // ── Screen-reader only ───────────────────────────────────────────────────
+  'a11y.showingChart': 'A mostrar {chart} para {bureau}',
+  'a11y.showingChartWithType': 'A mostrar {chart} para {bureau}, {type}',
+
+  // ── Footer ───────────────────────────────────────────────────────────────
+  'footer.attribution': 'Estatísticas oficiais fornecidas pela Agência de Serviços de Imigração do Japão',
+  'footer.dataAcquisition': 'Aquisição de dados fornecida por {source}',
+  'footer.fixtureNotice': 'a mostrar dados fictícios gerados',
+  'footer.builtBy': 'Criado por {author}',
+  'footer.dataUpdated': 'dados atualizados em {date}',
+
+  // ── Domain: immigration bureaus ──────────────────────────────────────────
+  // Keyed by e-Stat bureau code. `.short` is the terminal-style abbreviation
+  // shown on the stat tiles; leave it as the Latin code in most languages.
+  'bureau.all': 'Nacional',
+  'bureau.all.short': 'TODOS',
+  'bureau.101010': 'Sapporo',
+  'bureau.101010.short': 'CTS',
+  'bureau.101090': 'Sendai',
+  'bureau.101090.short': 'SDJ',
+  'bureau.101170': 'Shinagawa',
+  'bureau.101170.short': 'SGW',
+  'bureau.101190': 'Aeroporto de Narita',
+  'bureau.101190.short': 'NRT',
+  'bureau.101200': 'Aeroporto de Haneda',
+  'bureau.101200.short': 'HND',
+  'bureau.101210': 'Yokohama',
+  'bureau.101210.short': 'YOK',
+  'bureau.101350': 'Nagoya',
+  'bureau.101350.short': 'NAG',
+  'bureau.101370': 'Aeroporto de Chubu',
+  'bureau.101370.short': 'NGO',
+  'bureau.101460': 'Osaca',
+  'bureau.101460.short': 'ITM',
+  'bureau.101480': 'Aeroporto de Kansai',
+  'bureau.101480.short': 'KIX',
+  'bureau.101490': 'Kobe',
+  'bureau.101490.short': 'UKB',
+  'bureau.101580': 'Hiroshima',
+  'bureau.101580.short': 'HIJ',
+  'bureau.101670': 'Takamatsu',
+  'bureau.101670.short': 'TAK',
+  'bureau.101720': 'Fukuoka',
+  'bureau.101720.short': 'FUK',
+  'bureau.101740': 'Naha',
+  'bureau.101740.short': 'OKA',
+
+  // ── Domain: application types ────────────────────────────────────────────
+  // Keyed by e-Stat application type code. `.short` is the stat-tile
+  // abbreviation; `.compact` is the one-word form the narrow Sankey uses.
+  'appType.all': 'Todos os Tipos',
+  'appType.all.short': 'TODOS',
+  'appType.all.compact': 'Todos',
+  'appType.10': 'Aquisição de Estatuto',
+  'appType.10.short': 'AQU',
+  'appType.10.compact': 'Aquisição',
+  'appType.20': 'Prorrogação de Estadia',
+  'appType.20.short': 'PRO',
+  'appType.20.compact': 'Prorrogação',
+  'appType.30': 'Mudança de Estatuto',
+  'appType.30.short': 'MUD',
+  'appType.30.compact': 'Mudança',
+  'appType.40': 'Autorização de Atividades',
+  'appType.40.short': 'ATV',
+  'appType.40.compact': 'Autorização',
+  'appType.50': 'Reentrada',
+  'appType.50.short': 'REE',
+  'appType.50.compact': 'Reentrada',
+  'appType.60': 'Residência Permanente',
+  'appType.60.short': 'RP',
+  'appType.60.compact': 'Permanente',
+
+  // ── Domain: prefectures ──────────────────────────────────────────────────
+  // Keyed by JIS prefecture code (1 Hokkaido … 47 Okinawa).
+  'prefecture.1': 'Hokkaido',
+  'prefecture.2': 'Aomori',
+  'prefecture.3': 'Iwate',
+  'prefecture.4': 'Miyagi',
+  'prefecture.5': 'Akita',
+  'prefecture.6': 'Yamagata',
+  'prefecture.7': 'Fukushima',
+  'prefecture.8': 'Ibaraki',
+  'prefecture.9': 'Tochigi',
+  'prefecture.10': 'Gunma',
+  'prefecture.11': 'Saitama',
+  'prefecture.12': 'Chiba',
+  'prefecture.13': 'Tóquio',
+  'prefecture.14': 'Kanagawa',
+  'prefecture.15': 'Niigata',
+  'prefecture.16': 'Toyama',
+  'prefecture.17': 'Ishikawa',
+  'prefecture.18': 'Fukui',
+  'prefecture.19': 'Yamanashi',
+  'prefecture.20': 'Nagano',
+  'prefecture.21': 'Gifu',
+  'prefecture.22': 'Shizuoka',
+  'prefecture.23': 'Aichi',
+  'prefecture.24': 'Mie',
+  'prefecture.25': 'Shiga',
+  'prefecture.26': 'Quioto',
+  'prefecture.27': 'Osaca',
+  'prefecture.28': 'Hyogo',
+  'prefecture.29': 'Nara',
+  'prefecture.30': 'Wakayama',
+  'prefecture.31': 'Tottori',
+  'prefecture.32': 'Shimane',
+  'prefecture.33': 'Okayama',
+  'prefecture.34': 'Hiroshima',
+  'prefecture.35': 'Yamaguchi',
+  'prefecture.36': 'Tokushima',
+  'prefecture.37': 'Kagawa',
+  'prefecture.38': 'Ehime',
+  'prefecture.39': 'Kochi',
+  'prefecture.40': 'Fukuoka',
+  'prefecture.41': 'Saga',
+  'prefecture.42': 'Nagasaki',
+  'prefecture.43': 'Kumamoto',
+  'prefecture.44': 'Oita',
+  'prefecture.45': 'Miyazaki',
+  'prefecture.46': 'Kagoshima',
+  'prefecture.47': 'Okinawa',
+};
