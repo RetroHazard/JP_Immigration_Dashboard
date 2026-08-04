@@ -6,10 +6,17 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
-- **v1.2.0**: Groundwork for multiple languages —
-  - Chart y-axis labels read better in English as a side effect of this work: a million now shows as "1M" instead of "1000k"
-  - The language switcher is being rebuilt, but stays hidden until a language is actually ready — Japanese still only covers a handful of strings. `?lang=ja` continues to work for testing
-  - Full translations aren't ready yet, but the interface — text, tooltips, numbers, dates, and pluralization — is now built to support them, so more languages can follow without a rewrite
+- **Japanese**: the dashboard is now fully available in Japanese, and the language switcher is live —
+  - All 330 interface strings are translated, using the Immigration Services Agency's own terminology: application types carry their official procedure names (在留資格変更許可申請 rather than a paraphrase), and each bureau its full office name including branch status (東京出入国在留管理局横浜支局). Prefecture names match the map data exactly, so the map tooltip no longer prints the same name twice
+  - The switcher appears in the header and the mobile settings drawer, and a visitor whose browser asks for Japanese now lands on it — it stayed hidden while Japanese was a five-string stub, which is what the flag was waiting for
+  - Numbers, dates, and counted phrases already followed the language; they now read as Japanese throughout — 万 and 億 on chart axes, 2026年9月22日 for dates, and 6か月 without an English plural
+  - Bureaus and application types gained a third, narrower name for the dense charts. Without it every Tokyo-area office truncated to the same 「東京出入国在留」 in the Processing Efficiency ranking, which made them impossible to tell apart. English is unaffected — it says the same thing at both widths
+  - Fixed three things that only surfaced once the interface was actually rendering Japanese: the Category Mix tooltip fell back to a font with no Japanese glyphs, animated numbers reverted to the browser's language mid-animation, and a chart axis label wide enough to wrap dropped 万 onto its own line
+- **v1.2.0**: Localization foundation — every string in the interface is now translatable —
+  - Text, ARIA labels, chart legends and tooltips, table headers, and empty and error states all come from a single catalogue file per language, so adding a language means writing one file rather than editing components. A partial translation is safe to ship: anything left out falls back to English instead of rendering blank
+  - Numbers, percentages, and dates follow the chosen language, including chart axis ticks and tooltips, and counted phrases ("6 months", "± 3 days") use real plural rules rather than an English "s". Chart y-axis labels also read better in English as a side effect — a million now shows as "1M" rather than "1000k"
+  - The language switcher is rebuilt but stays hidden until a language is actually translated — Japanese is still only a handful of strings. `?lang=ja` continues to work for testing
+  - Contributors can add a language without touching the app: a generated template lists every string to translate, and a language that declares itself finished is held to it — if a later release adds a string that language lacks, the build fails rather than quietly falling back. See `src/i18n/README.md`
 - **v1.1.0**: Refinements on top of the Civic Glass redesign —
   - Processing Efficiency swapped to a ranked lollipop chart — bureaus ordered by completion rate, stem weight carrying intake volume, against a nationwide-rate guide line
   - A global airport toggle in the filter bar: one click removes the airport branch offices (Narita, Haneda, Kansai, Chubu) from every chart, stat, and table — nationwide totals shrink accordingly instead of quietly still counting them, and the toggle's icon crosses out while engaged
