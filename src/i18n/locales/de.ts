@@ -1,0 +1,427 @@
+// src/i18n/locales/de.ts
+// German overrides. A complete translation: every key English defines has a
+// German counterpart, so `status: 'complete'` in the registry is enforced by
+// the catalogue tests.
+//
+// German uses the same CLDR plural categories as English (`one` / `other`),
+// so every plural family below carries both members.
+import type { Dictionary } from '../types';
+
+export const de: Dictionary = {
+  // ── App shell ────────────────────────────────────────────────────────────
+  'app.title': 'Japanische Einwanderungsstatistik',
+  'app.subtitle': 'Bearbeitungsdaten der Ämter von e-Stat, aktualisiert mit jeder Veröffentlichung',
+  'app.skipToContent': 'Zum Inhalt springen',
+  'app.loadingData': 'Einwanderungsdaten werden verarbeitet …',
+  'app.loadingDashboard': 'Dashboard wird geladen …',
+  'app.retry': 'Erneut versuchen',
+
+  // ── Document metadata ────────────────────────────────────────────────────
+  // Read at module scope by src/app/layout.tsx. The static export prerenders
+  // one HTML document, so these can't vary per visitor — they live here to
+  // keep one source of truth, and to be ready for per-locale routes.
+  'meta.title': 'Dashboard für japanische Einwanderungsstatistik',
+  'meta.description':
+    'Bearbeitungszeiten für Visa, Arbeitsaufkommen der Ämter und ein Warteschlangenmodell zur Schätzung für den eigenen Antrag – basierend auf offiziellen Statistiken der Einwanderungsbehörde, aktualisiert bei jeder Veröffentlichung neuer Daten durch e-Stat (in der Regel monatlich).',
+  'meta.keywords':
+    'Bearbeitungszeiten für japanische Visa, Statistiken der Einwanderungsämter, Visumantrags-Tracker, Einwanderungsbehörde, e-Stat',
+
+  // ── Header and settings drawer ───────────────────────────────────────────
+  'nav.version': 'v{version}',
+  'nav.language': 'Sprache',
+  'nav.switchToLightTheme': 'Zum hellen Design wechseln',
+  'nav.switchToDarkTheme': 'Zum dunklen Design wechseln',
+  'nav.openSettings': 'Einstellungsmenü öffnen',
+  'nav.settings': 'Einstellungen',
+  'nav.theme': 'Design',
+  'nav.themeLight': 'Hell',
+  'nav.themeDark': 'Dunkel',
+  'nav.about': 'Über',
+  'nav.changelog': 'Änderungsprotokoll',
+
+  // ── Dashboard chrome ─────────────────────────────────────────────────────
+  'dashboard.dataCoverage': 'Daten: {range}',
+  'dashboard.coverageRange': '{from} – {to}',
+  'dashboard.comparisonSuffix': '(Vergleich)',
+  'dashboard.expandEstimator': 'Bearbeitungszeit-Schätzer erweitern',
+  'dashboard.estimatorRail': 'Schätzer',
+
+  // ── Filters ──────────────────────────────────────────────────────────────
+  'filters.bureau': 'Einwanderungsamt',
+  'filters.appType': 'Antragsart',
+  'filters.compare': 'Vergleichen mit',
+  'filters.compareNone': 'Keine',
+  'filters.excludeAirports': 'Flughafenämter ausschließen',
+  'filters.includeAirports': 'Flughafenämter einschließen',
+  'filters.reset': 'Filter zurücksetzen',
+  'filters.selectPlaceholder': 'Auswählen',
+
+  // ── Time range selector ──────────────────────────────────────────────────
+  'period.label': 'Zeitraum',
+  'period.latest': 'Letzter Monat',
+  'period.all': 'Alle Daten',
+  'period.months_one': '{count} Monat',
+  'period.months_other': '{count} Monate',
+
+  // ── Stat tiles ───────────────────────────────────────────────────────────
+  'stats.totalApplications': 'Anträge gesamt',
+  'stats.totalApplications.short': 'Gesamt',
+  'stats.pending': 'Ausstehend',
+  'stats.granted': 'Genehmigt',
+  'stats.denied': 'Abgelehnt',
+  'stats.approvalRate': 'Genehmigungsquote',
+  'stats.approvalRate.short': 'Quote',
+  'stats.scopeWithType': '{bureau} ({type})',
+  // "MoM" = month over month; the delta is already signed and formatted.
+  'stats.momDelta': '{delta} zum Vormonat',
+
+  // ── Shared vocabulary ────────────────────────────────────────────────────
+  // Metric names reused across the table, chart legends, and hover cards.
+  'metric.carriedOver': 'Übertrag',
+  'metric.pending': 'Ausstehend (Übertrag)',
+  'metric.received': 'Eingegangen',
+  'metric.processed': 'Bearbeitet',
+  'metric.granted': 'Genehmigt',
+  'metric.denied': 'Abgelehnt',
+  'metric.other': 'Sonstige',
+  'metric.completion': 'Abschlussquote',
+  'metric.applications': 'Anträge',
+  'metric.population': 'Bevölkerung',
+  'metric.area': 'Fläche',
+  'metric.density': 'Dichte',
+  'common.noDataForFilters': 'Keine Daten für diese Filterkombination.',
+
+  // ── Data table ───────────────────────────────────────────────────────────
+  'table.view': 'Datentabelle anzeigen',
+  'table.hide': 'Datentabelle ausblenden',
+  'table.downloadCsv': 'CSV herunterladen',
+  'table.caption': 'Monatliche Antragsstatistik für {bureau}',
+  'table.month': 'Monat',
+
+  // ── Estimator ────────────────────────────────────────────────────────────
+  'estimator.title': 'Bearbeitungszeit-Schätzer',
+  'estimator.description': 'Schätzung nach Warteschlangenmodell auf Basis des Durchsatzes der letzten sechs Monate.',
+  'estimator.selectBureau': 'Amt auswählen',
+  'estimator.selectType': 'Art auswählen',
+  'estimator.applicationDate': 'Antragsdatum',
+  'estimator.empty':
+    'Wählen Sie Ihr Amt, Ihre Antragsart und Ihr Antragsdatum aus, um zu schätzen, wann Ihr Antrag bearbeitet wird.',
+  'estimator.estimatedCompletion': 'Voraussichtlicher Abschluss',
+  'estimator.queuePosition': 'Position in der Warteschlange',
+  'estimator.aheadOfYou': '≈ {count} vor Ihnen',
+  'estimator.howCalculated': 'Wie wird das berechnet?',
+  'estimator.showMath': 'Berechnung anzeigen',
+  'estimator.hideMath': 'Berechnung ausblenden',
+  // Header controls: the tooltip is terse, the aria-label names the panel so
+  // it stands alone out of context.
+  'estimator.reset': 'Schätzer zurücksetzen',
+  'estimator.resetAria': 'Bearbeitungszeit-Schätzer zurücksetzen',
+  'estimator.collapse': 'Schätzer einklappen',
+  'estimator.collapseAria': 'Bearbeitungszeit-Schätzer einklappen',
+  'estimator.close': 'Schätzer schließen',
+  'estimator.closeAria': 'Bearbeitungszeit-Schätzer schließen',
+  'estimator.copyPermalink': 'Permalink zu dieser Schätzung kopieren',
+  'estimator.copied': 'Kopiert!',
+  // Result note, joined with " · ".
+  'estimator.uncertaintyDays_one': '± {count} Tag',
+  'estimator.uncertaintyDays_other': '± {count} Tage',
+  'estimator.uncertaintyWeeks_one': '± {count} Woche',
+  'estimator.uncertaintyWeeks_other': '± {count} Wochen',
+  'estimator.basedOnMonths_one': 'basierend auf {count} Monat Durchsatz',
+  'estimator.basedOnMonths_other': 'basierend auf {count} Monaten Durchsatz',
+  // Warnings.
+  'estimator.limitedDataTitle': 'Geschätzt mit eingeschränkten Daten:',
+  'estimator.limitedDataBody_one':
+    'Ihr Antragsdatum liegt außerhalb der verfügbaren Daten. Diese Schätzung basiert auf simulierten Bearbeitungsraten aus {count} Monat historischer Daten und ist möglicherweise weniger genau.',
+  'estimator.limitedDataBody_other':
+    'Ihr Antragsdatum liegt außerhalb der verfügbaren Daten. Diese Schätzung basiert auf simulierten Bearbeitungsraten aus {count} Monaten historischer Daten und ist möglicherweise weniger genau.',
+  'estimator.pastDueTitle': 'Möglicherweise überfällig:',
+  'estimator.pastDueBody':
+    'Basierend auf den erwarteten Bearbeitungsraten könnte der Abschluss dieses Antrags überfällig sein. Falls Sie noch keine zusätzlichen Anfragen und/oder eine Entscheidung zu diesem Antrag erhalten haben, wenden Sie sich für weitere Informationen bitte an das Amt.',
+  // {emphasis} is the word "estimate", rendered bold and underlined.
+  'estimator.disclaimer':
+    '*Dies ist eine {emphasis} auf Grundlage aktueller Bearbeitungsraten, der erwarteten Position in der Warteschlange und ausstehender Anträge. Die tatsächliche Bearbeitungszeit für Ihren Antrag kann abweichen.',
+  'estimator.disclaimerEmphasis': 'Schätzung',
+
+  // ── Estimator: the "Show the math" breakdown ─────────────────────────────
+  'estimator.formula.step1': 'Warteschlange bei Antragstellung',
+  'estimator.formula.step2': 'Warteschlangenposition & Tagesrate',
+  'estimator.formula.step3': 'Verbleibende Tage',
+  'estimator.formula.explainAria': 'Variablen in der Formel „{title}“ erklären',
+  'estimator.formula.var.dRem.title': 'Verbleibende Tage',
+  'estimator.formula.var.dRem.description': 'Geschätzte Tage bis zum Abschluss der Bearbeitung.',
+  'estimator.formula.var.qPos.title': 'Warteschlangenposition',
+  'estimator.formula.var.qPos.description': 'Geschätzte Position in der Bearbeitungswarteschlange.',
+  'estimator.formula.var.rDaily.title': 'Tagesrate',
+  'estimator.formula.var.rDaily.description': 'Durchschnittlich pro Tag bearbeitete Anträge.',
+  'estimator.formula.var.cProc.title': 'Bestätigt bearbeitet',
+  'estimator.formula.var.cProc.description': 'Bestätigte Anzahl der seit der Einreichung bearbeiteten Anträge.',
+  'estimator.formula.var.eProc.title': 'Geschätzt bearbeitet',
+  'estimator.formula.var.eProc.description': 'Geschätzte Anzahl der seit dem letzten Datenpunkt bearbeiteten Anträge.',
+  'estimator.formula.var.sigmaP.title': 'Insgesamt bearbeitet',
+  'estimator.formula.var.sigmaP.description': 'Summe der bearbeiteten Anträge zur Berechnung der Durchschnittswerte.',
+  'estimator.formula.var.sigmaD.title': 'Tage insgesamt',
+  'estimator.formula.var.sigmaD.description': 'Summe der Tage zur Berechnung der Durchschnittswerte.',
+  'estimator.formula.var.qApp.title': 'Antragswarteschlange',
+  'estimator.formula.var.qApp.description': 'Geschätzte Warteschlangenposition zum Zeitpunkt der Einreichung.',
+  'estimator.formula.var.cPrev.title': 'Übertrag',
+  'estimator.formula.var.cPrev.description': 'Aus dem Vormonat übertragene Anträge.',
+  'estimator.formula.var.nApp.title': 'Neue Anträge',
+  'estimator.formula.var.nApp.description': 'Geschätzte, vor der Einreichung eingegangene Anträge.',
+  'estimator.formula.var.pApp.title': 'Bearbeitete Anträge',
+  'estimator.formula.var.pApp.description': 'Geschätzte, vor der Einreichung bearbeitete Anträge.',
+
+  // ── Charts: registry ─────────────────────────────────────────────────────
+  // `.label` names the tab and the card heading, `.description` is the card
+  // subtitle, `.aria` describes the graphic to a screen reader.
+  'charts.intake.label': 'Eingang & Bearbeitung',
+  'charts.intake.description':
+    'Monatlich übertragene und eingegangene Anträge im Vergleich zum von den Ämtern abgeschlossenen Volumen.',
+  'charts.intake.aria':
+    'Gestapelte Balken ausstehender und eingegangener Anträge pro Monat, mit dem bearbeiteten Volumen als Linie',
+  'charts.types.label': 'Antragsarten',
+  'charts.types.description':
+    'Monatliche Neueinreichungen nach Antragsart aufgeschlüsselt — klicken Sie auf einen Legendeneintrag, um eine Reihe ein- oder auszublenden.',
+  'charts.types.aria': 'Liniendiagramm der monatlichen Neueinreichungen pro Antragsart',
+  'charts.outcomes.label': 'Ergebnisse',
+  'charts.outcomes.description':
+    'Wo Anträge enden: der Fluss jeder Antragsart in Genehmigung, Ablehnung oder sonstige Ergebnisse.',
+  'charts.outcomes.aria': 'Sankey-Diagramm der Antragsarten mit Fluss zu den Ergebnissen',
+  'charts.share.label': 'Anteil der Ämter',
+  'charts.share.description': 'Wo Anträge eingereicht wurden: der Anteil jedes Amtes am Gesamteingang.',
+  'charts.share.aria': 'Ringdiagramm des Anteils jedes Amtes an den eingegangenen Anträgen',
+  'charts.mix.label': 'Kategorienmix',
+  'charts.mix.description':
+    'Alle Anträge nach Art und Amt — klicken Sie auf eine Kategorie, um in ihre Aufschlüsselung hineinzuzoomen.',
+  'charts.efficiency.label': 'Bearbeitungseffizienz',
+  'charts.efficiency.description':
+    'Ämter nach Abschlussquote gerankt — die Stärke des Stiels zeigt das Eingangsvolumen, die landesweite Quote dient als Orientierung.',
+  'charts.efficiency.aria': 'Ämter nach Abschlussquote gerankt, mit dem Eingangsvolumen als Stielstärke',
+  'charts.map.label': 'Regionalkarte',
+  'charts.map.description':
+    'Zuständigkeitsgebiete der Ämter und Bevölkerungsdichte, mit den Standorten von Ämtern und Flughafenämtern.',
+  // Alternate views, kept swap-ready but not currently registered.
+  'charts.mixSunburst.aria': 'Sunburst-Diagramm der Anträge nach Art und Amt; interaktives Hineinzoomen',
+  'charts.efficiencyQuadrant.aria':
+    'Quadrantendiagramm der Abschlussquote gegenüber dem eingegangenen Volumen pro Amt; die Blasengröße zeigt das bearbeitete Volumen',
+
+  // ── Charts: shared ───────────────────────────────────────────────────────
+  'chart.legendShow': '{series} anzeigen',
+  'chart.legendHide': '{series} ausblenden',
+  'chart.allSeriesHidden': 'Alle Reihen ausgeblendet — klicken Sie auf einen Legendeneintrag, um eine anzuzeigen.',
+
+  // ── Chart: Application Types ─────────────────────────────────────────────
+  // Compact per-type series names. Deliberately separate from
+  // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
+  'chart.types.series.acquisition': 'Erwerb',
+  'chart.types.series.extension': 'Verlängerung',
+  'chart.types.series.change': 'Statusänderung',
+  'chart.types.series.activity': 'Tätigkeitserlaubnis',
+  'chart.types.series.reentry': 'Wiedereinreise',
+  'chart.types.series.permanent': 'Daueraufenthalt',
+
+  // ── Chart: Outcomes ──────────────────────────────────────────────────────
+  'chart.outcomes.otherWithdrawn': 'Sonstige / Zurückgezogen',
+  'chart.outcomes.valueUnit': 'Anträge',
+  'chart.outcomes.tooltipValueLabel': 'Anträge',
+  'chart.outcomes.tooltipFlowLabel': 'Fluss',
+  'chart.outcomes.approvalRate': 'Genehmigungsquote',
+  'chart.outcomes.ofProcessed': 'von {count} bearbeiteten Anträgen',
+  'chart.outcomes.empty': 'Keine bearbeiteten Anträge in diesem Zeitraum.',
+
+  // ── Chart: Bureau Share ──────────────────────────────────────────────────
+  'chart.share.otherSlice': 'Sonstige ({count})',
+
+  // ── Chart: Category Mix ──────────────────────────────────────────────────
+  'chart.mix.root': 'Alle Anträge',
+  'chart.mix.breadcrumbAria': 'Treemap-Navigationspfad',
+  'chart.mix.zoomInHint': 'Klicken Sie auf eine Kategorie, um hineinzuzoomen',
+  'chart.mix.zoomOutHint': 'Klicken Sie auf den Hintergrund (oder drücken Sie Esc), um herauszuzoomen',
+  'chart.mix.others': 'Sonstige',
+  'chart.mix.categoryAria': '{category}: {count} Anträge. Hineinzoomen.',
+  'chart.mix.tooltipValue': '{count} Anträge · {percent} von {scope}',
+  'chart.mix.scopeAll': 'allen Anträgen',
+  'chart.mix.sunburstHint': '{trail} — {count} Anträge ({percent} der Gesamtzahl)',
+
+  // ── Chart: Processing Efficiency ─────────────────────────────────────────
+  'chart.efficiency.branchOffice': 'Zweigstelle',
+  'chart.efficiency.receivedCount': '{count} eingegangen',
+  'chart.efficiency.nationwide': 'Landesweit {rate}',
+  'chart.efficiency.pointAria': '{bureau}: {rate} Prozent Abschlussquote, {count} Anträge eingegangen',
+  'chart.efficiency.xAxis': 'Eingegangene Anträge',
+  'chart.efficiency.fullCompletion': '100 % des Eingangs abgeschlossen',
+  'chart.efficiency.quadrantKeepingPace': 'HOHES VOLUMEN · IM TAKT',
+  'chart.efficiency.quadrantFallingBehind': 'HOHES VOLUMEN · IM RÜCKSTAND',
+
+  // ── Chart: Regional Map ──────────────────────────────────────────────────
+  'map.bureauMarkerAria': 'Amt {bureau}',
+  'map.airportMarkerAria': 'Flughafenamt {bureau}',
+  'map.bureauSuffix': 'Amt {bureau}',
+  'map.airportSuffix': 'Flughafenamt {bureau}',
+  'map.servicePopulation': 'Zuständige Bevölkerung',
+  'map.serviceArea': 'Zuständigkeitsgebiet',
+  'map.serviceBureau': 'Zuständiges Amt',
+  'map.portOfEntry': 'Grenzübergangsstelle',
+  'map.legendNote': 'Farbe = zuständiges Amt · Intensität = Bevölkerungsdichte',
+  'map.bureau': 'Amt',
+  'map.airportOffice': 'Flughafenamt',
+  'map.zoomIn': 'Vergrößern',
+  'map.zoomOut': 'Verkleinern',
+  'map.resetView': 'Ansicht zurücksetzen',
+  'map.loadError': 'Kartendaten konnten nicht geladen werden. Versuchen Sie, die Seite neu zu laden.',
+  'map.loading': 'Kartendaten werden geladen …',
+  'map.areaValue': '{value} km²',
+  'map.densityValue': '{value} /km²',
+
+  // ── Changelog ────────────────────────────────────────────────────────────
+  'changelog.title': 'Änderungsprotokoll',
+  'changelog.loading': 'Wird geladen …',
+
+  // ── Errors ───────────────────────────────────────────────────────────────
+  'errors.dataTitle': 'Fehler beim Laden der Daten',
+  'errors.noData': 'Keine Daten verfügbar',
+  'errors.unknown': 'Unbekannter Fehler aufgetreten',
+  'errors.fetchFailed': 'Daten konnten nicht abgerufen werden',
+  'errors.renderTitle': 'Etwas ist schiefgelaufen',
+  'errors.renderBody': 'Beim Rendern der Anwendung ist ein Fehler aufgetreten.',
+  'errors.reload': 'Seite neu laden',
+  'errors.changelogUnavailable': 'Das Änderungsprotokoll konnte nicht geladen werden.',
+
+  // ── Screen-reader only ───────────────────────────────────────────────────
+  'a11y.showingChart': '{chart} für {bureau} wird angezeigt',
+  'a11y.showingChartWithType': '{chart} für {bureau}, {type} wird angezeigt',
+
+  // ── Footer ───────────────────────────────────────────────────────────────
+  'footer.attribution': 'Offizielle Statistiken bereitgestellt von der Einwanderungsbehörde Japans',
+  'footer.dataAcquisition': 'Datenerfassung bereitgestellt von {source}',
+  'footer.fixtureNotice': 'zeigt generierte Testdaten',
+  'footer.builtBy': 'Entwickelt von {author}',
+  'footer.dataUpdated': 'Daten aktualisiert am {date}',
+
+  // ── Domain: immigration bureaus ──────────────────────────────────────────
+  // Keyed by e-Stat bureau code. `.short` is the terminal-style abbreviation
+  // shown on the stat tiles; left as the Latin code, as in the source.
+  'bureau.all': 'Landesweit',
+  'bureau.all.short': 'ALL',
+  'bureau.all.compact': 'Landesweit',
+  'bureau.101010': 'Sapporo',
+  'bureau.101010.short': 'CTS',
+  'bureau.101010.compact': 'Sapporo',
+  'bureau.101090': 'Sendai',
+  'bureau.101090.short': 'SDJ',
+  'bureau.101090.compact': 'Sendai',
+  'bureau.101170': 'Shinagawa',
+  'bureau.101170.short': 'SGW',
+  'bureau.101170.compact': 'Shinagawa',
+  'bureau.101190': 'Flughafen Narita',
+  'bureau.101190.short': 'NRT',
+  'bureau.101190.compact': 'Flughafen Narita',
+  'bureau.101200': 'Flughafen Haneda',
+  'bureau.101200.short': 'HND',
+  'bureau.101200.compact': 'Flughafen Haneda',
+  'bureau.101210': 'Yokohama',
+  'bureau.101210.short': 'YOK',
+  'bureau.101210.compact': 'Yokohama',
+  'bureau.101350': 'Nagoya',
+  'bureau.101350.short': 'NAG',
+  'bureau.101350.compact': 'Nagoya',
+  'bureau.101370': 'Flughafen Chubu',
+  'bureau.101370.short': 'NGO',
+  'bureau.101370.compact': 'Flughafen Chubu',
+  'bureau.101460': 'Osaka',
+  'bureau.101460.short': 'ITM',
+  'bureau.101460.compact': 'Osaka',
+  'bureau.101480': 'Flughafen Kansai',
+  'bureau.101480.short': 'KIX',
+  'bureau.101480.compact': 'Flughafen Kansai',
+  'bureau.101490': 'Kobe',
+  'bureau.101490.short': 'UKB',
+  'bureau.101490.compact': 'Kobe',
+  'bureau.101580': 'Hiroshima',
+  'bureau.101580.short': 'HIJ',
+  'bureau.101580.compact': 'Hiroshima',
+  'bureau.101670': 'Takamatsu',
+  'bureau.101670.short': 'TAK',
+  'bureau.101670.compact': 'Takamatsu',
+  'bureau.101720': 'Fukuoka',
+  'bureau.101720.short': 'FUK',
+  'bureau.101720.compact': 'Fukuoka',
+  'bureau.101740': 'Naha',
+  'bureau.101740.short': 'OKA',
+
+  'bureau.101740.compact': 'Naha',
+  // ── Domain: application types ────────────────────────────────────────────
+  // Keyed by e-Stat application type code. `.short` is the stat-tile
+  // abbreviation; `.compact` is the one-word form the narrow Sankey uses.
+  'appType.all': 'Alle Arten',
+  'appType.all.short': 'ALL',
+  'appType.all.compact': 'Alle',
+  'appType.10': 'Statuserwerb',
+  'appType.10.short': 'ERW',
+  'appType.10.compact': 'Erwerb',
+  'appType.20': 'Aufenthaltsverlängerung',
+  'appType.20.short': 'VER',
+  'appType.20.compact': 'Verlängerung',
+  'appType.30': 'Statusänderung',
+  'appType.30.short': 'ÄND',
+  'appType.30.compact': 'Änderung',
+  'appType.40': 'Erlaubnis für Tätigkeiten',
+  'appType.40.short': 'TÄT',
+  'appType.40.compact': 'Erlaubnis',
+  'appType.50': 'Wiedereinreise',
+  'appType.50.short': 'WIE',
+  'appType.50.compact': 'Wiedereinreise',
+  'appType.60': 'Daueraufenthalt',
+  'appType.60.short': 'DA',
+  'appType.60.compact': 'Dauerhaft',
+
+  // ── Domain: prefectures ──────────────────────────────────────────────────
+  // Keyed by JIS prefecture code (1 Hokkaido … 47 Okinawa).
+  'prefecture.1': 'Hokkaido',
+  'prefecture.2': 'Aomori',
+  'prefecture.3': 'Iwate',
+  'prefecture.4': 'Miyagi',
+  'prefecture.5': 'Akita',
+  'prefecture.6': 'Yamagata',
+  'prefecture.7': 'Fukushima',
+  'prefecture.8': 'Ibaraki',
+  'prefecture.9': 'Tochigi',
+  'prefecture.10': 'Gunma',
+  'prefecture.11': 'Saitama',
+  'prefecture.12': 'Chiba',
+  'prefecture.13': 'Tokio',
+  'prefecture.14': 'Kanagawa',
+  'prefecture.15': 'Niigata',
+  'prefecture.16': 'Toyama',
+  'prefecture.17': 'Ishikawa',
+  'prefecture.18': 'Fukui',
+  'prefecture.19': 'Yamanashi',
+  'prefecture.20': 'Nagano',
+  'prefecture.21': 'Gifu',
+  'prefecture.22': 'Shizuoka',
+  'prefecture.23': 'Aichi',
+  'prefecture.24': 'Mie',
+  'prefecture.25': 'Shiga',
+  'prefecture.26': 'Kyoto',
+  'prefecture.27': 'Osaka',
+  'prefecture.28': 'Hyogo',
+  'prefecture.29': 'Nara',
+  'prefecture.30': 'Wakayama',
+  'prefecture.31': 'Tottori',
+  'prefecture.32': 'Shimane',
+  'prefecture.33': 'Okayama',
+  'prefecture.34': 'Hiroshima',
+  'prefecture.35': 'Yamaguchi',
+  'prefecture.36': 'Tokushima',
+  'prefecture.37': 'Kagawa',
+  'prefecture.38': 'Ehime',
+  'prefecture.39': 'Kochi',
+  'prefecture.40': 'Fukuoka',
+  'prefecture.41': 'Saga',
+  'prefecture.42': 'Nagasaki',
+  'prefecture.43': 'Kumamoto',
+  'prefecture.44': 'Oita',
+  'prefecture.45': 'Miyazaki',
+  'prefecture.46': 'Kagoshima',
+  'prefecture.47': 'Okinawa',
+};
