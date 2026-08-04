@@ -5,6 +5,7 @@
 // this registry.
 import type { Dictionary } from '../types';
 import { en } from './en';
+import { it } from './it';
 import { ja } from './ja';
 
 /**
@@ -32,6 +33,7 @@ export interface LocaleMeta {
 export const LOCALES = {
   en: { code: 'en', nativeName: 'English', intlTag: 'en-US', status: 'complete', dictionary: en },
   ja: { code: 'ja', nativeName: '日本語', intlTag: 'ja-JP', status: 'in-progress', dictionary: ja },
+  it: { code: 'it', nativeName: 'Italiano', intlTag: 'it-IT', status: 'complete', dictionary: it },
 } as const satisfies Record<string, LocaleMeta>;
 
 export type Locale = keyof typeof LOCALES;
