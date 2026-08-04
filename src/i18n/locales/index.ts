@@ -8,6 +8,7 @@ import { de } from './de';
 import { en } from './en';
 import { fr } from './fr';
 import { ja } from './ja';
+import { pt } from './pt';
 
 /**
  * How complete a translation claims to be.
@@ -36,6 +37,7 @@ export const LOCALES = {
   ja: { code: 'ja', nativeName: '日本語', intlTag: 'ja-JP', status: 'complete', dictionary: ja },
   fr: { code: 'fr', nativeName: 'Français', intlTag: 'fr-FR', status: 'complete', dictionary: fr },
   de: { code: 'de', nativeName: 'Deutsch', intlTag: 'de-DE', status: 'complete', dictionary: de },
+  pt: { code: 'pt', nativeName: 'Português', intlTag: 'pt-PT', status: 'complete', dictionary: pt },
 } as const satisfies Record<string, LocaleMeta>;
 
 export type Locale = keyof typeof LOCALES;
