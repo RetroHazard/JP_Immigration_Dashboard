@@ -139,11 +139,12 @@ Seven interactive charts, each answering a specific question about the data, wit
 
 ---
 
-### :globe_with_meridians: Localization *(foundation complete, translations open)*
+### :globe_with_meridians: Localization *(English and Japanese)*
 - Every string in the interface — text, ARIA labels, chart legends, tooltips, table headers, empty and error states — comes from a single catalogue file per language, so **adding a language means writing one file** and touching no components (see [`src/i18n/README.md`](src/i18n/README.md))
 - Numbers, percentages, and dates follow the active locale, including chart axis ticks and tooltips; counted phrases use real plural rules rather than an English "s"
 - A partial translation is safe to ship: anything a language leaves out falls back to English rather than rendering blank
-- The language switcher is built but **deliberately hidden** — Japanese is still a stub, and offering the switch before a language is actually translated is what got the original switcher pulled. `?lang=ja` works for testing. Flipping `LOCALE_SWITCHER_ENABLED` in `src/i18n/config.ts` is the whole change when a locale is ready
+- **Japanese is complete** — all 330 keys, using the official 出入国在留管理庁 terminology for bureaus and application types. The language switcher is live in the header and the mobile settings drawer, and a visitor whose browser asks for Japanese lands on it
+- Bureaus and application types each carry three widths (`.label`, `.compact`, `.short`) so an office's full official name can appear where there's room without collapsing the dense charts, where several offices would otherwise truncate to the same prefix
 
 ---
 
