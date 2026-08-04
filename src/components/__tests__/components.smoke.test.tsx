@@ -8,9 +8,9 @@ import { fireEvent } from '@testing-library/react';
 
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
 import { en } from '../../i18n/locales/en';
+import { ja } from '../../i18n/locales/ja';
 import { renderWithProviders, screen } from '../../test-utils';
 import { ChartDataTable } from '../ChartDataTable';
-import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { SeriesLegend } from '../common/SeriesLegend';
 import { StatCard } from '../common/StatCard';
 
@@ -75,22 +75,16 @@ describe('ChartDataTable', () => {
     expect(screen.getByText(en['table.downloadCsv'])).toBeTruthy();
   });
 
-  it('renders the same English text under an untranslated locale', () => {
-    // ja.ts has no `table.*` keys yet, so this exercises the fallback path an
-    // in-progress translation depends on — nothing should render as a raw key.
+  it('renders the translated text under the Japanese locale', () => {
+    // The catalogue reaches this component through the provider rather than a
+    // prop, so this is what proves a locale switch actually lands in the DOM.
+    // (The English-fallback path a partial locale depends on is covered
+    // directly, with synthetic dictionaries, in i18n/__tests__/translate.test.ts.)
     renderWithProviders(<ChartDataTable data={data} filters={{ bureau: 'all', type: 'all' }} range="all" />, {
       locale: 'ja',
     });
-    expect(screen.getByText(en['table.view'])).toBeTruthy();
+    expect(screen.getByText(ja['table.view']!)).toBeTruthy();
+    expect(screen.queryByText(en['table.view'])).toBeNull();
     expect(screen.queryByText('table.view')).toBeNull();
-  });
-});
-
-describe('LanguageSwitcher', () => {
-  it('renders nothing while the switcher is gated off', () => {
-    // The counterpart — that it works once enabled — is in
-    // LanguageSwitcher.test.tsx, which mocks the flag on.
-    const { container } = renderWithProviders(<LanguageSwitcher />);
-    expect(container.innerHTML).toBe('');
   });
 });

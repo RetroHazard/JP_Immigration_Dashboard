@@ -14,7 +14,7 @@ import type React from 'react';
 import { createPortal } from 'react-dom';
 
 import { useLocale } from '../../i18n/LocaleContext';
-import { useApplicationType, useBureauLabel } from '../../i18n/useDomainLabels';
+import { useApplicationType, useBureauCompact, useBureauLabel } from '../../i18n/useDomainLabels';
 import type { MixTree } from '../../utils/categoryMixTree';
 import { buildCategoryMixTree, mixLeafColor } from '../../utils/categoryMixTree';
 import type { ImmigrationChartData } from '../common/ChartComponents';
@@ -173,6 +173,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
   const fmt = formatters.number;
   const applicationType = useApplicationType();
   const getBureauLabel = useBureauLabel();
+  const getBureauCompact = useBureauCompact();
   const typeLabel = (code: string) => applicationType(code)?.label ?? code;
   const typeShort = (code: string) => applicationType(code)?.short ?? code;
   const [focusKey, setFocusKey] = useState<string | null>(null);
@@ -386,7 +387,9 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
               >
                 {showLabel && (
                   <span className="flex flex-col px-2 py-1 text-xs font-semibold leading-tight">
-                    <span>{rest ? t('chart.mix.others') : getBureauLabel(leaf.code)}</span>
+                    {/* Compact on the tile — it only renders above 74px wide
+                        and ellipsizes. The tooltip above keeps the full name. */}
+                    <span>{rest ? t('chart.mix.others') : getBureauCompact(leaf.code)}</span>
                     {!rest && (
                       <span className="font-mono text-xxs font-medium opacity-75">
                         {fmt(leaf.value)} · {formatters.percent((leaf.value / base) * 100)}

@@ -7,7 +7,11 @@ import { cn } from "@/lib/utils";
 // LOCAL MODIFICATION: upstream formats with `undefined` (the browser locale),
 // which disagrees with every other number on the page once the app's own
 // locale differs from the browser's. Reads the same module state as
-// chart-formatters.ts. Re-apply after a re-vendor.
+// chart-formatters.ts. Applied in two places — the static fallback below and
+// the NumberFlow branch it hands over to, which otherwise reformatted the
+// number the moment the animation library loaded. pie-center and ring-center
+// both route through this component, so they are covered by the same change.
+// Re-apply after a re-vendor.
 import { chartFormatterLocale } from "./chart-formatters";
 
 /** Subset of `Intl.NumberFormatOptions` supported by NumberFlow */
@@ -109,9 +113,15 @@ export function ChartStatFlow({
       ) : null}
       <span className={cn("text-foreground tabular-nums", valueClassName)}>
         {numberFlowReady ? (
+          /* `locales` mirrors the static branch below, which formats through
+             chartFormatterLocale(). Without it NumberFlow falls back to the
+             browser locale, so the number silently reformatted the moment the
+             animation library finished loading — a ja reader on an en browser
+             watched 1.2万 flip to 12K mid-paint. */
           <NumberFlow
             format={formatOptions}
             isolate
+            locales={chartFormatterLocale()}
             prefix={prefix}
             suffix={suffix}
             value={value}

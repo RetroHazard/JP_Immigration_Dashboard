@@ -47,12 +47,13 @@ describe('English plural selection', () => {
 });
 
 describe('Japanese plural selection', () => {
-  it('resolves through the single "other" category without falling back to a raw key', () => {
-    // ja.ts doesn't translate these yet, so every count must land on the
-    // English `_other` member — never on the bare family name.
+  it('resolves every count through the single "other" category', () => {
+    // Japanese has one CLDR category, so ja.ts defines only `_other` and both
+    // counts must land on it — never on the bare family name, and never on the
+    // English `_one` member that `Intl.PluralRules` can't select here.
     render('period.months', [1, 6], 'ja');
-    expect(screen.getByTestId('n1').textContent).toBe('1 months');
-    expect(screen.getByTestId('n6').textContent).toBe('6 months');
+    expect(screen.getByTestId('n1').textContent).toBe('1か月');
+    expect(screen.getByTestId('n6').textContent).toBe('6か月');
     expect(screen.queryByText('period.months')).toBeNull();
   });
 });
