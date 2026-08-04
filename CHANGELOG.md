@@ -2,6 +2,16 @@
 
 All notable user-facing changes to the Japan Immigration Bureaus Statistics Dashboard are documented in this file, grouped by month. The dashboard's header shows the currently deployed version.
 
+## 2026-08
+
+### Added
+
+- **v1.2.5**: French, German, Italian, Portuguese, and Spanish join Japanese in full translation — the switcher now offers six languages end to end ([#69](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/69)) —
+  - Every interface string is translated in all five: chart labels and tooltips, the data table, the estimator, and empty/error states, alongside the text already covered
+  - Portuguese follows European usage (pt-PT) rather than Brazilian
+  - Numbers, dates, and pluralized phrases follow each language's own rules, the same as every other locale
+  - Bureau and application-type abbreviations (the terminal-style `CTS`, `EXT`-style codes) are left in Latin script where that's how each language actually renders them, rather than forced into an artificial translation
+
 ## 2026-07
 
 ### Added

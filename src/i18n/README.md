@@ -199,8 +199,9 @@ text children, and a `no-restricted-syntax` rule catches string literals in
 
 ## Current state
 
-330 keys, covering the whole interface, in two languages both marked
-`complete`: English and Japanese (325 keys — Japanese owes no `_one` members).
+330 keys, covering the whole interface, in seven languages all marked
+`complete`: English, French, German, Italian, Japanese (325 keys — Japanese
+owes no `_one` members), Portuguese, and Spanish.
 **The language switcher is on** (`LOCALE_SWITCHER_ENABLED` in `config.ts`),
 which also turns on browser-language detection — the two are one flag precisely
 because auto-detecting a language is only safe while the visitor can switch
@@ -226,10 +227,12 @@ Both skip values that are Latin on purpose — `nav.version`, `bureau.*.short`,
 `in-progress` file is held to the same standard on the part it has finished.
 
 The equality check has one further, narrower exemption: `prefecture.*` and the
-bare `bureau.<code>` keys are Japanese proper nouns, and every Latin-script
-locale romanizes them the same way English does — "Hokkaido" is "Hokkaido" in
-French too. That's a correct translation, not a leftover, so a locale without
-a `SCRIPT_OF` entry is allowed to leave them matching English. A locale with
-its own script gets no such pass and is still held to translating them (北海道,
-not "Hokkaido") — the script check enforces that directly, since these keys
-stay in its `translatable` set regardless.
+bare `bureau.<code>` keys (plus their `.compact` siblings) are Japanese proper
+nouns, and every Latin-script locale romanizes them the same way English does
+— "Hokkaido" is "Hokkaido" in French too, and so is a city-only bureau's
+`.compact` form, which is never anything but its own name. That's a correct
+translation, not a leftover, so a locale without a `SCRIPT_OF` entry is
+allowed to leave them matching English. A locale with its own script gets no
+such pass and is still held to translating them (北海道, not "Hokkaido") — the
+script check enforces that directly, since these keys stay in its
+`translatable` set regardless.

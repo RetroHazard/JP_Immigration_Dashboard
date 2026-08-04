@@ -238,7 +238,12 @@ JP_Immigration_Dashboard/
 │   ├── i18n/                          # See src/i18n/README.md
 │   │   ├── locales/
 │   │   │   ├── en.ts                  # Source of truth; DictionaryKey derives from it
+│   │   │   ├── de.ts                  # Complete German catalogue
+│   │   │   ├── es.ts                  # Complete Spanish catalogue
+│   │   │   ├── fr.ts                  # Complete French catalogue
+│   │   │   ├── it.ts                  # Complete Italian catalogue
 │   │   │   ├── ja.ts                  # Complete Japanese catalogue
+│   │   │   ├── pt.ts                  # Complete European Portuguese catalogue
 │   │   │   ├── _template.ts           # Generated starting point (npm run i18n:template)
 │   │   │   └── index.ts               # Registry — one entry per language, with its status
 │   │   ├── LocaleContext.tsx          # Provider + useLocale()
