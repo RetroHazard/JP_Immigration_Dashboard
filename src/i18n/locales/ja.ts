@@ -1,10 +1,23 @@
 // src/i18n/locales/ja.ts
-// Japanese overrides. Partial while translation is in progress — any key left
-// out falls back to the English string, so this file can grow one section at a
-// time without ever leaving a blank in the UI.
+// Japanese catalogue — complete coverage of the English source.
 //
-// Japanese has a single CLDR plural category, so plural families only ever
-// need their `_other` member here.
+// Conventions, kept deliberately consistent so the file reads as one voice:
+//
+// - 体言止め for anything that labels a control: buttons, tabs, filter labels,
+//   column headers, stat-tile titles. です・ます for anything that speaks to the
+//   reader: explanatory prose, warnings, empty and error states.
+// - Official 出入国在留管理庁 terminology for the domain nouns. Application types
+//   use the agency's own procedure names (在留資格取得許可申請 and so on), and
+//   bureaus their full office names including 支局 status.
+// - Full-width punctuation (：（）、。), ranges joined with 〜, and no space
+//   between a number and its unit — 12,345件, 6か月, 1,234km².
+// - Japanese has a single CLDR plural category, so plural families define only
+//   their `_other` member. `Intl.PluralRules('ja-JP')` never selects anything
+//   else, and translate.ts falls back to `_other` regardless.
+//
+// A few values are intentionally identical to English: `nav.version` is a
+// version number, and `bureau.*.short` are IATA-style codes that stay Latin in
+// every language (see the note in en.ts).
 import type { Dictionary } from '../types';
 
 export const ja: Dictionary = {
@@ -12,10 +25,410 @@ export const ja: Dictionary = {
   'app.title': '日本 在留審査統計',
   'app.subtitle': '出入国在留管理庁の審査データ（e-Stat の公表に合わせて更新）',
   'app.skipToContent': '本文へスキップ',
+  'app.loadingData': '在留統計を集計しています…',
+  'app.loadingDashboard': 'ダッシュボードを読み込んでいます…',
+  'app.retry': '再試行',
+
+  // ── Document metadata ────────────────────────────────────────────────────
+  // Not yet reachable: the static export prerenders one English document (see
+  // src/i18n/README.md). Translated so it is ready when per-locale routes are.
+  'meta.title': '日本 在留審査統計ダッシュボード',
+  'meta.description':
+    '在留審査の処理期間、地方出入国在留管理局ごとの処理状況、そして自分の申請に合わせた待ち行列モデルによる完了時期の推定。出入国在留管理庁の公式統計にもとづき、e-Stat の新規データ公表（おおむね月次）に合わせて更新しています。',
+  'meta.keywords': '在留審査 処理期間, 出入国在留管理局 統計, 在留申請 進捗, 出入国在留管理庁, e-Stat',
+
+  // ── Header and settings drawer ───────────────────────────────────────────
+  'nav.version': 'v{version}',
+  'nav.language': '言語',
+  'nav.switchToLightTheme': 'ライトテーマに切り替え',
+  'nav.switchToDarkTheme': 'ダークテーマに切り替え',
+  'nav.openSettings': '設定メニューを開く',
+  'nav.settings': '設定',
+  'nav.theme': 'テーマ',
+  'nav.themeLight': 'ライト',
+  'nav.themeDark': 'ダーク',
+  'nav.about': 'このサイトについて',
+  'nav.changelog': '更新履歴',
+
+  // ── Dashboard chrome ─────────────────────────────────────────────────────
+  'dashboard.dataCoverage': '対象期間：{range}',
+  'dashboard.coverageRange': '{from}〜{to}',
+  'dashboard.comparisonSuffix': '（比較）',
+  'dashboard.expandEstimator': '審査期間の目安を開く',
+  'dashboard.estimatorRail': '審査目安',
+
+  // ── Filters ──────────────────────────────────────────────────────────────
+  'filters.bureau': '出入国在留管理局',
+  'filters.appType': '申請種別',
+  'filters.compare': '比較対象',
+  'filters.compareNone': 'なし',
+  'filters.excludeAirports': '空港支局を除く',
+  'filters.includeAirports': '空港支局を含む',
+  'filters.reset': 'フィルターをリセット',
+  'filters.selectPlaceholder': '選択',
+
+  // ── Time range selector ──────────────────────────────────────────────────
+  'period.label': '表示期間',
+  'period.latest': '最新月',
+  'period.all': '全期間',
+  'period.months_other': '{count}か月',
+
+  // ── Stat tiles ───────────────────────────────────────────────────────────
+  'stats.totalApplications': '申請総数',
+  'stats.totalApplications.short': '総数',
+  'stats.pending': '未処理',
+  'stats.granted': '許可',
+  'stats.denied': '不許可',
+  'stats.approvalRate': '許可率',
+  'stats.approvalRate.short': '許可率',
+  'stats.scopeWithType': '{bureau}（{type}）',
+  // {delta} arrives already signed and formatted, so it follows 前月比 directly.
+  'stats.momDelta': '前月比{delta}',
+
+  // ── Shared vocabulary ────────────────────────────────────────────────────
+  // e-Stat's own column vocabulary for the source table (在留資格の取得等の
+  // 受理及び処理人員), kept consistent across the table, legends, and hover cards.
+  'metric.carriedOver': '繰越',
+  'metric.pending': '未処理（繰越）',
+  'metric.received': '受理',
+  'metric.processed': '処理',
+  'metric.granted': '許可',
+  'metric.denied': '不許可',
+  'metric.other': 'その他',
+  'metric.completion': '処理率',
+  'metric.applications': '申請数',
+  'metric.population': '人口',
+  'metric.area': '面積',
+  'metric.density': '人口密度',
+  'common.noDataForFilters': 'この条件に該当するデータはありません。',
+
+  // ── Data table ───────────────────────────────────────────────────────────
+  'table.view': 'データ表を表示',
+  'table.hide': 'データ表を非表示',
+  'table.downloadCsv': 'CSV をダウンロード',
+  'table.caption': '{bureau}の月別申請統計',
+  'table.month': '月',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': '審査期間の目安',
+  'estimator.description': '直近6か月の処理実績にもとづく待ち行列モデルによる推定です。',
+  'estimator.selectBureau': '管理局を選択',
+  'estimator.selectType': '申請種別を選択',
+  'estimator.applicationDate': '申請日',
+  'estimator.empty':
+    '出入国在留管理局、申請種別、申請日を選択すると、審査が完了する時期の目安が表示されます。',
+  'estimator.estimatedCompletion': '完了予定時期',
+  'estimator.queuePosition': '待ち順位',
+  'estimator.aheadOfYou': '前に約{count}件',
+  'estimator.howCalculated': '算出方法について',
+  'estimator.showMath': '計算式を表示',
+  'estimator.hideMath': '計算式を非表示',
+  'estimator.reset': '目安をリセット',
+  'estimator.resetAria': '審査期間の目安をリセット',
+  'estimator.collapse': '目安を折りたたむ',
+  'estimator.collapseAria': '審査期間の目安を折りたたむ',
+  'estimator.close': '目安を閉じる',
+  'estimator.closeAria': '審査期間の目安を閉じる',
+  'estimator.copyPermalink': 'この推定結果のリンクをコピー',
+  'estimator.copied': 'コピーしました',
+  // Joined with " · " at the call site, so each half stands on its own.
+  'estimator.uncertaintyDays_other': '±{count}日',
+  'estimator.uncertaintyWeeks_other': '±{count}週間',
+  'estimator.basedOnMonths_other': '直近{count}か月の処理実績にもとづく',
+  // Warnings.
+  'estimator.limitedDataTitle': 'データが限られています：',
+  'estimator.limitedDataBody_other':
+    '申請日がデータの対象期間を超えています。この推定は{count}か月分の実績から処理速度を推計したものであり、精度が低くなる場合があります。',
+  'estimator.pastDueTitle': '完了予定を過ぎている可能性があります：',
+  'estimator.pastDueBody':
+    '想定される処理速度からみて、この申請は完了予定時期を過ぎている可能性があります。追加資料の求めや処分の通知がまだ届いていない場合は、申請先の官署にお問い合わせください。',
+  // {emphasis} is the word 推定値, rendered bold and underlined.
+  'estimator.disclaimer':
+    '※これは現在の処理速度、想定される待ち順位、未処理件数にもとづく{emphasis}です。実際の審査期間は異なる場合があります。',
+  'estimator.disclaimerEmphasis': '推定値',
+
+  // ── Estimator: the "Show the math" breakdown ─────────────────────────────
+  'estimator.formula.step1': '申請時点の待ち行列',
+  'estimator.formula.step2': '待ち順位と1日あたりの処理数',
+  'estimator.formula.step3': '残り日数',
+  'estimator.formula.explainAria': '{title}の計算式に含まれる変数の説明',
+  'estimator.formula.var.dRem.title': '残り日数',
+  'estimator.formula.var.dRem.description': '審査が完了するまでの推定日数。',
+  'estimator.formula.var.qPos.title': '待ち順位',
+  'estimator.formula.var.qPos.description': '審査待ち行列における推定順位。',
+  'estimator.formula.var.rDaily.title': '1日あたりの処理数',
+  'estimator.formula.var.rDaily.description': '1日に処理される申請の平均件数。',
+  'estimator.formula.var.cProc.title': '処理済（実績）',
+  'estimator.formula.var.cProc.description': '申請以降に処理された申請の確定件数。',
+  'estimator.formula.var.eProc.title': '処理済（推定）',
+  'estimator.formula.var.eProc.description': '直近のデータ以降に処理されたと推定される申請件数。',
+  'estimator.formula.var.sigmaP.title': '処理件数の合計',
+  'estimator.formula.var.sigmaP.description': '平均の算出に用いた処理件数の合計。',
+  'estimator.formula.var.sigmaD.title': '日数の合計',
+  'estimator.formula.var.sigmaD.description': '平均の算出に用いた日数の合計。',
+  'estimator.formula.var.qApp.title': '申請時の待ち行列',
+  'estimator.formula.var.qApp.description': '申請時点における推定待ち順位。',
+  'estimator.formula.var.cPrev.title': '前月からの繰越',
+  'estimator.formula.var.cPrev.description': '前月から繰り越された申請件数。',
+  'estimator.formula.var.nApp.title': '新規申請',
+  'estimator.formula.var.nApp.description': '申請日までに受理されたと推定される申請件数。',
+  'estimator.formula.var.pApp.title': '処理済申請',
+  'estimator.formula.var.pApp.description': '申請日までに処理されたと推定される申請件数。',
+
+  // ── Charts: registry ─────────────────────────────────────────────────────
+  'charts.intake.label': '受理と処理',
+  'charts.intake.description': '月ごとの繰越・受理件数と、各官署が処理した件数の推移です。',
+  'charts.intake.aria': '月別の未処理件数と受理件数を積み上げた棒グラフ。処理件数を折れ線で重ねて表示',
+  'charts.types.label': '申請種別',
+  'charts.types.description':
+    '月ごとの新規受理件数を申請種別ごとに表示します。凡例をクリックすると系列の表示を切り替えられます。',
+  'charts.types.aria': '申請種別ごとの月別新規受理件数の折れ線グラフ',
+  'charts.outcomes.label': '処理結果',
+  'charts.outcomes.description': '申請がどの結果に至ったか。申請種別ごとの許可・不許可・その他への流れです。',
+  'charts.outcomes.aria': '申請種別から処理結果への流れを示すサンキー図',
+  'charts.share.label': '官署別割合',
+  'charts.share.description': 'どの官署に申請が集まっているか。受理件数全体に占める各官署の割合です。',
+  'charts.share.aria': '各官署の受理件数の割合を示すドーナツグラフ',
+  'charts.mix.label': '種別構成',
+  'charts.mix.description': '申請種別と官署による全申請の構成です。カテゴリをクリックすると内訳を拡大できます。',
+  'charts.efficiency.label': '処理効率',
+  'charts.efficiency.description':
+    '処理率の高い順に並べた官署の一覧です。軸の太さは受理件数を、基準線は全国の処理率を表します。',
+  'charts.efficiency.aria': '処理率順に並べた官署のランキング。軸の太さは受理件数を表す',
+  'charts.map.label': '地域別マップ',
+  'charts.map.description': '各官署の管轄区域と人口密度、および管理局・空港支局の所在地です。',
+  // Alternate views, kept swap-ready but not currently registered.
+  'charts.mixSunburst.aria': '申請種別と官署による申請のサンバースト図。ドリルダウン操作が可能',
+  'charts.efficiencyQuadrant.aria':
+    '官署ごとの処理率と受理件数の四象限グラフ。バブルの大きさは処理件数を表す',
+
+  // ── Charts: shared ───────────────────────────────────────────────────────
+  'chart.legendShow': '{series}を表示',
+  'chart.legendHide': '{series}を非表示',
+  'chart.allSeriesHidden': 'すべての系列が非表示です。凡例をクリックすると表示されます。',
+
+  // ── Chart: Application Types ─────────────────────────────────────────────
+  // Series names for the wrapping legend, so these can be fuller than the
+  // Sankey's `appType.*.compact` forms.
+  'chart.types.series.acquisition': '在留資格取得',
+  'chart.types.series.extension': '在留期間更新',
+  'chart.types.series.change': '在留資格変更',
+  'chart.types.series.activity': '資格外活動',
+  'chart.types.series.reentry': '再入国',
+  'chart.types.series.permanent': '永住',
+
+  // ── Chart: Outcomes ──────────────────────────────────────────────────────
+  'chart.outcomes.otherWithdrawn': 'その他・取下げ',
+  'chart.outcomes.valueUnit': '件',
+  // Row labels in the Sankey tooltip: the node row counts applications, the
+  // link row measures what flows along that connection.
+  'chart.outcomes.tooltipValueLabel': '申請数',
+  'chart.outcomes.tooltipFlowLabel': '流量',
+  'chart.outcomes.approvalRate': '許可率',
+  'chart.outcomes.ofProcessed': '処理済{count}件に対する割合',
+  'chart.outcomes.empty': 'この期間に処理された申請はありません。',
+
+  // ── Chart: Bureau Share ──────────────────────────────────────────────────
+  'chart.share.otherSlice': 'その他（{count}）',
+
+  // ── Chart: Category Mix ──────────────────────────────────────────────────
+  'chart.mix.root': '全申請',
+  'chart.mix.breadcrumbAria': 'ツリーマップの階層パス',
+  'chart.mix.zoomInHint': 'カテゴリをクリックすると拡大します',
+  'chart.mix.zoomOutHint': '背景をクリック（または Esc キー）で戻ります',
+  'chart.mix.others': 'その他',
+  'chart.mix.categoryAria': '{category}：{count}件。拡大します。',
+  'chart.mix.tooltipValue': '{count}件・{scope}の{percent}',
+  'chart.mix.scopeAll': '全申請',
+  'chart.mix.sunburstHint': '{trail} — {count}件（全体の{percent}）',
+
+  // ── Chart: Processing Efficiency ─────────────────────────────────────────
+  'chart.efficiency.branchOffice': '支局',
+  'chart.efficiency.receivedCount': '受理{count}件',
+  'chart.efficiency.nationwide': '全国 {rate}',
+  'chart.efficiency.pointAria': '{bureau}：処理率{rate}パーセント、受理{count}件',
+  'chart.efficiency.xAxis': '受理件数',
+  'chart.efficiency.fullCompletion': '受理件数の100%を処理',
+  'chart.efficiency.quadrantKeepingPace': '高負荷・処理は追随',
+  'chart.efficiency.quadrantFallingBehind': '高負荷・処理が遅延',
+
+  // ── Chart: Regional Map ──────────────────────────────────────────────────
+  // The bureau labels already end in 出入国在留管理局 / 支局, so these carry no
+  // suffix of their own — appending one would repeat the office type.
+  'map.bureauMarkerAria': '{bureau}',
+  'map.airportMarkerAria': '{bureau}',
+  'map.bureauSuffix': '{bureau}',
+  'map.airportSuffix': '{bureau}',
+  'map.servicePopulation': '管轄人口',
+  'map.serviceArea': '管轄面積',
+  'map.serviceBureau': '管轄官署',
+  'map.portOfEntry': '出入国港の官署',
+  'map.legendNote': '色＝管轄官署・濃さ＝人口密度',
+  'map.bureau': '管理局',
+  'map.airportOffice': '空港支局',
+  'map.zoomIn': '拡大',
+  'map.zoomOut': '縮小',
+  'map.resetView': '表示をリセット',
+  'map.loadError': '地図データを読み込めませんでした。ページを再読み込みしてください。',
+  'map.loading': '地図データを読み込んでいます…',
+  'map.areaValue': '{value}km²',
+  'map.densityValue': '{value}人/km²',
+
+  // ── Changelog ────────────────────────────────────────────────────────────
+  'changelog.title': '更新履歴',
+  'changelog.loading': '読み込み中…',
+
+  // ── Errors ───────────────────────────────────────────────────────────────
+  'errors.dataTitle': 'データの読み込みエラー',
+  'errors.noData': 'データがありません',
+  'errors.unknown': '不明なエラーが発生しました',
+  'errors.fetchFailed': 'データを取得できませんでした',
+  'errors.renderTitle': '問題が発生しました',
+  'errors.renderBody': '画面の表示中にエラーが発生しました。',
+  'errors.reload': 'ページを再読み込み',
+  'errors.changelogUnavailable': '更新履歴を読み込めませんでした。',
+
+  // ── Screen-reader only ───────────────────────────────────────────────────
+  'a11y.showingChart': '{bureau}の{chart}を表示中',
+  'a11y.showingChartWithType': '{bureau}・{type}の{chart}を表示中',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': '統計データ提供：出入国在留管理庁',
+  'footer.dataAcquisition': 'データ取得元：{source}',
+  'footer.fixtureNotice': '生成されたサンプルデータを表示中',
+  'footer.builtBy': '制作：{author}',
+  'footer.dataUpdated': 'データ更新日 {date}',
+
+  // ── Domain: immigration bureaus ──────────────────────────────────────────
+  // Full official office names, including 支局 status: the eight regional
+  // 地方出入国在留管理局 plus seven branch offices. `.short` stays Latin (IATA
+  // codes). `.compact` is the place name alone, for the surfaces that measure
+  // in pixels — without it every 東京-family office truncates to 「東京出入国在留」.
+  'bureau.all': '全国',
+  'bureau.all.short': 'ALL',
+  'bureau.all.compact': '全国',
+  'bureau.101010': '札幌出入国在留管理局',
+  'bureau.101010.short': 'CTS',
+  'bureau.101010.compact': '札幌',
+  'bureau.101090': '仙台出入国在留管理局',
+  'bureau.101090.short': 'SDJ',
+  'bureau.101090.compact': '仙台',
+  'bureau.101170': '東京出入国在留管理局',
+  'bureau.101170.short': 'SGW',
+  'bureau.101170.compact': '東京',
+  'bureau.101190': '東京出入国在留管理局成田空港支局',
+  'bureau.101190.short': 'NRT',
+  'bureau.101190.compact': '成田空港',
+  'bureau.101200': '東京出入国在留管理局羽田空港支局',
+  'bureau.101200.short': 'HND',
+  'bureau.101200.compact': '羽田空港',
+  'bureau.101210': '東京出入国在留管理局横浜支局',
+  'bureau.101210.short': 'YOK',
+  'bureau.101210.compact': '横浜',
+  'bureau.101350': '名古屋出入国在留管理局',
+  'bureau.101350.short': 'NAG',
+  'bureau.101350.compact': '名古屋',
+  'bureau.101370': '名古屋出入国在留管理局中部空港支局',
+  'bureau.101370.short': 'NGO',
+  'bureau.101370.compact': '中部空港',
+  'bureau.101460': '大阪出入国在留管理局',
+  'bureau.101460.short': 'ITM',
+  'bureau.101460.compact': '大阪',
+  'bureau.101480': '大阪出入国在留管理局関西空港支局',
+  'bureau.101480.short': 'KIX',
+  'bureau.101480.compact': '関西空港',
+  'bureau.101490': '大阪出入国在留管理局神戸支局',
+  'bureau.101490.short': 'UKB',
+  'bureau.101490.compact': '神戸',
+  'bureau.101580': '広島出入国在留管理局',
+  'bureau.101580.short': 'HIJ',
+  'bureau.101580.compact': '広島',
+  'bureau.101670': '高松出入国在留管理局',
+  'bureau.101670.short': 'TAK',
+  'bureau.101670.compact': '高松',
+  'bureau.101720': '福岡出入国在留管理局',
+  'bureau.101720.short': 'FUK',
+  'bureau.101720.compact': '福岡',
+  'bureau.101740': '福岡出入国在留管理局那覇支局',
+  'bureau.101740.short': 'OKA',
+  'bureau.101740.compact': '那覇',
+
+  // ── Domain: application types ────────────────────────────────────────────
+  // The agency's own procedure names. `.short` uses the two-character forms a
+  // Japanese reader can scan on a stat tile, where the Latin codes English uses
+  // would carry no meaning; `.compact` is the narrow Sankey's one-word form.
+  'appType.all': 'すべての種別',
+  'appType.all.short': '全種別',
+  'appType.all.compact': 'すべて',
+  'appType.10': '在留資格取得許可申請',
+  'appType.10.short': '取得',
+  'appType.10.compact': '資格取得',
+  'appType.20': '在留期間更新許可申請',
+  'appType.20.short': '更新',
+  'appType.20.compact': '期間更新',
+  'appType.30': '在留資格変更許可申請',
+  'appType.30.short': '変更',
+  'appType.30.compact': '資格変更',
+  'appType.40': '資格外活動許可申請',
+  'appType.40.short': '資格外',
+  'appType.40.compact': '資格外活動',
+  'appType.50': '再入国許可申請',
+  'appType.50.short': '再入国',
+  'appType.50.compact': '再入国',
+  'appType.60': '永住許可申請',
+  'appType.60.short': '永住',
+  'appType.60.compact': '永住',
+
+  // ── Domain: prefectures ──────────────────────────────────────────────────
+  // Keyed by JIS prefecture code, carrying the 都・道・府・県 suffix. These match
+  // the `name_ja` property in public/static/japan.topo.json exactly, which is
+  // what stops the choropleth tooltip printing every name twice — it shows the
+  // Japanese name as a secondary only when it differs from the catalogue's.
+  'prefecture.1': '北海道',
+  'prefecture.2': '青森県',
+  'prefecture.3': '岩手県',
+  'prefecture.4': '宮城県',
+  'prefecture.5': '秋田県',
+  'prefecture.6': '山形県',
+  'prefecture.7': '福島県',
+  'prefecture.8': '茨城県',
+  'prefecture.9': '栃木県',
+  'prefecture.10': '群馬県',
+  'prefecture.11': '埼玉県',
+  'prefecture.12': '千葉県',
+  'prefecture.13': '東京都',
+  'prefecture.14': '神奈川県',
+  'prefecture.15': '新潟県',
+  'prefecture.16': '富山県',
+  'prefecture.17': '石川県',
+  'prefecture.18': '福井県',
+  'prefecture.19': '山梨県',
+  'prefecture.20': '長野県',
+  'prefecture.21': '岐阜県',
+  'prefecture.22': '静岡県',
+  'prefecture.23': '愛知県',
+  'prefecture.24': '三重県',
+  'prefecture.25': '滋賀県',
+  'prefecture.26': '京都府',
+  'prefecture.27': '大阪府',
+  'prefecture.28': '兵庫県',
+  'prefecture.29': '奈良県',
+  'prefecture.30': '和歌山県',
+  'prefecture.31': '鳥取県',
+  'prefecture.32': '島根県',
+  'prefecture.33': '岡山県',
+  'prefecture.34': '広島県',
+  'prefecture.35': '山口県',
+  'prefecture.36': '徳島県',
+  'prefecture.37': '香川県',
+  'prefecture.38': '愛媛県',
+  'prefecture.39': '高知県',
+  'prefecture.40': '福岡県',
+  'prefecture.41': '佐賀県',
+  'prefecture.42': '長崎県',
+  'prefecture.43': '熊本県',
+  'prefecture.44': '大分県',
+  'prefecture.45': '宮崎県',
+  'prefecture.46': '鹿児島県',
+  'prefecture.47': '沖縄県',
 };

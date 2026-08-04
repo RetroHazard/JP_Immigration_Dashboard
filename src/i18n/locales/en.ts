@@ -299,40 +299,65 @@ export const en = {
   'footer.dataUpdated': 'data updated {date}',
 
   // ── Domain: immigration bureaus ──────────────────────────────────────────
-  // Keyed by e-Stat bureau code. `.short` is the terminal-style abbreviation
-  // shown on the stat tiles; leave it as the Latin code in most languages.
+  // Keyed by e-Stat bureau code, in three widths — the same shape the
+  // application types use.
+  //
+  // `.short` is the terminal-style abbreviation; leave it as the Latin code in
+  // most languages. `.compact` is the form the width-constrained surfaces use:
+  // the efficiency chart's 92px label column, the ring-chart legend, and the
+  // treemap's on-tile label. English says the same thing at both widths, but a
+  // language whose official office names run long — Japanese writes Yokohama as
+  // 東京出入国在留管理局横浜支局 — needs somewhere to put the short form, or every
+  // office in a region truncates to the same prefix and they stop being
+  // distinguishable.
   'bureau.all': 'Nationwide',
   'bureau.all.short': 'ALL',
+  'bureau.all.compact': 'Nationwide',
   'bureau.101010': 'Sapporo',
   'bureau.101010.short': 'CTS',
+  'bureau.101010.compact': 'Sapporo',
   'bureau.101090': 'Sendai',
   'bureau.101090.short': 'SDJ',
+  'bureau.101090.compact': 'Sendai',
   'bureau.101170': 'Shinagawa',
   'bureau.101170.short': 'SGW',
+  'bureau.101170.compact': 'Shinagawa',
   'bureau.101190': 'Narita Airport',
   'bureau.101190.short': 'NRT',
+  'bureau.101190.compact': 'Narita Airport',
   'bureau.101200': 'Haneda Airport',
   'bureau.101200.short': 'HND',
+  'bureau.101200.compact': 'Haneda Airport',
   'bureau.101210': 'Yokohama',
   'bureau.101210.short': 'YOK',
+  'bureau.101210.compact': 'Yokohama',
   'bureau.101350': 'Nagoya',
   'bureau.101350.short': 'NAG',
+  'bureau.101350.compact': 'Nagoya',
   'bureau.101370': 'Chubu Airport',
   'bureau.101370.short': 'NGO',
+  'bureau.101370.compact': 'Chubu Airport',
   'bureau.101460': 'Osaka',
   'bureau.101460.short': 'ITM',
+  'bureau.101460.compact': 'Osaka',
   'bureau.101480': 'Kansai Airport',
   'bureau.101480.short': 'KIX',
+  'bureau.101480.compact': 'Kansai Airport',
   'bureau.101490': 'Kobe',
   'bureau.101490.short': 'UKB',
+  'bureau.101490.compact': 'Kobe',
   'bureau.101580': 'Hiroshima',
   'bureau.101580.short': 'HIJ',
+  'bureau.101580.compact': 'Hiroshima',
   'bureau.101670': 'Takamatsu',
   'bureau.101670.short': 'TAK',
+  'bureau.101670.compact': 'Takamatsu',
   'bureau.101720': 'Fukuoka',
   'bureau.101720.short': 'FUK',
+  'bureau.101720.compact': 'Fukuoka',
   'bureau.101740': 'Naha',
   'bureau.101740.short': 'OKA',
+  'bureau.101740.compact': 'Naha',
 
   // ── Domain: application types ────────────────────────────────────────────
   // Keyed by e-Stat application type code. `.short` is the stat-tile

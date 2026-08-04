@@ -156,8 +156,15 @@ const YAxisInner = memo(function YAxisInner({
                 : { left: 0, justifyContent: "flex-start", paddingLeft: 8 }),
             }}
           >
+            {/* LOCAL MODIFICATION: whitespace-nowrap. The label strip is only
+                as wide as margin.left (40px, less 8px padding), which fits the
+                Latin forms upstream assumes — "1.2M", "800K". A ja-JP tick
+                reads 100万 at almost exactly that width and broke across two
+                lines, dropping 万 onto its own row. Overflowing left into the
+                card's padding is the right trade: a numeric axis label should
+                never wrap in any language. Re-apply after a re-vendor. */}
             <span
-              className="text-chart-label text-xs"
+              className="whitespace-nowrap text-chart-label text-xs"
               style={tick.labelColor ? { color: tick.labelColor } : undefined}
             >
               {tick.label}

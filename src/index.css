@@ -171,6 +171,14 @@
   --font-sans: 'Inter Variable', 'Noto Sans JP Variable', system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans',
     'Yu Gothic UI', sans-serif;
 
+  /* Tailwind's default mono stack is Latin-only, so the treemap's `font-mono`
+     tooltip — which carries a translated sentence, not just figures — dropped
+     Japanese onto whatever the browser happened to pick. The JP faces are
+     appended rather than substituted: digits still get the monospace figures
+     the tooltip is aligned around, and only the kana/kanji fall through. */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Noto Sans JP Variable', 'Hiragino Sans',
+    'Yu Gothic UI', monospace;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
