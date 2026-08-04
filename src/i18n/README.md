@@ -221,6 +221,15 @@ English satisfies every count. So each locale also gets:
   language whose script overlaps Latin simply opts out.
 
 Both skip values that are Latin on purpose — `nav.version`, `bureau.*.short`,
-`map.areaValue` — listed in `LATIN_BY_DESIGN`, and both apply to whatever a
-locale defines, so an `in-progress` file is held to the same standard on the
-part it has finished.
+`appType.*.short`, `map.areaValue`, `map.densityValue` — listed in
+`LATIN_BY_DESIGN`, and both apply to whatever a locale defines, so an
+`in-progress` file is held to the same standard on the part it has finished.
+
+The equality check has one further, narrower exemption: `prefecture.*` and the
+bare `bureau.<code>` keys are Japanese proper nouns, and every Latin-script
+locale romanizes them the same way English does — "Hokkaido" is "Hokkaido" in
+French too. That's a correct translation, not a leftover, so a locale without
+a `SCRIPT_OF` entry is allowed to leave them matching English. A locale with
+its own script gets no such pass and is still held to translating them (北海道,
+not "Hokkaido") — the script check enforces that directly, since these keys
+stay in its `translatable` set regardless.

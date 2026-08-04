@@ -124,14 +124,30 @@ describe.each(translatedLocales)('%s catalogue', (code) => {
 // count as done. These two catch that, and they run per locale rather than for
 // `ja` specifically, so the next language inherits them.
 //
-// Values a complete locale is expected to leave in Latin script: airport-style
-// bureau codes, a version number, and a value carrying nothing but an SI unit
-// symbol. Anything else still reading as English is an oversight, not a choice.
+// Values a complete locale is expected to leave in Latin script for every
+// locale, `ja` included: airport-style bureau/application codes, a version
+// number, and a value carrying nothing but an SI unit symbol. Anything else
+// still reading as English is an oversight, not a choice.
 const LATIN_BY_DESIGN = new Set<string>([
   'nav.version',
   'map.areaValue',
+  'map.densityValue',
   ...Object.keys(en).filter((key) => key.startsWith('bureau.') && key.endsWith('.short')),
+  ...Object.keys(en).filter((key) => key.startsWith('appType.') && key.endsWith('.short')),
 ]);
+
+/**
+ * Bureau and prefecture names are Japanese proper nouns. Every Latin-script
+ * locale romanizes them the same way — French, German, Spanish, Italian, and
+ * Portuguese all render 北海道 as "Hokkaido" — so a value identical to English
+ * here is the correct translation, not a leftover.
+ *
+ * Kept separate from `LATIN_BY_DESIGN`: a locale with its own script (`ja`)
+ * has no such excuse, and is still held to translating these — which is what
+ * actually happens (北海道, not "Hokkaido"). Applied only below, and only to
+ * locales without a `SCRIPT_OF` entry.
+ */
+const isRomanizedProperNoun = (key: string): boolean => key.startsWith('prefecture.') || /^bureau\.\d+$/.test(key);
 
 /** Strips placeholders, digits, and punctuation — what's left is prose, if any. */
 const proseOf = (value: string): string => value.replace(PLACEHOLDER, '').replace(/[\s\d\p{P}\p{S}]/gu, '');
@@ -142,22 +158,28 @@ const SCRIPT_OF = { ja: /[぀-ヿ㐀-䶿一-鿿]/ } as const satisfies Partial<R
 describe.each(translatedLocales)('%s catalogue, beyond coverage', (code) => {
   const meta: LocaleMeta = LOCALES[code];
   const dictionary = meta.dictionary as Record<string, string>;
+  const script = SCRIPT_OF[code as keyof typeof SCRIPT_OF];
   // Only a key the locale actually claims: an in-progress file is expected to
   // be missing keys, but the ones it does define should be real translations.
+  // Deliberately not filtered by `isRomanizedProperNoun` — the script check
+  // below still needs these keys for `ja`.
   const translatable = Object.keys(dictionary).filter(
     (key) => !LATIN_BY_DESIGN.has(key) && proseOf(dictionary[key]) !== ''
   );
 
   it('leaves nothing sitting at its English value by accident', () => {
-    const untouched = translatable.filter((key) => dictionary[key] === en[key as DictionaryKey]);
+    const untouched = translatable.filter(
+      (key) => dictionary[key] === en[key as DictionaryKey] && !(!script && isRomanizedProperNoun(key))
+    );
     expect(untouched).toEqual([]);
   });
 
-  const script = SCRIPT_OF[code as keyof typeof SCRIPT_OF];
   if (script) {
     it("writes every prose value in the language's own script", () => {
       // Catches what the equality check above misses: a value edited just
-      // enough to differ from English while still being English.
+      // enough to differ from English while still being English. Not
+      // exempted for romanized proper nouns — a script-bearing locale still
+      // owes these a translation into its own script.
       expect(translatable.filter((key) => !script.test(dictionary[key]))).toEqual([]);
     });
   }
