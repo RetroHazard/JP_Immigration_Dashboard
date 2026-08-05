@@ -10,6 +10,7 @@ import { es } from './es';
 import { fr } from './fr';
 import { it } from './it';
 import { ja } from './ja';
+import { ko } from './ko';
 import { pt } from './pt';
 
 /**
@@ -37,6 +38,7 @@ export interface LocaleMeta {
 export const LOCALES = {
   en: { code: 'en', nativeName: 'English', intlTag: 'en-US', status: 'complete', dictionary: en },
   ja: { code: 'ja', nativeName: '日本語', intlTag: 'ja-JP', status: 'complete', dictionary: ja },
+  ko: { code: 'ko', nativeName: '한국어', intlTag: 'ko-KR', status: 'complete', dictionary: ko },
   fr: { code: 'fr', nativeName: 'Français', intlTag: 'fr-FR', status: 'complete', dictionary: fr },
   de: { code: 'de', nativeName: 'Deutsch', intlTag: 'de-DE', status: 'complete', dictionary: de },
   pt: { code: 'pt', nativeName: 'Português', intlTag: 'pt-PT', status: 'complete', dictionary: pt },
