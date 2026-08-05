@@ -12,6 +12,7 @@ import { it } from './it';
 import { ja } from './ja';
 import { ko } from './ko';
 import { pt } from './pt';
+import { vi } from './vi';
 import { zhCn } from './zh-cn';
 import { zhTw } from './zh-tw';
 
@@ -46,6 +47,7 @@ export const LOCALES = {
   pt: { code: 'pt', nativeName: 'Português', intlTag: 'pt-PT', status: 'complete', dictionary: pt },
   es: { code: 'es', nativeName: 'Español', intlTag: 'es-ES', status: 'complete', dictionary: es },
   it: { code: 'it', nativeName: 'Italiano', intlTag: 'it-IT', status: 'complete', dictionary: it },
+  vi: { code: 'vi', nativeName: 'Tiếng Việt', intlTag: 'vi-VN', status: 'complete', dictionary: vi },
   'zh-CN': { code: 'zh-CN', nativeName: '简体中文', intlTag: 'zh-CN', status: 'complete', dictionary: zhCn },
   'zh-TW': { code: 'zh-TW', nativeName: '繁體中文', intlTag: 'zh-TW', status: 'complete', dictionary: zhTw },
 } as const satisfies Record<string, LocaleMeta>;
