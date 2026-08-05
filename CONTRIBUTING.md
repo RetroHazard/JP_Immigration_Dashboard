@@ -9,6 +9,7 @@ Thank you for your interest in contributing! This document provides guidelines a
 - [Getting Started](#getting-started)
 - [Development Workflow](#development-workflow)
 - [Coding Guidelines](#coding-guidelines)
+- [Localization](#localization)
 - [Testing](#testing)
 - [Documentation](#documentation)
 - [Submitting Changes](#submitting-changes)
@@ -162,6 +163,39 @@ src/
 ├── i18n/             # Locale catalogues, translation runtime, and formatters
 └── lib/              # Small shared helpers (class-merge, motion)
 ```
+
+## Localization
+
+Every user-visible string lives in a per-language catalogue under
+`src/i18n/locales/`, so adding or fixing a translation is a content change,
+not a code change — see [`src/i18n/README.md`](src/i18n/README.md) for the
+full guide to the catalogue format, plurals, and the three name widths
+(`.label`/`.compact`/`.short`).
+
+### Correcting a translation
+
+English is written and reviewed by hand. Every other locale started from a
+machine translation, and while each pack was checked for structural
+correctness (every key present, placeholders intact, right plural forms),
+that check can't catch wrong terminology, awkward phrasing, or a mistranslated
+nuance — only a fluent reader will spot those. If you find one:
+
+1. Open `src/i18n/locales/<code>.ts` and fix the line(s) in question.
+2. Run `npx vitest run src/i18n` to confirm the catalogue tests still pass
+   (placeholders preserved, no accidental blank values, script check for
+   non-Latin locales).
+3. Open a PR as described below. A one- or two-line wording fix doesn't need
+   an issue first — that requirement is for larger changes. Explain what was
+   wrong and why your replacement is correct; if you're not a fluent speaker
+   of the language, say so, so reviewers know to look for a second opinion.
+
+If you'd rather flag a mistake than fix it yourself, open a
+[bug report issue](https://github.com/RetroHazard/JP_Immigration_Dashboard/issues/new?template=bug_report.md)
+naming the language, the key or on-screen text, and what it should say
+instead.
+
+Adding a language you don't see listed follows the same catalogue file
+mechanism — the step-by-step is in `src/i18n/README.md`, not repeated here.
 
 ## Testing
 
