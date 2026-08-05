@@ -12,6 +12,7 @@ import { it } from './it';
 import { ja } from './ja';
 import { ko } from './ko';
 import { pt } from './pt';
+import { zhCn } from './zh-cn';
 
 /**
  * How complete a translation claims to be.
@@ -44,6 +45,7 @@ export const LOCALES = {
   pt: { code: 'pt', nativeName: 'Português', intlTag: 'pt-PT', status: 'complete', dictionary: pt },
   es: { code: 'es', nativeName: 'Español', intlTag: 'es-ES', status: 'complete', dictionary: es },
   it: { code: 'it', nativeName: 'Italiano', intlTag: 'it-IT', status: 'complete', dictionary: it },
+  'zh-CN': { code: 'zh-CN', nativeName: '简体中文', intlTag: 'zh-CN', status: 'complete', dictionary: zhCn },
 } as const satisfies Record<string, LocaleMeta>;
 
 export type Locale = keyof typeof LOCALES;
