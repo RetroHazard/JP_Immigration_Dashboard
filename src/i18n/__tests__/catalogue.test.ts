@@ -158,6 +158,7 @@ const SCRIPT_OF = {
   ja: /[぀-ヿ㐀-䶿一-鿿]/,
   ko: /[가-힣ᄀ-ᇿ㄰-㆏]/,
   'zh-CN': /[㐀-䶿一-鿿]/,
+  'zh-TW': /[㐀-䶿一-鿿]/,
 } as const satisfies Partial<Record<Locale, RegExp>>;
 
 describe.each(translatedLocales)('%s catalogue, beyond coverage', (code) => {
