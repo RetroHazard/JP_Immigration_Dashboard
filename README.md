@@ -1,5 +1,5 @@
 # Japan Immigration Statistics Dashboard
-[![Version](https://img.shields.io/badge/version-1.2.6-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
+[![Version](https://img.shields.io/badge/version-1.2.7-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -139,11 +139,11 @@ Seven interactive charts, each answering a specific question about the data, wit
 
 ---
 
-### :globe_with_meridians: Localization *(7 languages)*
+### :globe_with_meridians: Localization *(12 languages)*
 - Every string in the interface — text, ARIA labels, chart legends, tooltips, table headers, empty and error states — comes from a single catalogue file per language, so **adding a language means writing one file** and touching no components (see [`src/i18n/README.md`](src/i18n/README.md))
 - Numbers, percentages, and dates follow the active locale, including chart axis ticks and tooltips; counted phrases use real plural rules rather than an English "s"
 - A partial translation is safe to ship: anything a language leaves out falls back to English rather than rendering blank
-- **English, French, German, Italian, Japanese, Portuguese, and Spanish are all complete** — Japanese uses the official 出入国在留管理庁 terminology for bureaus and application types; Portuguese follows European usage (pt-PT) rather than Brazilian. The language switcher is live in the header and the mobile settings drawer, and a visitor whose browser asks for one of these lands on it
+- **Chinese (Simplified and Traditional), English, French, German, Italian, Japanese, Korean, Portuguese, Spanish, Tagalog, and Vietnamese are all complete** — Japanese, Korean, and Chinese write bureau and prefecture names in their own script rather than a romanization; Portuguese follows European usage (pt-PT) rather than Brazilian. The language switcher is live in the header and the mobile settings drawer, and a visitor whose browser asks for one of these lands on it
 - Bureaus and application types each carry three widths (`.label`, `.compact`, `.short`) so an office's full official name can appear where there's room without collapsing the dense charts, where several offices would otherwise truncate to the same prefix
 
 ---

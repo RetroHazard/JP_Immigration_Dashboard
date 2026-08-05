@@ -11,6 +11,10 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Portuguese follows European usage (pt-PT) rather than Brazilian
   - Numbers, dates, and pluralized phrases follow each language's own rules, the same as every other locale
   - Bureau and application-type abbreviations (the terminal-style `CTS`, `EXT`-style codes) are left in Latin script where that's how each language actually renders them, rather than forced into an artificial translation
+- **v1.2.7**: Korean, Chinese (Simplified and Traditional), Vietnamese, and Tagalog join the six existing languages — twelve full translations end to end ([#69](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/69)) —
+  - Korean and both Chinese variants write bureau and prefecture names in their own script throughout, not romanized forms, the same standard Japanese already sets
+  - Tagalog is the only one of the twelve besides English that inflects for plural count; Korean, Chinese, and Vietnamese use one form regardless of count, the same as Japanese
+  - Numbers, dates, and pluralized phrases follow each language's own rules, the same as every other locale
 
 ### Changed
 

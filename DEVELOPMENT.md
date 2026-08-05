@@ -243,7 +243,12 @@ JP_Immigration_Dashboard/
 │   │   │   ├── fr.ts                  # Complete French catalogue
 │   │   │   ├── it.ts                  # Complete Italian catalogue
 │   │   │   ├── ja.ts                  # Complete Japanese catalogue
+│   │   │   ├── ko.ts                  # Complete Korean catalogue
 │   │   │   ├── pt.ts                  # Complete European Portuguese catalogue
+│   │   │   ├── tl.ts                  # Complete Tagalog catalogue
+│   │   │   ├── vi.ts                  # Complete Vietnamese catalogue
+│   │   │   ├── zh-cn.ts               # Complete Simplified Chinese catalogue
+│   │   │   ├── zh-tw.ts               # Complete Traditional Chinese catalogue
 │   │   │   ├── _template.ts           # Generated starting point (npm run i18n:template)
 │   │   │   └── index.ts               # Registry — one entry per language, with its status
 │   │   ├── LocaleContext.tsx          # Provider + useLocale()

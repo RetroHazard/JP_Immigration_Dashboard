@@ -199,9 +199,13 @@ text children, and a `no-restricted-syntax` rule catches string literals in
 
 ## Current state
 
-330 keys, covering the whole interface, in seven languages all marked
-`complete`: English, French, German, Italian, Japanese (325 keys — Japanese
-owes no `_one` members), Portuguese, and Spanish.
+330 keys, covering the whole interface, in twelve languages all marked
+`complete`. English, French, German, Italian, Portuguese, Spanish, and
+Tagalog (`fil-PH`) all inflect for plural count, so they cover the full 330
+— Tagalog's CLDR `one` rule matches a count of 0 as well as 1, unlike the
+others' "exactly 1." Japanese, Korean, Chinese (`zh-CN` and `zh-TW`), and
+Vietnamese have a single CLDR plural category and owe only the `_other`
+member of each pair, 325 keys.
 **The language switcher is on** (`LOCALE_SWITCHER_ENABLED` in `config.ts`),
 which also turns on browser-language detection — the two are one flag precisely
 because auto-detecting a language is only safe while the visitor can switch
