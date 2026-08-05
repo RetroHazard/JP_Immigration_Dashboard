@@ -156,6 +156,8 @@ const proseOf = (value: string): string => value.replace(PLACEHOLDER, '').replac
 /** Kana and kanji — the scripts a Japanese value has to be written in. */
 const SCRIPT_OF = {
   ja: /[぀-ヿ㐀-䶿一-鿿]/,
+  ko: /[가-힣ᄀ-ᇿ㄰-㆏]/,
+  'zh-CN': /[㐀-䶿一-鿿]/,
   'zh-TW': /[㐀-䶿一-鿿]/,
 } as const satisfies Partial<Record<Locale, RegExp>>;
 
