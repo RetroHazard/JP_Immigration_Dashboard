@@ -10,8 +10,12 @@ import { es } from './es';
 import { fr } from './fr';
 import { it } from './it';
 import { ja } from './ja';
+import { ko } from './ko';
 import { pt } from './pt';
 import { tl } from './tl';
+import { vi } from './vi';
+import { zhCn } from './zh-cn';
+import { zhTw } from './zh-tw';
 
 /**
  * How complete a translation claims to be.
@@ -38,12 +42,16 @@ export interface LocaleMeta {
 export const LOCALES = {
   en: { code: 'en', nativeName: 'English', intlTag: 'en-US', status: 'complete', dictionary: en },
   ja: { code: 'ja', nativeName: '日本語', intlTag: 'ja-JP', status: 'complete', dictionary: ja },
+  ko: { code: 'ko', nativeName: '한국어', intlTag: 'ko-KR', status: 'complete', dictionary: ko },
   fr: { code: 'fr', nativeName: 'Français', intlTag: 'fr-FR', status: 'complete', dictionary: fr },
   de: { code: 'de', nativeName: 'Deutsch', intlTag: 'de-DE', status: 'complete', dictionary: de },
   pt: { code: 'pt', nativeName: 'Português', intlTag: 'pt-PT', status: 'complete', dictionary: pt },
   es: { code: 'es', nativeName: 'Español', intlTag: 'es-ES', status: 'complete', dictionary: es },
   it: { code: 'it', nativeName: 'Italiano', intlTag: 'it-IT', status: 'complete', dictionary: it },
   tl: { code: 'tl', nativeName: 'Tagalog', intlTag: 'fil-PH', status: 'complete', dictionary: tl },
+  vi: { code: 'vi', nativeName: 'Tiếng Việt', intlTag: 'vi-VN', status: 'complete', dictionary: vi },
+  'zh-CN': { code: 'zh-CN', nativeName: '简体中文', intlTag: 'zh-CN', status: 'complete', dictionary: zhCn },
+  'zh-TW': { code: 'zh-TW', nativeName: '繁體中文', intlTag: 'zh-TW', status: 'complete', dictionary: zhTw },
 } as const satisfies Record<string, LocaleMeta>;
 
 export type Locale = keyof typeof LOCALES;
