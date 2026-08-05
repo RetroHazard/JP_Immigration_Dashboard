@@ -9,6 +9,7 @@ import type React from 'react';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
+import buildInfo from '../buildInfo';
 import { useLocale } from '../i18n/LocaleContext';
 import type { DictionaryKey } from '../i18n/types';
 import { logger } from '../utils/logger';
@@ -27,7 +28,14 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
   useEffect(() => {
     if (!isOpen || markdown !== null) return;
 
-    fetch('/CHANGELOG.md')
+    // Cache-busted on the build version. Every other asset the page loads is
+    // content-hashed by Next, so a deploy invalidates it automatically; this
+    // one is fetched at runtime from a stable URL, so without the query a
+    // browser (or any cache in front of Pages) keeps serving the changelog
+    // from the previous release even as the rest of the app updates. Keying it
+    // to the version rather than disabling caching keeps it cacheable between
+    // releases and refetches exactly once per deploy.
+    fetch(`/CHANGELOG.md?v=${encodeURIComponent(buildInfo.buildVersion)}`)
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.text();

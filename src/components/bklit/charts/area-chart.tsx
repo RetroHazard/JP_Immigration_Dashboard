@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Area, type AreaProps } from "./area";
 import type { LineConfig, Margin } from "./chart-context";
+import { estimateAxisMarginLeft } from "./chart-formatters";
 import { ChartLoadingLabel } from "./chart-loading-label";
 import {
   type ChartPhase,
@@ -205,7 +206,10 @@ export function AreaChart({
   children,
 }: AreaChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const margin = { ...DEFAULT_MARGIN, ...marginProp };
+  // LOCAL MODIFICATION: see line-chart.tsx — size the y-axis margin from the
+  // current locale's real label width instead of a flat 40px. Re-apply after
+  // a re-vendor.
+  const margin = { ...DEFAULT_MARGIN, left: estimateAxisMarginLeft(), ...marginProp };
   const [chartPhase, setChartPhase] = useState<ChartPhase>(() =>
     resolveRestingChartPhase(status)
   );

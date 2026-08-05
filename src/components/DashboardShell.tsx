@@ -239,7 +239,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                     <SheetTitle className="text-sm">{t('nav.settings')}</SheetTitle>
                   </SheetHeader>
                   <div className="space-y-6 overflow-y-auto p-4">
-                    <LanguageSwitcher variant="rows" />
+                    <LanguageSwitcher variant="popover" trigger="row" />
                     <section aria-label={t('nav.theme')}>
                       <h3 className="text-xxs font-semibold uppercase tracking-wider text-muted-foreground">
                         {t('nav.theme')}

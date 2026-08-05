@@ -53,7 +53,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
   }, [data, filters, range]);
 
   return (
-    <div className="card-content">
+    <div className="chart-card-content">
       <SeriesLegend className="mb-2" items={series} />
       <div
         className="chart-container"

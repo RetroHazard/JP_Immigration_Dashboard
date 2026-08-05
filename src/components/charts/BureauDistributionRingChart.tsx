@@ -11,7 +11,7 @@ import type React from 'react';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useLocale } from '../../i18n/LocaleContext';
-import { useBureauLabel } from '../../i18n/useDomainLabels';
+import { useBureauCompact } from '../../i18n/useDomainLabels';
 import { getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import { PieCenter } from '../bklit/charts/pie-center';
 import { PieChart } from '../bklit/charts/pie-chart';
@@ -33,7 +33,9 @@ const SLICE_COLORS = [
 export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const { t, formatters } = useLocale();
-  const bureauLabel = useBureauLabel();
+  // Compact names: the legend doesn't truncate, so a long label pushes the
+  // percentage and value columns off the end of the row instead of clipping.
+  const bureauCompact = useBureauCompact();
 
   const { slices, total } = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
@@ -47,7 +49,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
     const byBureau = bureauOptions
       .filter((bureau) => bureau.value !== 'all')
       .map((bureau) => ({
-        label: bureauLabel(bureau.value),
+        label: bureauCompact(bureau.value),
         value: rows.reduce((sum, entry) => (entry.bureau === bureau.value ? sum + entry.value : sum), 0),
       }))
       .filter((bureau) => bureau.value > 0)
@@ -65,7 +67,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
       slices: result.map((slice, index) => ({ ...slice, color: SLICE_COLORS[index] })),
       total: byBureau.reduce((sum, bureau) => sum + bureau.value, 0),
     };
-  }, [data, filters.type, range, bureauLabel, t]);
+  }, [data, filters.type, range, bureauCompact, t]);
 
   if (slices.length === 0) {
     return (
@@ -76,7 +78,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
   }
 
   return (
-    <div className="card-content">
+    <div className="chart-card-content">
       <div
         className="flex flex-col items-center gap-6 sm:flex-row sm:justify-center sm:gap-10"
         role="img"

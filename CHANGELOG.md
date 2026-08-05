@@ -2,10 +2,43 @@
 
 All notable user-facing changes to the Japan Immigration Bureaus Statistics Dashboard are documented in this file, grouped by month. The dashboard's header shows the currently deployed version.
 
+## 2026-08
+
+### Added
+
+- **v1.2.5**: French, German, Italian, Portuguese, and Spanish join Japanese in full translation — the switcher now offers six languages end to end ([#69](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/69)) —
+  - Every interface string is translated in all five: chart labels and tooltips, the data table, the estimator, and empty/error states, alongside the text already covered
+  - Portuguese follows European usage (pt-PT) rather than Brazilian
+  - Numbers, dates, and pluralized phrases follow each language's own rules, the same as every other locale
+  - Bureau and application-type abbreviations (the terminal-style `CTS`, `EXT`-style codes) are left in Latin script where that's how each language actually renders them, rather than forced into an artificial translation
+- **v1.2.7**: Korean, Chinese (Simplified and Traditional), Vietnamese, and Tagalog join the six existing languages — twelve full translations end to end ([#69](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/69)) —
+  - Korean and both Chinese variants write bureau and prefecture names in their own script throughout, not romanized forms, the same standard Japanese already sets
+  - Tagalog is the only one of the twelve besides English that inflects for plural count; Korean, Chinese, and Vietnamese use one form regardless of count, the same as Japanese
+  - Numbers, dates, and pluralized phrases follow each language's own rules, the same as every other locale
+
+### Changed
+
+- **v1.2.6**: The language switcher is now a compact button that opens a list, in both the desktop header and the mobile settings drawer, instead of always showing every language at once —
+  - The desktop header previously spelled out all seven language names side by side in one non-shrinking pill; at native-name lengths it crowded the app title from 640px wide up, in every language including English
+  - The mobile settings drawer had the same problem in miniature — a stack of language rows that grew taller with every language added, pushing Theme and About further down each time
+  - Both now cost a fixed amount of header/drawer space no matter how many locales are registered, so adding a language no longer reshuffles the layout around it
+
+### Fixed
+
+- **v1.2.6**: Chart axis numbers could render as clipped or outright wrong values in German, Portuguese, Spanish, and Italian — repeated "0.000" ticks, a leading digit sheared off ("800 mil" reading as "00 mil"), or no labels at all on narrow screens. Two causes stacked together: a CSS rule was silently re-clipping an intentional label overflow, and the axis margin was sized for English-length numbers ("1.2M") rather than the wider forms other locales use ("1,2 Mio.", "800 mil"). The margin now measures each locale's actual label width instead of assuming one —
+  - Longer translations in KPI cards, the processing-time estimator heading, and the approval-rate gauge caption no longer lose characters at cramped widths — they wrap instead of silently truncating, or were shortened where that read better
+  - The Outcomes Sankey chart's node-label margins are sized the same way, fixing German and Portuguese labels that clipped against the chart edge
+
 ## 2026-07
 
 ### Added
 
+- **Japanese**: the dashboard is now fully available in Japanese, and the language switcher is live —
+  - All 330 interface strings are translated, using the Immigration Services Agency's own terminology: application types carry their official procedure names (在留資格変更許可申請 rather than a paraphrase), and each bureau its full office name including branch status (東京出入国在留管理局横浜支局). Prefecture names match the map data exactly, so the map tooltip no longer prints the same name twice
+  - The switcher appears in the header and the mobile settings drawer, and a visitor whose browser asks for Japanese now lands on it — it stayed hidden while Japanese was a five-string stub, which is what the flag was waiting for
+  - Numbers, dates, and counted phrases already followed the language; they now read as Japanese throughout — 万 and 億 on chart axes, 2026年9月22日 for dates, and 6か月 without an English plural
+  - Bureaus and application types gained a third, narrower name for the dense charts. Without it every Tokyo-area office truncated to the same 「東京出入国在留」 in the Processing Efficiency ranking, which made them impossible to tell apart. English is unaffected — it says the same thing at both widths
+  - Fixed three things that only surfaced once the interface was actually rendering Japanese: the Category Mix tooltip fell back to a font with no Japanese glyphs, animated numbers reverted to the browser's language mid-animation, and a chart axis label wide enough to wrap dropped 万 onto its own line
 - **v1.2.0**: Groundwork for multiple languages —
   - Chart y-axis labels read better in English as a side effect of this work: a million now shows as "1M" instead of "1000k"
   - The language switcher is being rebuilt, but stays hidden until a language is actually ready — Japanese still only covers a handful of strings. `?lang=ja` continues to work for testing

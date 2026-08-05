@@ -102,10 +102,26 @@ const StatCardComponent: React.FC<StatCardProps> = ({
     <div
       className={`relative flex flex-col gap-0.5 overflow-hidden rounded-xl border border-border bg-card p-2 shadow-soft transition-shadow hover:shadow-soft-lg sm:p-3 lg:p-4 ${className ?? ''}`}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-xxs font-semibold uppercase tracking-wider text-muted-foreground sm:text-xs">
-          {shortTitle && <span className="xl:hidden">{shortTitle}</span>}
-          <span className={shortTitle ? 'hidden xl:inline' : undefined}>{title}</span>
+      <div className="flex items-start justify-between gap-2">
+        {/* line-clamp rather than a hard single-line truncate: only Total and
+            Approval carry a shortTitle today, so Granted/Denied/Pending
+            always render their full translated title — fine for English's
+            "Granted"/"Denied", but Portuguese/Spanish equivalents ("Concedidas",
+            "PENDIENTES") are long enough to lose characters at the cramped
+            widths a 5-across card row hits before xl. Wrapping to a second
+            line costs a little vertical room; silently dropped text costs
+            more.
+            The clamp has to live on the span that actually holds the text —
+            `-webkit-line-clamp` on a wrapper around a nested <span> doesn't
+            reflow the child at all, it just measures one unbroken line and
+            clips whatever doesn't fit. */}
+        <span className="min-w-0 text-xxs font-semibold uppercase tracking-wider text-muted-foreground sm:text-xs">
+          {/* break-words: line-clamp only wraps at a natural space, and a
+              single long translated word ("Concedidas", "PENDIENTES") has
+              none — without it the clamp has nowhere to break and just
+              clips the one line it's given instead of using the second. */}
+          {shortTitle && <span className="line-clamp-2 break-words xl:hidden">{shortTitle}</span>}
+          <span className={`break-words ${shortTitle ? 'hidden xl:line-clamp-2' : 'line-clamp-2'}`}>{title}</span>
         </span>
         <span className={`flex size-6 shrink-0 items-center justify-center rounded-md ${BADGE_CLASSES[color]}`}>
           <Icon className="size-3.5" aria-hidden="true" />
