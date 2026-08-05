@@ -228,7 +228,7 @@ export const it: Dictionary = {
   'chart.outcomes.valueUnit': 'domande',
   'chart.outcomes.tooltipValueLabel': 'Domande',
   'chart.outcomes.tooltipFlowLabel': 'Flusso',
-  'chart.outcomes.approvalRate': 'Tasso di approvazione',
+  'chart.outcomes.approvalRate': 'Approvazione',
   'chart.outcomes.ofProcessed': 'su {count} domande elaborate',
   'chart.outcomes.empty': 'Nessuna domanda elaborata in questo periodo.',
 

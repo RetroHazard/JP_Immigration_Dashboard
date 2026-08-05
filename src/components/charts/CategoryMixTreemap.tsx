@@ -268,7 +268,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
       : { opacity: 0, pointerEvents: 'none' };
 
   return (
-    <div className="card-content">
+    <div className="chart-card-content">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <nav className="flex items-center gap-1.5 text-xs text-muted-foreground" aria-label={t('chart.mix.breadcrumbAria')}>
           <button
@@ -298,7 +298,11 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
         {tree.categories.map((category) => {
           const rect = layout['c:' + category.key];
           const compact = rect !== undefined && (rect.w < 150 || rect.h < 34);
-          const tiny = rect !== undefined && (rect.w < 60 || rect.h < 34);
+          // Slightly below the old 60/34 cutoff: a category block just under
+          // that size still had comfortable room for its name-only compact
+          // form (the percent chip is what needed the extra width), so it
+          // was going unlabeled for no reason tied to actual legibility.
+          const tiny = rect !== undefined && (rect.w < 46 || rect.h < 26);
           return (
             <button
               key={category.key}
@@ -353,7 +357,12 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
           return leaves.map(({ leaf, rank, rest }) => {
             const key = `b:${category.key}:${leaf.code}`;
             const rect = layout[key];
-            const showLabel = rect !== undefined && rect.w > 74 && rect.h > 30;
+            // Lowered from 74/30: a compact bureau label (single line, no
+            // value row — see below) fits comfortably smaller than that, so
+            // the old threshold was leaving more small tiles unlabeled than
+            // the label itself needed.
+            const showLabel = rect !== undefined && rect.w > 60 && rect.h > 24;
+            const showLeafValue = rect !== undefined && rect.w > 74 && rect.h > 30;
             return (
               <div
                 key={key}
@@ -387,10 +396,10 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
               >
                 {showLabel && (
                   <span className="flex flex-col px-2 py-1 text-xs font-semibold leading-tight">
-                    {/* Compact on the tile — it only renders above 74px wide
+                    {/* Compact on the tile — it only renders above 60px wide
                         and ellipsizes. The tooltip above keeps the full name. */}
                     <span>{rest ? t('chart.mix.others') : getBureauCompact(leaf.code)}</span>
-                    {!rest && (
+                    {!rest && showLeafValue && (
                       <span className="font-mono text-xxs font-medium opacity-75">
                         {fmt(leaf.value)} · {formatters.percent((leaf.value / base) * 100)}
                       </span>

@@ -78,7 +78,7 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
   }
 
   return (
-    <div className="card-content">
+    <div className="chart-card-content">
       <div
         className="flex flex-col items-center gap-6 sm:flex-row sm:justify-center sm:gap-10"
         role="img"

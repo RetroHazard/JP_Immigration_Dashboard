@@ -235,7 +235,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
   }
 
   return (
-    <div className="card-content">
+    <div className="chart-card-content">
       <div className="mb-2 flex flex-wrap items-start justify-between gap-x-4 gap-y-2 text-xxs text-muted-foreground">
         <div className="min-w-0">
           <SeriesLegend

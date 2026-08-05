@@ -15,6 +15,7 @@ import {
 } from "react";
 import { cn } from "@/lib/utils";
 import type { LineConfig, Margin } from "./chart-context";
+import { estimateAxisMarginLeft } from "./chart-formatters";
 import { ChartLoadingLabel } from "./chart-loading-label";
 import {
   type ChartPhase,
@@ -232,7 +233,12 @@ export function LineChart({
   children,
 }: LineChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const margin = { ...DEFAULT_MARGIN, ...marginProp };
+  // LOCAL MODIFICATION: the vendored default reserves a flat 40px for the
+  // y-axis label strip, sized for English compact-number widths ("1.2M").
+  // Estimate it from the current locale's actual rendered width instead —
+  // an explicit `marginProp.left` still wins via the spread order below.
+  // Re-apply after a re-vendor.
+  const margin = { ...DEFAULT_MARGIN, left: estimateAxisMarginLeft(), ...marginProp };
   const [chartPhase, setChartPhase] = useState<ChartPhase>(() =>
     resolveRestingChartPhase(status)
   );

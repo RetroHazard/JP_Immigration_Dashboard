@@ -82,7 +82,7 @@ export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filt
   }
 
   return (
-    <div className="card-content">
+    <div className="chart-card-content">
       <SeriesLegend
         className="mb-2"
         items={tree.categories.map((category) => ({

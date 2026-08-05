@@ -5,6 +5,17 @@ import { memo, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { useChart, useChartStable } from "./chart-context";
+import { measureLabelWidth } from "./chart-formatters";
+
+const LABEL_FONT = '13px -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic UI", sans-serif';
+// LOCAL MODIFICATION (not upstream Bklit): the vendored default was a flat
+// 70px, sized for short English category names ("Kanto", "Kyushu"). Even
+// English gets close to that at 12px ("Activity Permission", "Permanent
+// Residence"), and a longer translation would lose more. Not wired into any
+// current chart (confirmed unused across the app), but sized correctly now
+// rather than left as a trap for whichever chart adopts it next.
+const LABEL_MAX_WIDTH_MIN = 70;
+const LABEL_MAX_WIDTH_CAP = 140;
 
 export interface BarYAxisProps {
   /** Whether to show all labels or skip some for dense data. Default: true */
@@ -46,7 +57,12 @@ function BarYAxisLabel({
           opacity: 0.7,
           color: "var(--chart-label, var(--color-zinc-500))",
         }}
-        style={{ maxWidth: 70 }}
+        style={{
+          maxWidth: Math.min(
+            LABEL_MAX_WIDTH_CAP,
+            Math.max(LABEL_MAX_WIDTH_MIN, Math.ceil(measureLabelWidth(label, LABEL_FONT)) + 4)
+          ),
+        }}
         transition={{ duration: 0.15 }}
       >
         {label}

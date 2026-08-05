@@ -20,9 +20,22 @@ export interface Formatters {
 
 const cache = new Map<string, Formatters>();
 
+/**
+ * Scale + suffix used only when the ICU compact formatter fails to abbreviate
+ * at all (see `compactNumber` below) — deliberately plain ASCII, since this
+ * path only runs when the locale's own abbreviation is unavailable. Mirrors
+ * the identical guard in bklit/charts/chart-formatters.ts.
+ */
+const FALLBACK_ABBREVIATIONS: readonly [threshold: number, suffix: string][] = [
+  [1_000_000_000, 'B'],
+  [1_000_000, 'M'],
+  [1_000, 'K'],
+];
+
 const build = (intlTag: string): Formatters => {
   const number = new Intl.NumberFormat(intlTag);
   const compact = new Intl.NumberFormat(intlTag, { notation: 'compact', maximumFractionDigits: 1 });
+  const standard = new Intl.NumberFormat(intlTag);
   const monthYear = new Intl.DateTimeFormat(intlTag, { month: 'short', year: 'numeric' });
   const mediumDate = new Intl.DateTimeFormat(intlTag, { day: 'numeric', month: 'short', year: 'numeric' });
   const longDate = new Intl.DateTimeFormat(intlTag, { day: 'numeric', month: 'long', year: 'numeric' });
@@ -42,9 +55,29 @@ const build = (intlTag: string): Formatters => {
     return formatter;
   };
 
+  const abbreviateFallback = (value: number): string => {
+    const [threshold, suffix] = FALLBACK_ABBREVIATIONS.find(([t]) => Math.abs(value) >= t) ?? [1, ''];
+    const mantissa = new Intl.NumberFormat(intlTag, { maximumFractionDigits: 1 }).format(value / threshold);
+    return `${mantissa}${suffix}`;
+  };
+
+  // Some ICU builds (observed: it-IT on an older bundled Chromium) silently
+  // fail to abbreviate values in the low hundred-thousands even with
+  // notation:'compact', returning the exact same string as fully-grouped
+  // standard notation. When that happens, fall back to a hand-scaled form
+  // rather than trust the broken ICU output for that value — locales whose
+  // compact notation works correctly (the common case) are unaffected.
+  const compactNumber = (value: number): string => {
+    const primary = compact.format(value);
+    if (Math.abs(value) >= 100_000 && primary === standard.format(value)) {
+      return abbreviateFallback(value);
+    }
+    return primary;
+  };
+
   return {
     number: (value) => number.format(value),
-    compactNumber: (value) => compact.format(value),
+    compactNumber,
     percent: (value, digits = 1) => percentFor(digits).format(value / 100),
     monthYear: (date) => monthYear.format(date),
     mediumDate: (date) => mediumDate.format(date),

@@ -12,6 +12,19 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Numbers, dates, and pluralized phrases follow each language's own rules, the same as every other locale
   - Bureau and application-type abbreviations (the terminal-style `CTS`, `EXT`-style codes) are left in Latin script where that's how each language actually renders them, rather than forced into an artificial translation
 
+### Changed
+
+- **v1.2.6**: The language switcher is now a compact button that opens a list, in both the desktop header and the mobile settings drawer, instead of always showing every language at once —
+  - The desktop header previously spelled out all seven language names side by side in one non-shrinking pill; at native-name lengths it crowded the app title from 640px wide up, in every language including English
+  - The mobile settings drawer had the same problem in miniature — a stack of language rows that grew taller with every language added, pushing Theme and About further down each time
+  - Both now cost a fixed amount of header/drawer space no matter how many locales are registered, so adding a language no longer reshuffles the layout around it
+
+### Fixed
+
+- **v1.2.6**: Chart axis numbers could render as clipped or outright wrong values in German, Portuguese, Spanish, and Italian — repeated "0.000" ticks, a leading digit sheared off ("800 mil" reading as "00 mil"), or no labels at all on narrow screens. Two causes stacked together: a CSS rule was silently re-clipping an intentional label overflow, and the axis margin was sized for English-length numbers ("1.2M") rather than the wider forms other locales use ("1,2 Mio.", "800 mil"). The margin now measures each locale's actual label width instead of assuming one —
+  - Longer translations in KPI cards, the processing-time estimator heading, and the approval-rate gauge caption no longer lose characters at cramped widths — they wrap instead of silently truncating, or were shortened where that read better
+  - The Outcomes Sankey chart's node-label margins are sized the same way, fixing German and Portuguese labels that clipped against the chart edge
+
 ## 2026-07
 
 ### Added

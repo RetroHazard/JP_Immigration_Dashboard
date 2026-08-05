@@ -97,7 +97,7 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
   });
 
   return (
-    <div className="card-content">
+    <div className="chart-card-content">
       <div ref={motionRoot}>
         <div className="relative">
           {ranked.map((point) => {
