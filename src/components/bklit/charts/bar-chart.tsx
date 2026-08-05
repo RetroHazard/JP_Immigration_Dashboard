@@ -34,7 +34,7 @@ import {
   type TooltipData,
 } from "./chart-context";
 import { isGradientDefComponent, isPatternDefComponent } from "./chart-defs";
-import { shortDateFmt } from "./chart-formatters";
+import { estimateAxisMarginLeft, shortDateFmt } from "./chart-formatters";
 import {
   type ChartPhase,
   type ChartStatus,
@@ -690,7 +690,16 @@ export function BarChart({
   status = "ready",
 }: BarChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const margin = { ...DEFAULT_MARGIN, ...marginProp };
+  // LOCAL MODIFICATION: see line-chart.tsx — size the numeric y-axis margin
+  // from the current locale's real label width instead of a flat 40px.
+  // Horizontal bars use the left margin for category labels (BarYAxis), not
+  // numbers, so it keeps the vendored default there. Re-apply after a
+  // re-vendor.
+  const margin = {
+    ...DEFAULT_MARGIN,
+    ...(orientation === "horizontal" ? null : { left: estimateAxisMarginLeft() }),
+    ...marginProp,
+  };
 
   return (
     <div

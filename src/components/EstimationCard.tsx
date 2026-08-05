@@ -189,10 +189,14 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
 
   return (
     <section aria-label={t('estimator.title')} className="estimator-container">
-      <div className="flex-between gap-2 border-b border-border p-2">
+      <div className="flex items-start justify-between gap-2 border-b border-border p-2">
         {/* Sized explicitly (not section-title): the sidebar is 360px wide at
-            lg, where section-title's lg:text-lg would truncate this heading */}
-        <h2 className="min-w-0 truncate text-sm font-semibold md:text-base xl:text-lg">{t('estimator.title')}</h2>
+            lg, where section-title's lg:text-lg would truncate this heading.
+            Longer translations ("Estimateur de délai de traitement",
+            "Estimador de tiempo de tramitación") still don't fit that column
+            on one line even at the widest tested viewport, so this wraps to
+            a second line instead of losing words to an ellipsis. */}
+        <h2 className="min-w-0 text-sm font-semibold leading-snug md:text-base xl:text-lg">{t('estimator.title')}</h2>
         <div className="flex shrink-0 items-center gap-1">
           <IconTooltip label={t('estimator.reset')}>
             <button

@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { Area, type AreaProps } from "./area";
 import type { LineConfig, Margin } from "./chart-context";
 import type { ChartPhase } from "./chart-phase";
+import { estimateAxisMarginLeft } from "./chart-formatters";
 import { Line, type LineProps } from "./line";
 import { SeriesBar, type SeriesBarProps } from "./series-bar";
 import { TimeSeriesChartInner } from "./time-series-chart-shell";
@@ -297,7 +298,10 @@ export function ComposedChart({
   onPhaseChange,
 }: ComposedChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const margin = { ...DEFAULT_MARGIN, ...marginProp };
+  // LOCAL MODIFICATION: see line-chart.tsx — size the y-axis margin from the
+  // current locale's real label width instead of a flat 40px. Re-apply after
+  // a re-vendor.
+  const margin = { ...DEFAULT_MARGIN, left: estimateAxisMarginLeft(), ...marginProp };
 
   return (
     <div

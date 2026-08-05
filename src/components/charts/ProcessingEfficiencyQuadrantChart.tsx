@@ -116,7 +116,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
   });
 
   return (
-    <div className="card-content">
+    <div className="chart-card-content">
       <div
         className="relative"
         ref={(node) => {

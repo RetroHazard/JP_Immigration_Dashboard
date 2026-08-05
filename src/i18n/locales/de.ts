@@ -73,7 +73,7 @@ export const de: Dictionary = {
   'stats.approvalRate.short': 'Quote',
   'stats.scopeWithType': '{bureau} ({type})',
   // "MoM" = month over month; the delta is already signed and formatted.
-  'stats.momDelta': '{delta} zum Vormonat',
+  'stats.momDelta': '{delta} m/m',
 
   // ── Shared vocabulary ────────────────────────────────────────────────────
   // Metric names reused across the table, chart legends, and hover cards.
@@ -225,7 +225,7 @@ export const de: Dictionary = {
   'chart.outcomes.valueUnit': 'Anträge',
   'chart.outcomes.tooltipValueLabel': 'Anträge',
   'chart.outcomes.tooltipFlowLabel': 'Fluss',
-  'chart.outcomes.approvalRate': 'Genehmigungsquote',
+  'chart.outcomes.approvalRate': 'Genehmigt',
   'chart.outcomes.ofProcessed': 'von {count} bearbeiteten Anträgen',
   'chart.outcomes.empty': 'Keine bearbeiteten Anträge in diesem Zeitraum.',
 

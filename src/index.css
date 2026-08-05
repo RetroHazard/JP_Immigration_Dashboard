@@ -343,6 +343,27 @@
         xl:p-5;
 }
 
+/**
+ * Every chart component's root wrapper (`card-content` in the ~10
+ * src/components/charts/*.tsx files). Deliberately NOT `card-content`: per
+ * the CSS overflow spec, a `visible` value on one axis is computed as `auto`
+ * whenever the other axis is non-visible — so `overflow-x-visible` on the
+ * same element as `card-content`'s `overflow-y-auto` gets silently coerced
+ * back to `auto` by the browser, no matter how it's authored. That was
+ * clipping the y-axis's intentional left-overflow (see y-axis.tsx) for any
+ * locale whose compact-number labels run wider than the chart's margin —
+ * German, Portuguese, Spanish, Italian all hit this.
+ *
+ * No current chart needs vertical scroll inside its own card (each sizes
+ * itself by `aspectRatio`, not a fixed max-height), so the real fix is to
+ * simply not put a non-visible overflow-y on the chart's own wrapper at all
+ * — leaving both axes at their default `visible` sidesteps the coupling
+ * rule entirely, rather than fighting it.
+ */
+@utility chart-card-content {
+  @apply space-y-4;
+}
+
 @utility stat-card {
   @apply w-fit p-2 mx-auto bg-card rounded-lg border border-border shadow-soft
         sm:flex sm:items-start sm:justify-start sm:w-full sm:h-full sm:p-3 sm:scale-95 sm:overflow-x-clip sm:text-pretty
@@ -402,7 +423,10 @@
 }
 
 @utility filter-select {
-  @apply w-full text-xs font-semibold rounded-md input-box-colors
+  /* A native <select>'s closed-box text has no built-in overflow cue in every
+     browser — a translation longer than English (e.g. fr "Tous les types")
+     can lose trailing characters with no ellipsis to show it happened. */
+  @apply w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs font-semibold rounded-md input-box-colors
         sm:text-sm
         md:text-base;
 }
@@ -434,7 +458,7 @@
 }
 
 @utility chart-filter-select {
-  @apply text-xs rounded-lg shadow-xs input-box-colors
+  @apply overflow-hidden text-ellipsis whitespace-nowrap text-xs rounded-lg shadow-xs input-box-colors
         sm:text-sm sm:rounded-md
         md:text-base md:font-semibold
         lg:text-lg;

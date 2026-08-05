@@ -13,6 +13,7 @@ import { STATUS_CODES } from '../../constants/statusCodes';
 import { useLocale } from '../../i18n/LocaleContext';
 import { useApplicationOptions } from '../../i18n/useDomainLabels';
 import { bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
+import { measureLabelWidth } from '../bklit/charts/chart-formatters';
 import { Gauge } from '../bklit/charts/gauge';
 import { SankeyChart } from '../bklit/charts/sankey/sankey-chart';
 import { SankeyLink } from '../bklit/charts/sankey/sankey-link';
@@ -88,6 +89,39 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
     };
   }, [data, filters.bureau, filters.type, range, isNarrow, types, outcomes]);
 
+  // Node labels are real translated strings (bureau/application-type/outcome
+  // names), not fixed English words — a German compound noun or a longer
+  // Portuguese/Spanish outcome name can run past the vendored Sankey's fixed
+  // 180px label margin and clip against the SVG edge. Size the margin from
+  // what's actually rendering this pass instead of trusting a constant.
+  const sankeyMargin = useMemo(() => {
+    // Matches sankey-node.tsx's name-label styling ("font-medium text-[13px]").
+    const nodeLabelFont =
+      '500 13px -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic UI", sans-serif';
+    const widthOf = (category: 'source' | 'outcome') =>
+      sankeyData.nodes
+        .filter((node) => node.category === category)
+        .reduce((max, node) => Math.max(max, measureLabelWidth(node.name, nodeLabelFont)), 0);
+    const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+    // sankey-node.tsx's LABEL_OFFSET (12px gap from the node edge) plus a
+    // little breathing room before the SVG boundary.
+    const allowance = 12 + 14;
+    if (isNarrow) {
+      return {
+        top: 16,
+        bottom: 16,
+        left: clamp(Math.ceil(widthOf('source')) + allowance, 90, 140),
+        right: clamp(Math.ceil(widthOf('outcome')) + allowance, 76, 120),
+      };
+    }
+    return {
+      top: 40,
+      bottom: 40,
+      left: clamp(Math.ceil(widthOf('source')) + allowance, 150, 230),
+      right: clamp(Math.ceil(widthOf('outcome')) + allowance, 150, 230),
+    };
+  }, [sankeyData, isNarrow]);
+
   if (sankeyData.links.length === 0) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
@@ -97,7 +131,7 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
   }
 
   return (
-    <div className="card-content">
+    <div className="chart-card-content">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
         <div
           ref={measureRef}
@@ -109,7 +143,7 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
             <SankeyChart
               data={sankeyData}
               aspectRatio={isNarrow ? '1 / 1' : '16 / 9'}
-              margin={isNarrow ? { top: 16, right: 76, bottom: 16, left: 90 } : undefined}
+              margin={sankeyMargin}
               nodePadding={isNarrow ? 16 : 24}
             >
               <SankeyLink />

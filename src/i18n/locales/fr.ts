@@ -71,7 +71,7 @@ export const fr: Dictionary = {
   'stats.approvalRate.short': 'Acceptation',
   'stats.scopeWithType': '{bureau} ({type})',
   // "MoM" = month over month; the delta is already signed and formatted.
-  'stats.momDelta': '{delta} sur un mois',
+  'stats.momDelta': '{delta} m/m',
 
   // ── Shared vocabulary ────────────────────────────────────────────────────
   // Metric names reused across the table, chart legends, and hover cards.
@@ -97,7 +97,7 @@ export const fr: Dictionary = {
   'table.month': 'Mois',
 
   // ── Estimator ────────────────────────────────────────────────────────────
-  'estimator.title': 'Estimateur de délai de traitement',
+  'estimator.title': 'Estimateur de délai',
   'estimator.description':
     "Estimation fondée sur un modèle de file d'attente, à partir du débit du bureau sur les six derniers mois.",
   'estimator.selectBureau': 'Sélectionner un bureau',
@@ -227,7 +227,7 @@ export const fr: Dictionary = {
   'chart.outcomes.valueUnit': 'demandes',
   'chart.outcomes.tooltipValueLabel': 'Demandes',
   'chart.outcomes.tooltipFlowLabel': 'Flux',
-  'chart.outcomes.approvalRate': "Taux d'acceptation",
+  'chart.outcomes.approvalRate': 'Acceptation',
   'chart.outcomes.ofProcessed': 'sur {count} demandes traitées',
   'chart.outcomes.empty': 'Aucune demande traitée sur cette période.',
 

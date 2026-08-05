@@ -62,7 +62,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
   }, [data, filters.bureau, range]);
 
   return (
-    <div className="card-content">
+    <div className="chart-card-content">
       <SeriesLegend
         className="mb-2"
         items={series.map((entry) => ({

@@ -229,7 +229,7 @@ export const pt: Dictionary = {
   'chart.outcomes.valueUnit': 'candidaturas',
   'chart.outcomes.tooltipValueLabel': 'Candidaturas',
   'chart.outcomes.tooltipFlowLabel': 'Fluxo',
-  'chart.outcomes.approvalRate': 'Taxa de aprovação',
+  'chart.outcomes.approvalRate': 'Aprovação',
   'chart.outcomes.ofProcessed': 'de {count} candidaturas processadas',
   'chart.outcomes.empty': 'Sem candidaturas processadas neste período.',
 
