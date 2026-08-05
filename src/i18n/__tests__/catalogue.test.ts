@@ -154,7 +154,10 @@ const isRomanizedProperNoun = (key: string): boolean =>
 const proseOf = (value: string): string => value.replace(PLACEHOLDER, '').replace(/[\s\d\p{P}\p{S}]/gu, '');
 
 /** Kana and kanji — the scripts a Japanese value has to be written in. */
-const SCRIPT_OF = { ja: /[぀-ヿ㐀-䶿一-鿿]/ } as const satisfies Partial<Record<Locale, RegExp>>;
+const SCRIPT_OF = {
+  ja: /[぀-ヿ㐀-䶿一-鿿]/,
+  ko: /[가-힣ᄀ-ᇿ㄰-㆏]/,
+} as const satisfies Partial<Record<Locale, RegExp>>;
 
 describe.each(translatedLocales)('%s catalogue, beyond coverage', (code) => {
   const meta: LocaleMeta = LOCALES[code];
