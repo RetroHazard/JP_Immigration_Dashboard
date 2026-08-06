@@ -52,12 +52,32 @@ export const NATIONALITY_ROLLUP_REGIONS = [
   '6000', // オセアニア
 ] as const;
 
+/** 無国籍: published at region level but with no members. */
+export const STATELESS = '7000';
+
 /**
  * Buckets the UI groups nationalities into. Same as the rollups above plus
  * 無国籍, which e-Stat publishes at region level but with no members — it is a
  * leaf carrying its own figure, not a sum of anything, so it must be kept.
  */
-export const NATIONALITY_REGIONS = [...NATIONALITY_ROLLUP_REGIONS, '7000'] as const;
+export const NATIONALITY_REGIONS = [...NATIONALITY_ROLLUP_REGIONS, STATELESS] as const;
+
+/**
+ * UN M49 codes for the continent rollups. Intl.DisplayNames localizes these
+ * the same way it does country codes, so the six continent names come from
+ * ICU rather than the catalogue — including e-Stat's 北アメリカ, which spans
+ * Central America and the Caribbean and so is M49 003 (the continent) rather
+ * than 021 (Northern America). 無国籍 has no M49 equivalent and falls back to
+ * `region.7000`.
+ */
+export const REGION_M49: Record<string, string> = {
+  '1000': '142', // Asia
+  '2000': '150', // Europe
+  '3000': '002', // Africa
+  '4000': '003', // North America
+  '5000': '005', // South America
+  '6000': '009', // Oceania
+};
 
 export const nationalities: Nationality[] = [
   { value: '1010', iso2: 'AF', iso3n: 4, region: '1000' }, // アフガニスタン
@@ -122,7 +142,7 @@ export const nationalities: Nationality[] = [
   { value: '2170', iso2: 'GR', iso3n: 300, region: '2000' }, // ギリシャ
   { value: '2180', iso2: 'KG', iso3n: 417, region: '2000' }, // キルギス
   { value: '2190', iso2: 'HR', iso3n: 191, region: '2000' }, // クロアチア
-  { value: '2200', iso2: null, iso3n: null, region: '2000' }, // コソボ共和国
+  { value: '2200', iso2: 'XK', iso3n: null, region: '2000' }, // コソボ共和国 (XK is user-assigned; no numeric code)
   { value: '2210', iso2: 'SM', iso3n: 674, region: '2000' }, // サンマリノ
   { value: '2220', iso2: 'GE', iso3n: 268, region: '2000' }, // ジョージア
   { value: '2230', iso2: 'CH', iso3n: 756, region: '2000' }, // スイス

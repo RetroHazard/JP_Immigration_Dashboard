@@ -8,7 +8,8 @@ import type { Dictionary } from '../types';
 export const es: Dictionary = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': 'Estadísticas de Inmigración de Japón',
-  'app.subtitle': 'Datos de tramitación de las oficinas de inmigración, obtenidos de e-Stat y actualizados con cada publicación',
+  'app.subtitle':
+    'Datos de tramitación de las oficinas de inmigración, obtenidos de e-Stat y actualizados con cada publicación',
   'app.skipToContent': 'Saltar al contenido',
   'app.loadingData': 'Procesando datos de inmigración...',
   'app.loadingDashboard': 'Cargando panel...',
@@ -98,7 +99,8 @@ export const es: Dictionary = {
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Estimador de tiempo',
-  'estimator.description': 'Estimación basada en un modelo de colas a partir del rendimiento de la oficina en los últimos seis meses.',
+  'estimator.description':
+    'Estimación basada en un modelo de colas a partir del rendimiento de la oficina en los últimos seis meses.',
   'estimator.selectBureau': 'Seleccionar oficina',
   'estimator.selectType': 'Seleccionar tipo',
   'estimator.applicationDate': 'Fecha de solicitud',
@@ -155,7 +157,8 @@ export const es: Dictionary = {
   'estimator.formula.var.cProc.title': 'Tramitadas confirmadas',
   'estimator.formula.var.cProc.description': 'Número confirmado de solicitudes tramitadas desde el envío.',
   'estimator.formula.var.eProc.title': 'Tramitadas estimadas',
-  'estimator.formula.var.eProc.description': 'Número estimado de solicitudes tramitadas desde el último dato disponible.',
+  'estimator.formula.var.eProc.description':
+    'Número estimado de solicitudes tramitadas desde el último dato disponible.',
   'estimator.formula.var.sigmaP.title': 'Total tramitadas',
   'estimator.formula.var.sigmaP.description': 'Suma de solicitudes tramitadas utilizada para calcular los promedios.',
   'estimator.formula.var.sigmaD.title': 'Total de días',
@@ -182,19 +185,23 @@ export const es: Dictionary = {
     'Nuevas presentaciones mensuales desglosadas por tipo de solicitud — haz clic en una entrada de la leyenda para mostrar u ocultar una serie.',
   'charts.types.aria': 'Gráfico de líneas de nuevas presentaciones mensuales por tipo de solicitud',
   'charts.outcomes.label': 'Resultados',
-  'charts.outcomes.description': 'Dónde terminan las solicitudes: el flujo de cada tipo hacia los resultados de concedida, denegada u otro.',
+  'charts.outcomes.description':
+    'Dónde terminan las solicitudes: el flujo de cada tipo hacia los resultados de concedida, denegada u otro.',
   'charts.outcomes.aria': 'Diagrama de Sankey de los tipos de solicitud que fluyen hacia los resultados',
   'charts.share.label': 'Reparto por oficina',
   'charts.share.description': 'Dónde se presentaron las solicitudes: la parte de cada oficina en el total de entradas.',
   'charts.share.aria': 'Gráfico de anillos de la parte de cada oficina en las solicitudes recibidas',
   'charts.mix.label': 'Combinación de categorías',
-  'charts.mix.description': 'Todas las solicitudes por tipo y oficina — haz clic en una categoría para ampliar su desglose.',
+  'charts.mix.description':
+    'Todas las solicitudes por tipo y oficina — haz clic en una categoría para ampliar su desglose.',
   'charts.efficiency.label': 'Eficiencia de tramitación',
   'charts.efficiency.description':
     'Oficinas clasificadas por tasa de finalización — el grosor del tallo representa el volumen de entrada, con la tasa nacional como referencia.',
-  'charts.efficiency.aria': 'Oficinas clasificadas por tasa de finalización, con el volumen de entrada como grosor del tallo',
+  'charts.efficiency.aria':
+    'Oficinas clasificadas por tasa de finalización, con el volumen de entrada como grosor del tallo',
   'charts.map.label': 'Mapa regional',
-  'charts.map.description': 'Áreas de servicio de las oficinas y densidad de población, con la ubicación de oficinas y oficinas aeroportuarias.',
+  'charts.map.description':
+    'Áreas de servicio de las oficinas y densidad de población, con la ubicación de oficinas y oficinas aeroportuarias.',
   // Alternate views, kept swap-ready but not currently registered.
   'charts.mixSunburst.aria': 'Gráfico solar de solicitudes por tipo y oficina; navegación interactiva en profundidad',
   'charts.efficiencyQuadrant.aria':
@@ -419,4 +426,122 @@ export const es: Dictionary = {
   'prefecture.45': 'Miyazaki',
   'prefecture.46': 'Kagoshima',
   'prefecture.47': 'Okinawa',
+
+  // ── Resident population dataset ─────────────────────────────────────────
+  'dataset.label': 'Conjunto de datos',
+  // ── Resident population dataset ─────────────────────────────────────────
+  'dataset.aria': 'Elige qué conjunto de datos explorar',
+  // ── Resident population dataset ─────────────────────────────────────────
+  'dataset.processing': 'Tramitación de solicitudes',
+  // ── Resident population dataset ─────────────────────────────────────────
+  'dataset.processing.compact': 'Tramitación',
+  // ── Resident population dataset ─────────────────────────────────────────
+  'dataset.residents': 'Población extranjera residente',
+  // ── Resident population dataset ─────────────────────────────────────────
+  'dataset.residents.compact': 'Residentes',
+  // ── Resident population dataset ─────────────────────────────────────────
+  'dataset.residentsUnavailable': 'Los datos de población extranjera residente no están disponibles en este momento.',
+  'charts.origins.label': 'Orígenes a lo largo del tiempo',
+  'charts.origins.description':
+    'Cómo han crecido o disminuido las principales nacionalidades en cada semestre que cubren las estadísticas.',
+  'charts.origins.aria': 'Gráfico de áreas apiladas del número de residentes por nacionalidad a lo largo del tiempo',
+  'charts.statuses.label': 'Composición por estatus de residencia',
+  'charts.statuses.description':
+    'Qué visados tienen los residentes, agrupados por finalidad de la estancia: haz clic en un grupo para desglosarlo.',
+  'charts.statuses.aria': 'Treemap de residentes por grupo de estatus y por estatus concreto',
+  'charts.worldmap.label': 'Orígenes en el mundo',
+  'charts.worldmap.description':
+    'De dónde proceden los residentes extranjeros de Japón, sombreado según cuántos tienen cada nacionalidad.',
+  'charts.worldmap.aria': 'Mapamundi sombreado según el número de residentes de cada país de origen',
+  'charts.movers.label': 'Mayores variaciones',
+  'charts.movers.description':
+    'Los mayores aumentos y descensos entre dos periodos, por nacionalidad o por estatus de residencia.',
+  'charts.movers.aria': 'Gráfico de barras divergentes con los mayores aumentos y descensos entre dos periodos',
+
+  'filters.nationality': 'Nacionalidad / Región',
+  'filters.residenceStatus': 'Estatus de residencia',
+  'filters.allNationalities': 'Todas las nacionalidades',
+  'filters.allStatuses': 'Todos los estatus',
+
+  'period.latestPeriod': 'Último periodo',
+  'period.years_one': '{count} año',
+  'period.years_other': '{count} años',
+
+  'residents.total': 'Residentes extranjeros',
+  'residents.total.short': 'Residentes',
+  'residents.delta': '{delta} respecto al semestre anterior',
+  'residents.topNationality': 'Nacionalidad más numerosa',
+  'residents.topStatus': 'Estatus más frecuente',
+  'residents.share': '{share} del total',
+  'residents.scope': '{nationality} ({status})',
+  'residents.otherNationalities': 'Otras nacionalidades',
+  'residents.noMapArea': '{count} nacionalidades no tienen territorio en el mapa y no aparecen sombreadas.',
+  'residents.legendScale': 'Residentes',
+  'residents.discontinued': 'La serie termina en {period}: la categoría se fusionó o cambió de nombre.',
+  'residents.comparePeriod': 'frente a {period}',
+  'residents.byNationality': 'Por nacionalidad',
+  'residents.byStatus': 'Por estatus de residencia',
+  'residents.increase': 'Aumento',
+  'residents.decrease': 'Descenso',
+  'residents.asOf': 'A {period}',
+  'residents.noChange': 'No hay variación apreciable entre estos dos periodos.',
+  'residents.coverageRange': '{from} – {to}',
+
+  'statusGroup.work': 'Trabajo',
+  'statusGroup.training': 'Formación',
+  'statusGroup.study': 'Estudios',
+  'statusGroup.family': 'Familia',
+  'statusGroup.residency': 'Residencia',
+  'statusGroup.other': 'Otros',
+  // ── Nationalities with no ISO identity (everything else is ICU) ─────────
+  'region.7000': 'Apátrida',
+  'nationality.1120': 'Corea (Chosen)',
+  'nationality.1130': 'Corea (agrupada)',
+  'nationality.2290': 'Serbia y Montenegro',
+  'nationality.2500': 'Yugoslavia',
+  'nationality.7000': 'Apátrida',
+  // ── Residence statuses (e-Stat cat01) ───────────────────────────────────
+  'status.1010': 'Total general',
+  'status.1040': 'Profesorado universitario',
+  'status.1050': 'Artista',
+  'status.1060': 'Actividades religiosas',
+  'status.1070': 'Periodista',
+  'status.1080': 'Profesional altamente cualificado',
+  'status.1090': 'Profesional altamente cualificado (i)(a)',
+  'status.1100': 'Profesional altamente cualificado (i)(b)',
+  'status.1110': 'Profesional altamente cualificado (i)(c)',
+  'status.1120': 'Profesional altamente cualificado (ii)',
+  'status.1130': 'Inversor / gerente de empresa',
+  'status.1140': 'Gestión empresarial',
+  'status.1150': 'Servicios jurídicos y contables',
+  'status.1160': 'Servicios médicos',
+  'status.1170': 'Investigación',
+  'status.1180': 'Docente',
+  'status.1190': 'Ingeniería',
+  'status.1200': 'Especialista en humanidades / servicios internacionales',
+  'status.1210': 'Ingeniería / humanidades / servicios internacionales',
+  'status.1220': 'Traslado dentro de la empresa',
+  'status.1230': 'Cuidados de enfermería',
+  'status.1240': 'Artista de espectáculos',
+  'status.1250': 'Trabajo especializado',
+  'status.1260': 'Trabajador con cualificación específica',
+  'status.1270': 'Trabajador con cualificación específica (i)',
+  'status.1280': 'Trabajador con cualificación específica (ii)',
+  'status.1290': 'Prácticas técnicas',
+  'status.1300': 'Prácticas técnicas (i)(a)',
+  'status.1310': 'Prácticas técnicas (i)(b)',
+  'status.1320': 'Prácticas técnicas (ii)(a)',
+  'status.1330': 'Prácticas técnicas (ii)(b)',
+  'status.1340': 'Prácticas técnicas (iii)(a)',
+  'status.1350': 'Prácticas técnicas (iii)(b)',
+  'status.1360': 'Actividades culturales',
+  'status.1380': 'Estudiante',
+  'status.1400': 'Aprendiz',
+  'status.1410': 'Familiar a cargo',
+  'status.1420': 'Actividades designadas',
+  'status.1430': 'Residente permanente',
+  'status.1440': 'Cónyuge o hijo de nacional japonés',
+  'status.1450': 'Cónyuge o hijo de residente permanente',
+  'status.1460': 'Residente de larga duración',
+  'status.1470': 'Residente permanente especial',
 };

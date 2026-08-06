@@ -150,6 +150,17 @@ const LATIN_BY_DESIGN = new Set<string>([
 const isRomanizedProperNoun = (key: string): boolean =>
   key.startsWith('prefecture.') || /^bureau\.\d+(\.compact)?$/.test(key);
 
+/**
+ * `<locale>:<key>` pairs whose correct translation genuinely is the English
+ * string. Kept as an explicit list rather than a rule, because the whole point
+ * of the check below is that "identical to English" is almost always an
+ * oversight — each entry here has to be argued for individually.
+ *
+ * Only place names so far: Spanish spells the former Yugoslavia exactly as
+ * English does.
+ */
+const IDENTICAL_BY_DESIGN = new Set<string>(['es:nationality.2500']);
+
 /** Strips placeholders, digits, and punctuation — what's left is prose, if any. */
 const proseOf = (value: string): string => value.replace(PLACEHOLDER, '').replace(/[\s\d\p{P}\p{S}]/gu, '');
 
@@ -175,7 +186,10 @@ describe.each(translatedLocales)('%s catalogue, beyond coverage', (code) => {
 
   it('leaves nothing sitting at its English value by accident', () => {
     const untouched = translatable.filter(
-      (key) => dictionary[key] === en[key as DictionaryKey] && !(!script && isRomanizedProperNoun(key))
+      (key) =>
+        dictionary[key] === en[key as DictionaryKey] &&
+        !IDENTICAL_BY_DESIGN.has(`${code}:${key}`) &&
+        !(!script && isRomanizedProperNoun(key))
     );
     expect(untouched).toEqual([]);
   });
