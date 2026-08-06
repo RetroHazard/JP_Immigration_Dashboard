@@ -199,6 +199,7 @@ The dashboard automatically monitors and updates immigration statistics from the
 
 ### Data Watcher Workflow
 - **Schedule:** Runs daily at 10:05 AM JST, year-round — not just around the expected release window, so it also catches retroactive corrections e-Stat occasionally publishes mid-month
+- **Two tables, one run:** Both source tables are fetched and compared on every run, and either one moving triggers a deploy. They share a single cache entry, so a deploy can never pair a fresh copy of one with a stale copy of the other
 - **Detection:** Compares `SURVEY_DATE` in e-Stat API responses against the previous run's data to detect new or corrected releases
 - **Conditional Publish:** A build and deploy is only triggered when `SURVEY_DATE` has actually changed — most daily runs find nothing new and exit without publishing anything. When it does change, the watcher calls the deploy workflow directly, so the check and the publish are one linked run
 - **Cache Management:** The watcher owns the e-Stat cache, saving under a key derived from the payload's content hash and pruning superseded entries; the deploy only reads it. Reading the cache daily is also what keeps it from being evicted
@@ -207,8 +208,23 @@ The dashboard automatically monitors and updates immigration statistics from the
 
 ## :chart_with_upwards_trend: Data Processing
 
+### Data Sources:
+
+Two independent e-Stat tables, published by the Japan Immigration Services Agency, each with its own dashboard behind the **Application Processing / Resident Population** switch:
+
+| | Application Processing | Resident Population |
+|---|---|---|
+| e-Stat table | `0003449073` | `0004019020` (在留外国人統計 表01) |
+| Measures | applications received and processed | people resident, at a point in time |
+| Dimensions | bureau × application type × status | nationality/region × residence status |
+| Cadence | monthly | half-yearly (半期), each June and December |
+| Coverage | rolling | 2012-12 onward |
+
+They share no dimension, which is why they are separate views rather than combined ones: nothing in the residents table can be broken down by bureau, and nothing in the processing table can be broken down by nationality.
+
 ### Data Acquisition:
 - **Source:** Official statistics from Japan Immigration Services Agency via [e-Stat API](https://www.e-stat.go.jp/)
+- **Pagination:** `getStatsData` caps a response at 100,000 rows and reports the continuation offset as `RESULT_INF.NEXT_KEY`. The residents table is roughly twice that, so the fetch action pages until `NEXT_KEY` is gone, merges, and asserts the merged row count against `TOTAL_NUMBER` — a short read otherwise arrives as a valid, complete-looking payload holding half the table
 - **Automation:** Scheduled monitoring and fetching via GitHub Actions workflows
 - **Validation:** Multi-stage validation including:
   - HTTP response status checking
@@ -233,6 +249,16 @@ The dashboard automatically monitors and updates immigration statistics from the
         - Osaka Regional Immigration Bureau (大阪出入国在留管理局管内) is inclusive of Osaka, Kobe, and Kansai Airport.
           - Kobe's Branch is responsible for the Hyogo area.
           - The statistics provided for Kobe and Kansai Airport are removed from the Osaka Regional Bureau, so that each can be represented uniquely.
+
+### Residents Data Corrections:
+
+The Resident Population table needs three corrections of its own, all applied once at build time (`scripts/transform-data.mts`):
+
+- **Residence-status parentage.** e-Stat publishes the 技能実習 (Technical Intern Training) sub-statuses with `@parentCode 1260` — 特定技能合計, Specified Skilled Worker. Taking that at face value roughly triples one category and empties the other. The five 身分・地位 statuses (永住者, 日本人の配偶者等, 永住者の配偶者等, 定住者, 特別永住者) carry no parent at all. The corrected hierarchy is declared in `src/constants/residenceStatuses.ts` rather than read from the payload.
+- **Nested 「うち」 rows.** うち中国〔香港〕/〔その他〕 and うち英国〔香港〕 are contained in their parent country's figure and would double-count if summed, so they are dropped. 韓国・朝鮮 looks like the same case but is not: it is the pre-2015 combined Korea series, and its periods do not overlap 韓国/朝鮮. It is kept, and the time-series views fold the three back into one line so the 2015 recategorization doesn't read as half a million people leaving.
+- **Rollups and zeros.** Every 総数/合計 row is the sum of its own children and is recomputed client-side instead of shipped; e-Stat emits a row per (status, nationality) pair whether or not anyone holds it, and about 60% are zero. Dropping both takes ~191,000 rows to ~42,000. `verifyResidentTotals` then re-adds the kept leaves on **both** axes and compares them against e-Stat's own published totals — a mismatch means the classification has drifted and would produce a chart that looks fine and is quietly wrong, so it fails the build.
+
+Country and continent names are not translated by hand: `src/constants/nationalities.ts` carries ISO 3166-1 codes (and UN M49 codes for the six continents), and `Intl.DisplayNames` resolves them per locale. Only the five rows with no such identity — 朝鮮, 韓国・朝鮮, セルビア・モンテネグロ, ユーゴスラヴィア, 無国籍 — have catalogue entries.
         
         - Fukuoka Regional Immigration Bureau (福岡出入国在留管理局管内) is inclusive of Fukuoka, and Naha.
           - Naha's Branch is responsible for the Okinawa area.

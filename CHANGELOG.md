@@ -6,6 +6,14 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
+- **v1.3.0**: A second dataset — **Resident Population** — joins the existing processing statistics, behind a switch above the chart tabs —
+  - Answers a different question from the rest of the dashboard: not how fast applications are processed, but who actually lives in Japan and on what visa. 202 nationalities across 43 residence statuses, every half-year from December 2012
+  - **Origins Over Time** tracks the largest nationalities across the whole period; **Residence Status Mix** breaks a nationality's visas down by purpose of stay; **World Origins** shades a world map by country of origin; **Biggest Movers** ranks the largest gains and losses between two points in time
+  - The 2015 recategorization that split 韓国・朝鮮 into 韓国 and 朝鮮 is folded back into one line, so it reads as the reporting change it was rather than half a million people leaving and two new populations appearing
+  - Country and continent names come from your browser's own locale data, so all twelve languages get them without a hand-written translation apiece
+  - Existing links keep working exactly as they did — the dataset is worked out from the chart a link names, not from a new parameter
+  - Views that only make sense for application processing — the processing-time estimator, the airport-office toggle, bureau comparison, and the data table — are hidden on this dataset rather than shown doing nothing
+
 - **v1.2.5**: French, German, Italian, Portuguese, and Spanish join Japanese in full translation — the switcher now offers six languages end to end ([#69](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/69)) —
   - Every interface string is translated in all five: chart labels and tooltips, the data table, the estimator, and empty/error states, alongside the text already covered
   - Portuguese follows European usage (pt-PT) rather than Brazilian

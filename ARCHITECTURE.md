@@ -349,6 +349,19 @@ interface ImmigrationData {
 
 `public/data/dashboard.json` stores this as a packed schema (index tables + flat value tuples, ~10x smaller than the raw payload) that `unpackDashboardData` (`src/utils/dashboardData.ts`) expands back into `ImmigrationData[]`.
 
+The Resident Population dataset is a second, independent cube with its own record, its own packed file, and its own selectors (`src/utils/residentsData.ts`, `residentsSelectors.ts`):
+
+```typescript
+interface ResidentRecord {
+  period: string;       // "2025-12" — a half-year snapshot, not a month
+  status: string;       // e-Stat cat01 residence-status code
+  nationality: string;  // e-Stat cat02 nationality/region code
+  value: number;
+}
+```
+
+The two share no dimension, so they are never merged: `ChartDefinition` is a union discriminated on `dataset`, and the shell narrows on it to pick the filter shape, the range vocabulary, and the props each chart gets. `meta.kind` on the residents file (stride 4) is what stops it being read by the processing unpacker (stride 5), which would otherwise produce three-quarters as many plausible-looking nonsense records rather than an error.
+
 ### 2. Build-Time vs. Runtime Pipeline
 
 Bureau-aggregate correction (deaggregation) now happens **once at build time**, not on every page load:
@@ -356,27 +369,43 @@ Bureau-aggregate correction (deaggregation) now happens **once at build time**, 
 ```mermaid
 graph LR
     subgraph "Build time (scripts/transform-data.mts)"
-        RAW["📥 public/datastore/statData.json<br/>Raw e-Stat payload"]
+        RAW["📥 public/datastore/statData.json<br/>Raw e-Stat 0003449073"]
         FLATTEN["🔍 transformData<br/>dataTransform.ts"]
         CORRECT["➖ correctBureauAggregates.ts<br/>Subtract branch totals"]
         PACK["📦 packDashboardData<br/>dashboardData.ts"]
         OUT["📤 public/data/dashboard.json"]
-        
+
         RAW --> FLATTEN
         FLATTEN --> CORRECT
         CORRECT --> PACK
         PACK --> OUT
+
+        RRAW["📥 public/datastore/residentsData.json<br/>Raw e-Stat 0004019020 (paged + merged)"]
+        RFLAT["🔍 transformResidentsData<br/>Prune rollups, 「うち」 rows, zeros"]
+        RVERIFY["✅ verifyResidentTotals<br/>Re-add leaves on both axes<br/>vs e-Stat's own totals"]
+        RPACK["📦 packResidentsData<br/>residentsData.ts"]
+        ROUT["📤 public/data/residents.json"]
+
+        RRAW --> RFLAT
+        RFLAT --> RVERIFY
+        RVERIFY -->|mismatch: fail the build| RFLAT
+        RVERIFY --> RPACK
+        RPACK --> ROUT
     end
-    
+
     subgraph "Runtime (browser)"
         FETCH["📥 Fetch dashboard.json<br/>useImmigrationData"]
         UNPACK["🔓 unpackDashboardData<br/>Validate schema"]
-        
+        RFETCH["📥 Fetch residents.json<br/>useResidentsData"]
+        RUNPACK["🔓 unpackResidentsData<br/>Validate schema + kind"]
+
         FETCH --> UNPACK
+        RFETCH --> RUNPACK
     end
-    
+
     OUT -.->|served as static asset| FETCH
-    
+    ROUT -.->|served as static asset| RFETCH
+
     UNPACK -->|props, unfiltered| INTAKE["IntakeProcessingBarChart"]
     UNPACK -->|props, unfiltered| TYPES["CategorySubmissionsLineChart"]
     UNPACK -->|props, unfiltered| OUTCOMES["OutcomesSankeyChart"]
@@ -384,7 +413,14 @@ graph LR
     UNPACK -->|props, unfiltered| MIX["CategoryMixTreemap"]
     UNPACK -->|props, unfiltered| EFFICIENCY["ProcessingEfficiencyLollipop"]
     UNPACK -->|props, unfiltered| MAP["GeographicDistributionChart"]
+
+    RUNPACK -->|props, unfiltered| ORIGINS["NationalityTrendChart"]
+    RUNPACK -->|props, unfiltered| STATUSES["ResidenceStatusMixChart"]
+    RUNPACK -->|props, unfiltered| WORLD["OriginChoroplethChart"]
+    RUNPACK -->|props, unfiltered| MOVERS["NationalityMoversChart"]
 ```
+
+Both files are fetched eagerly at boot (`src/App.tsx`), so switching datasets is instant. A failure to load the residents file is not fatal: the shell disables that half of the switcher and the processing dashboard carries on.
 
 Each chart then independently calls `selectData`/`useSelectedData` (`src/utils/selectors.ts`), memoized on its own selection key — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). "Unfiltered" has one global exception: with the airport toggle off, `DashboardShell` drops the airport branch offices' rows and subtracts their volumes from the nationwide aggregate before the props are passed (`src/utils/excludeAirportData.ts`).
 
@@ -416,6 +452,8 @@ graph TD
     NARITA --> RESULT
     HANEDA --> RESULT
 ```
+
+The residents cube needs a different correction, for the same class of reason — e-Stat's own metadata disagrees with its own totals. `src/constants/residenceStatuses.ts` declares the corrected status hierarchy (the payload misparents the 技能実習 sub-statuses to 特定技能合計 and leaves the five 身分・地位 statuses with no parent at all), and `src/constants/nationalities.ts` flags the nested 「うち」 rows that would double-count. `verifyResidentTotals` (`src/utils/residentsTransform.ts`) then checks the result against e-Stat's published 総数 rows on both axes and fails the build on any mismatch, because the failure mode is a chart that looks entirely plausible and is quietly wrong.
 
 **Code Location:** `src/utils/correctBureauAggregates.ts` → `makeCorrectedAccessor()`, called from `src/utils/dataTransform.ts` → `transformData()` during `scripts/transform-data.mts` (build time). `getCorrectedValue()` subtracts the sum of a bureau's `children` codes (from `src/constants/bureauOptions.ts`) from its own raw value, so the aggregate code (e.g. `101170`) ends up representing only its own HQ processing, while each branch's own code (e.g. `101210` Yokohama) is left untouched. If a branch office hasn't published data for a period yet, that aggregate-bureau entry is skipped rather than emitted with an inflated value (see `isBranchDataIncomplete`).
 
