@@ -39,7 +39,7 @@ jobs:
       changed: ${{ steps.diff.outputs.changed }}
 
     env:
-      DATA_PATH: public/datastore/statData.json
+      PROCESSING_DATA_PATH: public/datastore/processingData.json
       RESIDENTS_DATA_PATH: public/datastore/residentsData.json
 
     steps:
@@ -57,7 +57,7 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: |
-            public/datastore/statData.json
+            public/datastore/processingData.json
             public/datastore/residentsData.json
           key: estat-data-${{ github.run_id }}
           restore-keys: |
@@ -146,7 +146,7 @@ jobs:
             fi
           }
 
-          compare_dataset processing "$DATA_PATH" "$HAD_PREVIOUS" "$PREV_PATH"
+          compare_dataset processing "$PROCESSING_DATA_PATH" "$HAD_PREVIOUS" "$PREV_PATH"
           compare_dataset residents "$RESIDENTS_DATA_PATH" "$RESIDENTS_HAD_PREVIOUS" "$RESIDENTS_PREV_PATH"
 
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
@@ -158,14 +158,14 @@ jobs:
       # "estat-data-" prefix.
       - name: Compute cache key
         if: steps.diff.outputs.save == 'true'
-        run: echo "DATA_KEY=estat-data-$(cat "$DATA_PATH" "$RESIDENTS_DATA_PATH" | sha256sum | cut -c1-16)" >> "$GITHUB_ENV"
+        run: echo "DATA_KEY=estat-data-$(cat "$PROCESSING_DATA_PATH" "$RESIDENTS_DATA_PATH" | sha256sum | cut -c1-16)" >> "$GITHUB_ENV"
 
       - name: Save data to cache
         if: steps.diff.outputs.save == 'true'
         uses: actions/cache/save@v6
         with:
           path: |
-            public/datastore/statData.json
+            public/datastore/processingData.json
             public/datastore/residentsData.json
           key: ${{ env.DATA_KEY }}
 

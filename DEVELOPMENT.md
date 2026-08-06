@@ -107,7 +107,7 @@ npm run build
 
 1. **Build Info Generation** — `react-build-info` injects version and timestamp
 2. **CHANGELOG Syncing** — `scripts/sync-changelog.js` copies `CHANGELOG.md` into `public/`
-3. **Data Transform** — `scripts/transform-data.mts` turns `public/datastore/statData.json` (the raw e-Stat payload, or a generated fixture if it's absent) into the compact `public/data/dashboard.json` the client fetches
+3. **Data Transform** — `scripts/transform-data.mts` turns each raw e-Stat payload (or a generated fixture, if it's absent) into the compact file the client fetches: `public/datastore/processingData.json` → `public/data/dashboard.json`, and `public/datastore/residentsData.json` → `public/data/residents.json`
 4. **Next.js Build** — Compiles React + TypeScript to a static export (`output: 'export'` in `next.config.ts`)
 5. **Strip Raw Data** — `scripts/strip-raw-data.mjs` removes `datastore/` from the exported output so the verbose raw payload never ships to visitors
 6. **Output Location** — All files go to the `build/` directory
@@ -264,9 +264,12 @@ JP_Immigration_Dashboard/
 │       └── motion.ts                  # Anime.js scope helper + reduced-motion gate
 │
 ├── public/
-│   ├── data/dashboard.json            # Build-time-transformed data the client fetches
-│   ├── datastore/statData.json        # Raw e-Stat payload (build input; stripped from export output)
+│   ├── data/dashboard.json            # Build-time-transformed processing data the client fetches
+│   ├── data/residents.json            # Build-time-transformed residents data the client fetches
+│   ├── datastore/processingData.json  # Raw e-Stat 0003449073 (build input; stripped from export output)
+│   ├── datastore/residentsData.json   # Raw e-Stat 0004019020 (build input; stripped from export output)
 │   ├── static/japan.topo.json         # TopoJSON for the regional map
+│   ├── static/world.topo.json         # TopoJSON for the world origins map
 │   ├── CHANGELOG.md                   # Synced from the repo root at build time
 │   └── favicon.ico, manifest.webmanifest, og.png, ...
 │
@@ -407,16 +410,20 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
 
 ### Updating Data Processing
 
-Data processing is split between a build-time transform and runtime selection:
+Data processing is split between a build-time transform and runtime selection. The two datasets follow the same five steps through parallel modules — they share no dimension, so they share no code path either:
 
-1. **Build-time transform** — `scripts/transform-data.mts` reads the raw e-Stat payload (`public/datastore/statData.json`), flattens it (`src/utils/dataTransform.ts`), corrects bureau aggregates (`src/utils/correctBureauAggregates.ts`), and packs it into `public/data/dashboard.json`
-2. **Fetch data** — `useImmigrationData` hook loads and unpacks `public/data/dashboard.json` via `src/utils/loadLocalData.ts`
-3. **Select/filter data** — `src/utils/selectors.ts` (`selectData`, `useSelectedData`) applies bureau-scope and type filters
-4. **Calculate metrics** — `src/utils/calculateEstimates.ts` (queue estimation), plus per-chart aggregation inside each chart component
-5. **Pass to charts** — Components receive processed data via props
+| | Application Processing | Resident Population |
+|---|---|---|
+| 1. **Build-time transform** | `dataTransform.ts` flattens, `correctBureauAggregates.ts` deaggregates the regional bureaus | `residentsTransform.ts` prunes rollups, nested 「うち」 rows and zeros, then `verifyResidentTotals` reconciles the result against e-Stat's own totals |
+| 2. **Fetch data** | `useImmigrationData` → `loadLocalData.ts` → `public/data/dashboard.json` | `useResidentsData` → `loadResidentsData.ts` → `public/data/residents.json` |
+| 3. **Select/filter** | `selectors.ts` (`selectData`, `useSelectedData`) — bureau scope and type | `residentsSelectors.ts` (`selectResidents`, `useSelectedResidents`) — nationality, status, region, group, period window |
+| 4. **Calculate metrics** | `calculateEstimates.ts` (queue estimation), plus per-chart aggregation | per-chart aggregation; `residenceStatusTree.ts` for the status hierarchy |
+| 5. **Pass to charts** | `ImmigrationChartData` props | `ResidentChartData` props |
+
+Both transforms run from `scripts/transform-data.mts`, and both files are fetched eagerly at boot in `src/App.tsx` so switching datasets is instant.
 
 To modify calculations:
-1. Edit `src/utils/calculateEstimates.ts`, `src/utils/selectors.ts`, or the relevant chart component
+1. Edit the relevant module from the table above, or the chart component itself
 2. Add unit tests in `src/utils/__tests__/`
 3. Test with `npm test`
 4. Verify in dev server with `npm run dev`

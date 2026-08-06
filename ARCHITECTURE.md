@@ -38,7 +38,7 @@ graph TB
     
     subgraph "Build & Deploy (deploy.yaml)"
         VERIFY["verify.yaml<br/>lint + typecheck + test"]
-        RAW["statData.json<br/>(raw, cached)"]
+        RAW["processingData.json<br/>(raw, cached)"]
         TRANSFORM["transform-data.mts<br/>flatten + deaggregate"]
         STATS["dashboard.json<br/>(packed, compact)"]
         BUILD["Next.js Build<br/>(static export)"]
@@ -369,7 +369,7 @@ Bureau-aggregate correction (deaggregation) now happens **once at build time**, 
 ```mermaid
 graph LR
     subgraph "Build time (scripts/transform-data.mts)"
-        RAW["📥 public/datastore/statData.json<br/>Raw e-Stat 0003449073"]
+        RAW["📥 public/datastore/processingData.json<br/>Raw e-Stat 0003449073"]
         FLATTEN["🔍 transformData<br/>dataTransform.ts"]
         CORRECT["➖ correctBureauAggregates.ts<br/>Subtract branch totals"]
         PACK["📦 packDashboardData<br/>dashboardData.ts"]

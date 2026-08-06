@@ -82,7 +82,7 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: |
-            public/datastore/statData.json
+            public/datastore/processingData.json
             public/datastore/residentsData.json
           key: estat-data-${{ github.run_id }}
           restore-keys: |

@@ -12,7 +12,7 @@ inputs:
   path:
     description: 'Destination for the raw payload.'
     required: false
-    default: 'public/datastore/statData.json'
+    default: 'public/datastore/processingData.json'
   force:
     description: 'Download even when a copy is already present. When false, an existing file is validated and kept.'
     required: false

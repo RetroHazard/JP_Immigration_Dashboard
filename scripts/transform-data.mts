@@ -1,12 +1,21 @@
 // scripts/transform-data.mts
-// Build-time data transform: applies the e-Stat flattening + bureau aggregate
-// correction ONCE at build time and emits the compact file the client loads,
-// instead of shipping the verbose raw payload to every visitor.
+// Build-time data transform: applies the e-Stat flattening and each table's
+// corrections ONCE at build time and emits the compact files the client loads,
+// instead of shipping the verbose raw payloads to every visitor.
 //
-// Input:  public/datastore/statData.json (restored from the Actions cache in
-//         CI; generated as a fixture locally when absent). The raw file is
-//         stripped from the export output after `next build`.
-// Output: public/data/dashboard.json
+// Two independent tables, each with its own input, output, and corrections:
+//
+//   processing  public/datastore/processingData.json -> public/data/dashboard.json
+//               bureau x application type x status, monthly; bureau aggregates
+//               deaggregated (correctBureauAggregates.ts)
+//   residents   public/datastore/residentsData.json  -> public/data/residents.json
+//               nationality x residence status, half-yearly; rollups and nested
+//               rows pruned, then reconciled against e-Stat's own totals
+//
+// Inputs are restored from the Actions cache in CI and generated as fixtures
+// locally when absent. Both raw files are stripped from the export output after
+// `next build`. Override either location with PROCESSING_DATA_PATH /
+// RESIDENTS_DATA_PATH.
 //
 // Run with: tsx scripts/transform-data.mts
 import { execFileSync } from 'node:child_process';
@@ -23,7 +32,7 @@ import {
 } from '../src/utils/residentsTransform';
 import { writeResidentsFixture } from './generateResidentsFixture.mts';
 
-const RAW_PATH = process.env.DATA_PATH ?? 'public/datastore/statData.json';
+const RAW_PATH = process.env.PROCESSING_DATA_PATH ?? 'public/datastore/processingData.json';
 const OUT_PATH = 'public/data/dashboard.json';
 const RESIDENTS_RAW_PATH = process.env.RESIDENTS_DATA_PATH ?? 'public/datastore/residentsData.json';
 const RESIDENTS_OUT_PATH = 'public/data/residents.json';
