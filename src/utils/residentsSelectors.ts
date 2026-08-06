@@ -5,7 +5,7 @@
 // every call site anyway.
 import { useMemo } from 'react';
 
-import { nationalityByCode } from '../constants/nationalities';
+import { NATIONALITY_SERIES_KEY,nationalityByCode } from '../constants/nationalities';
 import { residenceStatusByCode, type StatusGroup } from '../constants/residenceStatuses';
 import type { ResidentRecord } from './residentsData';
 
@@ -102,6 +102,17 @@ export const totalsBy = (
   }
   return new Map([...totals.entries()].sort((a, b) => b[1] - a[1]));
 };
+
+/**
+ * Folds a series that changed identity mid-history back onto the code it ran
+ * under before — see NATIONALITY_SERIES_KEY. Only worth doing for views that
+ * span the change; a single-period view never sees both halves.
+ */
+export const mergeContinuedSeries = (rows: ResidentRecord[]): ResidentRecord[] =>
+  rows.map((row) => {
+    const merged = NATIONALITY_SERIES_KEY[row.nationality];
+    return merged ? { ...row, nationality: merged } : row;
+  });
 
 /**
  * The N codes with the largest total over the window, which is what keeps a

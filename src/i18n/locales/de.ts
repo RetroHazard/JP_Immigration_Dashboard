@@ -542,4 +542,8 @@ export const de: Dictionary = {
   'status.1450': 'Ehegatte oder Kind eines Daueraufenthaltsberechtigten',
   'status.1460': 'Langfristig Aufenthaltsberechtigter',
   'status.1470': 'Sonderdaueraufenthalt',
+  'residents.mixRoot': 'Alle Einwohner',
+  'residents.mixScopeAll': 'allen Einwohnern',
+  'residents.mixCategoryAria': '{category}: {count} Einwohner. Aufschlüsseln.',
+  'residents.mixTooltipValue': '{count} Einwohner · {percent} von {scope}',
 };

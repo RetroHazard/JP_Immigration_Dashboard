@@ -543,4 +543,8 @@ export const ja: Dictionary = {
   'status.1450': '永住者の配偶者等',
   'status.1460': '定住者',
   'status.1470': '特別永住者',
+  'residents.mixRoot': 'すべての在留者',
+  'residents.mixScopeAll': 'すべての在留者',
+  'residents.mixCategoryAria': '{category}：{count}人。詳細を表示。',
+  'residents.mixTooltipValue': '{count}人 · {scope}の{percent}',
 };

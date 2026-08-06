@@ -552,4 +552,8 @@ export const en = {
   'status.1450': 'Spouse or Child of Permanent Resident',
   'status.1460': 'Long-Term Resident',
   'status.1470': 'Special Permanent Resident',
+  'residents.mixRoot': 'All residents',
+  'residents.mixScopeAll': 'all residents',
+  'residents.mixCategoryAria': '{category}: {count} residents. Zoom in.',
+  'residents.mixTooltipValue': '{count} residents · {percent} of {scope}',
 } as const;

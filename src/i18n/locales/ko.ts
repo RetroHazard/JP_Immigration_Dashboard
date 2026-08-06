@@ -553,4 +553,8 @@ export const ko: Dictionary = {
   'status.1450': '영주자의 배우자 등',
   'status.1460': '정주자',
   'status.1470': '특별 영주자',
+  'residents.mixRoot': '모든 체류자',
+  'residents.mixScopeAll': '모든 체류자',
+  'residents.mixCategoryAria': '{category}: {count}명. 자세히 보기.',
+  'residents.mixTooltipValue': '{count}명 · {scope}의 {percent}',
 };

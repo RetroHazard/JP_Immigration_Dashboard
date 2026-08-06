@@ -542,4 +542,8 @@ export const fr: Dictionary = {
   'status.1450': 'Conjoint ou enfant de résident permanent',
   'status.1460': 'Résident de long terme',
   'status.1470': 'Résident permanent spécial',
+  'residents.mixRoot': 'Tous les résidents',
+  'residents.mixScopeAll': 'l’ensemble des résidents',
+  'residents.mixCategoryAria': '{category} : {count} résidents. Zoomer.',
+  'residents.mixTooltipValue': '{count} résidents · {percent} de {scope}',
 };

@@ -4,10 +4,16 @@ import type React from 'react';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
 import { DashboardShell } from './components/DashboardShell';
 import { useImmigrationData } from './hooks/useImmigrationData';
+import { useResidentsData } from './hooks/useResidentsData';
 import { useLocale } from './i18n/LocaleContext';
 
 const App: React.FC = () => {
   const { data, meta, loading, error } = useImmigrationData();
+  // Fetched eagerly alongside the processing data: it is a static asset like
+  // the other one, and loading it up front means switching datasets is
+  // instant rather than showing a spinner. A failure here is not fatal — the
+  // shell disables the Residents half of the switcher and carries on.
+  const { data: residents } = useResidentsData();
   const { t } = useLocale();
 
   if (loading) {
@@ -33,7 +39,7 @@ const App: React.FC = () => {
     );
   }
 
-  return <DashboardShell data={data} meta={meta} />;
+  return <DashboardShell data={data} meta={meta} residents={residents} />;
 };
 
 export default App;

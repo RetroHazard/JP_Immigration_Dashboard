@@ -563,4 +563,8 @@ export const zhTw: Dictionary = {
   'status.1450': '永住者的配偶等',
   'status.1460': '定住者',
   'status.1470': '特別永住者',
+  'residents.mixRoot': '全部在留者',
+  'residents.mixScopeAll': '全部在留者',
+  'residents.mixCategoryAria': '{category}：{count} 人。展開查看。',
+  'residents.mixTooltipValue': '{count} 人 · 占{scope}的 {percent}',
 };

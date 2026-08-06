@@ -5,6 +5,7 @@ import type { LucideIcon } from 'lucide-react';
 import type React from 'react';
 
 import { useLocale } from '../../i18n/LocaleContext';
+import type { DictionaryKey } from '../../i18n/types';
 import { useCountUp } from '../../lib/motion';
 
 type StatBadgeColor = 'blue' | 'yellow' | 'green' | 'red' | 'gray';
@@ -20,7 +21,7 @@ const BADGE_CLASSES: Record<StatBadgeColor, string> = {
 };
 
 export type StatDelta = {
-  /** Percent change vs the previous month, e.g. +3.2 */
+  /** Percent change vs the previous period, e.g. +3.2 */
   percent: number;
   /** Whether an increase is good news (granted) or a warning (pending) */
   direction: 'up-good' | 'up-warn' | 'neutral';
@@ -37,6 +38,12 @@ interface StatCardProps {
   color: StatBadgeColor;
   icon: LucideIcon;
   delta?: StatDelta;
+  /**
+   * Catalogue key wrapping the formatted delta. Defaults to the month-over-
+   * month phrasing the processing tiles use; the residents tiles compare
+   * half-years, where "MoM" would be simply wrong.
+   */
+  deltaKey?: DictionaryKey;
   spark?: number[];
   className?: string;
 }
@@ -86,6 +93,7 @@ const StatCardComponent: React.FC<StatCardProps> = ({
   color,
   icon: Icon,
   delta,
+  deltaKey = 'stats.momDelta',
   spark,
   className,
 }) => {
@@ -134,7 +142,7 @@ const StatCardComponent: React.FC<StatCardProps> = ({
         <span className="min-w-0 flex-1">
           <span className={`block truncate text-xxs tabular-nums sm:text-xs ${deltaClass}`}>
             {delta
-              ? t('stats.momDelta', {
+              ? t(deltaKey, {
                   delta: `${delta.percent >= 0 ? '+' : '−'}${formatters.percent(Math.abs(delta.percent))}`,
                 })
               : subtitle}

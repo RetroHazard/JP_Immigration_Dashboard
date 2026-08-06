@@ -15,7 +15,11 @@ export interface Nationality {
   value: string;
   /** ISO 3166-1 alpha-2, or null when the row has no ISO identity. */
   iso2: string | null;
-  /** ISO 3166-1 numeric — what the world TopoJSON keys its features on. */
+  /**
+   * ISO 3166-1 numeric — what the world TopoJSON keys its features on.
+   * Kosovo has no assigned code; scripts/vendor-world-topology.mjs stamps the
+   * conventional 926 onto its feature so the two still join.
+   */
   iso3n: number | null;
   /** Continent grouping (`region.<code>` in the catalogue). */
   region: string;
@@ -142,7 +146,7 @@ export const nationalities: Nationality[] = [
   { value: '2170', iso2: 'GR', iso3n: 300, region: '2000' }, // ギリシャ
   { value: '2180', iso2: 'KG', iso3n: 417, region: '2000' }, // キルギス
   { value: '2190', iso2: 'HR', iso3n: 191, region: '2000' }, // クロアチア
-  { value: '2200', iso2: 'XK', iso3n: null, region: '2000' }, // コソボ共和国 (XK is user-assigned; no numeric code)
+  { value: '2200', iso2: 'XK', iso3n: 926, region: '2000' }, // コソボ共和国 (XK/926 are conventional, not ISO-assigned)
   { value: '2210', iso2: 'SM', iso3n: 674, region: '2000' }, // サンマリノ
   { value: '2220', iso2: 'GE', iso3n: 268, region: '2000' }, // ジョージア
   { value: '2230', iso2: 'CH', iso3n: 756, region: '2000' }, // スイス
@@ -290,6 +294,22 @@ export const nationalityByCode = (code: string): Nationality | undefined => byCo
 
 /** Rows safe to sum: every leaf except the ones nested inside another leaf. */
 export const summableNationalities = nationalities.filter((nationality) => !nationality.isSubset);
+
+/**
+ * Codes that are the later half of a series that changed identity mid-history,
+ * mapped to the code the series ran under before.
+ *
+ * 韓国・朝鮮 (1130) is published up to 2015-06; from 2015-12 the same
+ * population is split into 韓国 (1110) and 朝鮮 (1120). Charts that plot across
+ * that boundary have to fold the three back into one series — the alternative
+ * is a line that appears to collapse to zero in 2015 and another that appears
+ * from nowhere, neither of which happened. Views of a single period leave the
+ * codes alone, since only one of them exists in any given period anyway.
+ */
+export const NATIONALITY_SERIES_KEY: Record<string, string> = {
+  '1110': '1130', // 韓国 → 韓国・朝鮮
+  '1120': '1130', // 朝鮮 → 韓国・朝鮮
+};
 
 /** Codes that must never be added into a total (see `isSubset`). */
 export const NATIONALITY_SUBSET_CODES = new Set(

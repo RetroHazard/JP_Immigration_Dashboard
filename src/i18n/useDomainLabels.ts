@@ -10,8 +10,8 @@
 
 import { useMemo } from 'react';
 
-import type { ChartDefinition } from '../components/common/ChartComponents';
-import { CHART_COMPONENTS } from '../components/common/ChartComponents';
+import type { ChartDefinition, Dataset } from '../components/common/ChartComponents';
+import { CHARTS_BY_DATASET } from '../components/common/ChartComponents';
 import type { ApplicationOption } from '../constants/applicationOptions';
 import { applicationOptions } from '../constants/applicationOptions';
 import type { BureauOption } from '../constants/bureauOptions';
@@ -52,23 +52,38 @@ export interface LabeledResidenceStatus extends ResidenceStatus {
   label: string;
 }
 
-export interface LabeledChart extends ChartDefinition {
+/**
+ * An intersection rather than an `extends`: ChartDefinition is a union
+ * discriminated on `dataset`, and extending it would collapse the two members
+ * into one shape the shell could no longer narrow.
+ */
+export type LabeledChart = ChartDefinition & {
   /** Canonical display name, used by the tab AND the card header. */
   label: string;
   /** One sentence: what question this chart answers. */
   description: string;
-}
+};
 
-/** The chart registry with its tab labels and card subtitles resolved. */
-export const useChartRegistry = (): LabeledChart[] => {
+/** One dataset's charts, with tab labels and card subtitles resolved. */
+export const useChartRegistry = (dataset: Dataset = 'processing'): LabeledChart[] => {
   const { t } = useLocale();
   return useMemo(
     () =>
-      CHART_COMPONENTS.map((chart) => ({
+      CHARTS_BY_DATASET[dataset].map((chart) => ({
         ...chart,
         label: t(`charts.${chart.key}.label` as DictionaryKey),
         description: t(`charts.${chart.key}.description` as DictionaryKey),
       })),
+    [dataset, t]
+  );
+};
+
+/** `(dataset) => name` for the dataset switcher. */
+export const useDatasetLabel = (): ((dataset: Dataset, compact?: boolean) => string) => {
+  const { t } = useLocale();
+  return useMemo(
+    () => (dataset: Dataset, compact = false) =>
+      t(`dataset.${dataset}${compact ? '.compact' : ''}` as DictionaryKey),
     [t]
   );
 };

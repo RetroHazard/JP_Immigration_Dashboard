@@ -558,4 +558,8 @@ export const tl: Dictionary = {
   'status.1450': 'Asawa o anak ng permanenteng residente',
   'status.1460': 'Pangmatagalang residente',
   'status.1470': 'Espesyal na permanenteng residente',
+  'residents.mixRoot': 'Lahat ng naninirahan',
+  'residents.mixScopeAll': 'lahat ng naninirahan',
+  'residents.mixCategoryAria': '{category}: {count} naninirahan. Palakihin.',
+  'residents.mixTooltipValue': '{count} naninirahan · {percent} ng {scope}',
 };

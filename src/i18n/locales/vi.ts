@@ -562,4 +562,8 @@ export const vi: Dictionary = {
   'status.1450': 'Vợ/chồng hoặc con của người vĩnh trú',
   'status.1460': 'Định trú',
   'status.1470': 'Vĩnh trú đặc biệt',
+  'residents.mixRoot': 'Toàn bộ người cư trú',
+  'residents.mixScopeAll': 'toàn bộ người cư trú',
+  'residents.mixCategoryAria': '{category}: {count} người. Xem chi tiết.',
+  'residents.mixTooltipValue': '{count} người · {percent} của {scope}',
 };

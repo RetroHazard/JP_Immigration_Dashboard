@@ -23,18 +23,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import buildInfo from '../buildInfo';
 import { applicationOptions } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
+import { nationalities } from '../constants/nationalities';
+import { residenceStatuses } from '../constants/residenceStatuses';
 import { useTheme } from '../contexts/ThemeContext';
 import type { DashboardMeta, ImmigrationData } from '../hooks/useImmigrationData';
 import { useLocale } from '../i18n/LocaleContext';
 import { T } from '../i18n/T';
-import { useApplicationType, useBureauLabel, useChartRegistry } from '../i18n/useDomainLabels';
+import {
+  useApplicationType,
+  useBureauLabel,
+  useChartRegistry,
+  useDatasetLabel,
+} from '../i18n/useDomainLabels';
 import { prefersReducedMotion, useAnimeScope } from '../lib/motion';
 import { excludeAirportData } from '../utils/excludeAirportData';
 import { AIRPORT_BUREAU_CODES } from '../utils/getBureauData';
+import { formatPeriod } from '../utils/residentPeriod';
+import type { ResidentRecord } from '../utils/residentsData';
+import type { ResidentRange } from '../utils/residentsSelectors';
+import { getAllPeriods } from '../utils/residentsSelectors';
 import type { ChartRange } from '../utils/selectors';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { getApplicationDetailsFromParams, isEstimatorPermalink } from '../utils/urlApplicationDetails';
-import { CHART_KEYS } from './common/ChartComponents';
+import type { Dataset } from './common/ChartComponents';
+import { CHART_KEYS, CHARTS_BY_DATASET, datasetForChart,DATASETS } from './common/ChartComponents';
 import { LanguageSwitcher } from './common/LanguageSwitcher';
 import { PeriodSelector } from './common/PeriodSelector';
 import { ActiveChart } from './ActiveChart';
@@ -42,24 +54,30 @@ import { ChangelogModal } from './ChangelogModal';
 import { ChartDataTable } from './ChartDataTable';
 import { EstimationCard } from './EstimationCard';
 import { FilterPanel } from './FilterPanel';
+import { ResidentFilterPanel } from './ResidentFilterPanel';
+import { ResidentsStatsSummary } from './ResidentsStatsSummary';
 import { StatsSummary } from './StatsSummary';
 
 const BUREAU_VALUES = bureauOptions.map((option) => option.value);
 const TYPE_VALUES = applicationOptions.map((option) => option.value);
-const RANGE_VALUES: ChartRange[] = ['latest', '6', '12', '24', '36', 'all'];
+const RANGE_VALUES = ['latest', '6', '12', '24', '36', 'all', '3y', '5y', '10y'] as const;
+const NATIONALITY_VALUES = ['all', ...nationalities.map((nationality) => nationality.value)];
+const STATUS_VALUES = ['all', ...residenceStatuses.map((status) => status.value)];
 const COMPARE_VALUES = bureauOptions.filter((option) => option.value !== 'all').map((option) => option.value);
 
 interface DashboardShellProps {
   data: ImmigrationData[];
   meta: DashboardMeta | null;
+  /** null when the residents file failed to load — the switcher stays disabled */
+  residents: ResidentRecord[] | null;
 }
 
-export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) => {
+export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, residents }) => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { t, formatters } = useLocale();
   const bureauLabel = useBureauLabel();
-  const charts = useChartRegistry();
   const applicationType = useApplicationType();
+  const datasetLabel = useDatasetLabel();
   const searchParams = useSearchParams();
 
   // --- URL state (shareable): active chart, global filters, time range ---
@@ -71,6 +89,23 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
   const [type, setType] = useQueryState('type', parseAsStringLiteral(TYPE_VALUES).withDefault('all'));
   const [rangeParam, setRangeParam] = useQueryState('range', parseAsStringLiteral(RANGE_VALUES));
   const [compare, setCompare] = useQueryState('compare', parseAsStringLiteral(COMPARE_VALUES));
+  const [nationality, setNationality] = useQueryState(
+    'nationality',
+    parseAsStringLiteral(NATIONALITY_VALUES).withDefault('all')
+  );
+  const [residenceStatus, setResidenceStatus] = useQueryState(
+    'status',
+    parseAsStringLiteral(STATUS_VALUES).withDefault('all')
+  );
+
+  // The dataset is DERIVED from ?chart=, not a param of its own: chart keys are
+  // unique across both registries, so there is no way to land on a dataset and
+  // a chart that disagree, and every link written before the residents dataset
+  // existed still resolves to exactly the view it named.
+  const residentsAvailable = residents !== null && residents.length > 0;
+  const requestedDataset = datasetForChart(chartKey);
+  const dataset: Dataset = requestedDataset === 'residents' && !residentsAvailable ? 'processing' : requestedDataset;
+  const charts = useChartRegistry(dataset);
   // Global airport toggle: when off, the airport branch offices drop out of
   // every chart, stat, and table (the estimator keeps the full dataset).
   const [includeAirports, setIncludeAirports] = useQueryState('airports', parseAsBoolean.withDefault(true));
@@ -81,22 +116,45 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
   );
   const activeChart = charts[activeIndex];
 
-  // The single ?range= param applies to the active chart, clamped to what it offers.
-  const range: ChartRange =
-    rangeParam && activeChart.ranges.includes(rangeParam) ? rangeParam : activeChart.defaultRange;
+  // The single ?range= param applies to the active chart, clamped to what it
+  // offers. The two datasets use disjoint range vocabularies ('12' months vs
+  // '5y'), so a value carried over from the other one simply falls back to
+  // this chart's default rather than needing to be cleared.
+  const range: ChartRange | ResidentRange = (
+    activeChart.ranges as readonly string[]
+  ).includes(rangeParam ?? '')
+    ? (rangeParam as ChartRange | ResidentRange)
+    : activeChart.defaultRange;
 
   // Filters the active chart doesn't support are neutralized so the chart,
   // stat badges, and estimator always agree on what a filter value means.
   // An airport bureau selection is likewise neutralized while airports are
   // excluded (hand-edited URLs can still produce that combination).
+  const processingFilterConfig =
+    activeChart.dataset === 'processing' ? activeChart.filters : { bureau: false, appType: false };
+  const residentFilterConfig =
+    activeChart.dataset === 'residents' ? activeChart.filters : { nationality: false, status: false };
+
   const effectiveFilters = useMemo(
     () => ({
       bureau:
-        activeChart.filters.bureau && (includeAirports || !AIRPORT_BUREAU_CODES.has(bureau)) ? bureau : 'all',
-      type: activeChart.filters.appType ? type : 'all',
+        processingFilterConfig.bureau && (includeAirports || !AIRPORT_BUREAU_CODES.has(bureau)) ? bureau : 'all',
+      type: processingFilterConfig.appType ? type : 'all',
     }),
-    [activeChart.filters.bureau, activeChart.filters.appType, bureau, type, includeAirports]
+    [processingFilterConfig.bureau, processingFilterConfig.appType, bureau, type, includeAirports]
   );
+
+  const effectiveResidentFilters = useMemo(
+    () => ({
+      nationality: residentFilterConfig.nationality ? nationality : 'all',
+      status: residentFilterConfig.status ? residenceStatus : 'all',
+    }),
+    [residentFilterConfig.nationality, residentFilterConfig.status, nationality, residenceStatus]
+  );
+
+  // Stable identity: `residents ?? []` would be a new array every render,
+  // invalidating every memo keyed on it (and ActiveChart's memo comparison).
+  const residentsData = useMemo(() => residents ?? [], [residents]);
 
   // What the charts, stats, and data table see; the airport branch offices
   // are removed as rows AND subtracted from the nationwide aggregate, so
@@ -107,6 +165,14 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
   // Data coverage, shown beside the period selector (moved out of the
   // filter card to keep it a single row).
   const coverage = useMemo(() => {
+    if (dataset === 'residents') {
+      const periods = getAllPeriods(residentsData);
+      if (periods.length === 0) return null;
+      return t('dashboard.coverageRange', {
+        from: formatPeriod(periods[0], formatters),
+        to: formatPeriod(periods[periods.length - 1], formatters),
+      });
+    }
     if (data.length === 0) return null;
     const months = [...new Set(data.map((entry) => entry.month))].sort();
     const fmt = (month: string) => {
@@ -114,12 +180,12 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
       return formatters.monthYear(new Date(Number(year), Number(monthNum) - 1));
     };
     return t('dashboard.coverageRange', { from: fmt(months[0]), to: fmt(months[months.length - 1]) });
-  }, [data, t, formatters]);
+  }, [data, dataset, residentsData, t, formatters]);
 
   // Compare mode: a second bureau rendered as a side-by-side small multiple,
   // on views that opt in via the registry (single-view charts like the
   // treemap, sankey, and bubble plot already show every bureau at once).
-  const compareEnabled = activeChart.filters.bureau && activeChart.compare;
+  const compareEnabled = activeChart.dataset === 'processing' && activeChart.filters.bureau && activeChart.compare;
   const compareBureau =
     compareEnabled && compare && compare !== bureau && (includeAirports || !AIRPORT_BUREAU_CODES.has(compare))
       ? compare
@@ -301,7 +367,21 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
 
       <main id="main-content" className="marginals w-full flex-1 py-6 md:py-8">
         <p className="sr-only" aria-live="polite">
-          {effectiveFilters.type === 'all'
+          {dataset === 'residents'
+            ? t('a11y.showingChart', {
+                chart: activeChart.label,
+                bureau: t('residents.scope', {
+                  nationality:
+                    effectiveResidentFilters.nationality === 'all'
+                      ? t('filters.allNationalities')
+                      : effectiveResidentFilters.nationality,
+                  status:
+                    effectiveResidentFilters.status === 'all'
+                      ? t('filters.allStatuses')
+                      : effectiveResidentFilters.status,
+                }),
+              })
+            : effectiveFilters.type === 'all'
             ? t('a11y.showingChart', {
                 chart: activeChart.label,
                 bureau: bureauLabel(effectiveFilters.bureau),
@@ -313,27 +393,49 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               })}
         </p>
         <div className="mb-4" data-animate="card">
-          <StatsSummary data={chartData} filters={effectiveFilters} />
+          {dataset === 'residents' ? (
+            <ResidentsStatsSummary data={residentsData} filters={effectiveResidentFilters} />
+          ) : (
+            <StatsSummary data={chartData} filters={effectiveFilters} />
+          )}
         </div>
         <div
           className={`grid gap-4 transition-[grid-template-columns] duration-300 lg:items-start ${
-            isEstimatorCollapsed
-              ? 'lg:grid-cols-[minmax(0,1fr)_64px]'
-              : // Narrower sidebar at lg: the main column is at its most cramped
-                // right where the sidebar first engages
-                'lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]'
+            dataset === 'residents'
+              ? // The estimator models bureau throughput, which this dataset
+                // has no equivalent of, so the sidebar column collapses away.
+                'lg:grid-cols-[minmax(0,1fr)]'
+              : isEstimatorCollapsed
+                ? 'lg:grid-cols-[minmax(0,1fr)_64px]'
+                : // Narrower sidebar at lg: the main column is at its most cramped
+                  // right where the sidebar first engages
+                  'lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]'
           }`}
         >
           {/* Main column */}
           <div className="flex min-w-0 flex-col gap-4">
             <div data-animate="card">
+            {dataset === 'residents' ? (
+            <ResidentFilterPanel
+              filters={{ nationality, status: residenceStatus }}
+              onChange={(next) => {
+                void setNationality(next.nationality);
+                void setResidenceStatus(next.status);
+              }}
+              filterConfig={residentFilterConfig}
+              onReset={() => {
+                void setNationality(null);
+                void setResidenceStatus(null);
+              }}
+            />
+            ) : (
             <FilterPanel
               filters={{ bureau, type }}
               onChange={(next) => {
                 void setBureau(next.bureau);
                 void setType(next.type);
               }}
-              filterConfig={activeChart.filters}
+              filterConfig={processingFilterConfig}
               compare={compare}
               compareEnabled={compareEnabled}
               onCompareChange={(next) => void setCompare(next)}
@@ -353,6 +455,33 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                 void setIncludeAirports(null);
               }}
             />
+            )}
+            </div>
+
+            {/* Dataset switcher. Selecting a dataset jumps to its first chart,
+                which is what actually changes the active registry — the
+                dataset itself is derived from ?chart=. */}
+            <div className="flex items-center gap-1" role="group" aria-label={t('dataset.aria')}>
+              {DATASETS.map((option) => {
+                const disabled = option === 'residents' && !residentsAvailable;
+                return (
+                  <button
+                    key={option}
+                    onClick={() => void setChartKey(CHARTS_BY_DATASET[option][0].key)}
+                    disabled={disabled}
+                    aria-pressed={dataset === option}
+                    title={disabled ? t('dataset.residentsUnavailable') : datasetLabel(option)}
+                    className={`rounded-full px-3 py-1.5 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                      dataset === option
+                        ? 'bg-primary font-semibold text-primary-foreground'
+                        : 'border border-border text-secondary-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <span className="hidden sm:inline">{datasetLabel(option)}</span>
+                    <span className="sm:hidden">{datasetLabel(option, true)}</span>
+                  </button>
+                );
+              })}
             </div>
 
             <Tabs value={activeChart.key} onValueChange={(key) => void setChartKey(key)}>
@@ -405,9 +534,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                               </p>
                             )}
                             <ActiveChart
-                              activeChartIndex={activeIndex}
-                              data={chartData}
+                              chart={activeChart}
+                              processingData={chartData}
+                              residentsData={residentsData}
                               filters={effectiveFilters}
+                              residentFilters={effectiveResidentFilters}
                               range={range}
                             />
                           </div>
@@ -422,15 +553,19 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
                                 </span>
                               </p>
                               <ActiveChart
-                                activeChartIndex={activeIndex}
-                                data={chartData}
+                                chart={activeChart}
+                                processingData={chartData}
+                                residentsData={residentsData}
                                 filters={{ bureau: compareBureau, type: effectiveFilters.type }}
+                                residentFilters={effectiveResidentFilters}
                                 range={range}
                               />
                             </div>
                           )}
                         </div>
-                        <ChartDataTable data={chartData} filters={effectiveFilters} range={range} />
+                        {dataset === 'processing' && (
+                          <ChartDataTable data={chartData} filters={effectiveFilters} range={range as ChartRange} />
+                        )}
                       </>
                     )}
                   </div>
@@ -444,7 +579,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
               stretches to the bottom of the main column (self-stretch beats
               the grid's items-start) so it lines up with the chart card. */}
           <aside
-            className={`hidden lg:block ${isEstimatorCollapsed ? 'self-stretch' : 'sticky top-4'}`}
+            className={`hidden ${dataset === 'residents' ? '' : 'lg:block'} ${
+              isEstimatorCollapsed ? 'self-stretch' : 'sticky top-4'
+            }`}
             data-animate="card"
           >
             {isEstimatorCollapsed ? (
@@ -477,8 +614,13 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta }) =>
         </div>
       </main>
 
-      {/* Estimator: bottom sheet on mobile */}
-      <div className="sticky bottom-0 z-30 border-t border-border bg-card/95 p-3 backdrop-blur lg:hidden">
+      {/* Estimator: bottom sheet on mobile. Hidden on the residents dataset
+          for the same reason the sidebar is — it models bureau throughput. */}
+      <div
+        className={`sticky bottom-0 z-30 border-t border-border bg-card/95 p-3 backdrop-blur lg:hidden ${
+          dataset === 'residents' ? 'hidden' : ''
+        }`}
+      >
         <Sheet open={isEstimatorSheetOpen} onOpenChange={setIsEstimatorSheetOpen}>
           <SheetTrigger asChild>
             <Button className="w-full gap-2" size="lg">
