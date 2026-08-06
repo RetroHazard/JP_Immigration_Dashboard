@@ -15,9 +15,18 @@ import { dirname } from 'node:path';
 
 import { packDashboardData } from '../src/utils/dashboardData';
 import { type RawData, transformData } from '../src/utils/dataTransform';
+import { packResidentsData } from '../src/utils/residentsData';
+import {
+  type RawResidentsData,
+  transformResidentsData,
+  verifyResidentTotals,
+} from '../src/utils/residentsTransform';
+import { writeResidentsFixture } from './generateResidentsFixture.mts';
 
 const RAW_PATH = process.env.DATA_PATH ?? 'public/datastore/statData.json';
 const OUT_PATH = 'public/data/dashboard.json';
+const RESIDENTS_RAW_PATH = process.env.RESIDENTS_DATA_PATH ?? 'public/datastore/residentsData.json';
+const RESIDENTS_OUT_PATH = 'public/data/residents.json';
 
 let source: 'e-stat' | 'fixture' = 'e-stat';
 if (!existsSync(RAW_PATH)) {
@@ -53,4 +62,69 @@ const outKb = Math.round(statSync(OUT_PATH).size / 1024);
 console.log(
   `✓ ${OUT_PATH}: ${records.length} records over ${file.months.length} months ` +
     `(${outKb} KB, raw ${rawKb} KB, ${Math.round((1 - outKb / rawKb) * 100)}% smaller, source: ${source})`
+);
+
+// --- Foreign Residents table (0004019020) ---------------------------------
+// A second, independent cube: nationality x residence status x half-year. It
+// shares no dimension with the processing table above, so it gets its own
+// transform and its own output file rather than being merged in.
+let residentsSource: 'e-stat' | 'fixture' = 'e-stat';
+if (!existsSync(RESIDENTS_RAW_PATH)) {
+  console.warn(
+    `⚠️  ${RESIDENTS_RAW_PATH} not found — generating a deterministic fixture (local/CI build without e-Stat data).`
+  );
+  const { rows, periods } = writeResidentsFixture(RESIDENTS_RAW_PATH);
+  console.log(`   wrote ${RESIDENTS_RAW_PATH}: ${rows} values over ${periods} periods`);
+  residentsSource = 'fixture';
+}
+
+const residentsRaw = JSON.parse(readFileSync(RESIDENTS_RAW_PATH, 'utf8')) as RawResidentsData;
+const residentsTableInf = residentsRaw.GET_STATS_DATA?.STATISTICAL_DATA?.TABLE_INF;
+if (residentsTableInf?.note?.includes('FIXTURE')) residentsSource = 'fixture';
+
+const residentRecords = transformResidentsData(residentsRaw);
+if (residentRecords.length === 0) {
+  console.error(
+    `✖ transformResidentsData produced 0 records from ${RESIDENTS_RAW_PATH} — refusing to emit an empty residents file.`
+  );
+  process.exit(1);
+}
+
+// The pruned leaves must still add up to e-Stat's own published totals on both
+// axes. A mismatch means the aggregate/subset classification in
+// src/constants has drifted from what e-Stat publishes — which produces a
+// chart that looks fine and is quietly wrong, so it fails the build.
+const mismatches = verifyResidentTotals(residentsRaw, residentRecords);
+if (mismatches.length > 0) {
+  const preview = mismatches
+    .slice(0, 8)
+    .map((m) => `    ${m.period} ${m.axis} axis, code ${m.code}: published ${m.published}, leaves ${m.fromLeaves}`)
+    .join('\n');
+  const message =
+    `${mismatches.length} total(s) in ${RESIDENTS_RAW_PATH} do not reconcile with the leaves kept:\n${preview}` +
+    (mismatches.length > 8 ? `\n    …and ${mismatches.length - 8} more` : '') +
+    `\n  Revisit isAggregate/isSubset in src/constants/residenceStatuses.ts and src/constants/nationalities.ts.`;
+  if (process.env.RESIDENTS_ALLOW_TOTAL_MISMATCH === '1') {
+    console.warn(`⚠️  ${message}\n  Continuing because RESIDENTS_ALLOW_TOTAL_MISMATCH=1.`);
+  } else {
+    console.error(`✖ ${message}`);
+    process.exit(1);
+  }
+}
+
+const residentsFile = packResidentsData(residentRecords, {
+  schema: 1,
+  kind: 'residents',
+  surveyDate: residentsTableInf?.SURVEY_DATE ?? 'unknown',
+  source: residentsSource,
+});
+
+writeFileSync(RESIDENTS_OUT_PATH, JSON.stringify(residentsFile));
+
+const residentsRawKb = Math.round(statSync(RESIDENTS_RAW_PATH).size / 1024);
+const residentsOutKb = Math.round(statSync(RESIDENTS_OUT_PATH).size / 1024);
+console.log(
+  `✓ ${RESIDENTS_OUT_PATH}: ${residentRecords.length} records over ${residentsFile.periods.length} periods ` +
+    `(${residentsOutKb} KB, raw ${residentsRawKb} KB, ` +
+    `${Math.round((1 - residentsOutKb / residentsRawKb) * 100)}% smaller, source: ${residentsSource})`
 );

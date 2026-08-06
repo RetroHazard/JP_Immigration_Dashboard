@@ -19,8 +19,11 @@ export const loadLocalData = async (): Promise<LoadedDashboardData | null> => {
       return null;
     }
 
-    const file = (await response.json()) as DashboardDataFile;
-    if (file?.meta?.schema !== 1 || !Array.isArray(file.values)) {
+    const file = (await response.json()) as DashboardDataFile & { meta?: { kind?: string } };
+    // The residents file carries `kind: 'residents'` and a stride of 4; this
+    // unpacker's stride is 5, so reading it here would produce plausible-
+    // looking garbage rather than an obvious failure.
+    if (file?.meta?.schema !== 1 || file?.meta?.kind !== undefined || !Array.isArray(file.values)) {
       logger.error('Unexpected dashboard data schema:', file?.meta);
       return null;
     }

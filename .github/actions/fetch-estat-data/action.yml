@@ -1,10 +1,14 @@
 name: 'Fetch e-Stat data'
-description: 'Downloads and validates the e-Stat statistics payload, optionally keeping the previous copy for comparison.'
+description: 'Downloads and validates an e-Stat statistics payload, optionally keeping the previous copy for comparison.'
 
 inputs:
   app-id:
     description: 'e-Stat application ID (secrets.ESTAT_APP_ID).'
     required: true
+  stats-data-id:
+    description: 'e-Stat statsDataId. Defaults to the bureau processing table.'
+    required: false
+    default: '0003449073'
   path:
     description: 'Destination for the raw payload.'
     required: false
@@ -32,6 +36,7 @@ runs:
       # so it never appears in the rendered command line.
       env:
         ESTAT_APP_ID: ${{ inputs.app-id }}
+        STATS_DATA_ID: ${{ inputs.stats-data-id }}
         DATA_PATH: ${{ inputs.path }}
         FORCE: ${{ inputs.force }}
       run: |
@@ -55,32 +60,82 @@ runs:
 
         if [ "$FORCE" = "true" ] || [ ! -f "$DATA_PATH" ]; then
           if [ "$had_previous" = "false" ]; then
-            echo "::notice::No cached payload present - downloading a fresh copy."
+            echo "::notice::No cached payload present - downloading a fresh copy of $STATS_DATA_ID."
           fi
-          # e-Stat is the pipeline's only external dependency and it does go
-          # down. --max-time bounds a single hung transfer; --retry-max-time
-          # bounds the whole retry window, so the worst case stays below the
-          # calling jobs' timeout-minutes rather than being truncated by them.
-          # --retry-all-errors is needed because plain --retry ignores
-          # connection-level failures.
-          curl -sS -L --fail \
-            --connect-timeout 20 \
-            --max-time 300 \
-            --retry 3 \
-            --retry-delay 15 \
-            --retry-max-time 600 \
-            --retry-all-errors \
-            --get "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData" \
-            --data-urlencode "appId=${ESTAT_APP_ID}" \
-            --data-urlencode "lang=J" \
-            --data-urlencode "statsDataId=0003449073" \
-            --data-urlencode "metaGetFlg=Y" \
-            --data-urlencode "sectionHeaderFlg=2" \
-            --data-urlencode "replaceSpChars=0" \
-            -o "$DATA_PATH" || {
-              echo "::error::e-Stat API request failed"
+
+          # getStatsData caps a response at 100,000 rows and reports the
+          # continuation offset as RESULT_INF.NEXT_KEY. The Foreign Residents
+          # table is ~191,000 rows, so a single request returns roughly half of
+          # it - with a 200 and a structurally valid envelope. Page until
+          # NEXT_KEY is gone, then merge.
+          page_dir="$(mktemp -d)"
+          trap 'rm -rf "$page_dir"' EXIT
+          start_position=1
+          page=0
+          max_pages=20
+
+          while :; do
+            page=$((page + 1))
+            if [ "$page" -gt "$max_pages" ]; then
+              echo "::error::Still paging after $max_pages requests for $STATS_DATA_ID. Either the table grew past $((max_pages * 100000)) rows or NEXT_KEY is no longer advancing."
+              exit 1
+            fi
+            # Zero-padded so the merge glob below sorts in request order.
+            page_file="$(printf '%s/page-%03d.json' "$page_dir" "$page")"
+
+            # e-Stat is the pipeline's only external dependency and it does go
+            # down. --max-time bounds a single hung transfer; --retry-max-time
+            # bounds the whole retry window, so the worst case stays below the
+            # calling jobs' timeout-minutes rather than being truncated by them.
+            # --retry-all-errors is needed because plain --retry ignores
+            # connection-level failures.
+            curl -sS -L --fail \
+              --connect-timeout 20 \
+              --max-time 300 \
+              --retry 3 \
+              --retry-delay 15 \
+              --retry-max-time 600 \
+              --retry-all-errors \
+              --get "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData" \
+              --data-urlencode "appId=${ESTAT_APP_ID}" \
+              --data-urlencode "lang=J" \
+              --data-urlencode "statsDataId=${STATS_DATA_ID}" \
+              --data-urlencode "metaGetFlg=Y" \
+              --data-urlencode "sectionHeaderFlg=2" \
+              --data-urlencode "replaceSpChars=0" \
+              --data-urlencode "startPosition=${start_position}" \
+              -o "$page_file" || {
+                echo "::error::e-Stat API request failed (page $page of $STATS_DATA_ID)"
+                exit 1
+              }
+
+            jq -e '.GET_STATS_DATA.STATISTICAL_DATA' "$page_file" >/dev/null || {
+              echo "::error::Page $page of $STATS_DATA_ID is missing GET_STATS_DATA.STATISTICAL_DATA - the API likely returned an error envelope."
+              jq -r '.GET_STATS_DATA.RESULT // .' "$page_file" | head -20
               exit 1
             }
+
+            next_key="$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.RESULT_INF.NEXT_KEY // empty' "$page_file")"
+            [ -n "$next_key" ] || break
+            start_position="$next_key"
+            echo "::notice::$STATS_DATA_ID page $page done, continuing from row $start_position."
+          done
+
+          # Page 1 carries the metadata (TABLE_INF, CLASS_INF); the later pages
+          # contribute only their VALUE rows. NEXT_KEY is dropped so the merged
+          # file cannot be mistaken for a partial one.
+          jq -s '. as $pages
+            | $pages[0]
+            | .GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE =
+                [ $pages[]
+                  | .GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE
+                  | if type == "array" then .[] else . end ]
+            | .GET_STATS_DATA.STATISTICAL_DATA.RESULT_INF.TO_NUMBER =
+                (.GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE | length)
+            | del(.GET_STATS_DATA.STATISTICAL_DATA.RESULT_INF.NEXT_KEY)' \
+            "$page_dir"/page-*.json > "$DATA_PATH"
+
+          echo "::notice::Merged $page page(s) into $DATA_PATH."
         else
           echo "::notice::Using the cached payload."
         fi
@@ -95,3 +150,15 @@ runs:
           jq -r '.GET_STATS_DATA.RESULT // .' "$DATA_PATH" | head -20
           exit 1
         }
+
+        # The row-count assertion is what makes a short read loud. Without it a
+        # truncated payload looks entirely healthy: valid JSON, correct shape,
+        # every field present, just missing half the table.
+        jq -e '
+          .GET_STATS_DATA.STATISTICAL_DATA as $d
+          | ($d.DATA_INF.VALUE | if type == "array" then length else 1 end) as $rows
+          | ($d.RESULT_INF.TOTAL_NUMBER // $rows) as $expected
+          | $rows == $expected' "$DATA_PATH" >/dev/null || {
+            echo "::error::$DATA_PATH holds $(jq '.GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE | length' "$DATA_PATH") rows but reports TOTAL_NUMBER $(jq '.GET_STATS_DATA.STATISTICAL_DATA.RESULT_INF.TOTAL_NUMBER' "$DATA_PATH"). The payload is incomplete."
+            exit 1
+          }

@@ -40,6 +40,7 @@ jobs:
 
     env:
       DATA_PATH: public/datastore/statData.json
+      RESIDENTS_DATA_PATH: public/datastore/residentsData.json
 
     steps:
       - name: Checkout
@@ -47,76 +48,109 @@ jobs:
         with:
           persist-credentials: false
 
+      # Both payloads share one cache entry: they are fetched, compared, and
+      # saved together, so a deploy can never pair a fresh copy of one table
+      # with a stale copy of the other. An entry saved before the residents
+      # table existed simply restores without it, and the first run after that
+      # re-baselines rather than reporting a spurious change.
       - name: Restore previous data
         uses: actions/cache/restore@v6
         with:
-          path: public/datastore/statData.json
+          path: |
+            public/datastore/statData.json
+            public/datastore/residentsData.json
           key: estat-data-${{ github.run_id }}
           restore-keys: |
             estat-data-
 
       # force: true — always pull a fresh copy, preserving whatever was
-      # restored as prev-statData.json so the two can be compared.
-      - name: Download latest data
+      # restored as prev-<name>.json so the two can be compared.
+      - name: Download latest data (processing)
         id: fetch
         uses: ./.github/actions/fetch-estat-data
         with:
           app-id: ${{ secrets.ESTAT_APP_ID }}
           force: 'true'
 
-      - name: Compare survey date
+      - name: Download latest data (residents)
+        id: fetch-residents
+        uses: ./.github/actions/fetch-estat-data
+        with:
+          app-id: ${{ secrets.ESTAT_APP_ID }}
+          stats-data-id: '0004019020'
+          path: public/datastore/residentsData.json
+          force: 'true'
+
+      - name: Compare survey dates
         id: diff
         env:
           HAD_PREVIOUS: ${{ steps.fetch.outputs.had-previous }}
           PREV_PATH: ${{ steps.fetch.outputs.previous-path }}
+          RESIDENTS_HAD_PREVIOUS: ${{ steps.fetch-residents.outputs.had-previous }}
+          RESIDENTS_PREV_PATH: ${{ steps.fetch-residents.outputs.previous-path }}
         run: |
           set -euo pipefail
 
           SURVEY_DATE='.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.SURVEY_DATE'
 
-          # SURVEY_DATE is the entire change signal, so it is checked before
-          # anything else and with -e. Plain `jq -r` prints the string "null"
-          # and exits 0 for a path that does not exist: if e-Stat ever moved or
-          # renamed this field, null would compare equal to null and the
-          # watcher would report "no change" every day, forever, with a green
-          # check and no deploy. Fail loudly instead of failing open.
-          current=$(jq -er "$SURVEY_DATE" "$DATA_PATH") || {
-            echo "::error::SURVEY_DATE is missing or null in the payload just downloaded. The e-Stat response schema may have changed - the change detector cannot be trusted until this is resolved."
-            exit 1
+          changed=false
+          save=false
+
+          # Both tables are checked the same way, so the logic lives in one
+          # function; it sets `changed`/`save` in the caller's scope. Either
+          # table moving is enough to trigger a deploy, and either one needing
+          # a baseline is enough to justify saving the cache.
+          compare_dataset() {
+            local label="$1" current_path="$2" had_previous="$3" previous_path="$4"
+
+            # SURVEY_DATE is the entire change signal, so it is checked before
+            # anything else and with -e. Plain `jq -r` prints the string "null"
+            # and exits 0 for a path that does not exist: if e-Stat ever moved or
+            # renamed this field, null would compare equal to null and the
+            # watcher would report "no change" every day, forever, with a green
+            # check and no deploy. Fail loudly instead of failing open.
+            local current
+            current=$(jq -er "$SURVEY_DATE" "$current_path") || {
+              echo "::error::SURVEY_DATE is missing or null in the $label payload just downloaded. The e-Stat response schema may have changed - the change detector cannot be trusted until this is resolved."
+              exit 1
+            }
+
+            if [ "$had_previous" != "true" ]; then
+              echo "::notice::No previous $label payload (first run, cache evicted, or a newly added table). Saving a baseline without deploying."
+              save=true
+              return
+            fi
+
+            # An unreadable previous copy means a corrupted cache entry. Failing
+            # here would wedge the watcher permanently: the job would die before
+            # the save and prune steps below, so the bad entry would never be
+            # replaced and every subsequent run would fail identically. Re-
+            # baseline on it instead, which costs one deploy-detection cycle and
+            # then self-heals.
+            local previous
+            if ! previous=$(jq -er "$SURVEY_DATE" "$previous_path" 2>/dev/null); then
+              echo "::warning::Previous $label payload is unreadable or has no SURVEY_DATE (corrupt cache entry). Re-baselining without deploying."
+              save=true
+              return
+            fi
+
+            echo "$label previous SURVEY_DATE: $previous"
+            echo "$label current  SURVEY_DATE: $current"
+
+            if [ "$current" != "$previous" ]; then
+              echo "::notice::$label SURVEY_DATE changed from $previous to $current"
+              changed=true
+              save=true
+            else
+              echo "::notice::No $label change (still $current)"
+            fi
           }
 
-          if [ "$HAD_PREVIOUS" != "true" ]; then
-            echo "::notice::No previous payload (first run or cache evicted). Saving a baseline without deploying."
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "save=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
+          compare_dataset processing "$DATA_PATH" "$HAD_PREVIOUS" "$PREV_PATH"
+          compare_dataset residents "$RESIDENTS_DATA_PATH" "$RESIDENTS_HAD_PREVIOUS" "$RESIDENTS_PREV_PATH"
 
-          # An unreadable previous copy means a corrupted cache entry. Failing
-          # here would wedge the watcher permanently: the job would die before
-          # the save and prune steps below, so the bad entry would never be
-          # replaced and every subsequent run would fail identically. Re-
-          # baseline on it instead, which costs one deploy-detection cycle and
-          # then self-heals.
-          if ! previous=$(jq -er "$SURVEY_DATE" "$PREV_PATH" 2>/dev/null); then
-            echo "::warning::Previous payload is unreadable or has no SURVEY_DATE (corrupt cache entry). Re-baselining without deploying."
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "save=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "Previous SURVEY_DATE: $previous"
-          echo "Current  SURVEY_DATE: $current"
-
-          if [ "$current" != "$previous" ]; then
-            echo "::notice::SURVEY_DATE changed from $previous to $current"
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "save=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice::No change (still $current)"
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "save=false" >> "$GITHUB_OUTPUT"
-          fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+          echo "save=$save" >> "$GITHUB_OUTPUT"
 
       # Key derived from the payload's actual content, computed after the
       # download. The previous implementation called hashFiles() before the file
@@ -124,13 +158,15 @@ jobs:
       # "estat-data-" prefix.
       - name: Compute cache key
         if: steps.diff.outputs.save == 'true'
-        run: echo "DATA_KEY=estat-data-$(sha256sum "$DATA_PATH" | cut -c1-16)" >> "$GITHUB_ENV"
+        run: echo "DATA_KEY=estat-data-$(cat "$DATA_PATH" "$RESIDENTS_DATA_PATH" | sha256sum | cut -c1-16)" >> "$GITHUB_ENV"
 
       - name: Save data to cache
         if: steps.diff.outputs.save == 'true'
         uses: actions/cache/save@v6
         with:
-          path: public/datastore/statData.json
+          path: |
+            public/datastore/statData.json
+            public/datastore/residentsData.json
           key: ${{ env.DATA_KEY }}
 
       - name: Prune superseded caches
@@ -168,10 +204,10 @@ jobs:
         run: |
           if [ "${{ steps.diff.outputs.changed }}" = "true" ]; then
             echo "### New data detected" >> "$GITHUB_STEP_SUMMARY"
-            echo "Deploy has been triggered automatically." >> "$GITHUB_STEP_SUMMARY"
+            echo "Deploy has been triggered automatically. See the compare step for which table moved." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "### No changes detected" >> "$GITHUB_STEP_SUMMARY"
-            echo "Data is unchanged since the last check. No deploy triggered." >> "$GITHUB_STEP_SUMMARY"
+            echo "Both tables are unchanged since the last check. No deploy triggered." >> "$GITHUB_STEP_SUMMARY"
           fi
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "**Checked at:** $(TZ='Asia/Tokyo' date +'%Y-%m-%d %H:%M:%S JST')" >> "$GITHUB_STEP_SUMMARY"

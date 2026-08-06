@@ -76,19 +76,30 @@ jobs:
       # Read-only: watcher.yaml owns writing this cache. The primary key is
       # deliberately unique so it always misses and falls through to the
       # restore-key prefix, which resolves to the most recently saved payload.
+      # One entry covers both payloads, so a deploy can never pair a fresh
+      # processing table with a stale residents one.
       - name: Restore e-Stat data
         uses: actions/cache/restore@v6
         with:
-          path: public/datastore/statData.json
+          path: |
+            public/datastore/statData.json
+            public/datastore/residentsData.json
           key: estat-data-${{ github.run_id }}
           restore-keys: |
             estat-data-
 
       # Downloads only if the cache produced nothing; otherwise just validates.
-      - name: Ensure e-Stat data
+      - name: Ensure e-Stat data (processing)
         uses: ./.github/actions/fetch-estat-data
         with:
           app-id: ${{ secrets.ESTAT_APP_ID }}
+
+      - name: Ensure e-Stat data (residents)
+        uses: ./.github/actions/fetch-estat-data
+        with:
+          app-id: ${{ secrets.ESTAT_APP_ID }}
+          stats-data-id: '0004019020'
+          path: public/datastore/residentsData.json
 
       - name: Build
         run: npm run build
