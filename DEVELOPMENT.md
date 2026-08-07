@@ -178,7 +178,7 @@ which is what catches a payload that fails its completeness or reconciliation ch
 
 | File | Trigger | Purpose |
 | --- | --- | --- |
-| `verify.yaml` | `pull_request`, `workflow_call` | The quality gate: lockfile check, lint, typecheck, test, optional build. Reports as `Verify / verify` on a pull request |
+| `verify.yaml` | `pull_request`, `workflow_call` | The quality gate: lockfile check, lint, typecheck, test, optional build. Reports as `verify` on a pull request |
 | `deploy.yaml` | push to `main` (path-filtered), dispatch, `workflow_call` | Verifies (unless `skip-verify: true`), then builds against real data and publishes to Pages |
 | `watcher.yaml` | daily cron, dispatch | Probes e-Stat for new data; calls `deploy.yaml` when it changes |
 

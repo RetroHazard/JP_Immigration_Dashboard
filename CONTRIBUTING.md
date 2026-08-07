@@ -316,7 +316,7 @@ Example:
 
 ### What to Expect
 
-1. **Automated checks** — `verify.yaml` runs the lockfile check, lint, typecheck, tests, and a production build against the fixture data. It reports as a single `Verify / verify` check, and runs on pull requests only, so you get one run per push rather than two
+1. **Automated checks** — `verify.yaml` runs the lockfile check, lint, typecheck, tests, and a production build against the fixture data. It reports as a single `verify` check, and runs on pull requests only, so you get one run per push rather than two
 2. **Code review** — Maintainers or contributors may review and suggest changes
 3. **Responsiveness** — Be prepared to respond to feedback and make updates
 
