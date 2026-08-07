@@ -16,31 +16,32 @@ concurrency:
 
 # Least privilege by job rather than workflow-wide. A called workflow can never
 # hold more permissions than its caller, but the ceiling is the *calling job's*
-# permissions, so pages/id-token belong on the deploy job below rather than
-# here — that keeps them away from check-updates, which shell-processes a
-# third-party payload and runs github-script.
+# permissions, so pages/id-token belong on the deploy job below rather than here.
 permissions:
   contents: read
 
 jobs:
+  # What e-Stat publishes is read by scripts/estat-watch.mjs, which probes each
+  # dataset in scripts/datasets.mjs, compares against the baseline restored from
+  # the cache, and downloads the payloads only when something actually moved.
+  # Nothing here names a dataset: adding one is a manifest edit, not a YAML edit.
   check-updates:
     runs-on: ubuntu-latest
-    # Above the fetch action's worst-case curl budget (a 600s retry window plus
-    # a final 300s attempt), so the job timeout stays an outer backstop instead
-    # of cutting a legitimate retry short.
+    # Above the fetch's worst-case retry budget (4 attempts x 300s, per page),
+    # so the job timeout stays an outer backstop rather than cutting a legitimate
+    # retry short. Only reachable on a day when data actually moved; a probe-only
+    # run finishes in seconds.
     timeout-minutes: 20
 
-    # actions: write is for the cache prune step; nothing here publishes.
+    # No `actions: write` here. Pruning needs it; probing a third-party API does
+    # not, so the two live in different jobs.
     permissions:
       contents: read
-      actions: write
 
     outputs:
-      changed: ${{ steps.diff.outputs.changed }}
-
-    env:
-      PROCESSING_DATA_PATH: public/datastore/processingData.json
-      RESIDENTS_DATA_PATH: public/datastore/residentsData.json
+      changed: ${{ steps.watch.outputs.changed }}
+      save: ${{ steps.watch.outputs.save }}
+      cache-key: ${{ steps.watch.outputs.cache-key }}
 
     steps:
       - name: Checkout
@@ -48,180 +49,87 @@ jobs:
         with:
           persist-credentials: false
 
-      # Node only — no `npm ci`. scripts/fetch-estat-data.mjs is dependency-free,
-      # and this job never builds. The version still comes from .nvmrc rather
-      # than the runner image, so it cannot drift from the deploy's.
+      # Node only — no `npm ci`. scripts/estat-watch.mjs and its imports are
+      # dependency-free, and this job never builds. The version still comes from
+      # .nvmrc rather than the runner image, so it cannot drift from the deploy's.
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 
-      # Both payloads share one cache entry: they are fetched, compared, and
-      # saved together, so a deploy can never pair a fresh copy of one table
-      # with a stale copy of the other. An entry saved before the residents
-      # table existed simply restores without it, and the first run after that
-      # re-baselines rather than reporting a spurious change.
+      # The whole datastore directory is the unit of caching, rather than a list
+      # of files that has to be kept in sync with the manifest by hand. It holds
+      # every raw payload plus .estat-baseline.json, so the record of what was
+      # last published can never be restored without the data it describes.
+      #
+      # The primary key is deliberately unique so it always misses and falls
+      # through to the restore-key prefix, which resolves to the most recently
+      # saved entry.
       - name: Restore previous data
         uses: actions/cache/restore@v6
         with:
-          path: |
-            public/datastore/processingData.json
-            public/datastore/residentsData.json
+          path: public/datastore
           key: estat-data-${{ github.run_id }}
           restore-keys: |
             estat-data-
 
-      # force: true — always pull a fresh copy, preserving whatever was
-      # restored as prev-<name>.json so the two can be compared.
-      - name: Download latest data (processing)
-        id: fetch
-        uses: ./.github/actions/fetch-estat-data
-        with:
-          app-id: ${{ secrets.ESTAT_APP_ID }}
-          force: 'true'
-
-      - name: Download latest data (residents)
-        id: fetch-residents
-        uses: ./.github/actions/fetch-estat-data
-        with:
-          app-id: ${{ secrets.ESTAT_APP_ID }}
-          stats-data-id: '0004019020'
-          path: public/datastore/residentsData.json
-          force: 'true'
-
-      - name: Compare survey dates
-        id: diff
+      # Writes changed/save/cache-key, and its own run summary — including on the
+      # failure path, so a red run never reports "no changes detected".
+      - name: Check for new data
+        id: watch
         env:
-          HAD_PREVIOUS: ${{ steps.fetch.outputs.had-previous }}
-          PREV_PATH: ${{ steps.fetch.outputs.previous-path }}
-          RESIDENTS_HAD_PREVIOUS: ${{ steps.fetch-residents.outputs.had-previous }}
-          RESIDENTS_PREV_PATH: ${{ steps.fetch-residents.outputs.previous-path }}
+          ESTAT_APP_ID: ${{ secrets.ESTAT_APP_ID }}
+        run: node scripts/estat-watch.mjs
+
+      - name: Save data to cache
+        if: steps.watch.outputs.save == 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: public/datastore
+          key: ${{ steps.watch.outputs.cache-key }}
+
+  # Separate job so `actions: write` is nowhere near the one that processes a
+  # third-party payload.
+  prune:
+    needs: check-updates
+    if: needs.check-updates.outputs.save == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      # `actions/cache/save` warns rather than fails when the key already exists,
+      # so a green save step is not proof the entry was written. Deleting
+      # everything else on that assumption is how the last good entry gets
+      # removed, leaving nothing for the next deploy to restore. So the keep-key
+      # is confirmed to exist before anything is deleted.
+      - name: Prune superseded caches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          KEEP_KEY: ${{ needs.check-updates.outputs.cache-key }}
         run: |
           set -euo pipefail
 
-          SURVEY_DATE='.GET_STATS_DATA.STATISTICAL_DATA.TABLE_INF.SURVEY_DATE'
-
-          changed=false
-          save=false
-
-          # Both tables are checked the same way, so the logic lives in one
-          # function; it sets `changed`/`save` in the caller's scope. Either
-          # table moving is enough to trigger a deploy, and either one needing
-          # a baseline is enough to justify saving the cache.
-          compare_dataset() {
-            local label="$1" current_path="$2" had_previous="$3" previous_path="$4"
-
-            # SURVEY_DATE is the entire change signal, so it is checked before
-            # anything else and with -e. Plain `jq -r` prints the string "null"
-            # and exits 0 for a path that does not exist: if e-Stat ever moved or
-            # renamed this field, null would compare equal to null and the
-            # watcher would report "no change" every day, forever, with a green
-            # check and no deploy. Fail loudly instead of failing open.
-            local current
-            current=$(jq -er "$SURVEY_DATE" "$current_path") || {
-              echo "::error::SURVEY_DATE is missing or null in the $label payload just downloaded. The e-Stat response schema may have changed - the change detector cannot be trusted until this is resolved."
-              exit 1
-            }
-
-            if [ "$had_previous" != "true" ]; then
-              echo "::notice::No previous $label payload (first run, cache evicted, or a newly added table). Saving a baseline without deploying."
-              save=true
-              return
-            fi
-
-            # An unreadable previous copy means a corrupted cache entry. Failing
-            # here would wedge the watcher permanently: the job would die before
-            # the save and prune steps below, so the bad entry would never be
-            # replaced and every subsequent run would fail identically. Re-
-            # baseline on it instead, which costs one deploy-detection cycle and
-            # then self-heals.
-            local previous
-            if ! previous=$(jq -er "$SURVEY_DATE" "$previous_path" 2>/dev/null); then
-              echo "::warning::Previous $label payload is unreadable or has no SURVEY_DATE (corrupt cache entry). Re-baselining without deploying."
-              save=true
-              return
-            fi
-
-            echo "$label previous SURVEY_DATE: $previous"
-            echo "$label current  SURVEY_DATE: $current"
-
-            if [ "$current" != "$previous" ]; then
-              echo "::notice::$label SURVEY_DATE changed from $previous to $current"
-              changed=true
-              save=true
-            else
-              echo "::notice::No $label change (still $current)"
-            fi
-          }
-
-          compare_dataset processing "$PROCESSING_DATA_PATH" "$HAD_PREVIOUS" "$PREV_PATH"
-          compare_dataset residents "$RESIDENTS_DATA_PATH" "$RESIDENTS_HAD_PREVIOUS" "$RESIDENTS_PREV_PATH"
-
-          echo "changed=$changed" >> "$GITHUB_OUTPUT"
-          echo "save=$save" >> "$GITHUB_OUTPUT"
-
-      # Key derived from the payload's actual content, computed after the
-      # download. The previous implementation called hashFiles() before the file
-      # existed, which returns an empty string and collapsed the key to the bare
-      # "estat-data-" prefix.
-      - name: Compute cache key
-        if: steps.diff.outputs.save == 'true'
-        run: echo "DATA_KEY=estat-data-$(cat "$PROCESSING_DATA_PATH" "$RESIDENTS_DATA_PATH" | sha256sum | cut -c1-16)" >> "$GITHUB_ENV"
-
-      - name: Save data to cache
-        if: steps.diff.outputs.save == 'true'
-        uses: actions/cache/save@v6
-        with:
-          path: |
-            public/datastore/processingData.json
-            public/datastore/residentsData.json
-          key: ${{ env.DATA_KEY }}
-
-      - name: Prune superseded caches
-        if: steps.diff.outputs.save == 'true'
-        uses: actions/github-script@v9
-        env:
-          KEEP_KEY: ${{ env.DATA_KEY }}
-        with:
-          script: |
-            const keep = process.env.KEEP_KEY;
-            const stale = [];
-            for (let page = 1; ; page++) {
-              const { data } = await github.rest.actions.getActionsCacheList({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                key: 'estat-data-',
-                per_page: 100,
-                page,
-              });
-              const batch = data.actions_caches ?? [];
-              stale.push(...batch.filter((c) => c.key !== keep));
-              if (batch.length < 100) break;
-            }
-            for (const cache of stale) {
-              await github.rest.actions.deleteActionsCacheById({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                cache_id: cache.id,
-              });
-            }
-            core.info(`Kept ${keep}, deleted ${stale.length} superseded cache(s).`);
-
-      - name: Summary
-        if: always()
-        run: |
-          if [ "${{ steps.diff.outputs.changed }}" = "true" ]; then
-            echo "### New data detected" >> "$GITHUB_STEP_SUMMARY"
-            echo "Deploy has been triggered automatically. See the compare step for which table moved." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "### No changes detected" >> "$GITHUB_STEP_SUMMARY"
-            echo "Both tables are unchanged since the last check. No deploy triggered." >> "$GITHUB_STEP_SUMMARY"
+          if ! gh cache list --key "$KEEP_KEY" --limit 1 --json key --jq '.[].key' | grep -qxF "$KEEP_KEY"; then
+            echo "::warning::$KEEP_KEY was not written (duplicate key, or the save step failed). Skipping the prune so the existing entries survive."
+            exit 0
           fi
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "**Checked at:** $(TZ='Asia/Tokyo' date +'%Y-%m-%d %H:%M:%S JST')" >> "$GITHUB_STEP_SUMMARY"
 
-  # Replaces the previous blind createWorkflowDispatch, so a data update is one
-  # linked run and the deploy reads the cache this run just saved.
+          pruned=0
+          while read -r id; do
+            [ -n "$id" ] || continue
+            gh cache delete "$id"
+            pruned=$((pruned + 1))
+          done < <(gh cache list --key estat-data- --limit 100 --json id,key --jq ".[] | select(.key != \"$KEEP_KEY\") | .id")
+
+          echo "::notice::Kept $KEEP_KEY, deleted $pruned superseded cache(s)."
+
+  # Calls the deploy directly rather than dispatching it blindly, so a data
+  # update is one linked run and the deploy reads the cache this run just saved.
   deploy:
     needs: check-updates
     if: needs.check-updates.outputs.changed == 'true'
@@ -232,4 +140,11 @@ jobs:
       pages: write
       id-token: write
     uses: ./.github/workflows/deploy.yaml
+    with:
+      # Only the data moved. The commit being deployed is the one that already
+      # passed lint, typecheck and test on its way into main, and none of those
+      # three read data — re-running them here would verify nothing. The build
+      # still runs, which is what catches a payload that fails its completeness
+      # or reconciliation checks.
+      skip-verify: true
     secrets: inherit

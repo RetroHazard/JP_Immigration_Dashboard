@@ -445,12 +445,15 @@ Bureau-aggregate correction (deaggregation) now happens **once at build time**, 
 ```mermaid
 graph LR
     subgraph "Build time (scripts/transform-data.mts)"
+        MANIFEST["🗂️ scripts/datasets.mjs<br/>id · statsDataId · raw · out<br/>drives fetch, watcher, cache and build"]
+
         RAW["📥 public/datastore/processingData.json<br/>Raw e-Stat 0003449073"]
         FLATTEN["🔍 transformData<br/>dataTransform.ts"]
         CORRECT["➖ correctBureauAggregates.ts<br/>Subtract branch totals"]
         PACK["📦 packDashboardData<br/>dashboardData.ts"]
         OUT["📤 public/data/dashboard.json"]
 
+        MANIFEST -.->|registers| RAW
         RAW --> FLATTEN
         FLATTEN --> CORRECT
         CORRECT --> PACK
@@ -462,6 +465,7 @@ graph LR
         RPACK["📦 packResidentsData<br/>residentsData.ts"]
         ROUT["📤 public/data/residents.json"]
 
+        MANIFEST -.->|registers| RRAW
         RRAW --> RFLAT
         RFLAT --> RVERIFY
         RVERIFY -->|mismatch: fail the build| RFLAT
@@ -497,6 +501,14 @@ graph LR
     RUNPACK -->|props, unfiltered| WORLD["OriginChoroplethChart"]
     RUNPACK -->|props, unfiltered| MOVERS["NationalityMoversChart"]
 ```
+
+The two chains share no dimension, so they share no code path — but they do share a
+lifecycle, and it is written once. `transform-data.mts` walks `scripts/datasets.mjs` and
+runs each entry through the same sequence (fixture fallback → completeness check →
+transform → optional verify → pack → report), dispatching the cube-specific parts through
+a handler table keyed by dataset id. The manifest is also what the fetch script, the
+watcher and the Actions cache read, so a dataset is registered in exactly one place; see
+[Adding a dataset](DEVELOPMENT.md#adding-a-dataset).
 
 Both files are fetched eagerly at boot (`src/App.tsx`), so switching datasets is instant. A failure to load the residents file is not fatal: the shell disables that half of the switcher and the processing dashboard carries on.
 
