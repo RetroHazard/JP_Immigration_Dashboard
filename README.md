@@ -3,7 +3,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![Deploy](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/deploy.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/deploy.yaml) [![CI](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/ci.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/ci.yaml) [![Data Watcher](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml)
+[![Deploy](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/deploy.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/deploy.yaml) [![Verify](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/verify.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/verify.yaml) [![Data Watcher](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml)
 
 ## Overview
 A Next.js-based dashboard for visualizing and analyzing Japan's immigration statistics, published by the
@@ -249,10 +249,12 @@ The dashboard automatically monitors and updates immigration statistics from the
 
 ### Data Watcher Workflow
 - **Schedule:** Runs daily at 10:05 AM JST, year-round — not just around the expected release window, so it also catches retroactive corrections e-Stat occasionally publishes mid-month
-- **Two tables, one run:** Both source tables are fetched and compared on every run, and either one moving triggers a deploy. They share a single cache entry, so a deploy can never pair a fresh copy of one with a stale copy of the other
-- **Detection:** Compares `SURVEY_DATE` in e-Stat API responses against the previous run's data to detect new or corrected releases
-- **Conditional Publish:** A build and deploy is only triggered when `SURVEY_DATE` has actually changed — most daily runs find nothing new and exit without publishing anything. When it does change, the watcher calls the deploy workflow directly, so the check and the publish are one linked run
-- **Cache Management:** The watcher owns the e-Stat cache, saving under a key derived from the payload's content hash and pruning superseded entries; the deploy only reads it. Reading the cache daily is also what keeps it from being evicted
+- **Probe, don't download:** Each run asks e-Stat for a single row per table, which returns the table's `SURVEY_DATE` in a couple of kilobytes. On a normal day that is the whole run — the full payloads, hundreds of thousands of rows, are downloaded only once something has actually moved
+- **Detection:** Compares each table's `SURVEY_DATE` against the baseline recorded when it was last published, to detect new or corrected releases
+- **Every table, one run:** Every source table is checked on each run and any one of them moving triggers a deploy — at which point all of them are re-downloaded together. They share a single cache entry, so a deploy can never pair a fresh copy of one with a stale copy of another
+- **Conditional Publish:** A build and deploy is only triggered when a `SURVEY_DATE` has actually changed — most daily runs find nothing new and exit without publishing anything. When it does change, the watcher calls the deploy workflow directly, so the check and the publish are one linked run
+- **Cache Management:** The watcher owns the e-Stat cache, saving under a key derived from the payloads' content hash and pruning superseded entries; the deploy only reads it. Reading the cache daily is also what keeps it from being evicted
+- **Dataset-driven:** The tables come from a single manifest (`scripts/datasets.mjs`). Adding one is a manifest entry plus a transform — no workflow changes
 
 ---
 
@@ -274,13 +276,13 @@ They share no dimension, which is why they are separate views rather than combin
 
 ### Data Acquisition:
 - **Source:** Official statistics from Japan Immigration Services Agency via [e-Stat API](https://www.e-stat.go.jp/)
-- **Pagination:** `getStatsData` caps a response at 100,000 rows and reports the continuation offset as `RESULT_INF.NEXT_KEY`. The residents table is roughly twice that, so the fetch action pages until `NEXT_KEY` is gone, merges, and asserts the merged row count against `TOTAL_NUMBER` — a short read otherwise arrives as a valid, complete-looking payload holding half the table
-- **Automation:** Scheduled monitoring and fetching via GitHub Actions workflows
+- **Pagination:** `getStatsData` caps a response at 100,000 rows and reports the continuation offset as `RESULT_INF.NEXT_KEY`. The residents table is roughly twice that, so `scripts/fetch-estat-data.mjs` pages until `NEXT_KEY` is gone, merges, and asserts the merged row count against `TOTAL_NUMBER` — a short read otherwise arrives as a valid, complete-looking payload holding half the table
+- **Automation:** Scheduled monitoring and fetching via GitHub Actions workflows, running the same script a developer runs locally
 - **Validation:** Multi-stage validation including:
-  - HTTP response status checking
-  - JSON structure validation using `jq`
-  - Required field verification (`GET_STATS_DATA.STATISTICAL_DATA`)
-  - Data freshness checks via `SURVEY_DATE` comparison
+  - HTTP response status checking, with a bounded retry budget
+  - Required field verification (`GET_STATS_DATA.STATISTICAL_DATA`), since the API reports errors as a 200 carrying an error envelope
+  - Merged row count asserted against `RESULT_INF.TOTAL_NUMBER`, re-checked at build time before the transform runs
+  - Data freshness checks via `SURVEY_DATE` comparison, which fails loudly rather than reading a missing field as "no change"
 - **Caching:** GitHub Actions cache for optimal performance and API rate limiting
 - **Error Handling:** Comprehensive failure detection with workflow notifications
 
