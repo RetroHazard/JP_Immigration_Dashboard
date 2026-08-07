@@ -41,6 +41,7 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.4.1**: The Intake & Processing and Application Types charts' axis labels and tooltips showed only month and day, dropping the year — ambiguous once a range spans more than one year, since every January looked the same. Both now show month and year instead.
 - **v1.2.6**: Chart axis numbers could render as clipped or outright wrong values in German, Portuguese, Spanish, and Italian — repeated "0.000" ticks, a leading digit sheared off ("800 mil" reading as "00 mil"), or no labels at all on narrow screens. Two causes stacked together: a CSS rule was silently re-clipping an intentional label overflow, and the axis margin was sized for English-length numbers ("1.2M") rather than the wider forms other locales use ("1,2 Mio.", "800 mil"). The margin now measures each locale's actual label width instead of assuming one —
   - Longer translations in KPI cards, the processing-time estimator heading, and the approval-rate gauge caption no longer lose characters at cramped widths — they wrap instead of silently truncating, or were shortened where that read better
   - The Outcomes Sankey chart's node-label margins are sized the same way, fixing German and Portuguese labels that clipped against the chart edge
