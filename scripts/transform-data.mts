@@ -24,6 +24,7 @@ import { dirname } from 'node:path';
 
 import { packDashboardData } from '../src/utils/dashboardData';
 import { type RawData, transformData } from '../src/utils/dataTransform';
+import { checkPayloadComplete, describePayloadProblems } from '../src/utils/estatPayload';
 import { packResidentsData } from '../src/utils/residentsData';
 import {
   type RawResidentsData,
@@ -34,8 +35,26 @@ import { writeResidentsFixture } from './generateResidentsFixture.mts';
 
 const RAW_PATH = process.env.PROCESSING_DATA_PATH ?? 'public/datastore/processingData.json';
 const OUT_PATH = 'public/data/dashboard.json';
+const PROCESSING_STATS_DATA_ID = '0003449073';
 const RESIDENTS_RAW_PATH = process.env.RESIDENTS_DATA_PATH ?? 'public/datastore/residentsData.json';
 const RESIDENTS_OUT_PATH = 'public/data/residents.json';
+const RESIDENTS_STATS_DATA_ID = '0004019020';
+
+/**
+ * A short read from e-Stat is not an error condition — it is a 200 with valid
+ * JSON, full metadata, and missing rows. Checked before anything is
+ * transformed, because downstream the shortfall surfaces as a reconciliation
+ * failure against a hierarchy that is correct, which points at the wrong file
+ * entirely. Fixtures are exempt: they are generated whole by definition.
+ */
+const assertComplete = (raw: unknown, path: string, statsDataId: string, source: 'e-stat' | 'fixture') => {
+  if (source === 'fixture') return;
+  const problems = checkPayloadComplete(raw);
+  if (problems.length > 0) {
+    console.error(`✖ ${describePayloadProblems(path, problems, statsDataId)}`);
+    process.exit(1);
+  }
+};
 
 let source: 'e-stat' | 'fixture' = 'e-stat';
 if (!existsSync(RAW_PATH)) {
@@ -50,6 +69,8 @@ const raw = JSON.parse(readFileSync(RAW_PATH, 'utf8')) as RawData & {
 
 const tableInf = raw.GET_STATS_DATA?.STATISTICAL_DATA?.TABLE_INF;
 if (tableInf?.note?.includes('FIXTURE')) source = 'fixture';
+
+assertComplete(raw, RAW_PATH, PROCESSING_STATS_DATA_ID, source);
 
 const records = transformData(raw);
 if (records.length === 0) {
@@ -91,6 +112,8 @@ const residentsRaw = JSON.parse(readFileSync(RESIDENTS_RAW_PATH, 'utf8')) as Raw
 const residentsTableInf = residentsRaw.GET_STATS_DATA?.STATISTICAL_DATA?.TABLE_INF;
 if (residentsTableInf?.note?.includes('FIXTURE')) residentsSource = 'fixture';
 
+assertComplete(residentsRaw, RESIDENTS_RAW_PATH, RESIDENTS_STATS_DATA_ID, residentsSource);
+
 const residentRecords = transformResidentsData(residentsRaw);
 if (residentRecords.length === 0) {
   console.error(
@@ -107,7 +130,12 @@ const mismatches = verifyResidentTotals(residentsRaw, residentRecords);
 if (mismatches.length > 0) {
   const preview = mismatches
     .slice(0, 8)
-    .map((m) => `    ${m.period} ${m.axis} axis, code ${m.code}: published ${m.published}, leaves ${m.fromLeaves}`)
+    .map(
+      (m) =>
+        `    ${m.period}  ${m.keyDimension} ${m.code}: leaves sum to ` +
+        `${m.fromLeaves.toLocaleString('en-US')} over ${m.summedOver}, published ` +
+        `${m.published.toLocaleString('en-US')}`
+    )
     .join('\n');
   const message =
     `${mismatches.length} total(s) in ${RESIDENTS_RAW_PATH} do not reconcile with the leaves kept:\n${preview}` +

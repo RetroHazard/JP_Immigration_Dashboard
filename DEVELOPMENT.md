@@ -114,6 +114,41 @@ npm run build
 
 `npm run dev` runs the data transform once (via the `predev` script) and then starts `next dev --turbopack` with build-info generation and CHANGELOG syncing, same as build.
 
+### Working with real e-Stat data locally
+
+Both transforms fall back to a deterministic fixture when their raw payload is absent, so
+nothing below is required to run the dashboard — it is only needed to see real figures.
+
+1. Register for an application ID at [e-Stat](https://www.e-stat.go.jp/) and export it:
+
+   ```bash
+   export ESTAT_APP_ID=<your application id>
+   ```
+
+2. Fetch each table:
+
+   ```bash
+   node scripts/fetch-estat-data.mjs --stats-data-id 0003449073 \
+     --out public/datastore/processingData.json --force
+   node scripts/fetch-estat-data.mjs --stats-data-id 0004019020 \
+     --out public/datastore/residentsData.json --force
+   ```
+
+Use the script rather than fetching by hand. `getStatsData` **caps a response at 100,000
+rows** and reports the continuation offset as `RESULT_INF.NEXT_KEY`; the Foreign Residents
+table is roughly twice that. A short read arrives as HTTP 200 with valid JSON and complete
+metadata, so nothing about it looks wrong — it is simply missing rows. The script pages
+until `NEXT_KEY` is gone, merges, and asserts the merged row count against `TOTAL_NUMBER`
+before writing.
+
+The composite action CI uses (`.github/actions/fetch-estat-data`) is a thin wrapper around
+this same script, so local and CI fetches cannot drift.
+
+`scripts/transform-data.mts` re-checks completeness before transforming either payload
+(`src/utils/estatPayload.ts`). If a file is short it fails immediately and names the
+shortfall, rather than letting it surface downstream as a reconciliation failure against a
+hierarchy that is actually correct. Delete either file to go back to the fixture.
+
 ### Deployment
 
 The project uses **GitHub Pages** for hosting, driven by `.github/workflows/deploy.yaml`:
@@ -286,6 +321,7 @@ JP_Immigration_Dashboard/
 │
 ├── scripts/
 │   ├── transform-data.mts         # Build-time e-Stat → dashboard.json transform
+│   ├── fetch-estat-data.mjs       # Paged e-Stat download + merge (used by CI and locally)
 │   ├── generate-fixture.mjs       # Deterministic fixture data for local/CI builds
 │   ├── strip-raw-data.mjs         # Removes datastore/ from the exported build output
 │   ├── sync-changelog.js          # Copies CHANGELOG.md into public/

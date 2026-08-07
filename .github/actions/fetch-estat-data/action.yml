@@ -26,139 +26,25 @@ outputs:
     description: 'Path the pre-existing copy was preserved at (empty when there was none).'
     value: ${{ steps.fetch.outputs.previous-path }}
 
+# A wrapper around scripts/fetch-estat-data.mjs rather than a second
+# implementation of it: the paging, merging and row-count assertion all live in
+# the script so that CI and a developer run the same code. Hand-rolling the
+# paging locally is how a truncated payload reached a working tree.
+#
+# The script is dependency-free, so this works in the watcher's check-updates
+# job, which has no `npm ci`.
 runs:
   using: composite
   steps:
     - name: Fetch and validate
       id: fetch
       shell: bash
-      # The app ID is passed through env rather than interpolated into the URL
-      # so it never appears in the rendered command line.
+      # Every input goes through the environment. Nothing is interpolated into
+      # the rendered command line — originally so the app ID could not appear
+      # there, and now so no input can reach a shell at all.
       env:
         ESTAT_APP_ID: ${{ inputs.app-id }}
-        STATS_DATA_ID: ${{ inputs.stats-data-id }}
-        DATA_PATH: ${{ inputs.path }}
-        FORCE: ${{ inputs.force }}
-      run: |
-        set -euo pipefail
-
-        mkdir -p "$(dirname "$DATA_PATH")"
-
-        prev_path=""
-        had_previous=false
-        if [ -f "$DATA_PATH" ]; then
-          had_previous=true
-          # Only preserve a comparison copy when we are about to overwrite the
-          # file; on the deploy path the existing copy is used as-is.
-          if [ "$FORCE" = "true" ]; then
-            prev_path="$(dirname "$DATA_PATH")/prev-$(basename "$DATA_PATH")"
-            cp "$DATA_PATH" "$prev_path"
-          fi
-        fi
-        echo "had-previous=$had_previous" >> "$GITHUB_OUTPUT"
-        echo "previous-path=$prev_path" >> "$GITHUB_OUTPUT"
-
-        if [ "$FORCE" = "true" ] || [ ! -f "$DATA_PATH" ]; then
-          if [ "$had_previous" = "false" ]; then
-            echo "::notice::No cached payload present - downloading a fresh copy of $STATS_DATA_ID."
-          fi
-
-          # getStatsData caps a response at 100,000 rows and reports the
-          # continuation offset as RESULT_INF.NEXT_KEY. The Foreign Residents
-          # table is ~191,000 rows, so a single request returns roughly half of
-          # it - with a 200 and a structurally valid envelope. Page until
-          # NEXT_KEY is gone, then merge.
-          page_dir="$(mktemp -d)"
-          trap 'rm -rf "$page_dir"' EXIT
-          start_position=1
-          page=0
-          max_pages=20
-
-          while :; do
-            page=$((page + 1))
-            if [ "$page" -gt "$max_pages" ]; then
-              echo "::error::Still paging after $max_pages requests for $STATS_DATA_ID. Either the table grew past $((max_pages * 100000)) rows or NEXT_KEY is no longer advancing."
-              exit 1
-            fi
-            # Zero-padded so the merge glob below sorts in request order.
-            page_file="$(printf '%s/page-%03d.json' "$page_dir" "$page")"
-
-            # e-Stat is the pipeline's only external dependency and it does go
-            # down. --max-time bounds a single hung transfer; --retry-max-time
-            # bounds the whole retry window, so the worst case stays below the
-            # calling jobs' timeout-minutes rather than being truncated by them.
-            # --retry-all-errors is needed because plain --retry ignores
-            # connection-level failures.
-            curl -sS -L --fail \
-              --connect-timeout 20 \
-              --max-time 300 \
-              --retry 3 \
-              --retry-delay 15 \
-              --retry-max-time 600 \
-              --retry-all-errors \
-              --get "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData" \
-              --data-urlencode "appId=${ESTAT_APP_ID}" \
-              --data-urlencode "lang=J" \
-              --data-urlencode "statsDataId=${STATS_DATA_ID}" \
-              --data-urlencode "metaGetFlg=Y" \
-              --data-urlencode "sectionHeaderFlg=2" \
-              --data-urlencode "replaceSpChars=0" \
-              --data-urlencode "startPosition=${start_position}" \
-              -o "$page_file" || {
-                echo "::error::e-Stat API request failed (page $page of $STATS_DATA_ID)"
-                exit 1
-              }
-
-            jq -e '.GET_STATS_DATA.STATISTICAL_DATA' "$page_file" >/dev/null || {
-              echo "::error::Page $page of $STATS_DATA_ID is missing GET_STATS_DATA.STATISTICAL_DATA - the API likely returned an error envelope."
-              jq -r '.GET_STATS_DATA.RESULT // .' "$page_file" | head -20
-              exit 1
-            }
-
-            next_key="$(jq -r '.GET_STATS_DATA.STATISTICAL_DATA.RESULT_INF.NEXT_KEY // empty' "$page_file")"
-            [ -n "$next_key" ] || break
-            start_position="$next_key"
-            echo "::notice::$STATS_DATA_ID page $page done, continuing from row $start_position."
-          done
-
-          # Page 1 carries the metadata (TABLE_INF, CLASS_INF); the later pages
-          # contribute only their VALUE rows. NEXT_KEY is dropped so the merged
-          # file cannot be mistaken for a partial one.
-          jq -s '. as $pages
-            | $pages[0]
-            | .GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE =
-                [ $pages[]
-                  | .GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE
-                  | if type == "array" then .[] else . end ]
-            | .GET_STATS_DATA.STATISTICAL_DATA.RESULT_INF.TO_NUMBER =
-                (.GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE | length)
-            | del(.GET_STATS_DATA.STATISTICAL_DATA.RESULT_INF.NEXT_KEY)' \
-            "$page_dir"/page-*.json > "$DATA_PATH"
-
-          echo "::notice::Merged $page page(s) into $DATA_PATH."
-        else
-          echo "::notice::Using the cached payload."
-        fi
-
-        jq -e . "$DATA_PATH" >/dev/null || {
-          echo "::error::Invalid JSON structure in $DATA_PATH"
-          exit 1
-        }
-
-        jq -e '.GET_STATS_DATA.STATISTICAL_DATA' "$DATA_PATH" >/dev/null || {
-          echo "::error::Missing GET_STATS_DATA.STATISTICAL_DATA - the API likely returned an error envelope."
-          jq -r '.GET_STATS_DATA.RESULT // .' "$DATA_PATH" | head -20
-          exit 1
-        }
-
-        # The row-count assertion is what makes a short read loud. Without it a
-        # truncated payload looks entirely healthy: valid JSON, correct shape,
-        # every field present, just missing half the table.
-        jq -e '
-          .GET_STATS_DATA.STATISTICAL_DATA as $d
-          | ($d.DATA_INF.VALUE | if type == "array" then length else 1 end) as $rows
-          | ($d.RESULT_INF.TOTAL_NUMBER // $rows) as $expected
-          | $rows == $expected' "$DATA_PATH" >/dev/null || {
-            echo "::error::$DATA_PATH holds $(jq '.GET_STATS_DATA.STATISTICAL_DATA.DATA_INF.VALUE | length' "$DATA_PATH") rows but reports TOTAL_NUMBER $(jq '.GET_STATS_DATA.STATISTICAL_DATA.RESULT_INF.TOTAL_NUMBER' "$DATA_PATH"). The payload is incomplete."
-            exit 1
-          }
+        ESTAT_STATS_DATA_ID: ${{ inputs.stats-data-id }}
+        ESTAT_OUT_PATH: ${{ inputs.path }}
+        ESTAT_FORCE: ${{ inputs.force }}
+      run: node "$GITHUB_WORKSPACE/scripts/fetch-estat-data.mjs"

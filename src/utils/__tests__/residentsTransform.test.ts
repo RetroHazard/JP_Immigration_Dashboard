@@ -122,20 +122,36 @@ describe('verifyResidentTotals', () => {
     expect(verifyResidentTotals(raw, transformResidentsData(raw))).toEqual([]);
   });
 
-  it('reports the nationality axis when a published status total disagrees', () => {
+  it('names the status a nationality-sum mismatch belongs to', () => {
     const raw = payload([...leaves, ...rollups.filter((r) => r['@cat01'] !== '1430'), row('1430', '0000', DEC, '999')]);
     const mismatches = verifyResidentTotals(raw, transformResidentsData(raw));
     expect(mismatches).toEqual([
-      { axis: 'nationality', period: '2025-12', code: '1430', published: 999, fromLeaves: 130 },
+      {
+        period: '2025-12',
+        keyDimension: 'status',
+        code: '1430',
+        summedOver: 'nationality',
+        published: 999,
+        fromLeaves: 130,
+      },
     ]);
   });
 
-  it('reports the status axis when a leaf is missing from the data', () => {
+  it('names the NATIONALITY a status-sum mismatch belongs to', () => {
     // Simulates a status wrongly classified as a rollup: its leaves never
     // ship, so every nationality column comes up short.
+    //
+    // keyDimension is the point of this case. The codes overlap numerically
+    // between the two tables — 1010 is 総数 as a status and アフガニスタン as a
+    // nationality — so a mismatch reported without it sends the reader to the
+    // wrong constants file, which is exactly what happened when a truncated
+    // payload first tripped this check.
     const raw = payload([...leaves.filter((r) => r['@cat01'] !== '1380'), ...rollups]);
     const mismatches = verifyResidentTotals(raw, transformResidentsData(raw));
-    expect(mismatches.filter((m) => m.axis === 'status')).toHaveLength(2);
+    const byNationality = mismatches.filter((m) => m.keyDimension === 'nationality');
+    expect(byNationality).toHaveLength(2);
+    expect(byNationality.map((m) => m.code).sort()).toEqual(['1230', '1360']);
+    expect(byNationality.every((m) => m.summedOver === 'status')).toBe(true);
     expect(mismatches.every((m) => m.fromLeaves < m.published)).toBe(true);
   });
 });

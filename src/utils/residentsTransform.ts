@@ -96,10 +96,17 @@ export const transformResidentsData = (raw: RawResidentsData): ResidentRecord[] 
 };
 
 export interface TotalsMismatch {
-  axis: 'nationality' | 'status';
   period: string;
-  /** The other axis's code the published total was read for. */
+  /**
+   * Which table `code` belongs to. Named explicitly because the two are easy to
+   * confuse and the codes overlap numerically: 1010 is 総数 as a status and
+   * アフガニスタン as a nationality, so a mismatch reported without this reads
+   * as pointing at the opposite dimension from the one it means.
+   */
+  keyDimension: 'nationality' | 'status';
   code: string;
+  /** The dimension the leaves were summed over to produce `fromLeaves`. */
+  summedOver: 'nationality' | 'status';
   published: number;
   fromLeaves: number;
 }
@@ -110,15 +117,19 @@ const STATUS_TOTAL_ROW = '1010';
  * Cross-checks the leaves we kept against the payload's own published totals,
  * on both axes:
  *
- *   - nationality: for each (period, status), the 総数 nationality row must
- *     equal the sum of that status's nationality leaves. This is what catches
- *     a region or a 「うち」 subset being misclassified.
- *   - status: for each (period, nationality), the 総数 status row must equal
- *     the sum of that nationality's status leaves. This is what catches a
- *     rollup being treated as a leaf, or a leaf being pruned as a rollup.
+ *   - for each (period, status), the 総数 nationality row must equal the sum of
+ *     that status's nationality leaves. Catches a region or a 「うち」 subset
+ *     being misclassified.
+ *   - for each (period, nationality), the 総数 status row must equal the sum of
+ *     that nationality's status leaves. Catches a rollup being treated as a
+ *     leaf, or a leaf being pruned as a rollup.
  *
  * Either kind of drift produces a chart that looks entirely plausible and is
  * quietly wrong, so the build fails on a mismatch rather than warning.
+ *
+ * This runs only after checkPayloadComplete (src/utils/estatPayload.ts) has
+ * passed. A truncated payload fails every one of these checks, for a reason
+ * that has nothing to do with the classification they are testing.
  */
 export const verifyResidentTotals = (raw: RawResidentsData, records: ResidentRecord[]): TotalsMismatch[] => {
   const publishedByStatus = new Map<string, number>();
@@ -145,19 +156,22 @@ export const verifyResidentTotals = (raw: RawResidentsData, records: ResidentRec
   }
 
   const compare = (
-    axis: TotalsMismatch['axis'],
+    keyDimension: TotalsMismatch['keyDimension'],
+    summedOver: TotalsMismatch['summedOver'],
     published: Map<string, number>,
     leaves: Map<string, number>
   ): TotalsMismatch[] =>
     [...published.entries()].flatMap(([key, total]) => {
       const [period, code] = key.split('\u0000');
       const summed = leaves.get(key) ?? 0;
-      return summed === total ? [] : [{ axis, period, code, published: total, fromLeaves: summed }];
+      return summed === total
+        ? []
+        : [{ period, keyDimension, code, summedOver, published: total, fromLeaves: summed }];
     });
 
   return [
-    // The nationality axis is summed per status, so it is keyed by status code.
-    ...compare('nationality', publishedByStatus, leavesByStatus),
-    ...compare('status', publishedByNationality, leavesByNationality),
+    // Keyed by status code, summed across nationalities — and vice versa.
+    ...compare('status', 'nationality', publishedByStatus, leavesByStatus),
+    ...compare('nationality', 'status', publishedByNationality, leavesByNationality),
   ].sort((a, b) => a.period.localeCompare(b.period) || a.code.localeCompare(b.code));
 };

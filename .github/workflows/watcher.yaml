@@ -48,6 +48,14 @@ jobs:
         with:
           persist-credentials: false
 
+      # Node only — no `npm ci`. scripts/fetch-estat-data.mjs is dependency-free,
+      # and this job never builds. The version still comes from .nvmrc rather
+      # than the runner image, so it cannot drift from the deploy's.
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
       # Both payloads share one cache entry: they are fetched, compared, and
       # saved together, so a deploy can never pair a fresh copy of one table
       # with a stale copy of the other. An entry saved before the residents
