@@ -25,17 +25,17 @@ import type { ResidentChartData } from '../common/ChartComponents';
 import type { MixTreemapLabels } from './CategoryMixTreemap';
 import { MixTreemap } from './CategoryMixTreemap';
 
-export const ResidenceStatusMixChart: React.FC<ResidentChartData> = ({ data, filters, range }) => {
+export const ResidenceStatusMixChart: React.FC<ResidentChartData> = ({ data, filters, period: requestedPeriod }) => {
   const { t, formatters } = useLocale();
   const statusLabel = useResidenceStatusLabel();
   const groupLabel = useStatusGroupLabel();
   const nationalityLabel = useNationalityLabel();
 
   const tree = useMemo(
-    () => buildResidenceStatusTree(data, { nationality: filters.nationality }, range),
-    [data, filters.nationality, range]
+    () => buildResidenceStatusTree(data, { nationality: filters.nationality, region: filters.region }, requestedPeriod),
+    [data, filters.nationality, filters.region, requestedPeriod]
   );
-  const period = useMemo(() => treePeriod(data, range), [data, range]);
+  const period = useMemo(() => treePeriod(data, requestedPeriod), [data, requestedPeriod]);
 
   const labels: MixTreemapLabels = {
     root:

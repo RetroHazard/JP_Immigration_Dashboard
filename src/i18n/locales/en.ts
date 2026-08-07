@@ -456,8 +456,9 @@ export const en = {
   'charts.origins.aria': 'Stacked area chart of resident numbers per nationality over time',
   'charts.flows.label': 'Origin to Status Flows',
   'charts.flows.description':
-    'How each major nationality splits across purposes of stay — pick a nationality to see its own profile.',
-  'charts.flows.aria': 'Sankey diagram of residents flowing from nationalities into residence-status groups',
+    'World regions flowing through countries into purposes of stay — pick a region or nationality to trace its profile.',
+  'charts.flows.aria':
+    'Sankey diagram of residents flowing from world regions through countries into residence-status categories',
   'charts.statuses.label': 'Residence Status Mix',
   'charts.statuses.description':
     'Which visas residents hold, grouped by purpose of stay — click a group to zoom into its statuses.',
@@ -470,11 +471,15 @@ export const en = {
     'The largest gains and losses between two periods, by nationality or by residence status.',
   'charts.movers.aria': 'Diverging bar chart of the largest increases and decreases between two periods',
 
-  'filters.nationality': 'Nationality / Region',
+  'filters.region': 'Region',
+  'filters.allRegions': 'All regions',
+  'filters.nationality': 'Nationality',
   'filters.residenceStatus': 'Residence Status',
   'filters.allNationalities': 'All nationalities',
   'filters.allStatuses': 'All statuses',
+  'filters.allCategories': 'All categories',
 
+  'period.snapshotLabel': 'Snapshot period',
   'period.latestPeriod': 'Latest period',
   'period.years_one': '{count} year',
   'period.years_other': '{count} years',

@@ -61,8 +61,11 @@ export const NationalityTrendChart: React.FC<ResidentChartData> = ({ data, filte
     const periods = periodsForRange(getAllPeriods(data), range);
     // Folded before ranking: 韓国 and 朝鮮 would otherwise each rank on their
     // post-2015 figures alone, and both would draw a line that starts partway
-    // across the chart.
-    const rows = mergeContinuedSeries(selectResidents(data, { periods, status: filters.status }));
+    // across the chart. The region filter re-ranks the top 8 within that
+    // region, and the category filter within that purpose of stay.
+    const rows = mergeContinuedSeries(
+      selectResidents(data, { periods, region: filters.region, group: filters.group })
+    );
     const codes = topCodesBy(rows, 'nationality', TOP_N);
 
     const byPeriod = new Map(periods.map((period) => [period, new Map<string, number>()]));
@@ -88,7 +91,7 @@ export const NationalityTrendChart: React.FC<ResidentChartData> = ({ data, filte
         return row;
       }),
     };
-  }, [data, filters.status, range]);
+  }, [data, filters.region, filters.group, range]);
 
   // Indexed on top of the absolute rows rather than rebuilt from scratch; the
   // helper leaves gaps as gaps and never divides by a zero or missing base

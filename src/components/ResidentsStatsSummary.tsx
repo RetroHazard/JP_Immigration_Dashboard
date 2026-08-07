@@ -8,7 +8,7 @@ import { Globe, Layers, Users } from 'lucide-react';
 import type React from 'react';
 
 import { useLocale } from '../i18n/LocaleContext';
-import { useNationalityLabel, useResidenceStatusLabel } from '../i18n/useDomainLabels';
+import { useNationalityLabel, useResidenceStatusLabel, useStatusGroupLabel } from '../i18n/useDomainLabels';
 import { formatPeriod } from '../utils/residentPeriod';
 import type { ResidentRecord } from '../utils/residentsData';
 import { getAllPeriods, selectResidents, sumResidents, totalsBy } from '../utils/residentsSelectors';
@@ -27,6 +27,7 @@ export const ResidentsStatsSummary: React.FC<ResidentsStatsSummaryProps> = ({ da
   const { t, formatters } = useLocale();
   const nationalityLabel = useNationalityLabel();
   const statusLabel = useResidenceStatusLabel();
+  const groupLabel = useStatusGroupLabel();
 
   const stats = useMemo(() => {
     const periods = getAllPeriods(data);
@@ -34,7 +35,12 @@ export const ResidentsStatsSummary: React.FC<ResidentsStatsSummaryProps> = ({ da
     if (!latest) return null;
 
     const rowsFor = (period: string) =>
-      selectResidents(data, { period, nationality: filters.nationality, status: filters.status });
+      selectResidents(data, {
+        period,
+        region: filters.region,
+        nationality: filters.nationality,
+        group: filters.group,
+      });
 
     const current = rowsFor(latest);
     const previous = periods.at(-2) ? rowsFor(periods.at(-2)!) : [];
@@ -61,13 +67,13 @@ export const ResidentsStatsSummary: React.FC<ResidentsStatsSummaryProps> = ({ da
       topStatus,
       topStatusValue,
     };
-  }, [data, filters.nationality, filters.status]);
+  }, [data, filters.region, filters.nationality, filters.group]);
 
   if (!stats) return null;
 
   const scope = t('residents.scope', {
     nationality: filters.nationality === 'all' ? t('filters.allNationalities') : nationalityLabel(filters.nationality),
-    status: filters.status === 'all' ? t('filters.allStatuses') : statusLabel(filters.status),
+    status: filters.group === 'all' ? t('filters.allStatuses') : groupLabel(filters.group),
   });
   const share = (value: number) =>
     stats.total > 0 ? t('residents.share', { share: formatters.percent((value / stats.total) * 100) }) : scope;

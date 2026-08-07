@@ -63,11 +63,19 @@ describe('chart registry', () => {
     const numeric = RESIDENT_CHARTS.flatMap((chart) => chart.ranges).filter((range) => /\d/.test(range));
     expect(numeric.every((range) => range.endsWith('y'))).toBe(true);
   });
+
+  it('pairs the snapshot time control with an empty range list, and vice versa', () => {
+    // A snapshot chart draws one period, so offering range windows would be
+    // a lie; a range chart with no ranges would render no picker at all.
+    for (const chart of RESIDENT_CHARTS) {
+      expect(chart.timeControl === 'snapshot').toBe(chart.ranges.length === 0);
+    }
+  });
 });
 
 describe('ResidentsStatsSummary', () => {
   it('reports the latest period’s total and a half-over-half delta', () => {
-    renderWithProviders(<ResidentsStatsSummary data={DATA} filters={{ nationality: 'all', status: 'all' }} />);
+    renderWithProviders(<ResidentsStatsSummary data={DATA} filters={{ region: 'all', nationality: 'all', group: 'all' }} />);
     expect(screen.getByText(en['residents.total'])).toBeTruthy();
     expect(screen.getByText('150')).toBeTruthy();
     // 150 vs 130, and worded for half-years rather than "MoM".
@@ -75,7 +83,7 @@ describe('ResidentsStatsSummary', () => {
   });
 
   it('names the largest nationality and status', () => {
-    renderWithProviders(<ResidentsStatsSummary data={DATA} filters={{ nationality: 'all', status: 'all' }} />);
+    renderWithProviders(<ResidentsStatsSummary data={DATA} filters={{ region: 'all', nationality: 'all', group: 'all' }} />);
     expect(screen.getByText(en['residents.topNationality'])).toBeTruthy();
     expect(screen.getByText('China')).toBeTruthy();
     expect(screen.getByText(/Permanent Resident/)).toBeTruthy();
@@ -83,7 +91,7 @@ describe('ResidentsStatsSummary', () => {
 
   it('renders nothing rather than crashing on empty data', () => {
     const { container } = renderWithProviders(
-      <ResidentsStatsSummary data={[]} filters={{ nationality: 'all', status: 'all' }} />
+      <ResidentsStatsSummary data={[]} filters={{ region: 'all', nationality: 'all', group: 'all' }} />
     );
     expect(container.textContent).toBe('');
   });
@@ -93,19 +101,56 @@ describe('ResidentFilterPanel', () => {
   const renderPanel = (onChange = () => {}) =>
     renderWithProviders(
       <ResidentFilterPanel
-        filters={{ nationality: 'all', status: 'all' }}
+        filters={{ region: 'all', nationality: 'all', group: 'all' }}
         onChange={onChange}
-        filterConfig={{ nationality: true, status: true }}
+        filterConfig={{ region: true, nationality: true, group: true }}
         onReset={() => {}}
       />
     );
 
-  it('labels both selects and defaults them to "all"', () => {
+  it('labels all three selects and defaults them to "all"', () => {
     renderPanel();
+    expect(screen.getByText(en['filters.region'])).toBeTruthy();
     expect(screen.getByText(en['filters.nationality'])).toBeTruthy();
     expect(screen.getByText(en['filters.residenceStatus'])).toBeTruthy();
+    expect(screen.getByText(en['filters.allRegions'])).toBeTruthy();
     expect(screen.getByText(en['filters.allNationalities'])).toBeTruthy();
-    expect(screen.getByText(en['filters.allStatuses'])).toBeTruthy();
+    expect(screen.getByText(en['filters.allCategories'])).toBeTruthy();
+  });
+
+  it('clears a nationality that falls outside a newly selected region', () => {
+    let emitted: { region: string; nationality: string } | null = null;
+    renderWithProviders(
+      <ResidentFilterPanel
+        // China selected, then the user switches the region to Europe.
+        filters={{ region: 'all', nationality: '1230', group: 'all' }}
+        onChange={(next) => {
+          emitted = next;
+        }}
+        filterConfig={{ region: true, nationality: true, group: true }}
+        onReset={() => {}}
+      />
+    );
+    const regionSelect = screen.getByLabelText(en['filters.region']) as HTMLSelectElement;
+    fireEvent.change(regionSelect, { target: { value: '2000' } });
+    expect(emitted).toMatchObject({ region: '2000', nationality: 'all' });
+  });
+
+  it('keeps a nationality that belongs to the newly selected region', () => {
+    let emitted: { region: string; nationality: string } | null = null;
+    renderWithProviders(
+      <ResidentFilterPanel
+        filters={{ region: 'all', nationality: '1230', group: 'all' }}
+        onChange={(next) => {
+          emitted = next;
+        }}
+        filterConfig={{ region: true, nationality: true, group: true }}
+        onReset={() => {}}
+      />
+    );
+    const regionSelect = screen.getByLabelText(en['filters.region']) as HTMLSelectElement;
+    fireEvent.change(regionSelect, { target: { value: '1000' } });
+    expect(emitted).toMatchObject({ region: '1000', nationality: '1230' });
   });
 
   it('disables the reset button while the filters are untouched', () => {
@@ -117,9 +162,9 @@ describe('ResidentFilterPanel', () => {
   it('enables reset once a filter moves off its default', () => {
     renderWithProviders(
       <ResidentFilterPanel
-        filters={{ nationality: '1230', status: 'all' }}
+        filters={{ region: 'all', nationality: '1230', group: 'all' }}
         onChange={() => {}}
-        filterConfig={{ nationality: true, status: true }}
+        filterConfig={{ region: true, nationality: true, group: true }}
         onReset={() => {}}
       />
     );
@@ -130,9 +175,9 @@ describe('ResidentFilterPanel', () => {
     let reset = false;
     renderWithProviders(
       <ResidentFilterPanel
-        filters={{ nationality: '1230', status: 'all' }}
+        filters={{ region: 'all', nationality: '1230', group: 'all' }}
         onChange={() => {}}
-        filterConfig={{ nationality: true, status: true }}
+        filterConfig={{ region: true, nationality: true, group: true }}
         onReset={() => {
           reset = true;
         }}

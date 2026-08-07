@@ -15,7 +15,12 @@ import type React from 'react';
 
 import type { StatusGroup } from '../../constants/residenceStatuses';
 import { useLocale } from '../../i18n/LocaleContext';
-import { useNationalityLabel, useResidenceStatusLabel, useStatusGroupLabel } from '../../i18n/useDomainLabels';
+import {
+  useNationalityLabel,
+  useRegionLabel,
+  useResidenceStatusLabel,
+  useStatusGroupLabel,
+} from '../../i18n/useDomainLabels';
 import { mixLeafColor } from '../../utils/categoryMixTree';
 import { buildResidenceStatusTree, treePeriod } from '../../utils/residenceStatusTree';
 import { formatPeriod } from '../../utils/residentPeriod';
@@ -50,21 +55,31 @@ const BreadcrumbTrail: React.FC = () => {
   );
 };
 
-export const ResidenceStatusSunburst: React.FC<ResidentChartData> = ({ data, filters, range }) => {
+export const ResidenceStatusSunburst: React.FC<ResidentChartData> = ({ data, filters, period: requestedPeriod }) => {
   const { t, formatters } = useLocale();
   const statusLabel = useResidenceStatusLabel();
   const groupLabel = useStatusGroupLabel();
   const nationalityLabel = useNationalityLabel();
+  const regionLabel = useRegionLabel();
 
   const tree = useMemo(
-    () => buildResidenceStatusTree(data, { nationality: filters.nationality }, range),
-    [data, filters.nationality, range]
+    () => buildResidenceStatusTree(data, { nationality: filters.nationality, region: filters.region }, requestedPeriod),
+    [data, filters.nationality, filters.region, requestedPeriod]
   );
-  const period = useMemo(() => treePeriod(data, range), [data, range]);
+  const period = useMemo(() => treePeriod(data, requestedPeriod), [data, requestedPeriod]);
+
+  // Root label precedence mirrors filter specificity: country, then region,
+  // then everyone.
+  const rootLabel =
+    filters.nationality !== 'all'
+      ? nationalityLabel(filters.nationality)
+      : filters.region !== 'all'
+        ? regionLabel(filters.region)
+        : t('residents.mixRoot');
 
   const sunburstData: SunburstNode = useMemo(
     () => ({
-      name: filters.nationality === 'all' ? t('residents.mixRoot') : nationalityLabel(filters.nationality),
+      name: rootLabel,
       children: tree.categories.map((category) => ({
         // The category key is a StatusGroup, not a code — buildResidenceStatusTree
         // only ever emits members of STATUS_GROUPS.
@@ -77,7 +92,7 @@ export const ResidenceStatusSunburst: React.FC<ResidentChartData> = ({ data, fil
         })),
       })),
     }),
-    [tree, filters.nationality, groupLabel, statusLabel, nationalityLabel, t]
+    [tree, rootLabel, groupLabel, statusLabel]
   );
 
   const arcs = useMemo(() => buildArcs(sunburstData).arcs, [sunburstData]);

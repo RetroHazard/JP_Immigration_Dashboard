@@ -21,7 +21,7 @@ import { useLocale } from '../../i18n/LocaleContext';
 import { useNationalityLabel } from '../../i18n/useDomainLabels';
 import { logger } from '../../utils/logger';
 import { formatPeriod } from '../../utils/residentPeriod';
-import { getAllPeriods, periodsForRange, selectResidents, totalsBy } from '../../utils/residentsSelectors';
+import { resolvePeriod, selectResidents, totalsBy } from '../../utils/residentsSelectors';
 import {
   ChoroplethChart,
   type ChoroplethFeature,
@@ -49,7 +49,7 @@ const NO_MAP_AREA = nationalities.filter(
 
 const isoOf = (geoFeature: ChoroplethFeature): string => String(geoFeature.id ?? '').padStart(3, '0');
 
-export const OriginChoroplethChart: React.FC<ResidentChartData> = ({ data, filters, range }) => {
+export const OriginChoroplethChart: React.FC<ResidentChartData> = ({ data, filters, period: requestedPeriod }) => {
   const { t, formatters } = useLocale();
   const nationalityLabel = useNationalityLabel();
   const [features, setFeatures] = useState<FeatureCollection<Geometry, ChoroplethFeatureProperties> | null>(null);
@@ -75,15 +75,20 @@ export const OriginChoroplethChart: React.FC<ResidentChartData> = ({ data, filte
     return () => controller.abort();
   }, []);
 
-  // Like the status mix, a snapshot rather than a sum: the range picks which
-  // period is shaded, not how many are added together.
-  const period = useMemo(() => periodsForRange(getAllPeriods(data), range).at(-1) ?? null, [data, range]);
+  // Like the status mix, a snapshot rather than a sum: the picker chooses
+  // which period is shaded, not how many are added together.
+  const period = useMemo(() => resolvePeriod(data, requestedPeriod), [data, requestedPeriod]);
 
   const { totals, max } = useMemo(() => {
     if (!period) return { totals: new Map<string, number>(), max: 0 };
-    const byCode = totalsBy(selectResidents(data, { period, status: filters.status }), 'nationality');
+    // A region filter shades only that region's countries — everything else
+    // has no rows and falls back to the no-data fill.
+    const byCode = totalsBy(
+      selectResidents(data, { period, region: filters.region, group: filters.group }),
+      'nationality'
+    );
     return { totals: byCode, max: Math.max(...byCode.values(), 0) };
-  }, [data, filters.status, period]);
+  }, [data, filters.region, filters.group, period]);
 
   // Log-scaled bins. `max` moves with the filter, so the ramp always uses its
   // full range rather than collapsing when a narrow status is selected.

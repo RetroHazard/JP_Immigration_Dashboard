@@ -17,7 +17,12 @@ import { useLocale } from '../../i18n/LocaleContext';
 import { useRegionLabel, useStatusGroupLabel } from '../../i18n/useDomainLabels';
 import { GROUP_COLOR } from '../../utils/residenceStatusTree';
 import { periodToDate } from '../../utils/residentPeriod';
-import { buildRegionSeries, buildStatusGroupSeries, type GrowthBreakdown } from '../../utils/residentsGrowth';
+import {
+  buildRegionSeries,
+  buildStatusGroupSeries,
+  type GrowthBreakdown,
+  REGION_COLOR,
+} from '../../utils/residentsGrowth';
 import { ComposedChart } from '../bklit/charts/composed-chart';
 import { Grid } from '../bklit/charts/grid';
 import { type ChartMarker, ChartMarkers, MarkerTooltipContent, useActiveMarkers } from '../bklit/charts/markers';
@@ -27,17 +32,6 @@ import { XAxis } from '../bklit/charts/x-axis';
 import { YAxis } from '../bklit/charts/y-axis';
 import type { ResidentChartData } from '../common/ChartComponents';
 import { SeriesLegend } from '../common/SeriesLegend';
-
-/** Fixed hue per region code — identity, not rank, so a filter never repaints. */
-const REGION_COLOR: Record<string, string> = {
-  '1000': 'var(--chart-1)', // Asia
-  '2000': 'var(--chart-2)', // Europe
-  '3000': 'var(--chart-3)', // Africa
-  '4000': 'var(--chart-4)', // North America
-  '5000': 'var(--chart-5)', // South America
-  '6000': 'var(--chart-6)', // Oceania
-  '7000': 'var(--chart-8)', // Stateless
-};
 
 /**
  * The events worth pinning to the timeline. Dates are half-year keys matched
@@ -81,9 +75,9 @@ export const PopulationGrowthChart: React.FC<ResidentChartData> = ({ data, filte
   const { keys, rows } = useMemo(
     () =>
       breakdown === 'group'
-        ? buildStatusGroupSeries(data, { nationality: filters.nationality }, range)
-        : buildRegionSeries(data, { nationality: filters.nationality }, range),
-    [breakdown, data, filters.nationality, range]
+        ? buildStatusGroupSeries(data, { nationality: filters.nationality, region: filters.region }, range)
+        : buildRegionSeries(data, { nationality: filters.nationality, region: filters.region }, range),
+    [breakdown, data, filters.nationality, filters.region, range]
   );
 
   const series = useMemo(

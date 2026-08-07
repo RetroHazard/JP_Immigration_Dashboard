@@ -11,6 +11,21 @@ import { getAllPeriods, periodsForRange, selectResidents } from './residentsSele
 
 export type GrowthBreakdown = 'group' | 'region';
 
+/**
+ * Fixed hue per region code — identity, not rank, so a filter never repaints
+ * a surviving region. Shared by every view that colors by region (growth
+ * stack, flows sankey).
+ */
+export const REGION_COLOR: Record<string, string> = {
+  '1000': 'var(--chart-1)', // Asia
+  '2000': 'var(--chart-2)', // Europe
+  '3000': 'var(--chart-3)', // Africa
+  '4000': 'var(--chart-4)', // North America
+  '5000': 'var(--chart-5)', // South America
+  '6000': 'var(--chart-6)', // Oceania
+  '7000': 'var(--chart-8)', // Stateless
+};
+
 export interface GrowthRow {
   period: string;
   /** One numeric entry per bucket key; a bucket with no volume is absent. */
@@ -31,7 +46,7 @@ const regionOf = (nationality: string): string => nationalityByCode(nationality)
 
 const buildSeries = (
   data: ResidentRecord[],
-  filters: { nationality?: string; status?: string },
+  filters: { nationality?: string; region?: string },
   range: ResidentRange,
   allKeys: readonly string[],
   keyOf: (record: ResidentRecord) => string
@@ -40,7 +55,7 @@ const buildSeries = (
   const rows = selectResidents(data, {
     periods,
     nationality: filters.nationality,
-    status: filters.status,
+    region: filters.region,
   });
 
   const byPeriod = new Map<string, Record<string, number>>(periods.map((period) => [period, {}]));
@@ -70,20 +85,16 @@ const buildSeries = (
 /** Total per half-year split by status group (work, training, study, …). */
 export const buildStatusGroupSeries = (
   data: ResidentRecord[],
-  filters: { nationality: string },
+  filters: { nationality: string; region: string },
   range: ResidentRange
-): GrowthSeries =>
-  buildSeries(data, { nationality: filters.nationality }, range, STATUS_GROUPS, (record) => groupOf(record.status));
+): GrowthSeries => buildSeries(data, filters, range, STATUS_GROUPS, (record) => groupOf(record.status));
 
 /** Total per half-year split by world region (continent rollups + stateless). */
 export const buildRegionSeries = (
   data: ResidentRecord[],
-  filters: { nationality: string },
+  filters: { nationality: string; region: string },
   range: ResidentRange
-): GrowthSeries =>
-  buildSeries(data, { nationality: filters.nationality }, range, NATIONALITY_REGIONS, (record) =>
-    regionOf(record.nationality)
-  );
+): GrowthSeries => buildSeries(data, filters, range, NATIONALITY_REGIONS, (record) => regionOf(record.nationality));
 
 /**
  * Re-bases each series to 100 at the first period where it has a value, so a

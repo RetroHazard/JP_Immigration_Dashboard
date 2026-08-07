@@ -12,8 +12,7 @@
 import { residenceStatuses, STATUS_GROUPS, type StatusGroup } from '../constants/residenceStatuses';
 import type { MixCategory, MixTree } from './categoryMixTree';
 import type { ResidentRecord } from './residentsData';
-import type { ResidentRange } from './residentsSelectors';
-import { getAllPeriods, periodsForRange, selectResidents } from './residentsSelectors';
+import { resolvePeriod, selectResidents } from './residentsSelectors';
 
 /**
  * Hue per group, stable regardless of which groups have volume this period.
@@ -33,17 +32,20 @@ const groupOf = new Map(residenceStatuses.map((status) => [status.value, status.
 
 export const buildResidenceStatusTree = (
   data: ResidentRecord[],
-  filters: { nationality: string },
-  range: ResidentRange
+  filters: { nationality: string; region: string },
+  period: string | null
 ): MixTree => {
   // A stock figure, not a flow: summing several half-years would count the
-  // same person once per period. A window wider than one period therefore
-  // reports its most recent period, and the range picker reads as "as of".
-  const periods = periodsForRange(getAllPeriods(data), range);
-  const period = periods.at(-1);
-  if (!period) return { total: 0, categories: [] };
+  // same person once per period. The view therefore draws exactly one
+  // snapshot — the explicitly requested period, or the latest one.
+  const resolved = resolvePeriod(data, period);
+  if (!resolved) return { total: 0, categories: [] };
 
-  const rows = selectResidents(data, { period, nationality: filters.nationality });
+  const rows = selectResidents(data, {
+    period: resolved,
+    nationality: filters.nationality,
+    region: filters.region,
+  });
 
   const totals = new Map<string, number>();
   for (const row of rows) {
@@ -71,5 +73,5 @@ export const buildResidenceStatusTree = (
 };
 
 /** The period the tree above actually describes, for the "as of" label. */
-export const treePeriod = (data: ResidentRecord[], range: ResidentRange): string | null =>
-  periodsForRange(getAllPeriods(data), range).at(-1) ?? null;
+export const treePeriod = (data: ResidentRecord[], period: string | null): string | null =>
+  resolvePeriod(data, period);

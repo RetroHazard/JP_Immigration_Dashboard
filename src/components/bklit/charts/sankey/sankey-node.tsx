@@ -5,6 +5,8 @@ import { motion, type Transition } from "motion/react";
 import { type ReactNode, useCallback, useMemo } from "react";
 import { intFmt } from "../chart-formatters";
 import { transitionWithDelay } from "../motion-utils";
+// LOCAL MODIFICATION: transitive hover connectivity for multi-tier sankeys.
+import { getReachableNodes } from "./sankey-connectivity";
 import {
   type SankeyLinkDatum,
   type SankeyNodeDatum,
@@ -47,9 +49,21 @@ export interface SankeyNodeProps {
     node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>,
     index: number
   ) => string;
+  /**
+   * LOCAL MODIFICATION: show name labels on middle-tier nodes (three-column
+   * sankeys). Middle labels render centered above the node; there is no
+   * collision avoidance, so narrow charts pass false. Default: true.
+   */
+  showMiddleLabels?: boolean;
 }
 
 type TextAnchor = "start" | "middle" | "end";
+
+// LOCAL MODIFICATION: label side is derived from the node's column rather
+// than its x-position, so a three-column sankey gets 'middle' for its inner
+// tier instead of drawing its labels leftward over the incoming ribbons.
+// Two-column charts resolve to left/right exactly as before.
+type LabelSide = "left" | "middle" | "right";
 
 interface NodeLabelLayout {
   x: number;
@@ -67,7 +81,7 @@ const VALUE_LABEL_GAP = 16;
 
 function getNodeLabelLayouts({
   labelOrientation,
-  isLeftSide,
+  labelSide,
   x,
   y,
   width,
@@ -75,7 +89,7 @@ function getNodeLabelLayouts({
   showValueLabels,
 }: {
   labelOrientation: SankeyLabelOrientation;
-  isLeftSide: boolean;
+  labelSide: LabelSide;
   x: number;
   y: number;
   width: number;
@@ -83,7 +97,28 @@ function getNodeLabelLayouts({
   showValueLabels: boolean;
 }): { name: NodeLabelLayout; value: NodeLabelLayout | null } {
   const centerY = y + height / 2;
+  const isLeftSide = labelSide === "left";
   const initialX = isLeftSide ? x + 8 : x + width - 8;
+
+  // LOCAL MODIFICATION: middle-tier labels sit centered above the node —
+  // any left/right placement would draw them across a ribbon bundle. Never
+  // a value sublabel (no room; d3 gives short nodes only a few px).
+  if (labelSide === "middle") {
+    const centerX = x + width / 2;
+    return {
+      name: {
+        x: centerX,
+        y: y - 7,
+        textAnchor: "middle",
+        dy: "0",
+        textLocalX: 0,
+        rotate: 0,
+        initialX: centerX,
+        initialY: y + 4,
+      },
+      value: null,
+    };
+  }
 
   if (labelOrientation === "horizontal") {
     const labelX = isLeftSide ? x - LABEL_OFFSET : x + width + LABEL_OFFSET;
@@ -166,7 +201,7 @@ interface AnimatedNodeProps {
   onMouseLeave: () => void;
   name: string;
   value: number;
-  isLeftSide: boolean;
+  labelSide: LabelSide;
   showLabels: boolean;
   showValueLabels: boolean;
   valueUnit: string;
@@ -231,7 +266,7 @@ function AnimatedNode({
   onMouseLeave,
   name,
   value,
-  isLeftSide,
+  labelSide,
   showLabels,
   showValueLabels,
   labelOrientation,
@@ -253,7 +288,7 @@ function AnimatedNode({
   const valueOpacity = isFaded ? fadedOpacity * 0.8 : 0.6;
   const labelLayouts = getNodeLabelLayouts({
     labelOrientation,
-    isLeftSide,
+    labelSide,
     x,
     y,
     width,
@@ -315,6 +350,7 @@ export function SankeyNode({
   fadedOpacity = 0.4,
   showLabels = true,
   showValueLabels = true,
+  showMiddleLabels = true,
   valueUnit = "sessions",
   labelOrientation = "horizontal",
   getNodeColor: getNodeColorProp,
@@ -361,21 +397,22 @@ export function SankeyNode({
     [fill, getNodeColorProp, defaultColors]
   );
 
+  // LOCAL MODIFICATION: hover connectivity is transitive rather than 1-hop,
+  // so on a three-tier chart hovering a source lights the whole path through
+  // the middle tier. Hovering a single link stays 1-hop.
+  const reachableFromHovered = useMemo(
+    () =>
+      hoveredNodeIndex !== null
+        ? getReachableNodes(links, hoveredNodeIndex)
+        : null,
+    [hoveredNodeIndex, links]
+  );
+
   // Check if a node is connected to the hovered element
   const isNodeConnected = useCallback(
     (nodeIndex: number) => {
-      if (hoveredNodeIndex !== null) {
-        if (hoveredNodeIndex === nodeIndex) {
-          return true;
-        }
-        return links.some((link) => {
-          const sIdx = getNodeIndex(link.source as NodeOrIndex);
-          const tIdx = getNodeIndex(link.target as NodeOrIndex);
-          return (
-            (sIdx === hoveredNodeIndex && tIdx === nodeIndex) ||
-            (tIdx === hoveredNodeIndex && sIdx === nodeIndex)
-          );
-        });
+      if (reachableFromHovered !== null) {
+        return reachableFromHovered.has(nodeIndex);
       }
       if (hoveredLinkIndex !== null) {
         const link = links[hoveredLinkIndex];
@@ -388,11 +425,17 @@ export function SankeyNode({
       }
       return false;
     },
-    [hoveredNodeIndex, hoveredLinkIndex, links]
+    [reachableFromHovered, hoveredLinkIndex, links]
   );
 
   const isAnyHovered = hoveredNodeIndex !== null || hoveredLinkIndex !== null;
   const innerWidth = width - margin.left - margin.right;
+
+  // LOCAL MODIFICATION: the deepest column, for depth-based label sides.
+  const maxDepth = useMemo(
+    () => nodes.reduce((max, node) => Math.max(max, node.depth ?? 0), 0),
+    [nodes]
+  );
 
   return (
     <g className="sankey-nodes">
@@ -404,7 +447,20 @@ export function SankeyNode({
 
         const isConnected = isNodeConnected(index);
         const isFaded = isAnyHovered && !isConnected;
-        const isLeftSide = nodeX < innerWidth / 2;
+        // LOCAL MODIFICATION: side from the node's column, not its x-position
+        // (identical result for two-column charts). x-position stays the tie
+        // breaker when d3 reports no depth.
+        const depth = node.depth;
+        let labelSide: LabelSide;
+        if (depth === undefined) {
+          labelSide = nodeX < innerWidth / 2 ? "left" : "right";
+        } else if (depth === 0) {
+          labelSide = "left";
+        } else if (depth === maxDepth) {
+          labelSide = "right";
+        } else {
+          labelSide = "middle";
+        }
 
         let displayValue = 0;
         for (const l of links) {
@@ -441,15 +497,17 @@ export function SankeyNode({
             height={nodeHeight}
             index={index}
             isFaded={isFaded}
-            isLeftSide={isLeftSide}
-            key={`node-${node.name}`}
+            labelSide={labelSide}
+            // LOCAL MODIFICATION: index in the key — the same name can appear
+            // in two tiers (無国籍 is both a region and a country).
+            key={`node-${index}-${node.name}`}
             labelOrientation={labelOrientation}
             name={node.name}
             valueUnit={valueUnit}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             rx={lineCap}
-            showLabels={showLabels}
+            showLabels={showLabels && (labelSide !== "middle" || showMiddleLabels)}
             showValueLabels={showValueLabels}
             totalNodes={nodes.length}
             value={displayValue}

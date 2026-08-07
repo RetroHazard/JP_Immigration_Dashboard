@@ -26,13 +26,13 @@ const DATA: ResidentRecord[] = [
 
 describe('buildStatusGroupSeries', () => {
   it('reports one row per period, never summed across periods', () => {
-    const series = buildStatusGroupSeries(DATA, { nationality: 'all' }, 'all');
+    const series = buildStatusGroupSeries(DATA, { nationality: 'all', region: 'all' }, 'all');
     expect(series.rows.map((row) => row.period)).toEqual(['2024-12', '2025-06', '2025-12']);
     expect(series.rows.map((row) => row.total)).toEqual([140, 160, 188]);
   });
 
   it('buckets by status group in fixed draw order', () => {
-    const series = buildStatusGroupSeries(DATA, { nationality: 'all' }, 'all');
+    const series = buildStatusGroupSeries(DATA, { nationality: 'all', region: 'all' }, 'all');
     // Only groups with volume, in STATUS_GROUPS order: work, study, residency.
     expect(series.keys).toEqual(['work', 'study', 'residency']);
     expect(series.rows[2].values).toEqual({ residency: 123, study: 50, work: 15 });
@@ -41,33 +41,41 @@ describe('buildStatusGroupSeries', () => {
   });
 
   it('narrows to one nationality', () => {
-    const series = buildStatusGroupSeries(DATA, { nationality: '1230' }, 'all');
+    const series = buildStatusGroupSeries(DATA, { nationality: '1230', region: 'all' }, 'all');
     expect(series.keys).toEqual(['work', 'residency']);
     expect(series.rows[2].total).toBe(135);
   });
 
   it('respects the range window', () => {
-    const series = buildStatusGroupSeries(DATA, { nationality: 'all' }, 'latest');
+    const series = buildStatusGroupSeries(DATA, { nationality: 'all', region: 'all' }, 'latest');
     expect(series.rows).toHaveLength(1);
     expect(series.rows[0].period).toBe('2025-12');
   });
 
   it('is empty rather than throwing when there is no data', () => {
-    expect(buildStatusGroupSeries([], { nationality: 'all' }, 'all')).toEqual({ keys: [], rows: [] });
+    expect(buildStatusGroupSeries([], { nationality: 'all', region: 'all' }, 'all')).toEqual({ keys: [], rows: [] });
   });
 });
 
 describe('buildRegionSeries', () => {
   it('buckets by continent, keeping 無国籍 as its own bucket', () => {
-    const series = buildRegionSeries(DATA, { nationality: 'all' }, 'latest');
+    const series = buildRegionSeries(DATA, { nationality: 'all', region: 'all' }, 'latest');
     // Asia (1000), South America (5000), stateless (7000) — rollup order.
     expect(series.keys).toEqual(['1000', '5000', '7000']);
     expect(series.rows[0].values).toEqual({ '1000': 135, '5000': 50, '7000': 3 });
   });
 
   it('drops regions with no volume anywhere in the window', () => {
-    const series = buildRegionSeries(DATA, { nationality: '1230' }, 'all');
+    const series = buildRegionSeries(DATA, { nationality: '1230', region: 'all' }, 'all');
     expect(series.keys).toEqual(['1000']);
+  });
+
+  it('narrows both builders by region', () => {
+    const regionSeries = buildRegionSeries(DATA, { nationality: 'all', region: '5000' }, 'latest');
+    expect(regionSeries.keys).toEqual(['5000']);
+    expect(regionSeries.rows[0].total).toBe(50);
+    const groupSeries = buildStatusGroupSeries(DATA, { nationality: 'all', region: '5000' }, 'latest');
+    expect(groupSeries.keys).toEqual(['study']);
   });
 });
 

@@ -451,8 +451,8 @@ export const it: Dictionary = {
     'Come sono cresciute o diminuite le principali cittadinanze in ciascun semestre coperto dalle statistiche.',
   'charts.origins.aria': 'Grafico ad aree impilate del numero di residenti per cittadinanza nel tempo',
   'charts.flows.label': 'Dall’origine allo status',
-  'charts.flows.description': 'Come ogni nazionalità principale si distribuisce tra le finalità di soggiorno — scegli una nazionalità per vederne il profilo.',
-  'charts.flows.aria': 'Diagramma di Sankey dei residenti che fluiscono dalle nazionalità ai gruppi di status di residenza',
+  'charts.flows.description': 'Le regioni del mondo fluiscono attraverso i paesi verso le finalità di soggiorno — scegli una regione o una nazionalità per seguirne il profilo.',
+  'charts.flows.aria': 'Diagramma di Sankey dei residenti che fluiscono dalle regioni del mondo, attraverso i paesi, verso le categorie di status di residenza',
   'charts.statuses.label': 'Composizione dei permessi di soggiorno',
   'charts.statuses.description':
     'Quali permessi possiedono i residenti, raggruppati per finalità del soggiorno: fai clic su un gruppo per aprirlo.',
@@ -466,11 +466,15 @@ export const it: Dictionary = {
     'Gli aumenti e i cali più marcati fra due periodi, per cittadinanza o per permesso di soggiorno.',
   'charts.movers.aria': 'Grafico a barre divergenti degli aumenti e dei cali maggiori fra due periodi',
 
-  'filters.nationality': 'Cittadinanza / Regione',
+  'filters.region': 'Regione',
+  'filters.allRegions': 'Tutte le regioni',
+  'filters.nationality': 'Nazionalità',
   'filters.residenceStatus': 'Permesso di soggiorno',
   'filters.allNationalities': 'Tutte le cittadinanze',
   'filters.allStatuses': 'Tutti i permessi',
+  'filters.allCategories': 'Tutte le categorie',
 
+  'period.snapshotLabel': 'Periodo dell’istantanea',
   'period.latestPeriod': 'Ultimo periodo',
   'period.years_one': '{count} anno',
   'period.years_other': '{count} anni',

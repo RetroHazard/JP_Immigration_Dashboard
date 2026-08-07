@@ -468,8 +468,8 @@ export const vi: Dictionary = {
     'Các quốc tịch đông nhất đã tăng hay giảm ra sao qua từng nửa năm mà thống kê ghi nhận.',
   'charts.origins.aria': 'Biểu đồ vùng chồng thể hiện số người cư trú theo quốc tịch qua thời gian',
   'charts.flows.label': 'Từ quốc tịch đến tư cách lưu trú',
-  'charts.flows.description': 'Mỗi quốc tịch lớn phân bổ ra sao giữa các mục đích lưu trú — chọn một quốc tịch để xem hồ sơ riêng.',
-  'charts.flows.aria': 'Sơ đồ Sankey thể hiện cư dân từ quốc tịch chảy vào các nhóm tư cách lưu trú',
+  'charts.flows.description': 'Từ khu vực trên thế giới qua từng quốc gia đến mục đích lưu trú — chọn khu vực hoặc quốc tịch để theo dõi hồ sơ.',
+  'charts.flows.aria': 'Sơ đồ Sankey thể hiện cư dân từ khu vực thế giới qua quốc gia vào các danh mục tư cách lưu trú',
   'charts.statuses.label': 'Cơ cấu tư cách lưu trú',
   'charts.statuses.description':
     'Người cư trú đang giữ tư cách lưu trú nào, nhóm theo mục đích cư trú — bấm vào một nhóm để xem chi tiết.',
@@ -482,11 +482,15 @@ export const vi: Dictionary = {
   'charts.movers.description': 'Mức tăng và giảm lớn nhất giữa hai kỳ, theo quốc tịch hoặc theo tư cách lưu trú.',
   'charts.movers.aria': 'Biểu đồ thanh hai chiều thể hiện mức tăng và giảm lớn nhất giữa hai kỳ',
 
-  'filters.nationality': 'Quốc tịch / Khu vực',
+  'filters.region': 'Khu vực',
+  'filters.allRegions': 'Tất cả khu vực',
+  'filters.nationality': 'Quốc tịch',
   'filters.residenceStatus': 'Tư cách lưu trú',
   'filters.allNationalities': 'Tất cả quốc tịch',
   'filters.allStatuses': 'Tất cả tư cách lưu trú',
+  'filters.allCategories': 'Tất cả danh mục',
 
+  'period.snapshotLabel': 'Thời điểm hiển thị',
   'period.latestPeriod': 'Kỳ mới nhất',
   // 'period.years_one': '{count} year',
   'period.years_other': '{count} năm',

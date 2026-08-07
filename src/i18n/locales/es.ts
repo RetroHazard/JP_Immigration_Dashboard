@@ -449,8 +449,8 @@ export const es: Dictionary = {
     'Cómo han crecido o disminuido las principales nacionalidades en cada semestre que cubren las estadísticas.',
   'charts.origins.aria': 'Gráfico de áreas apiladas del número de residentes por nacionalidad a lo largo del tiempo',
   'charts.flows.label': 'Del Origen al Estatus',
-  'charts.flows.description': 'Cómo se reparte cada nacionalidad principal entre las finalidades de estancia — elige una nacionalidad para ver su perfil.',
-  'charts.flows.aria': 'Diagrama de Sankey de residentes fluyendo de las nacionalidades a los grupos de estatus de residencia',
+  'charts.flows.description': 'Regiones del mundo fluyendo por países hasta las finalidades de estancia — elige una región o nacionalidad para seguir su perfil.',
+  'charts.flows.aria': 'Diagrama de Sankey de residentes fluyendo de las regiones del mundo, por países, a las categorías de estatus de residencia',
   'charts.statuses.label': 'Composición por estatus de residencia',
   'charts.statuses.description':
     'Qué visados tienen los residentes, agrupados por finalidad de la estancia: haz clic en un grupo para desglosarlo.',
@@ -464,11 +464,15 @@ export const es: Dictionary = {
     'Los mayores aumentos y descensos entre dos periodos, por nacionalidad o por estatus de residencia.',
   'charts.movers.aria': 'Gráfico de barras divergentes con los mayores aumentos y descensos entre dos periodos',
 
-  'filters.nationality': 'Nacionalidad / Región',
+  'filters.region': 'Región',
+  'filters.allRegions': 'Todas las regiones',
+  'filters.nationality': 'Nacionalidad',
   'filters.residenceStatus': 'Estatus de residencia',
   'filters.allNationalities': 'Todas las nacionalidades',
   'filters.allStatuses': 'Todos los estatus',
+  'filters.allCategories': 'Todas las categorías',
 
+  'period.snapshotLabel': 'Periodo de la instantánea',
   'period.latestPeriod': 'Último periodo',
   'period.years_one': '{count} año',
   'period.years_other': '{count} años',

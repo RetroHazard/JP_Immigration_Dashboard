@@ -447,8 +447,8 @@ export const fr: Dictionary = {
     'Comment les principales nationalités ont progressé ou reculé sur chaque semestre couvert par les statistiques.',
   'charts.origins.aria': 'Graphique en aires empilées du nombre de résidents par nationalité au fil du temps',
   'charts.flows.label': 'Des origines aux statuts',
-  'charts.flows.description': 'Comment chaque grande nationalité se répartit entre les motifs de séjour — choisissez une nationalité pour voir son profil.',
-  'charts.flows.aria': 'Diagramme de Sankey des résidents allant des nationalités vers les groupes de statut de résidence',
+  'charts.flows.description': 'Des régions du monde aux motifs de séjour en passant par les pays — choisissez une région ou une nationalité pour suivre son profil.',
+  'charts.flows.aria': 'Diagramme de Sankey des résidents allant des régions du monde, via les pays, vers les catégories de statut de résidence',
   'charts.statuses.label': 'Répartition des statuts de séjour',
   'charts.statuses.description':
     'Les titres de séjour détenus, regroupés par motif de séjour — cliquez sur un groupe pour le détailler.',
@@ -462,11 +462,15 @@ export const fr: Dictionary = {
     'Les hausses et les baisses les plus marquées entre deux périodes, par nationalité ou par statut de séjour.',
   'charts.movers.aria': 'Diagramme en barres divergentes des plus fortes hausses et baisses entre deux périodes',
 
-  'filters.nationality': 'Nationalité / Région',
+  'filters.region': 'Région',
+  'filters.allRegions': 'Toutes les régions',
+  'filters.nationality': 'Nationalité',
   'filters.residenceStatus': 'Statut de séjour',
   'filters.allNationalities': 'Toutes les nationalités',
   'filters.allStatuses': 'Tous les statuts',
+  'filters.allCategories': 'Toutes les catégories',
 
+  'period.snapshotLabel': 'Période affichée',
   'period.latestPeriod': 'Dernière période',
   'period.years_one': '{count} an',
   'period.years_other': '{count} ans',

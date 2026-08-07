@@ -35,6 +35,15 @@ export const getLatestPeriod = (data: ResidentRecord[]): string | null =>
 export const periodsForRange = (allPeriods: string[], range: ResidentRange): string[] =>
   range === 'all' ? allPeriods : allPeriods.slice(-PERIODS_IN_RANGE[range]);
 
+/**
+ * The snapshot a stock view should draw: the requested period when the data
+ * actually has it, otherwise the latest one. `?period` is user input (a URL
+ * param), so an out-of-coverage value degrades to "latest" rather than an
+ * empty chart.
+ */
+export const resolvePeriod = (data: ResidentRecord[], period: string | null): string | null =>
+  period !== null && getAllPeriods(data).includes(period) ? period : getLatestPeriod(data);
+
 export interface ResidentSelection {
   /** cat02 code; 'all' or undefined = every nationality */
   nationality?: string;
@@ -44,10 +53,10 @@ export interface ResidentSelection {
   period?: string;
   /** Restrict to a window (from `periodsForRange`) */
   periods?: readonly string[];
-  /** Continent code from NATIONALITY_REGIONS */
+  /** Continent code from NATIONALITY_REGIONS; 'all' or undefined = every region */
   region?: string;
-  /** Coarse status family */
-  group?: StatusGroup;
+  /** Coarse status family; 'all' or undefined = every group */
+  group?: StatusGroup | 'all';
 }
 
 export const selectResidents = (
@@ -63,8 +72,9 @@ export const selectResidents = (
     if (windowed && !windowed.has(record.period)) return false;
     if (nationality !== undefined && nationality !== 'all' && record.nationality !== nationality) return false;
     if (status !== undefined && status !== 'all' && record.status !== status) return false;
-    if (region !== undefined && nationalityByCode(record.nationality)?.region !== region) return false;
-    if (group !== undefined && residenceStatusByCode(record.status)?.group !== group) return false;
+    if (region !== undefined && region !== 'all' && nationalityByCode(record.nationality)?.region !== region)
+      return false;
+    if (group !== undefined && group !== 'all' && residenceStatusByCode(record.status)?.group !== group) return false;
     return true;
   });
 };

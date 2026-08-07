@@ -447,8 +447,8 @@ export const de: Dictionary = {
     'Wie die größten Staatsangehörigkeiten in jedem erfassten Halbjahr gewachsen oder geschrumpft sind.',
   'charts.origins.aria': 'Gestapeltes Flächendiagramm der Einwohnerzahlen je Staatsangehörigkeit im Zeitverlauf',
   'charts.flows.label': 'Von der Herkunft zum Status',
-  'charts.flows.description': 'Wie sich jede große Staatsangehörigkeit auf die Aufenthaltszwecke verteilt — eine Staatsangehörigkeit wählen, um ihr Profil zu sehen.',
-  'charts.flows.aria': 'Sankey-Diagramm der Einwohner von Staatsangehörigkeiten zu Aufenthaltstitel-Gruppen',
+  'charts.flows.description': 'Weltregionen fließen über Länder zu den Aufenthaltszwecken — eine Region oder Staatsangehörigkeit wählen, um ihr Profil zu verfolgen.',
+  'charts.flows.aria': 'Sankey-Diagramm der Einwohner von Weltregionen über Länder zu Aufenthaltstitel-Kategorien',
   'charts.statuses.label': 'Verteilung der Aufenthaltstitel',
   'charts.statuses.description':
     'Welche Aufenthaltstitel gehalten werden, gruppiert nach Aufenthaltszweck – auf eine Gruppe klicken, um sie aufzuschlüsseln.',
@@ -462,11 +462,15 @@ export const de: Dictionary = {
     'Die stärksten Zu- und Abnahmen zwischen zwei Zeitpunkten, nach Staatsangehörigkeit oder Aufenthaltstitel.',
   'charts.movers.aria': 'Divergierendes Balkendiagramm der größten Zu- und Abnahmen zwischen zwei Zeitpunkten',
 
-  'filters.nationality': 'Staatsangehörigkeit / Region',
+  'filters.region': 'Weltregion',
+  'filters.allRegions': 'Alle Regionen',
+  'filters.nationality': 'Staatsangehörigkeit',
   'filters.residenceStatus': 'Aufenthaltstitel',
   'filters.allNationalities': 'Alle Staatsangehörigkeiten',
   'filters.allStatuses': 'Alle Aufenthaltstitel',
+  'filters.allCategories': 'Alle Kategorien',
 
+  'period.snapshotLabel': 'Stichtagsperiode',
   'period.latestPeriod': 'Letzter Zeitraum',
   'period.years_one': '{count} Jahr',
   'period.years_other': '{count} Jahre',

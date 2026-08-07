@@ -21,6 +21,8 @@ interface ActiveChartProps {
   filters: { bureau: string; type: string };
   residentFilters: ResidentFilters;
   range: ChartRange | ResidentRange;
+  /** As-of snapshot for the residents stock views; null = latest. */
+  period: string | null;
 }
 
 /**
@@ -28,10 +30,10 @@ interface ActiveChartProps {
  * Prevents unnecessary re-renders when unrelated state changes.
  */
 export const ActiveChart = memo<ActiveChartProps>(
-  ({ chart, processingData, residentsData, filters, residentFilters, range }) => {
+  ({ chart, processingData, residentsData, filters, residentFilters, range, period }) => {
     if (chart.dataset === 'residents') {
       const Chart = chart.component;
-      return <Chart data={residentsData} filters={residentFilters} range={range as ResidentRange} />;
+      return <Chart data={residentsData} filters={residentFilters} range={range as ResidentRange} period={period} />;
     }
     const Chart = chart.component;
     return <Chart data={processingData} filters={filters} range={range as ChartRange} />;
@@ -41,10 +43,12 @@ export const ActiveChart = memo<ActiveChartProps>(
     prev.processingData === next.processingData &&
     prev.residentsData === next.residentsData &&
     prev.range === next.range &&
+    prev.period === next.period &&
     prev.filters.bureau === next.filters.bureau &&
     prev.filters.type === next.filters.type &&
+    prev.residentFilters.region === next.residentFilters.region &&
     prev.residentFilters.nationality === next.residentFilters.nationality &&
-    prev.residentFilters.status === next.residentFilters.status
+    prev.residentFilters.group === next.residentFilters.group
 );
 
 ActiveChart.displayName = 'ActiveChart';

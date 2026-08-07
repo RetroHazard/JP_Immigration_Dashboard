@@ -460,8 +460,8 @@ export const ko: Dictionary = {
   'charts.origins.description': '통계가 다루는 각 반기 동안 주요 국적이 어떻게 늘고 줄었는지 보여 줍니다.',
   'charts.origins.aria': '국적별 체류자 수의 추이를 나타낸 누적 영역 차트',
   'charts.flows.label': '국적에서 체류자격으로',
-  'charts.flows.description': '주요 국적별 체류 목적 구성. 국적을 선택하면 해당 국가의 프로필이 표시됩니다.',
-  'charts.flows.aria': '국적에서 체류자격 그룹으로 이어지는 체류자 흐름을 나타내는 생키 다이어그램',
+  'charts.flows.description': '세계 지역에서 국가, 체류 목적으로 이어지는 흐름. 지역이나 국적을 선택하면 해당 프로필을 추적할 수 있습니다.',
+  'charts.flows.aria': '지역에서 국가, 체류자격 카테고리로 이어지는 체류자 흐름을 나타내는 생키 다이어그램',
   'charts.statuses.label': '체류 자격 구성',
   'charts.statuses.description':
     '체류자가 보유한 비자를 체류 목적별로 묶었습니다. 그룹을 클릭하면 세부 자격이 열립니다.',
@@ -473,11 +473,15 @@ export const ko: Dictionary = {
   'charts.movers.description': '두 시점 사이에 가장 크게 늘거나 줄어든 국적 또는 체류 자격입니다.',
   'charts.movers.aria': '두 시점 사이의 증가와 감소를 좌우로 나눠 큰 순서대로 배열한 막대 차트',
 
-  'filters.nationality': '국적・지역',
+  'filters.region': '지역',
+  'filters.allRegions': '모든 지역',
+  'filters.nationality': '국적',
   'filters.residenceStatus': '체류 자격',
   'filters.allNationalities': '모든 국적',
   'filters.allStatuses': '모든 체류 자격',
+  'filters.allCategories': '모든 카테고리',
 
+  'period.snapshotLabel': '표시 시점',
   'period.latestPeriod': '최신 시점',
   // 'period.years_one': '{count} year',
   'period.years_other': '{count}년',

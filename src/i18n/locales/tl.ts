@@ -462,8 +462,8 @@ export const tl: Dictionary = {
   'charts.origins.aria':
     'Nakasalansang area chart ng bilang ng naninirahan ayon sa nasyonalidad sa paglipas ng panahon',
   'charts.flows.label': 'Mula Nasyonalidad Patungong Status',
-  'charts.flows.description': 'Paano nahahati ang bawat pangunahing nasyonalidad sa mga layunin ng pananatili — pumili ng nasyonalidad para makita ang profile nito.',
-  'charts.flows.aria': 'Sankey diagram ng mga residenteng dumadaloy mula sa nasyonalidad patungo sa mga grupo ng residence status',
+  'charts.flows.description': 'Mula sa mga rehiyon ng mundo, dumadaan sa mga bansa, patungo sa layunin ng pananatili — pumili ng rehiyon o nasyonalidad para masundan ang profile nito.',
+  'charts.flows.aria': 'Sankey diagram ng mga residenteng dumadaloy mula sa mga rehiyon ng mundo, dumadaan sa mga bansa, patungo sa mga kategorya ng residence status',
   'charts.statuses.label': 'Kabuuan ng katayuan sa paninirahan',
   'charts.statuses.description':
     'Anong visa ang hawak ng mga naninirahan, nakagrupo ayon sa layunin ng pananatili — pindutin ang isang grupo para lumawak.',
@@ -478,11 +478,15 @@ export const tl: Dictionary = {
   'charts.movers.aria':
     'Magkasalungat na bar chart ng pinakamalaking pagtaas at pagbaba sa pagitan ng dalawang panahon',
 
-  'filters.nationality': 'Nasyonalidad / Rehiyon',
+  'filters.region': 'Rehiyon',
+  'filters.allRegions': 'Lahat ng rehiyon',
+  'filters.nationality': 'Nasyonalidad',
   'filters.residenceStatus': 'Katayuan sa paninirahan',
   'filters.allNationalities': 'Lahat ng nasyonalidad',
   'filters.allStatuses': 'Lahat ng katayuan',
+  'filters.allCategories': 'Lahat ng kategorya',
 
+  'period.snapshotLabel': 'Panahon ng snapshot',
   'period.latestPeriod': 'Pinakahuling panahon',
   'period.years_one': '{count} taon',
   'period.years_other': '{count} taon',
