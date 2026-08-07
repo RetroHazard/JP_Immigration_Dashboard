@@ -92,8 +92,11 @@ export const ResidentsStatsSummary: React.FC<ResidentsStatsSummaryProps> = ({ da
     stats.total > 0 ? t('residents.share', { share: formatters.percent((value / stats.total) * 100) }) : scope;
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    // One row of four at every width: dense tiles keep phones from stacking
+    // the summary into a full screen of cards before the charts appear.
+    <div className="grid grid-cols-4 gap-1.5 sm:gap-3">
       <StatCard
+        dense
         title={t('residents.total')}
         shortTitle={t('residents.total.short')}
         subtitle={t('residents.asOf', { period: formatPeriod(stats.latest, formatters) })}
@@ -106,6 +109,7 @@ export const ResidentsStatsSummary: React.FC<ResidentsStatsSummaryProps> = ({ da
         spark={stats.spark}
       />
       <StatCard
+        dense
         title={t('residents.populationShare')}
         shortTitle={t('residents.populationShare.short')}
         subtitle={t('residents.populationShareOf', { population: formatters.compactNumber(stats.population) })}
@@ -117,7 +121,9 @@ export const ResidentsStatsSummary: React.FC<ResidentsStatsSummaryProps> = ({ da
         spark={stats.populationShareSpark}
       />
       <StatCard
+        dense
         title={t('residents.topNationality')}
+        shortTitle={t('residents.topNationality.short')}
         subtitle={stats.topNationality ? nationalityLabel(stats.topNationality) : scope}
         value={stats.topNationalityValue}
         formatValue={formatters.number}
@@ -126,7 +132,9 @@ export const ResidentsStatsSummary: React.FC<ResidentsStatsSummaryProps> = ({ da
         delta={null}
       />
       <StatCard
+        dense
         title={t('residents.topStatus')}
+        shortTitle={t('residents.topStatus.short')}
         subtitle={stats.topStatus ? `${statusLabel(stats.topStatus)} · ${share(stats.topStatusValue)}` : scope}
         value={stats.topStatusValue}
         formatValue={formatters.number}

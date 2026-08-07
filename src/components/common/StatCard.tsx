@@ -46,6 +46,13 @@ interface StatCardProps {
   deltaKey?: DictionaryKey;
   spark?: number[];
   className?: string;
+  /**
+   * Compact styling below the sm breakpoint, for grids that keep all their
+   * tiles on one row on phones (the residents four-across row): tighter
+   * padding, a smaller value, and no icon badge. From sm up, identical to
+   * the default.
+   */
+  dense?: boolean;
 }
 
 const Sparkline: React.FC<{ points: number[]; className?: string; stretch?: boolean }> = ({
@@ -96,6 +103,7 @@ const StatCardComponent: React.FC<StatCardProps> = ({
   deltaKey = 'stats.momDelta',
   spark,
   className,
+  dense = false,
 }) => {
   const { t, formatters } = useLocale();
   const valueRef = useCountUp(value, formatValue);
@@ -108,7 +116,9 @@ const StatCardComponent: React.FC<StatCardProps> = ({
 
   return (
     <div
-      className={`relative flex flex-col gap-0.5 overflow-hidden rounded-xl border border-border bg-card p-2 shadow-soft transition-shadow hover:shadow-soft-lg sm:p-3 lg:p-4 ${className ?? ''}`}
+      className={`relative flex flex-col gap-0.5 overflow-hidden rounded-xl border border-border bg-card ${
+        dense ? 'p-1.5' : 'p-2'
+      } shadow-soft transition-shadow hover:shadow-soft-lg sm:p-3 lg:p-4 ${className ?? ''}`}
     >
       <div className="flex items-start justify-between gap-2">
         {/* line-clamp rather than a hard single-line truncate: only Total and
@@ -131,11 +141,16 @@ const StatCardComponent: React.FC<StatCardProps> = ({
           {shortTitle && <span className="line-clamp-2 break-words xl:hidden">{shortTitle}</span>}
           <span className={`break-words ${shortTitle ? 'hidden xl:line-clamp-2' : 'line-clamp-2'}`}>{title}</span>
         </span>
-        <span className={`flex size-6 shrink-0 items-center justify-center rounded-md ${BADGE_CLASSES[color]}`}>
+        <span
+          className={`${dense ? 'hidden sm:flex' : 'flex'} size-6 shrink-0 items-center justify-center rounded-md ${BADGE_CLASSES[color]}`}
+        >
           <Icon className="size-3.5" aria-hidden="true" />
         </span>
       </div>
-      <span ref={valueRef} className="text-base font-bold tabular-nums text-foreground sm:text-lg lg:text-2xl">
+      <span
+        ref={valueRef}
+        className={`${dense ? 'text-sm' : 'text-base'} font-bold tabular-nums text-foreground sm:text-lg lg:text-2xl`}
+      >
         {formatValue(value)}
       </span>
       <div className="flex items-end justify-between gap-2">

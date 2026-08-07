@@ -213,7 +213,10 @@ export const RESIDENT_CHARTS: ResidentChartDefinition[] = [
     filters: { region: true, nationality: true, group: false },
     timeControl: 'range',
     compare: false,
-    ranges: ['5y', '10y', 'all'],
+    // The whole timeline IS the story (2M→4M with the COVID dip); a window
+    // picker only ever cropped it. Empty ranges = no picker, range resolves
+    // to defaultRange.
+    ranges: [],
     defaultRange: 'all',
   },
   {
@@ -224,7 +227,8 @@ export const RESIDENT_CHARTS: ResidentChartDefinition[] = [
     filters: { region: true, nationality: false, group: true },
     timeControl: 'range',
     compare: false,
-    ranges: ['5y', '10y', 'all'],
+    // Same as growth: always the full half-yearly history.
+    ranges: [],
     defaultRange: 'all',
   },
   {

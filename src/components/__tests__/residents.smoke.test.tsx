@@ -64,11 +64,12 @@ describe('chart registry', () => {
     expect(numeric.every((range) => range.endsWith('y'))).toBe(true);
   });
 
-  it('pairs the snapshot time control with an empty range list, and vice versa', () => {
+  it('gives snapshot charts an empty range list', () => {
     // A snapshot chart draws one period, so offering range windows would be
-    // a lie; a range chart with no ranges would render no picker at all.
+    // a lie. (A range chart may also have empty ranges — growth and origins
+    // always show the full timeline and render no picker.)
     for (const chart of RESIDENT_CHARTS) {
-      expect(chart.timeControl === 'snapshot').toBe(chart.ranges.length === 0);
+      if (chart.timeControl === 'snapshot') expect(chart.ranges).toHaveLength(0);
     }
   });
 });
