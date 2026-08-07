@@ -1,15 +1,17 @@
 # Japan Immigration Statistics Dashboard
-[![Version](https://img.shields.io/badge/version-1.2.7-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [![Deploy](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/deploy.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/deploy.yaml) [![CI](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/ci.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/ci.yaml) [![Data Watcher](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml)
 
 ## Overview
-A Next.js-based dashboard for visualizing and analyzing application processing statistics at Japan's Regional
-Immigration Bureaus. The dashboard provides estimates and visual analytics for application processing
-times across different immigration bureaus using a combination of predictive averages and confirmed statistics
-reported by the Immigration Services Agency of Japan.
+A Next.js-based dashboard for visualizing and analyzing Japan's immigration statistics, published by the
+Immigration Services Agency of Japan. Two independent datasets sit behind a single switch: **Application
+Processing**, which provides estimates and visual analytics for application processing times across Japan's
+Regional Immigration Bureaus using a combination of predictive averages and confirmed statistics; and
+**Resident Population**, which visualizes who actually lives in Japan and on what visa, by nationality and
+residence status over time.
 
 ---
 
@@ -44,8 +46,11 @@ For detailed setup instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
 ## :sparkles: Features
 
 ### :bar_chart: Data Visualization
-Seven interactive charts, each answering a specific question about the data, with per-chart filtering
-(bureau and/or application type, where relevant) and a configurable time range.
+Thirteen interactive charts across two datasets, each answering a specific question about the data, with
+per-chart filtering and a configurable time range.
+
+#### Application Processing
+Seven charts, filterable by bureau and/or application type where relevant.
 
 #### **Intake & Processing**
 - **Purpose:** Applications carried over and newly received each month, against the volume the bureaus completed.
@@ -98,6 +103,51 @@ Seven interactive charts, each answering a specific question about the data, wit
   - Interactive choropleth of Japan at the prefectural level, shaded by population density (Statistics Bureau of Japan estimates)
   - Bureau and airport office markers with location-specific tooltips
   - Built-in zoom and pan
+
+#### Resident Population
+Six charts answering a different question from the rest of the dashboard: not how fast applications are
+processed, but who actually lives in Japan and on what visa — 202 nationalities across 43 residence statuses
+(rolled up into 6 purpose-of-stay groups), every half-year since December 2012. Filterable by world region
+and/or nationality where relevant, with a region-to-nationality cascade; charts either sum over a time window
+or show a single half-yearly snapshot, picked with the same range control.
+
+#### **Population Growth**
+- **Purpose:** How the total resident population has grown over time, and who's driving it.
+- **Features:**
+  - Stacked bars of total residents per half-year since 2012, toggleable between purpose-of-stay and world-region breakdowns
+  - Event markers for policy changes and the COVID-19 dip
+  - Filterable by region and nationality
+
+#### **Origins Over Time**
+- **Purpose:** How the largest nationalities have trended across the whole period.
+- **Features:**
+  - Line chart of the largest nationalities or status groups over time
+  - Filterable by region and status group
+
+#### **Resident Flows**
+- **Purpose:** How nationality and residence status cross-tabulate, for a single point in time.
+- **Features:**
+  - Three-column sankey: world region → country → purpose-of-stay group
+  - Top-N country selection with an "other" bucket for the long tail
+  - Snapshot period picker; filterable by region, nationality, and status group
+
+#### **Residence Status Mix**
+- **Purpose:** A nationality's visas broken down by purpose of stay, for a single point in time.
+- **Features:**
+  - Sunburst: purpose-of-stay groups as the inner ring, individual statuses as the outer, click to zoom
+  - Snapshot period picker; filterable by region and nationality
+
+#### **World Origins**
+- **Purpose:** Where residents come from, geographically.
+- **Features:**
+  - World map shaded by resident count on a log scale
+  - Snapshot period picker; filterable by region and status group
+
+#### **Biggest Movers**
+- **Purpose:** Which nationalities gained or lost the most residents between two points in time.
+- **Features:**
+  - Diverging bar chart of the largest gains and losses between range endpoints
+  - Configurable time range (3/5/10 years, or all); filterable by region and status group
 
 ---
 
@@ -305,7 +355,7 @@ Country and continent names are not translated by hand: `src/constants/nationali
 ### Performance Optimizations
 - **React Memoization:** `useMemo` and `useCallback` for expensive calculations
 - **Lazy Loading:** Dynamic imports for heavy dependencies (KaTeX ~100KB)
-- **Single-Pass Filtering:** Centralized filtering eliminates duplicate operations across all 7 chart components
+- **Single-Pass Filtering:** Centralized filtering eliminates duplicate operations across all 13 chart components in both datasets
 - **Pre-computed Data:** Color scales and static configurations calculated once at mount
 
 ### Build Configuration

@@ -6,6 +6,14 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
+- **v1.4.0**: Three more views join the Resident Population dataset, alongside a filtering overhaul —
+  - **Population Growth** stacks total foreign residents per half-year since 2012, toggleable between purpose-of-stay and world-region breakdowns, with markers for policy changes and the COVID-19 dip
+  - **Resident Flows** is a three-column sankey — region into country into purpose-of-stay group — showing the full nationality × status cross-tabulation for a single snapshot
+  - **Residence Status Mix** is now a sunburst instead of a treemap: status groups as the inner ring, individual statuses as the outer, click to zoom
+  - The status filter now groups the 39 individual residence-status codes into 6 purpose-of-stay categories (work, training, residency, and so on); a nationality filter cascades from a new world-region filter, so picking a region narrows the country list to match. Old permalinks built from the individual status codes still resolve, mapped onto their group automatically
+  - The resident population's share of Japan's total population is now part of the stats summary, using the Statistics Bureau's annual estimates as the denominator
+  - **Origins Over Time**, **World Origins**, and **Biggest Movers** are unchanged from v1.3.0; a new snapshot-period picker replaces the range picker on the views that show a single point in time rather than a window
+
 - **v1.3.0**: A second dataset — **Resident Population** — joins the existing processing statistics, behind a switch above the chart tabs —
   - Answers a different question from the rest of the dashboard: not how fast applications are processed, but who actually lives in Japan and on what visa. 202 nationalities across 43 residence statuses, every half-year from December 2012
   - **Origins Over Time** tracks the largest nationalities across the whole period; **Residence Status Mix** breaks a nationality's visas down by purpose of stay; **World Origins** shades a world map by country of origin; **Biggest Movers** ranks the largest gains and losses between two points in time

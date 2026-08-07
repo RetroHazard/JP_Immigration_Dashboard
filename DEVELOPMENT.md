@@ -204,7 +204,9 @@ JP_Immigration_Dashboard/
 │   │   ├── DashboardShell.tsx         # The single responsive shell (header, tabs, filters, estimator)
 │   │   ├── ActiveChart.tsx            # Memoized switch over the active chart registry entry
 │   │   ├── FilterPanel.tsx            # Bureau/type filter controls + compare + airport toggle
-│   │   ├── StatsSummary.tsx           # Summary stat cards
+│   │   ├── ResidentFilterPanel.tsx    # Region/nationality/status-group filter controls, cascading
+│   │   ├── StatsSummary.tsx           # Summary stat cards (Application Processing)
+│   │   ├── ResidentsStatsSummary.tsx  # Summary stat cards (Resident Population), incl. % of total population
 │   │   ├── EstimationCard.tsx         # Processing Time Estimator (sidebar/sheet)
 │   │   ├── ChartDataTable.tsx         # Collapsible data table + CSV export
 │   │   ├── ChangelogModal.tsx         # CHANGELOG.md viewer (shadcn Dialog)
@@ -219,7 +221,14 @@ JP_Immigration_Dashboard/
 │   │   │   ├── ProcessingEfficiencyLollipop.tsx  # Custom ranked lollipop (CSS grid rows)
 │   │   │   ├── ProcessingEfficiencyQuadrantChart.tsx  # Alternate quadrant scatter view (same data)
 │   │   │   ├── EfficiencyHoverCard.tsx           # Shared hover card for the efficiency views
-│   │   │   └── GeographicDistributionChart.tsx   # Bklit choropleth (visx + topojson)
+│   │   │   ├── GeographicDistributionChart.tsx   # Bklit choropleth (visx + topojson)
+│   │   │   ├── PopulationGrowthChart.tsx         # Bklit ComposedChart; residents per half-year, group/region toggle
+│   │   │   ├── NationalityTrendChart.tsx         # Bklit LineChart; largest nationalities over time
+│   │   │   ├── ResidentFlowsSankeyChart.tsx      # Bklit Sankey, 3-tier: region → country → status group
+│   │   │   ├── ResidenceStatusSunburst.tsx       # Bklit SunburstChart; live status-mix view
+│   │   │   ├── ResidenceStatusMixChart.tsx       # Alternate treemap view (same hierarchy, unregistered)
+│   │   │   ├── OriginChoroplethChart.tsx         # Bklit choropleth; resident count by country, log scale
+│   │   │   └── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
 │   │   │
 │   │   ├── common/
 │   │   │   ├── ChartComponents.tsx    # Chart registry: label, icon, filters, ranges per chart
@@ -228,7 +237,8 @@ JP_Immigration_Dashboard/
 │   │   │   ├── FormulaTooltip.tsx     # KaTeX formula popover for the estimator
 │   │   │   ├── IconTooltip.tsx        # Wrapper over the shadcn/Radix Tooltip
 │   │   │   ├── LoadingSpinner.tsx
-│   │   │   ├── PeriodSelector.tsx
+│   │   │   ├── PeriodSelector.tsx     # Range picker (Application Processing + "range"-mode resident charts)
+│   │   │   ├── SnapshotPeriodSelector.tsx  # Single half-year picker for "snapshot"-mode resident charts
 │   │   │   ├── SeriesLegend.tsx
 │   │   │   └── StatCard.tsx
 │   │   │
@@ -241,10 +251,12 @@ JP_Immigration_Dashboard/
 │   │   │   └── components/
 │   │   │
 │   │   └── __tests__/
-│   │       └── components.smoke.test.tsx
+│   │       ├── components.smoke.test.tsx
+│   │       └── residents.smoke.test.tsx
 │   │
 │   ├── hooks/
-│   │   └── useImmigrationData.ts      # Fetches + unpacks public/data/dashboard.json
+│   │   ├── useImmigrationData.ts      # Fetches + unpacks public/data/dashboard.json
+│   │   └── useResidentsData.ts        # Fetches + unpacks public/data/residents.json
 │   │
 │   ├── utils/
 │   │   ├── dashboardData.ts           # Pack/unpack format shared with scripts/transform-data.mts
@@ -259,13 +271,24 @@ JP_Immigration_Dashboard/
 │   │   ├── urlApplicationDetails.ts   # Estimator permalink <-> URL params
 │   │   ├── renderChangelog.tsx        # Minimal inline-markdown renderer for the changelog modal
 │   │   ├── logger.ts                  # Dev-only console logger
+│   │   ├── residentsData.ts           # Pack/unpack format for residents.json
+│   │   ├── residentsTransform.ts      # e-Stat payload → ResidentRecord[] flattening + verifyResidentTotals
+│   │   ├── residentsSelectors.ts      # useSelectedResidents; residents-cube analogue of selectors.ts
+│   │   ├── residentsGrowth.ts         # Growth-chart series builders (status-group/region), indexSeries()
+│   │   ├── residentsFlows.ts          # Sankey flow builder: region → country → status, top-N + "other"
+│   │   ├── residenceStatusTree.ts     # Shared hierarchy for the Residence Status views (sunburst + treemap)
+│   │   ├── residentPeriod.ts          # Half-yearly period formatting/ordering
+│   │   ├── residentUrlParams.ts       # URL params for region/nationality/group, incl. legacy status-code mapping
 │   │   └── __tests__/                 # Unit tests (*.test.ts)
 │   │
 │   ├── constants/
 │   │   ├── applicationOptions.ts
 │   │   ├── bureauOptions.ts
 │   │   ├── japanPrefectures.ts
-│   │   └── statusCodes.ts
+│   │   ├── statusCodes.ts
+│   │   ├── nationalities.ts           # Nationality/region identity table (ISO 3166-1, M49 continent codes)
+│   │   ├── residenceStatuses.ts       # Residence-status identity table + corrected parent hierarchy
+│   │   └── japanPopulation.ts         # Japan's total population by year (denominator for % of total)
 │   │
 │   ├── contexts/
 │   │   └── ThemeContext.tsx           # Thin adapter over next-themes
@@ -394,7 +417,7 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
    git checkout -b feature/feature-name
    ```
 
-2. **Create the chart component** (named export, `ImmigrationChartData` props):
+2. **Create the chart component** (named export). Application Processing charts take `ImmigrationChartData` props; Resident Population charts take `ResidentChartData` instead (both from `src/components/common/ChartComponents.tsx`):
    ```typescript
    // src/components/charts/NewChart.tsx
    import type { ImmigrationChartData } from '../common/ChartComponents';
@@ -404,17 +427,16 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
    };
    ```
 
-3. **Register it in the chart registry** — charts aren't imported into a page directly; they're added to the `CHART_COMPONENTS` array, which drives the tabs, card header, and period selector:
+3. **Register it in the chart registry** — charts aren't imported into a page directly; they're added to `PROCESSING_CHARTS` or `RESIDENT_CHARTS`, which drive the tabs, card header, and period selector. `label`/`description` aren't set here — they resolve through `useChartRegistry()` from the `charts.<key>.label`/`.description` catalogue keys, added per locale (see [Localization](#i18n)):
    ```typescript
    // src/components/common/ChartComponents.tsx
    import { NewChart } from '../charts/NewChart';
 
-   export const CHART_COMPONENTS: ChartDefinition[] = [
+   export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
      // ...existing entries
      {
        key: 'new-chart',
-       label: 'New Chart',
-       description: 'One sentence: what question this chart answers.',
+       dataset: 'processing',
        icon: SomeLucideIcon,
        component: NewChart,
        filters: { bureau: true, appType: true },
@@ -424,6 +446,7 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
      },
    ];
    ```
+   A resident chart follows the same shape but with `dataset: 'residents'`, a `component: React.ComponentType<ResidentChartData>`, `filters: { region, nationality, group }` instead of `{ bureau, appType }`, and a `timeControl` of `'range'` (sums over the picked window, like processing charts) or `'snapshot'` (draws one half-yearly period via `SnapshotPeriodSelector` instead of a window — use this when summing across periods wouldn't make sense, e.g. a cross-tabulation). It goes in `RESIDENT_CHARTS` instead.
 
 4. **Test in dev server:**
    ```bash
