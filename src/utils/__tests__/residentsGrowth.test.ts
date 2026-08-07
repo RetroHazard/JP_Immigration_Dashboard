@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ResidentRecord } from '../residentsData';
-import { buildRegionSeries, buildStatusGroupSeries, indexSeries } from '../residentsGrowth';
+import {
+  buildNationalitySeries,
+  buildRegionSeries,
+  buildStatusGroupSeries,
+  GROWTH_OTHER,
+  indexSeries,
+} from '../residentsGrowth';
 
 const record = (period: string, status: string, nationality: string, value: number): ResidentRecord => ({
   period,
@@ -76,6 +82,46 @@ describe('buildRegionSeries', () => {
     expect(regionSeries.rows[0].total).toBe(50);
     const groupSeries = buildStatusGroupSeries(DATA, { nationality: 'all', region: '5000' }, 'latest');
     expect(groupSeries.keys).toEqual(['study']);
+  });
+});
+
+describe('buildNationalitySeries', () => {
+  // Nine Asian codes so the top-7 cut leaves an Other bucket.
+  const CODES = ['1230', '1360', '1110', '1330', '1270', '1080', '1200', '1380', '1220'];
+  const MANY: ResidentRecord[] = CODES.flatMap((code, index) => [
+    record('2025-06', '1430', code, 900 - index * 50),
+    record('2025-12', '1430', code, 1000 - index * 50),
+  ]);
+
+  it('stacks the top countries largest first with the rest folded into Other', () => {
+    const series = buildNationalitySeries(MANY, { nationality: 'all', region: '1000' }, 'all');
+    // 1110 (South Korea) surfaces under 1130, its pre-2015 combined code.
+    expect(series.keys).toEqual(['1230', '1360', '1130', '1330', '1270', '1080', '1200', GROWTH_OTHER]);
+    // Other = the two smallest codes at 2025-12: 650 + 600.
+    expect(series.rows.at(-1)?.values[GROWTH_OTHER]).toBe(1250);
+    expect(series.rows.at(-1)?.total).toBe(MANY.filter((row) => row.period === '2025-12').reduce((s, r) => s + r.value, 0));
+  });
+
+  it('ranks over the whole window so the stack membership is range-stable', () => {
+    // Both periods contribute to the ranking, not just the latest.
+    const series = buildNationalitySeries(MANY, { nationality: 'all', region: '1000' }, 'all');
+    expect(series.rows).toHaveLength(2);
+    expect(series.rows[0].values['1230']).toBe(900);
+  });
+
+  it('folds the 2015 Korea split into one continuous stack segment', () => {
+    const split = [
+      record('2015-06', '1430', '1130', 500),
+      record('2015-12', '1430', '1110', 460),
+      record('2015-12', '1430', '1120', 40),
+    ];
+    const series = buildNationalitySeries(split, { nationality: 'all', region: '1000' }, 'all');
+    expect(series.keys).toEqual(['1130']);
+    expect(series.rows.map((row) => row.values['1130'])).toEqual([500, 500]);
+  });
+
+  it('is empty rather than throwing when there is no data', () => {
+    expect(buildNationalitySeries([], { nationality: 'all', region: '1000' }, 'all')).toEqual({ keys: [], rows: [] });
   });
 });
 

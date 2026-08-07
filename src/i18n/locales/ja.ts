@@ -497,6 +497,7 @@ export const ja: Dictionary = {
   'residents.coverageRange': '{from}〜{to}',
   'residents.stackByGroup': '滞在目的別',
   'residents.stackByRegion': '地域別',
+  'residents.stackByNationality': '国籍別',
   'residents.growthTotal': '合計',
   'residents.viewAbsolute': '実数',
   'residents.viewIndexed': '指数(伸び率)',

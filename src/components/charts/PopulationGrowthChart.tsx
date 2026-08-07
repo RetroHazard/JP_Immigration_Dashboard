@@ -14,12 +14,14 @@ import type React from 'react';
 
 import type { StatusGroup } from '../../constants/residenceStatuses';
 import { useLocale } from '../../i18n/LocaleContext';
-import { useRegionLabel, useStatusGroupLabel } from '../../i18n/useDomainLabels';
+import { useNationalityLabel, useRegionLabel, useStatusGroupLabel } from '../../i18n/useDomainLabels';
 import { GROUP_COLOR } from '../../utils/residenceStatusTree';
 import { periodToDate } from '../../utils/residentPeriod';
 import {
+  buildNationalitySeries,
   buildRegionSeries,
   buildStatusGroupSeries,
+  GROWTH_OTHER,
   type GrowthBreakdown,
   REGION_COLOR,
 } from '../../utils/residentsGrowth';
@@ -32,6 +34,20 @@ import { XAxis } from '../bklit/charts/x-axis';
 import { YAxis } from '../bklit/charts/y-axis';
 import type { ResidentChartData } from '../common/ChartComponents';
 import { SeriesLegend } from '../common/SeriesLegend';
+
+/** Positional hues for the nationality stack (a filtered region's countries). */
+const NATIONALITY_COLORS = [
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
+  'var(--chart-6)',
+  'var(--chart-7)',
+];
+
+/** The everyone-else stack segment stays visually recessive. */
+const OTHER_COLOR = 'var(--muted-foreground)';
 
 /**
  * The events worth pinning to the timeline. Dates are half-year keys matched
@@ -66,28 +82,40 @@ const TooltipMarkers: React.FC<{ markers: ChartMarker[] }> = ({ markers }) => {
 };
 
 export const PopulationGrowthChart: React.FC<ResidentChartData> = ({ data, filters, range }) => {
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   const groupLabel = useStatusGroupLabel();
   const regionLabel = useRegionLabel();
+  const nationalityLabel = useNationalityLabel();
   const [breakdown, setBreakdown] = useState<GrowthBreakdown>('group');
   const [hiddenSeries, setHiddenSeries] = useState<ReadonlySet<string>>(() => new Set());
 
-  const { keys, rows } = useMemo(
-    () =>
-      breakdown === 'group'
-        ? buildStatusGroupSeries(data, { nationality: filters.nationality, region: filters.region }, range)
-        : buildRegionSeries(data, { nationality: filters.nationality, region: filters.region }, range),
-    [breakdown, data, filters.nationality, filters.region, range]
-  );
+  // With a region filter active, a stack "by world region" would be a single
+  // full-height stripe — the region breakdown becomes that region's
+  // nationalities instead, and the toggle pill says so.
+  const byNationality = breakdown === 'region' && filters.region !== 'all';
+
+  const { keys, rows } = useMemo(() => {
+    const growthFilters = { nationality: filters.nationality, region: filters.region };
+    if (breakdown === 'group') return buildStatusGroupSeries(data, growthFilters, range);
+    return filters.region !== 'all'
+      ? buildNationalitySeries(data, growthFilters, range)
+      : buildRegionSeries(data, growthFilters, range);
+  }, [breakdown, data, filters.nationality, filters.region, range]);
 
   const series = useMemo(
     () =>
-      keys.map((key) => ({
-        id: key,
-        color: breakdown === 'group' ? GROUP_COLOR[key as StatusGroup] : (REGION_COLOR[key] ?? 'var(--chart-8)'),
-        label: breakdown === 'group' ? groupLabel(key as StatusGroup) : regionLabel(key),
-      })),
-    [keys, breakdown, groupLabel, regionLabel]
+      keys.map((key, index) => {
+        if (breakdown === 'group') {
+          return { id: key, color: GROUP_COLOR[key as StatusGroup], label: groupLabel(key as StatusGroup) };
+        }
+        if (byNationality) {
+          return key === GROWTH_OTHER
+            ? { id: key, color: OTHER_COLOR, label: t('residents.otherNationalities') }
+            : { id: key, color: NATIONALITY_COLORS[index % NATIONALITY_COLORS.length], label: nationalityLabel(key) };
+        }
+        return { id: key, color: REGION_COLOR[key] ?? 'var(--chart-8)', label: regionLabel(key) };
+      }),
+    [keys, breakdown, byNationality, groupLabel, regionLabel, nationalityLabel, t]
   );
 
   const chartData = useMemo(
@@ -142,7 +170,13 @@ export const PopulationGrowthChart: React.FC<ResidentChartData> = ({ data, filte
                   : 'rounded-md px-2 py-1 text-secondary-foreground hover:bg-muted'
               }
             >
-              {t(option === 'group' ? 'residents.stackByGroup' : 'residents.stackByRegion')}
+              {t(
+                option === 'group'
+                  ? 'residents.stackByGroup'
+                  : filters.region !== 'all'
+                    ? 'residents.stackByNationality'
+                    : 'residents.stackByRegion'
+              )}
             </button>
           ))}
         </div>
@@ -163,7 +197,16 @@ export const PopulationGrowthChart: React.FC<ResidentChartData> = ({ data, filte
         </div>
       ) : (
         <div className="chart-container" role="img" aria-label={t('charts.growth.aria')}>
-          <ComposedChart data={chartData} stacked stackGap={1} maxBarSize={18} aspectRatio="16 / 8">
+          <ComposedChart
+            data={chartData}
+            stacked
+            stackGap={1}
+            maxBarSize={18}
+            aspectRatio="16 / 8"
+            // Half-yearly points are all Jun 1 / Dec 1 — the default month+day
+            // labels carry no year and collapse to two ticks.
+            formatDateLabel={(date) => formatters.monthYear(date)}
+          >
             <Grid horizontal />
             <YAxis />
             {visible.map((entry) => (
@@ -172,6 +215,7 @@ export const PopulationGrowthChart: React.FC<ResidentChartData> = ({ data, filte
             <XAxis />
             <ChartMarkers items={markers} size={24} />
             <ChartTooltip
+              titleFormat={(date) => formatters.monthYear(date)}
               rows={(point) => [
                 ...visible.map((entry) => ({
                   color: entry.color,

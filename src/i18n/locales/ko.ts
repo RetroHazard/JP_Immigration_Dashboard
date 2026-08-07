@@ -507,6 +507,7 @@ export const ko: Dictionary = {
   'residents.coverageRange': '{from} ~ {to}',
   'residents.stackByGroup': '체류 목적별',
   'residents.stackByRegion': '지역별',
+  'residents.stackByNationality': '국적별',
   'residents.growthTotal': '합계',
   'residents.viewAbsolute': '인원수',
   'residents.viewIndexed': '지수(증가율)',

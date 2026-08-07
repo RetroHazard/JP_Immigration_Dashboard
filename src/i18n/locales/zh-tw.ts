@@ -517,6 +517,7 @@ export const zhTw: Dictionary = {
   'residents.coverageRange': '{from} – {to}',
   'residents.stackByGroup': '依居留目的',
   'residents.stackByRegion': '依世界區域',
+  'residents.stackByNationality': '依國籍',
   'residents.growthTotal': '總計',
   'residents.viewAbsolute': '人數',
   'residents.viewIndexed': '成長指數',

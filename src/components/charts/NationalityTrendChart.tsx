@@ -156,10 +156,20 @@ export const NationalityTrendChart: React.FC<ResidentChartData> = ({ data, filte
         </div>
       ) : (
         <div className="chart-container" role="img" aria-label={t('charts.origins.aria')}>
-          {/* Keyed on mode: counts and indexed are different units, so the
-              switch replays the enter reveal on a fresh scale rather than
-              tweening a 70,000-person axis into a ×N one. */}
-          <LineChart key={mode} data={displayData} aspectRatio="16 / 8">
+          {/* Keyed on mode AND filters: a unit switch or a region/category
+              change can move the y-domain by two orders of magnitude, which
+              the vendored domain tween mishandles (lines render on a stale
+              scale). A remount replays the enter reveal on a fresh scale.
+              Range changes stay un-keyed — their modest domain shifts tween
+              correctly. */}
+          <LineChart
+            key={`${mode}-${filters.region}-${filters.group}`}
+            data={displayData}
+            aspectRatio="16 / 8"
+            // Half-yearly points are all Jun 1 / Dec 1 — the default month+day
+            // labels carry no year and collapse to two ticks.
+            formatDateLabel={(date) => formatters.monthYear(date)}
+          >
             <Grid horizontal />
             <YAxis />
             {visible.map((entry) => (
@@ -174,6 +184,7 @@ export const NationalityTrendChart: React.FC<ResidentChartData> = ({ data, filte
             ))}
             <XAxis />
             <ChartTooltip
+              titleFormat={(date) => formatters.monthYear(date)}
               rows={(point) =>
                 visible
                   .filter((entry) => point[entry.id] !== undefined)

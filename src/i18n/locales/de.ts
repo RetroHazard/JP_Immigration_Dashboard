@@ -496,6 +496,7 @@ export const de: Dictionary = {
   'residents.coverageRange': '{from} – {to}',
   'residents.stackByGroup': 'Nach Aufenthaltszweck',
   'residents.stackByRegion': 'Nach Weltregion',
+  'residents.stackByNationality': 'Nach Staatsangehörigkeit',
   'residents.growthTotal': 'Gesamt',
   'residents.viewAbsolute': 'Anzahl',
   'residents.viewIndexed': 'Wachstum (indexiert)',

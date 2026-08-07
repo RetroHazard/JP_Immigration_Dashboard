@@ -517,6 +517,7 @@ export const template: Dictionary = {
   // 'residents.coverageRange': '{from} – {to}',
   // 'residents.stackByGroup': 'By purpose of stay',
   // 'residents.stackByRegion': 'By world region',
+  // 'residents.stackByNationality': 'By nationality',
   // 'residents.growthTotal': 'Total',
   // 'residents.viewAbsolute': 'Counts',
   // 'residents.viewIndexed': 'Growth (indexed)',

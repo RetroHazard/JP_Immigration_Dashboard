@@ -505,6 +505,7 @@ export const zhCn: Dictionary = {
   'residents.coverageRange': '{from} – {to}',
   'residents.stackByGroup': '按居留目的',
   'residents.stackByRegion': '按世界区域',
+  'residents.stackByNationality': '按国籍',
   'residents.growthTotal': '总计',
   'residents.viewAbsolute': '人数',
   'residents.viewIndexed': '增长指数',

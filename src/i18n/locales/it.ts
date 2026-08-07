@@ -500,6 +500,7 @@ export const it: Dictionary = {
   'residents.coverageRange': '{from} – {to}',
   'residents.stackByGroup': 'Per finalità di soggiorno',
   'residents.stackByRegion': 'Per regione del mondo',
+  'residents.stackByNationality': 'Per nazionalità',
   'residents.growthTotal': 'Totale',
   'residents.viewAbsolute': 'Conteggi',
   'residents.viewIndexed': 'Crescita (indicizzata)',

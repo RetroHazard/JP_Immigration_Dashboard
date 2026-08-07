@@ -512,6 +512,7 @@ export const tl: Dictionary = {
   'residents.coverageRange': '{from} – {to}',
   'residents.stackByGroup': 'Ayon sa layunin',
   'residents.stackByRegion': 'Ayon sa rehiyon',
+  'residents.stackByNationality': 'Ayon sa nasyonalidad',
   'residents.growthTotal': 'Kabuuan',
   'residents.viewAbsolute': 'Bilang',
   'residents.viewIndexed': 'Paglago (indexed)',

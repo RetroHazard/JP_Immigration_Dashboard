@@ -516,6 +516,7 @@ export const vi: Dictionary = {
   'residents.coverageRange': '{from} – {to}',
   'residents.stackByGroup': 'Theo mục đích lưu trú',
   'residents.stackByRegion': 'Theo khu vực',
+  'residents.stackByNationality': 'Theo quốc tịch',
   'residents.growthTotal': 'Tổng cộng',
   'residents.viewAbsolute': 'Số người',
   'residents.viewIndexed': 'Tăng trưởng (chỉ số)',
