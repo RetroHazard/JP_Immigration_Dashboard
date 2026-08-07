@@ -87,6 +87,7 @@ function getNodeLabelLayouts({
   width,
   height,
   showValueLabels,
+  labelCenterY,
 }: {
   labelOrientation: SankeyLabelOrientation;
   labelSide: LabelSide;
@@ -95,8 +96,13 @@ function getNodeLabelLayouts({
   width: number;
   height: number;
   showValueLabels: boolean;
+  /**
+   * LOCAL MODIFICATION: de-overlapped vertical anchor for side labels.
+   * Falls back to the node's own center when no adjustment applies.
+   */
+  labelCenterY?: number;
 }): { name: NodeLabelLayout; value: NodeLabelLayout | null } {
-  const centerY = y + height / 2;
+  const centerY = labelCenterY ?? y + height / 2;
   const isLeftSide = labelSide === "left";
   const initialX = isLeftSide ? x + 8 : x + width - 8;
 
@@ -202,6 +208,7 @@ interface AnimatedNodeProps {
   name: string;
   value: number;
   labelSide: LabelSide;
+  labelCenterY?: number;
   showLabels: boolean;
   showValueLabels: boolean;
   valueUnit: string;
@@ -267,6 +274,7 @@ function AnimatedNode({
   name,
   value,
   labelSide,
+  labelCenterY,
   showLabels,
   showValueLabels,
   labelOrientation,
@@ -294,6 +302,7 @@ function AnimatedNode({
     width,
     height,
     showValueLabels,
+    labelCenterY,
   });
 
   return (
@@ -318,6 +327,26 @@ function AnimatedNode({
       />
       {showLabels ? (
         <>
+          {/* LOCAL MODIFICATION: when de-overlap displaced this label from
+              its node's center, a short leader line keeps the association
+              readable — a sliver-thin node otherwise floats unlabeled. */}
+          {labelCenterY !== undefined &&
+          labelSide !== "middle" &&
+          Math.abs(labelCenterY - (y + height / 2)) > 4 ? (
+            <motion.line
+              animate={{ opacity: isFaded ? fadedOpacity * 0.6 : 0.6 }}
+              aria-hidden="true"
+              initial={{ opacity: 0 }}
+              stroke="var(--chart-label)"
+              strokeWidth={1}
+              style={{ pointerEvents: "none" }}
+              transition={nameEnter}
+              x1={labelSide === "left" ? x - 2 : x + width + 2}
+              x2={labelSide === "left" ? x - LABEL_OFFSET + 2 : x + width + LABEL_OFFSET - 2}
+              y1={y + height / 2}
+              y2={labelCenterY}
+            />
+          ) : null}
           <NodeLabel
             className="fill-foreground font-medium text-[13px]"
             key={`name-${index}-${revealEpoch}`}
@@ -437,6 +466,48 @@ export function SankeyNode({
     [nodes]
   );
 
+  // LOCAL MODIFICATION: side labels on real-world data collide — a dominant
+  // node (Asia at 87% of the total) squeezes its column's remaining nodes
+  // into a few px each, while every label block still needs ~20-36px. Greedy
+  // vertical de-overlap per side: sweep top-down pushing blocks apart, then
+  // bottom-up to pull the chain back inside the plot. Labels shift away from
+  // their node's center only as far as the collision requires.
+  const labelCenterYByIndex = useMemo(() => {
+    const result = new Map<number, number>();
+    const sideOf = (node: (typeof nodes)[number]): LabelSide => {
+      const depth = node.depth;
+      if (depth === undefined) {
+        return (node.x0 ?? 0) < innerWidth / 2 ? "left" : "right";
+      }
+      if (depth === 0) return "left";
+      if (depth === maxDepth) return "right";
+      return "middle";
+    };
+    // Name (~16px) plus the value sublabel offset when shown, plus breathing room.
+    const blockHeight = (showValueLabels ? VALUE_LABEL_GAP + 16 : 16) + 4;
+    const maxY = nodes.reduce((max, node) => Math.max(max, node.y1 ?? 0), 0);
+    for (const side of ["left", "right"] as const) {
+      const entries = nodes
+        .map((node, index) => ({ node, index }))
+        .filter(({ node }) => sideOf(node) === side)
+        .map(({ node, index }) => ({
+          index,
+          desired: ((node.y0 ?? 0) + (node.y1 ?? 0)) / 2,
+        }))
+        .sort((a, b) => a.desired - b.desired);
+      const ys = entries.map((entry) => entry.desired);
+      for (let i = 1; i < ys.length; i++) {
+        ys[i] = Math.max(ys[i], ys[i - 1] + blockHeight);
+      }
+      for (let i = ys.length - 1; i >= 0; i--) {
+        const bound = i === ys.length - 1 ? maxY : ys[i + 1] - blockHeight;
+        ys[i] = Math.min(ys[i], bound);
+      }
+      entries.forEach((entry, i) => result.set(entry.index, ys[i]));
+    }
+    return result;
+  }, [nodes, innerWidth, maxDepth, showValueLabels]);
+
   return (
     <g className="sankey-nodes">
       {nodes.map((node, index) => {
@@ -498,6 +569,7 @@ export function SankeyNode({
             index={index}
             isFaded={isFaded}
             labelSide={labelSide}
+            labelCenterY={labelCenterYByIndex.get(index)}
             // LOCAL MODIFICATION: index in the key — the same name can appear
             // in two tiers (無国籍 is both a region and a country).
             key={`node-${index}-${node.name}`}
