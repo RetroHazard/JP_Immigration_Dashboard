@@ -33,7 +33,7 @@ const SERIES = [
 ] as const;
 
 export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   const series = useMemo(() => SERIES.map((entry) => ({ ...entry, label: t(entry.labelKey) })), [t]);
   const chartData = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
@@ -60,7 +60,16 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
         role="img"
         aria-label={t('charts.intake.aria')}
       >
-        <ComposedChart data={chartData} stacked stackGap={2} maxBarSize={30} aspectRatio="16 / 8">
+        <ComposedChart
+          data={chartData}
+          stacked
+          stackGap={2}
+          maxBarSize={30}
+          aspectRatio="16 / 8"
+          // Monthly points are all on the 1st — the default month+day labels
+          // drop the year, which is ambiguous across multi-year ranges.
+          formatDateLabel={(date) => formatters.monthYear(date)}
+        >
           <Grid horizontal />
           <YAxis />
           <SeriesBar dataKey="pending" fill="var(--chart-1)" />
@@ -70,6 +79,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           {/* Rows are named explicitly: the tooltip would otherwise show the
               raw series ids now that those are no longer display text. */}
           <ChartTooltip
+            titleFormat={(date) => formatters.monthYear(date)}
             rows={(point) =>
               series.map((entry) => ({
                 color: entry.color,
