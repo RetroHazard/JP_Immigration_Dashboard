@@ -25,11 +25,14 @@ import {
   Layers,
   LayoutDashboard,
   LineChart as LineChartIcon,
+  Network,
   PieChart,
   Scale,
+  TrendingUp,
 } from 'lucide-react';
 import type React from 'react';
 
+import type { StatusGroup } from '../../constants/residenceStatuses';
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
 import type { ResidentRecord } from '../../utils/residentsData';
 import type { ResidentRange } from '../../utils/residentsSelectors';
@@ -43,8 +46,10 @@ import { NationalityMoversChart } from '../charts/NationalityMoversChart';
 import { NationalityTrendChart } from '../charts/NationalityTrendChart';
 import { OriginChoroplethChart } from '../charts/OriginChoroplethChart';
 import { OutcomesSankeyChart } from '../charts/OutcomesSankeyChart';
+import { PopulationGrowthChart } from '../charts/PopulationGrowthChart';
 import { ProcessingEfficiencyLollipop } from '../charts/ProcessingEfficiencyLollipop';
-import { ResidenceStatusMixChart } from '../charts/ResidenceStatusMixChart';
+import { ResidenceStatusSunburst } from '../charts/ResidenceStatusSunburst';
+import { ResidentFlowsSankeyChart } from '../charts/ResidentFlowsSankeyChart';
 
 export type { ChartRange, ResidentRange };
 
@@ -60,16 +65,28 @@ export interface ImmigrationChartData {
 }
 
 export interface ResidentFilters {
+  /** Continent code from NATIONALITY_REGIONS, or 'all' */
+  region: string;
   /** e-Stat cat02 code, or 'all' */
   nationality: string;
-  /** e-Stat cat01 code, or 'all' */
-  status: string;
+  /**
+   * Coarse status family, or 'all'. The URL param is still named ?status —
+   * it used to carry individual e-Stat status codes, and legacy values are
+   * mapped to their category by parseStatusParam.
+   */
+  group: 'all' | StatusGroup;
 }
 
 export interface ResidentChartData {
   data: ResidentRecord[];
   filters: ResidentFilters;
   range: ResidentRange;
+  /**
+   * The snapshot a stock view draws ('YYYY-06'|'YYYY-12'); null = latest.
+   * Only meaningful on charts registered with timeControl: 'snapshot' —
+   * range charts always receive null.
+   */
+  period: string | null;
 }
 
 interface BaseChartDefinition {
@@ -96,8 +113,16 @@ export interface ProcessingChartDefinition extends BaseChartDefinition {
 export interface ResidentChartDefinition extends BaseChartDefinition {
   dataset: 'residents';
   component: React.ComponentType<ResidentChartData>;
-  filters: { nationality: boolean; status: boolean };
+  filters: { region: boolean; nationality: boolean; group: boolean };
+  /**
+   * How the header's time control behaves: 'range' renders the window picker
+   * over `ranges`; 'snapshot' renders the as-of period dropdown instead
+   * (stock views draw one period, so a window would be a lie — see the
+   * builders' snapshot comments). Snapshot charts keep `ranges: []`.
+   */
+  timeControl: 'range' | 'snapshot';
   ranges: ResidentRange[];
+  /** Unused at runtime on snapshot charts; the type still requires it. */
   defaultRange: ResidentRange;
 }
 
@@ -177,24 +202,55 @@ export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
 ];
 
 export const RESIDENT_CHARTS: ResidentChartDefinition[] = [
+  // Tab order is the narrative: how the total grew → who grew → how origin
+  // and status cross-tabulate → the status detail → where on the map → what
+  // changed most recently.
+  {
+    key: 'growth',
+    dataset: 'residents',
+    icon: TrendingUp,
+    component: PopulationGrowthChart,
+    filters: { region: true, nationality: true, group: false },
+    timeControl: 'range',
+    compare: false,
+    // The whole timeline IS the story (2M→4M with the COVID dip); a window
+    // picker only ever cropped it. Empty ranges = no picker, range resolves
+    // to defaultRange.
+    ranges: [],
+    defaultRange: 'all',
+  },
   {
     key: 'origins',
     dataset: 'residents',
     icon: LineChartIcon,
     component: NationalityTrendChart,
-    filters: { nationality: false, status: true },
+    filters: { region: true, nationality: false, group: true },
+    timeControl: 'range',
     compare: false,
-    ranges: ['5y', '10y', 'all'],
+    // Same as growth: always the full half-yearly history.
+    ranges: [],
     defaultRange: 'all',
+  },
+  {
+    key: 'flows',
+    dataset: 'residents',
+    icon: Network,
+    component: ResidentFlowsSankeyChart,
+    filters: { region: true, nationality: true, group: true },
+    timeControl: 'snapshot',
+    compare: false,
+    ranges: [],
+    defaultRange: 'latest',
   },
   {
     key: 'statuses',
     dataset: 'residents',
     icon: Layers,
-    component: ResidenceStatusMixChart,
-    filters: { nationality: true, status: false },
+    component: ResidenceStatusSunburst,
+    filters: { region: true, nationality: true, group: false },
+    timeControl: 'snapshot',
     compare: false,
-    ranges: ['latest', '3y', '5y', '10y', 'all'],
+    ranges: [],
     defaultRange: 'latest',
   },
   {
@@ -202,9 +258,10 @@ export const RESIDENT_CHARTS: ResidentChartDefinition[] = [
     dataset: 'residents',
     icon: Globe,
     component: OriginChoroplethChart,
-    filters: { nationality: false, status: true },
+    filters: { region: true, nationality: false, group: true },
+    timeControl: 'snapshot',
     compare: false,
-    ranges: ['latest', '3y', '5y', '10y', 'all'],
+    ranges: [],
     defaultRange: 'latest',
   },
   {
@@ -212,7 +269,8 @@ export const RESIDENT_CHARTS: ResidentChartDefinition[] = [
     dataset: 'residents',
     icon: Scale,
     component: NationalityMoversChart,
-    filters: { nationality: false, status: true },
+    filters: { region: true, nationality: false, group: true },
+    timeControl: 'range',
     compare: false,
     ranges: ['3y', '5y', '10y', 'all'],
     defaultRange: '3y',

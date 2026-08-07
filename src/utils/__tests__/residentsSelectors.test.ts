@@ -10,6 +10,7 @@ import {
   getLatestPeriod,
   mergeContinuedSeries,
   periodsForRange,
+  resolvePeriod,
   selectResidents,
   sumResidents,
   topCodesBy,
@@ -52,6 +53,14 @@ describe('period helpers', () => {
     expect(formatPeriod('2025-12', en)).toBe('2025-12');
     expect(formatPeriod(null, en)).toBe('');
   });
+
+  it('resolves a requested snapshot, degrading unknown periods to latest', () => {
+    expect(resolvePeriod(DATA, '2024-12')).toBe('2024-12');
+    expect(resolvePeriod(DATA, null)).toBe('2025-12');
+    // Out-of-coverage URL input falls back rather than emptying the chart.
+    expect(resolvePeriod(DATA, '1999-06')).toBe('2025-12');
+    expect(resolvePeriod([], '2024-12')).toBeNull();
+  });
 });
 
 describe('selectResidents', () => {
@@ -70,6 +79,11 @@ describe('selectResidents', () => {
     // 1230 is in Asia, 7000 is 無国籍 in a region of its own.
     expect(selectResidents(DATA, { period: '2025-12', region: '7000' })).toHaveLength(1);
     expect(selectResidents(DATA, { period: '2025-12', group: 'study' })).toHaveLength(1);
+  });
+
+  it("treats 'all' as no filter for region and group too", () => {
+    expect(selectResidents(DATA, { period: '2025-12', region: 'all' })).toHaveLength(3);
+    expect(selectResidents(DATA, { period: '2025-12', group: 'all' })).toHaveLength(3);
   });
 
   it('ranks totals descending', () => {
@@ -98,28 +112,33 @@ describe('mergeContinuedSeries', () => {
 });
 
 describe('buildResidenceStatusTree', () => {
-  it('reports one snapshot rather than summing the window', () => {
+  it('draws the requested snapshot, defaulting to the latest period', () => {
     // Summing half-years would count the same resident once per period.
-    const tree = buildResidenceStatusTree(DATA, { nationality: 'all' }, 'all');
-    expect(tree.total).toBe(173);
+    expect(buildResidenceStatusTree(DATA, { nationality: 'all', region: 'all' }, null).total).toBe(173);
+    expect(buildResidenceStatusTree(DATA, { nationality: 'all', region: 'all' }, '2024-12').total).toBe(140);
   });
 
   it('groups statuses by purpose of stay, largest group first', () => {
-    const tree = buildResidenceStatusTree(DATA, { nationality: 'all' }, 'latest');
+    const tree = buildResidenceStatusTree(DATA, { nationality: 'all', region: 'all' }, null);
     expect(tree.categories.map((category) => category.key)).toEqual(['residency', 'study']);
     // One leaf per status, summed across nationalities: 120 (CN) + 3 (無国籍).
     expect(tree.categories[0].children).toEqual([{ code: '1430', value: 123 }]);
     expect(tree.categories[1].children).toEqual([{ code: '1380', value: 50 }]);
   });
 
-  it('narrows to one nationality', () => {
-    const tree = buildResidenceStatusTree(DATA, { nationality: '1360' }, 'latest');
+  it('narrows to one nationality or one region', () => {
+    const tree = buildResidenceStatusTree(DATA, { nationality: '1360', region: 'all' }, null);
     expect(tree.total).toBe(50);
     expect(tree.categories.map((category) => category.key)).toEqual(['study']);
+    // 7000 is 無国籍, a region of its own.
+    expect(buildResidenceStatusTree(DATA, { nationality: 'all', region: '7000' }, null).total).toBe(3);
   });
 
   it('is empty rather than throwing when there is no data', () => {
-    expect(buildResidenceStatusTree([], { nationality: 'all' }, 'latest')).toEqual({ total: 0, categories: [] });
+    expect(buildResidenceStatusTree([], { nationality: 'all', region: 'all' }, null)).toEqual({
+      total: 0,
+      categories: [],
+    });
   });
 });
 

@@ -7,6 +7,8 @@ import type {
 import { motion, useTransform } from "motion/react";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useMountProgress } from "../use-mount-progress";
+// LOCAL MODIFICATION: transitive hover connectivity for multi-tier sankeys.
+import { getReachableNodes } from "./sankey-connectivity";
 import {
   type SankeyLinkDatum,
   type SankeyNodeDatum,
@@ -189,6 +191,16 @@ export function SankeyLink({
     createPath,
   } = useSankey();
 
+  // LOCAL MODIFICATION: nodes on a path through the hovered node — shared
+  // logic with sankey-node.tsx via sankey-connectivity.ts.
+  const reachableFromHovered = useMemo(
+    () =>
+      hoveredNodeIndex !== null
+        ? getReachableNodes(links, hoveredNodeIndex)
+        : null,
+    [hoveredNodeIndex, links]
+  );
+
   // Get color for a node (for gradients)
   const getNodeColorFn = useCallback(
     (node: SankeyNodeType<SankeyNodeDatum, SankeyLinkDatum>): string => {
@@ -283,10 +295,14 @@ export function SankeyLink({
         const targetIdx =
           tIdx ?? (typeof link.target === "number" ? link.target : -1);
 
+        // LOCAL MODIFICATION: node hover lights every link on a path through
+        // the hovered node (transitive), not just its 1-hop neighbours —
+        // required for three-tier charts. Link hover stays 1-hop.
         const isHighlighted =
           hoveredLinkIndex === index ||
-          hoveredNodeIndex === sourceIdx ||
-          hoveredNodeIndex === targetIdx;
+          (reachableFromHovered !== null &&
+            reachableFromHovered.has(sourceIdx) &&
+            reachableFromHovered.has(targetIdx));
         const isFaded = isAnyHovered && !isHighlighted;
 
         const handleMouseEnter = () => {

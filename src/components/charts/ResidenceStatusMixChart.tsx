@@ -2,6 +2,10 @@
 // Residence Status Mix on the shared MixTreemap: purpose-of-stay groups at the
 // root, individual statuses nested inside. Click a group to zoom into it.
 //
+// NOT currently registered — ResidenceStatusSunburst is the live Residence
+// Status Mix view. Same data and props contract; swap the `statuses` entry in
+// ChartComponents.tsx to switch back.
+//
 // This is a stock figure, so the range picker chooses which snapshot to show
 // rather than a window to sum: adding several half-years together would count
 // the same resident once per period. buildResidenceStatusTree therefore reads
@@ -21,17 +25,17 @@ import type { ResidentChartData } from '../common/ChartComponents';
 import type { MixTreemapLabels } from './CategoryMixTreemap';
 import { MixTreemap } from './CategoryMixTreemap';
 
-export const ResidenceStatusMixChart: React.FC<ResidentChartData> = ({ data, filters, range }) => {
+export const ResidenceStatusMixChart: React.FC<ResidentChartData> = ({ data, filters, period: requestedPeriod }) => {
   const { t, formatters } = useLocale();
   const statusLabel = useResidenceStatusLabel();
   const groupLabel = useStatusGroupLabel();
   const nationalityLabel = useNationalityLabel();
 
   const tree = useMemo(
-    () => buildResidenceStatusTree(data, { nationality: filters.nationality }, range),
-    [data, filters.nationality, range]
+    () => buildResidenceStatusTree(data, { nationality: filters.nationality, region: filters.region }, requestedPeriod),
+    [data, filters.nationality, filters.region, requestedPeriod]
   );
-  const period = useMemo(() => treePeriod(data, range), [data, range]);
+  const period = useMemo(() => treePeriod(data, requestedPeriod), [data, requestedPeriod]);
 
   const labels: MixTreemapLabels = {
     root:

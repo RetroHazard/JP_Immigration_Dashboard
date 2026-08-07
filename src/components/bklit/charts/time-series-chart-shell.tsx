@@ -166,6 +166,17 @@ export interface TimeSeriesChartInnerProps {
   /** Tween y-domain when the visible x-range changes during the ready phase. */
   tweenYDomainOnXDomainChange?: boolean;
   onPhaseChange?: (phase: ChartPhase) => void;
+  /**
+   * LOCAL MODIFICATION: caller-supplied x tick/ticker label format. The
+   * default (shortDateFmt, month + day) collapses half-yearly data to two
+   * distinct labels — every point is a Jun 1 or a Dec 1 — and the axis's
+   * label dedup then drops all but two ticks, none of them carrying a year.
+   * Half-yearly charts pass a month+year formatter instead. Feeds both the
+   * x-axis labels and the tooltip DateTicker, which read the same array.
+   * (scripts/vendor-bklit.mjs would overwrite this file — re-apply after a
+   * re-vendor.)
+   */
+  formatDateLabel?: (date: Date) => string;
 }
 
 export function TimeSeriesChartInner(props: TimeSeriesChartInnerProps) {
@@ -206,6 +217,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
   xDomainSlotCount,
   tweenYDomainOnXDomainChange = false,
   onPhaseChange,
+  formatDateLabel,
 }: TimeSeriesChartInnerProps) {
   const staticPreview = useStaticChartPreview();
   const innerWidth = width - margin.left - margin.right;
@@ -398,9 +410,10 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
     scaleLinear({ range: [innerHeight, 0], domain: [0, 100], nice: true })
   );
 
+  // LOCAL MODIFICATION: caller-supplied label format wins (see prop doc).
   const dateLabels = useMemo(
-    () => visiblePlotData.map((d) => shortDateFmt.format(xAccessor(d))),
-    [visiblePlotData, xAccessor]
+    () => visiblePlotData.map((d) => (formatDateLabel ?? shortDateFmt.format)(xAccessor(d))),
+    [visiblePlotData, xAccessor, formatDateLabel]
   );
 
   const canInteract = isLoaded && isChartInteractionPhase(chartPhase);

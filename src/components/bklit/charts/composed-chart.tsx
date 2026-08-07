@@ -44,6 +44,8 @@ export interface ComposedChartProps {
   /** Gap in px between stacked segments. Default: 0 */
   stackGap?: number;
   onPhaseChange?: (phase: ChartPhase) => void;
+  /** LOCAL MODIFICATION: x tick/ticker label format override — see time-series-chart-shell.tsx. */
+  formatDateLabel?: (date: Date) => string;
 }
 
 const DEFAULT_MARGIN: Margin = { top: 40, right: 40, bottom: 40, left: 40 };
@@ -192,6 +194,7 @@ interface ChartInnerProps {
   stacked?: boolean;
   stackGap?: number;
   onPhaseChange?: (phase: ChartPhase) => void;
+  formatDateLabel?: (date: Date) => string;
 }
 
 function ChartInner({
@@ -212,6 +215,7 @@ function ChartInner({
   stacked = false,
   stackGap = 0,
   onPhaseChange,
+  formatDateLabel,
 }: ChartInnerProps) {
   const { lines, barDataKeys } = useMemo(
     () => extractComposedSeries(children),
@@ -265,6 +269,7 @@ function ChartInner({
       containerRef={containerRef}
       data={data}
       enterTransition={enterTransition}
+      formatDateLabel={formatDateLabel}
       height={height}
       lines={lines}
       margin={margin}
@@ -296,6 +301,7 @@ export function ComposedChart({
   stacked = false,
   stackGap = 0,
   onPhaseChange,
+  formatDateLabel,
 }: ComposedChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // LOCAL MODIFICATION: see line-chart.tsx — size the y-axis margin from the
@@ -319,6 +325,7 @@ export function ComposedChart({
             containerRef={containerRef}
             data={data}
             enterTransition={enterTransition}
+            formatDateLabel={formatDateLabel}
             height={height}
             margin={margin}
             maxBarSize={maxBarSize}

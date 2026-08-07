@@ -9,6 +9,10 @@
 // A series that does not exist at both ends is dropped rather than treated as
 // a move from zero: 韓国 appears in 2015-12 because 韓国・朝鮮 was split, not
 // because 400,000 people arrived that half-year.
+//
+// Deliberately hand-rolled rather than Bklit: the vendored BarChart floors
+// its value domain at zero (`domain: [0, maxValue * 1.1]`, bar-chart.tsx), so
+// it cannot draw the negative half of a diverging bar.
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -51,17 +55,17 @@ export const NationalityMoversChart: React.FC<ResidentChartData> = ({ data, filt
     const last = periods.at(-1) ?? null;
     if (!first || !last || first === last) return { movers: [], first, last, scale: 0 };
 
-    // The status filter narrows the population on the nationality axis; on the
-    // status axis it would reduce the chart to a single bar, so it is ignored
-    // there (and the registry hides the control when this view is active).
-    const status = axis === 'nationality' ? filters.status : 'all';
+    // The category filter narrows the population on the nationality axis; on
+    // the status axis it would reduce the chart to that category's few bars,
+    // so it is ignored there. The region filter applies to both axes.
+    const group = axis === 'nationality' ? filters.group : 'all';
     // Folded so the 2015 Korea split reads as one population rather than a
     // 500,000-person disappearance and two arrivals.
     const at = (period: string) =>
       totalsBy(
         axis === 'nationality'
-          ? mergeContinuedSeries(selectResidents(data, { period, status }))
-          : selectResidents(data, { period, status }),
+          ? mergeContinuedSeries(selectResidents(data, { period, region: filters.region, group }))
+          : selectResidents(data, { period, region: filters.region, group }),
         axis
       );
     const before = at(first);
@@ -87,7 +91,7 @@ export const NationalityMoversChart: React.FC<ResidentChartData> = ({ data, filt
       last,
       scale: Math.max(...top.map((mover) => Math.abs(mover.delta)), 0),
     };
-  }, [axis, data, filters.status, range]);
+  }, [axis, data, filters.region, filters.group, range]);
 
   const labelOf = axis === 'nationality' ? nationalityLabel : statusLabel;
 

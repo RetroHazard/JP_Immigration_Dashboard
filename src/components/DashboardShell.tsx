@@ -13,7 +13,7 @@ import { useSearchParams } from 'next/navigation';
 
 import { animate, stagger } from 'animejs';
 import { Calculator, ChevronsLeft, History, Menu, Moon, Sun } from 'lucide-react';
-import { parseAsBoolean, parseAsStringLiteral, useQueryState } from 'nuqs';
+import { createParser, parseAsBoolean, parseAsStringLiteral, useQueryState } from 'nuqs';
 import type React from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -23,8 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import buildInfo from '../buildInfo';
 import { applicationOptions } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
-import { nationalities } from '../constants/nationalities';
-import { residenceStatuses } from '../constants/residenceStatuses';
+import { nationalities, NATIONALITY_REGIONS, nationalityByCode } from '../constants/nationalities';
 import { useTheme } from '../contexts/ThemeContext';
 import type { DashboardMeta, ImmigrationData } from '../hooks/useImmigrationData';
 import { useLocale } from '../i18n/LocaleContext';
@@ -34,6 +33,8 @@ import {
   useBureauLabel,
   useChartRegistry,
   useDatasetLabel,
+  useNationalityLabel,
+  useStatusGroupLabel,
 } from '../i18n/useDomainLabels';
 import { prefersReducedMotion, useAnimeScope } from '../lib/motion';
 import { excludeAirportData } from '../utils/excludeAirportData';
@@ -42,6 +43,7 @@ import { formatPeriod } from '../utils/residentPeriod';
 import type { ResidentRecord } from '../utils/residentsData';
 import type { ResidentRange } from '../utils/residentsSelectors';
 import { getAllPeriods } from '../utils/residentsSelectors';
+import { parsePeriodParam, parseStatusParam } from '../utils/residentUrlParams';
 import type { ChartRange } from '../utils/selectors';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { getApplicationDetailsFromParams, isEstimatorPermalink } from '../utils/urlApplicationDetails';
@@ -49,6 +51,7 @@ import type { Dataset } from './common/ChartComponents';
 import { CHART_KEYS, CHARTS_BY_DATASET, datasetForChart,DATASETS } from './common/ChartComponents';
 import { LanguageSwitcher } from './common/LanguageSwitcher';
 import { PeriodSelector } from './common/PeriodSelector';
+import { SnapshotPeriodSelector } from './common/SnapshotPeriodSelector';
 import { ActiveChart } from './ActiveChart';
 import { ChangelogModal } from './ChangelogModal';
 import { ChartDataTable } from './ChartDataTable';
@@ -62,8 +65,20 @@ const BUREAU_VALUES = bureauOptions.map((option) => option.value);
 const TYPE_VALUES = applicationOptions.map((option) => option.value);
 const RANGE_VALUES = ['latest', '6', '12', '24', '36', 'all', '3y', '5y', '10y'] as const;
 const NATIONALITY_VALUES = ['all', ...nationalities.map((nationality) => nationality.value)];
-const STATUS_VALUES = ['all', ...residenceStatuses.map((status) => status.value)];
+const REGION_VALUES = ['all', ...NATIONALITY_REGIONS];
 const COMPARE_VALUES = bureauOptions.filter((option) => option.value !== 'all').map((option) => option.value);
+
+// ?status carries a status *category* now; the parser also accepts the
+// individual status codes older links carry, resolving them to their
+// category. ?period names the snapshot the stock views draw.
+const statusGroupParser = createParser({
+  parse: parseStatusParam,
+  serialize: (value: string) => value,
+});
+const periodParser = createParser({
+  parse: parsePeriodParam,
+  serialize: (value: string) => value,
+});
 
 interface DashboardShellProps {
   data: ImmigrationData[];
@@ -78,6 +93,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
   const bureauLabel = useBureauLabel();
   const applicationType = useApplicationType();
   const datasetLabel = useDatasetLabel();
+  const nationalityLabel = useNationalityLabel();
+  const statusGroupLabel = useStatusGroupLabel();
   const searchParams = useSearchParams();
 
   // --- URL state (shareable): active chart, global filters, time range ---
@@ -89,14 +106,14 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
   const [type, setType] = useQueryState('type', parseAsStringLiteral(TYPE_VALUES).withDefault('all'));
   const [rangeParam, setRangeParam] = useQueryState('range', parseAsStringLiteral(RANGE_VALUES));
   const [compare, setCompare] = useQueryState('compare', parseAsStringLiteral(COMPARE_VALUES));
+  const [region, setRegion] = useQueryState('region', parseAsStringLiteral(REGION_VALUES).withDefault('all'));
   const [nationality, setNationality] = useQueryState(
     'nationality',
     parseAsStringLiteral(NATIONALITY_VALUES).withDefault('all')
   );
-  const [residenceStatus, setResidenceStatus] = useQueryState(
-    'status',
-    parseAsStringLiteral(STATUS_VALUES).withDefault('all')
-  );
+  const [statusGroup, setStatusGroup] = useQueryState('status', statusGroupParser.withDefault('all'));
+  // The as-of snapshot for the stock views; null = latest period.
+  const [periodParam, setPeriodParam] = useQueryState('period', periodParser);
 
   // The dataset is DERIVED from ?chart=, not a param of its own: chart keys are
   // unique across both registries, so there is no way to land on a dataset and
@@ -133,7 +150,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
   const processingFilterConfig =
     activeChart.dataset === 'processing' ? activeChart.filters : { bureau: false, appType: false };
   const residentFilterConfig =
-    activeChart.dataset === 'residents' ? activeChart.filters : { nationality: false, status: false };
+    activeChart.dataset === 'residents'
+      ? activeChart.filters
+      : { region: false, nationality: false, group: false };
 
   const effectiveFilters = useMemo(
     () => ({
@@ -144,17 +163,31 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
     [processingFilterConfig.bureau, processingFilterConfig.appType, bureau, type, includeAirports]
   );
 
-  const effectiveResidentFilters = useMemo(
-    () => ({
-      nationality: residentFilterConfig.nationality ? nationality : 'all',
-      status: residentFilterConfig.status ? residenceStatus : 'all',
-    }),
-    [residentFilterConfig.nationality, residentFilterConfig.status, nationality, residenceStatus]
-  );
+  const effectiveResidentFilters = useMemo(() => {
+    const effectiveRegion = residentFilterConfig.region ? region : 'all';
+    // Region wins when the two disagree (the panel clears nationality on a
+    // region change, but a hand-edited URL can still pair, say, ?region=2000
+    // with a Chinese nationality — which would otherwise empty every chart).
+    const inRegion =
+      effectiveRegion === 'all' || nationality === 'all' || nationalityByCode(nationality)?.region === effectiveRegion;
+    return {
+      region: effectiveRegion,
+      nationality: residentFilterConfig.nationality && inRegion ? nationality : 'all',
+      group: residentFilterConfig.group ? statusGroup : 'all',
+    };
+  }, [residentFilterConfig.region, residentFilterConfig.nationality, residentFilterConfig.group, region, nationality, statusGroup]);
+
+  // The snapshot the stock views draw. Sticky across the snapshot tabs, but
+  // never leaks into the range charts.
+  const effectivePeriod =
+    activeChart.dataset === 'residents' && activeChart.timeControl === 'snapshot' ? periodParam : null;
 
   // Stable identity: `residents ?? []` would be a new array every render,
   // invalidating every memo keyed on it (and ActiveChart's memo comparison).
   const residentsData = useMemo(() => residents ?? [], [residents]);
+
+  // Options for the snapshot picker: every published half-year, newest first.
+  const residentPeriodsNewestFirst = useMemo(() => getAllPeriods(residentsData).reverse(), [residentsData]);
 
   // What the charts, stats, and data table see; the airport branch offices
   // are removed as rows AND subtracted from the nationwide aggregate, so
@@ -374,11 +407,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
                   nationality:
                     effectiveResidentFilters.nationality === 'all'
                       ? t('filters.allNationalities')
-                      : effectiveResidentFilters.nationality,
+                      : nationalityLabel(effectiveResidentFilters.nationality),
                   status:
-                    effectiveResidentFilters.status === 'all'
+                    effectiveResidentFilters.group === 'all'
                       ? t('filters.allStatuses')
-                      : effectiveResidentFilters.status,
+                      : statusGroupLabel(effectiveResidentFilters.group),
                 }),
               })
             : effectiveFilters.type === 'all'
@@ -417,15 +450,19 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
             <div data-animate="card">
             {dataset === 'residents' ? (
             <ResidentFilterPanel
-              filters={{ nationality, status: residenceStatus }}
+              filters={{ region, nationality, group: statusGroup }}
               onChange={(next) => {
-                void setNationality(next.nationality);
-                void setResidenceStatus(next.status);
+                // null clears a param back to its 'all' default, keeping URLs clean.
+                void setRegion(next.region === 'all' ? null : next.region);
+                void setNationality(next.nationality === 'all' ? null : next.nationality);
+                void setStatusGroup(next.group === 'all' ? null : next.group);
               }}
               filterConfig={residentFilterConfig}
               onReset={() => {
+                void setRegion(null);
                 void setNationality(null);
-                void setResidenceStatus(null);
+                void setStatusGroup(null);
+                // ?period stays: the snapshot picker is a view control, not a filter.
               }}
             />
             ) : (
@@ -512,11 +549,19 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
                         <p className="mt-0.5 text-xs text-muted-foreground">{chart.description}</p>
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1">
-                        <PeriodSelector
-                          ranges={chart.ranges}
-                          value={range}
-                          onChange={(next) => void setRangeParam(next)}
-                        />
+                        {chart.dataset === 'residents' && chart.timeControl === 'snapshot' ? (
+                          <SnapshotPeriodSelector
+                            periods={residentPeriodsNewestFirst}
+                            value={periodParam}
+                            onChange={(next) => void setPeriodParam(next)}
+                          />
+                        ) : (
+                          <PeriodSelector
+                            ranges={chart.ranges}
+                            value={range}
+                            onChange={(next) => void setRangeParam(next)}
+                          />
+                        )}
                         {coverage && (
                           <span className="whitespace-nowrap text-xxs text-muted-foreground">
                             {t('dashboard.dataCoverage', { range: coverage })}
@@ -540,6 +585,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
                               filters={effectiveFilters}
                               residentFilters={effectiveResidentFilters}
                               range={range}
+                              period={effectivePeriod}
                             />
                           </div>
                           {/* The comparison pane follows its control: both are
@@ -559,6 +605,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
                                 filters={{ bureau: compareBureau, type: effectiveFilters.type }}
                                 residentFilters={effectiveResidentFilters}
                                 range={range}
+                                period={effectivePeriod}
                               />
                             </div>
                           )}
