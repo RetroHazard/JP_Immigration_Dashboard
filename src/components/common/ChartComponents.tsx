@@ -25,8 +25,10 @@ import {
   Layers,
   LayoutDashboard,
   LineChart as LineChartIcon,
+  Network,
   PieChart,
   Scale,
+  TrendingUp,
 } from 'lucide-react';
 import type React from 'react';
 
@@ -43,8 +45,10 @@ import { NationalityMoversChart } from '../charts/NationalityMoversChart';
 import { NationalityTrendChart } from '../charts/NationalityTrendChart';
 import { OriginChoroplethChart } from '../charts/OriginChoroplethChart';
 import { OutcomesSankeyChart } from '../charts/OutcomesSankeyChart';
+import { PopulationGrowthChart } from '../charts/PopulationGrowthChart';
 import { ProcessingEfficiencyLollipop } from '../charts/ProcessingEfficiencyLollipop';
-import { ResidenceStatusMixChart } from '../charts/ResidenceStatusMixChart';
+import { ResidenceStatusSunburst } from '../charts/ResidenceStatusSunburst';
+import { ResidentFlowsSankeyChart } from '../charts/ResidentFlowsSankeyChart';
 
 export type { ChartRange, ResidentRange };
 
@@ -177,6 +181,19 @@ export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
 ];
 
 export const RESIDENT_CHARTS: ResidentChartDefinition[] = [
+  // Tab order is the narrative: how the total grew → who grew → how origin
+  // and status cross-tabulate → the status detail → where on the map → what
+  // changed most recently.
+  {
+    key: 'growth',
+    dataset: 'residents',
+    icon: TrendingUp,
+    component: PopulationGrowthChart,
+    filters: { nationality: true, status: false },
+    compare: false,
+    ranges: ['5y', '10y', 'all'],
+    defaultRange: 'all',
+  },
   {
     key: 'origins',
     dataset: 'residents',
@@ -188,10 +205,20 @@ export const RESIDENT_CHARTS: ResidentChartDefinition[] = [
     defaultRange: 'all',
   },
   {
+    key: 'flows',
+    dataset: 'residents',
+    icon: Network,
+    component: ResidentFlowsSankeyChart,
+    filters: { nationality: true, status: false },
+    compare: false,
+    ranges: ['latest', '3y', '5y', '10y', 'all'],
+    defaultRange: 'latest',
+  },
+  {
     key: 'statuses',
     dataset: 'residents',
     icon: Layers,
-    component: ResidenceStatusMixChart,
+    component: ResidenceStatusSunburst,
     filters: { nationality: true, status: false },
     compare: false,
     ranges: ['latest', '3y', '5y', '10y', 'all'],

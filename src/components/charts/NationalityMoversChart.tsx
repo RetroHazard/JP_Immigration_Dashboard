@@ -9,6 +9,10 @@
 // A series that does not exist at both ends is dropped rather than treated as
 // a move from zero: 韓国 appears in 2015-12 because 韓国・朝鮮 was split, not
 // because 400,000 people arrived that half-year.
+//
+// Deliberately hand-rolled rather than Bklit: the vendored BarChart floors
+// its value domain at zero (`domain: [0, maxValue * 1.1]`, bar-chart.tsx), so
+// it cannot draw the negative half of a diverging bar.
 'use client';
 
 import { useMemo, useState } from 'react';

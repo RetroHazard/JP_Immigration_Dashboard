@@ -15,8 +15,12 @@ import type { ResidentRecord } from './residentsData';
 import type { ResidentRange } from './residentsSelectors';
 import { getAllPeriods, periodsForRange, selectResidents } from './residentsSelectors';
 
-/** Hue per group, stable regardless of which groups have volume this period. */
-const GROUP_COLOR: Record<StatusGroup, string> = {
+/**
+ * Hue per group, stable regardless of which groups have volume this period.
+ * Exported so every residents view that colors by status group (treemap,
+ * sunburst, growth stack, sankey) agrees on the hues.
+ */
+export const GROUP_COLOR: Record<StatusGroup, string> = {
   work: 'var(--chart-mix-1)',
   training: 'var(--chart-mix-2)',
   study: 'var(--chart-mix-3)',

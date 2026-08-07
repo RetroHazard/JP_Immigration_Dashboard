@@ -458,14 +458,22 @@ export const template: Dictionary = {
   // 'dataset.residents.compact': 'Residents',
   // 'dataset.residentsUnavailable': 'Resident population data is unavailable right now.',
 
+  // 'charts.growth.label': 'Population Growth',
+  // 'charts.growth.description':
+  //   'The whole foreign-resident population, half-year by half-year, stacked by purpose of stay or by world region.',
+  // 'charts.growth.aria': 'Stacked bar chart of total foreign residents per half-year, split by status group or by region',
   // 'charts.origins.label': 'Origins Over Time',
   // 'charts.origins.description':
   //   'How the largest nationalities have grown or shrunk across every half-year the statistics cover.',
   // 'charts.origins.aria': 'Stacked area chart of resident numbers per nationality over time',
+  // 'charts.flows.label': 'Origin to Status Flows',
+  // 'charts.flows.description':
+  //   'How each major nationality splits across purposes of stay — pick a nationality to see its own profile.',
+  // 'charts.flows.aria': 'Sankey diagram of residents flowing from nationalities into residence-status groups',
   // 'charts.statuses.label': 'Residence Status Mix',
   // 'charts.statuses.description':
   //   'Which visas residents hold, grouped by purpose of stay — click a group to zoom into its statuses.',
-  // 'charts.statuses.aria': 'Treemap of residents by residence-status group and individual status',
+  // 'charts.statuses.aria': 'Sunburst chart of residents by residence-status group and individual status',
   // 'charts.worldmap.label': 'World Origins',
   // 'charts.worldmap.description': 'Where Japan’s foreign residents come from, shaded by how many hold each nationality.',
   // 'charts.worldmap.aria': 'World map shaded by the number of residents from each country of origin',
@@ -502,6 +510,23 @@ export const template: Dictionary = {
   // 'residents.asOf': 'As of {period}',
   // 'residents.noChange': 'No measurable change between these periods.',
   // 'residents.coverageRange': '{from} – {to}',
+  // 'residents.stackByGroup': 'By purpose of stay',
+  // 'residents.stackByRegion': 'By world region',
+  // 'residents.growthTotal': 'Total',
+  // 'residents.viewAbsolute': 'Counts',
+  // 'residents.viewIndexed': 'Growth (indexed)',
+  // 'residents.indexedTooltip': '×{multiple}',
+  // 'residents.flowsValueUnit': 'residents',
+  // 'residents.flowsTooltipValueLabel': 'Residents',
+  // 'residents.flowsTooltipFlowLabel': 'Flow',
+  // 'residents.sunburstHint': '{trail} — {count} residents ({percent} of total)',
+  // 'residents.markerSsw.title': 'Specified Skilled Worker launched',
+  // 'residents.markerSsw.description': 'The April 2019 visa opened over a dozen industries to skilled foreign workers.',
+  // 'residents.markerCovid.title': 'COVID-19 border closure',
+  // 'residents.markerCovid.description': 'Entry restrictions froze new arrivals; the population dipped until mid-2022.',
+  // 'residents.markerKoreaSplit.title': 'Korea reporting split',
+  // 'residents.markerKoreaSplit.description':
+  //   'Korea (combined) became separate South Korea and Korea (Chosen) series — a reporting change, not a population change.',
 
   // 'statusGroup.work': 'Work',
   // 'statusGroup.training': 'Training',

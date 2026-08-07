@@ -2,6 +2,10 @@
 // Residence Status Mix on the shared MixTreemap: purpose-of-stay groups at the
 // root, individual statuses nested inside. Click a group to zoom into it.
 //
+// NOT currently registered — ResidenceStatusSunburst is the live Residence
+// Status Mix view. Same data and props contract; swap the `statuses` entry in
+// ChartComponents.tsx to switch back.
+//
 // This is a stock figure, so the range picker chooses which snapshot to show
 // rather than a window to sum: adding several half-years together would count
 // the same resident once per period. buildResidenceStatusTree therefore reads
