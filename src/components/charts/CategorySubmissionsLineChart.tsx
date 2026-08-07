@@ -33,7 +33,7 @@ const SERIES = [
 ] as const;
 
 export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
-  const { t } = useLocale();
+  const { t, formatters } = useLocale();
   const series = useMemo(() => SERIES.map((entry) => ({ ...entry, label: t(entry.labelKey) })), [t]);
   const [hiddenSeries, setHiddenSeries] = useState<ReadonlySet<string>>(() => new Set());
   const toggleSeries = (id: string) =>
@@ -85,7 +85,13 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
           role="img"
           aria-label={t('charts.types.aria')}
         >
-          <LineChart data={chartData} aspectRatio="16 / 8">
+          <LineChart
+            data={chartData}
+            aspectRatio="16 / 8"
+            // Monthly points are all on the 1st — the default month+day labels
+            // drop the year, which is ambiguous across multi-year ranges.
+            formatDateLabel={(date) => formatters.monthYear(date)}
+          >
             <Grid horizontal />
             <YAxis />
             {visibleSeries.map((entry) => (
@@ -102,6 +108,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
             {/* Rows are named explicitly: the tooltip would otherwise show the
                 raw series ids now that those are no longer display text. */}
             <ChartTooltip
+              titleFormat={(date) => formatters.monthYear(date)}
               rows={(point) =>
                 visibleSeries.map((entry) => ({
                   color: entry.color,
