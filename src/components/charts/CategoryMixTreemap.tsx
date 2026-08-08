@@ -1,11 +1,17 @@
 // src/components/charts/CategoryMixTreemap.tsx
-// Zoomable hierarchical treemap of the Category Mix: all applications at the
-// root, categories as blocks, bureaus nested inside. Click a category to zoom
-// into its full bureau breakdown; click the background (or Esc) to zoom out.
+// Zoomable hierarchical treemap: a total at the root, categories as blocks,
+// leaves nested inside. Click a category to zoom into its full breakdown;
+// click the background (or Esc) to zoom out.
 //
-// The live Category Mix view. CategoryMixSunburst renders the same hierarchy
-// (shared buildCategoryMixTree, same props contract) as a sunburst — swapping
-// the `mix` entry in ChartComponents.tsx is all it takes to switch.
+// `MixTreemap` is the presentation half and knows nothing about which dataset
+// it is drawing — it takes a MixTree of codes plus the functions that turn
+// those codes into words. `CategoryMixTreemap` binds it to the processing
+// hierarchy (application type → bureau) and ResidenceStatusMixChart binds it
+// to the residents one (status group → residence status).
+//
+// CategoryMixSunburst renders the processing hierarchy (shared
+// buildCategoryMixTree, same props contract) as a sunburst — swapping the
+// `mix` entry in ChartComponents.tsx is all it takes to switch.
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -18,6 +24,24 @@ import { useApplicationType, useBureauCompact, useBureauLabel } from '../../i18n
 import type { MixTree } from '../../utils/categoryMixTree';
 import { buildCategoryMixTree, mixLeafColor } from '../../utils/categoryMixTree';
 import type { ImmigrationChartData } from '../common/ChartComponents';
+
+/**
+ * Everything the treemap needs in words. Passed in rather than looked up so
+ * the component stays free of any one dataset's domain constants — and so the
+ * tile keys that drive the zoom animation remain codes, never display text.
+ */
+export interface MixTreemapLabels {
+  /** Breadcrumb root, e.g. "All applications". */
+  root: string;
+  /** Scope phrase inside a tooltip, e.g. "all applications". */
+  scopeAll: string;
+  categoryLabel: (key: string) => string;
+  categoryShort: (key: string) => string;
+  leafLabel: (code: string) => string;
+  leafCompact: (code: string) => string;
+  categoryAria: (params: { category: string; count: string }) => string;
+  tooltipValue: (params: { count: string; percent: string; scope: string }) => string;
+}
 
 interface Rect {
   x: number;
@@ -165,17 +189,10 @@ const HEIGHT = 430;
 const TILE_TRANSITION =
   'left 0.42s ease-out, top 0.42s ease-out, width 0.42s ease-out, height 0.42s ease-out, opacity 0.42s ease-out, filter 0.15s';
 
-export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
-  const tree = useMemo(() => buildCategoryMixTree(data, filters, range), [data, filters, range]);
-  // The tree carries codes only, so the tile keys that drive its zoom
-  // animation stay language-neutral; display names are resolved here.
+export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> = ({ tree, labels }) => {
   const { t, formatters } = useLocale();
   const fmt = formatters.number;
-  const applicationType = useApplicationType();
-  const getBureauLabel = useBureauLabel();
-  const getBureauCompact = useBureauCompact();
-  const typeLabel = (code: string) => applicationType(code)?.label ?? code;
-  const typeShort = (code: string) => applicationType(code)?.short ?? code;
+  const { categoryLabel, categoryShort, leafLabel, leafCompact } = labels;
   const [focusKey, setFocusKey] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -276,12 +293,12 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
             disabled={focusKey === null}
             className="rounded font-medium text-primary hover:opacity-80 disabled:font-semibold disabled:text-foreground"
           >
-            {t('chart.mix.root')}
+            {labels.root}
           </button>
           {focused && (
             <>
               <span aria-hidden="true">›</span>
-              <span className="font-semibold text-foreground">{typeLabel(focused.key)}</span>
+              <span className="font-semibold text-foreground">{categoryLabel(focused.key)}</span>
             </>
           )}
         </nav>
@@ -306,8 +323,8 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
           return (
             <button
               key={category.key}
-              aria-label={t('chart.mix.categoryAria', {
-                category: typeLabel(category.key),
+              aria-label={labels.categoryAria({
+                category: categoryLabel(category.key),
                 count: fmt(category.value),
               })}
               onClick={(event) => {
@@ -318,12 +335,12 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
               onMouseMove={(event) =>
                 showTip(
                   event,
-                  typeLabel(category.key),
+                  categoryLabel(category.key),
                   category.color,
-                  t('chart.mix.tooltipValue', {
+                  labels.tooltipValue({
                     count: fmt(category.value),
                     percent: formatters.percent((category.value / tree.total) * 100),
-                    scope: t('chart.mix.scopeAll'),
+                    scope: labels.scopeAll,
                   })
                 )
               }
@@ -337,7 +354,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
             >
               {!tiny && (
                 <span className="flex items-baseline justify-between gap-2 whitespace-nowrap px-2.5 pt-1.5 text-xs font-bold text-background">
-                  <span className="overflow-hidden text-ellipsis">{typeLabel(category.key)}</span>
+                  <span className="overflow-hidden text-ellipsis">{categoryLabel(category.key)}</span>
                   {!compact && (
                     <span className="font-mono text-xxs font-semibold opacity-85">
                       {formatters.percent((category.value / tree.total) * 100)}
@@ -380,12 +397,12 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
                 onMouseMove={(event) => {
                   event.stopPropagation();
                   if (rest) return;
-                  const ofLabel = focusKey === category.key ? typeLabel(category.key) : t('chart.mix.scopeAll');
+                  const ofLabel = focusKey === category.key ? categoryLabel(category.key) : labels.scopeAll;
                   showTip(
                     event,
-                    `${getBureauLabel(leaf.code)} · ${typeShort(category.key)}`,
+                    `${leafLabel(leaf.code)} · ${categoryShort(category.key)}`,
                     mixLeafColor(category.color, rank),
-                    t('chart.mix.tooltipValue', {
+                    labels.tooltipValue({
                       count: fmt(leaf.value),
                       percent: formatters.percent((leaf.value / base) * 100),
                       scope: ofLabel,
@@ -398,7 +415,7 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
                   <span className="flex flex-col px-2 py-1 text-xs font-semibold leading-tight">
                     {/* Compact on the tile — it only renders above 60px wide
                         and ellipsizes. The tooltip above keeps the full name. */}
-                    <span>{rest ? t('chart.mix.others') : getBureauCompact(leaf.code)}</span>
+                    <span>{rest ? t('chart.mix.others') : leafCompact(leaf.code)}</span>
                     {!rest && showLeafValue && (
                       <span className="font-mono text-xxs font-medium opacity-75">
                         {fmt(leaf.value)} · {formatters.percent((leaf.value / base) * 100)}
@@ -431,4 +448,28 @@ export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filte
         )}
     </div>
   );
+};
+
+/**
+ * The Category Mix view: application type → bureau, from the processing cube.
+ */
+export const CategoryMixTreemap: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
+  const tree = useMemo(() => buildCategoryMixTree(data, filters, range), [data, filters, range]);
+  const { t } = useLocale();
+  const applicationType = useApplicationType();
+  const bureauLabel = useBureauLabel();
+  const bureauCompact = useBureauCompact();
+
+  const labels: MixTreemapLabels = {
+    root: t('chart.mix.root'),
+    scopeAll: t('chart.mix.scopeAll'),
+    categoryLabel: (code) => applicationType(code)?.label ?? code,
+    categoryShort: (code) => applicationType(code)?.short ?? code,
+    leafLabel: bureauLabel,
+    leafCompact: bureauCompact,
+    categoryAria: (params) => t('chart.mix.categoryAria', params),
+    tooltipValue: (params) => t('chart.mix.tooltipValue', params),
+  };
+
+  return <MixTreemap tree={tree} labels={labels} />;
 };

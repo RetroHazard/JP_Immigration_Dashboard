@@ -1,15 +1,17 @@
 # Japan Immigration Statistics Dashboard
-[![Version](https://img.shields.io/badge/version-1.2.7-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
+[![Version](https://img.shields.io/badge/version-1.4.1-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![Deploy](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/deploy.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/deploy.yaml) [![CI](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/ci.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/ci.yaml) [![Data Watcher](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml)
+[![Deploy](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/deploy.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/deploy.yaml) [![Verify](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/verify.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/verify.yaml) [![Data Watcher](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml/badge.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/actions/workflows/watcher.yaml)
 
 ## Overview
-A Next.js-based dashboard for visualizing and analyzing application processing statistics at Japan's Regional
-Immigration Bureaus. The dashboard provides estimates and visual analytics for application processing
-times across different immigration bureaus using a combination of predictive averages and confirmed statistics
-reported by the Immigration Services Agency of Japan.
+A Next.js-based dashboard for visualizing and analyzing Japan's immigration statistics, published by the
+Immigration Services Agency of Japan. Two independent datasets sit behind a single switch: **Application
+Processing**, which provides estimates and visual analytics for application processing times across Japan's
+Regional Immigration Bureaus using a combination of predictive averages and confirmed statistics; and
+**Resident Population**, which visualizes who actually lives in Japan and on what visa, by nationality and
+residence status over time.
 
 ---
 
@@ -44,8 +46,11 @@ For detailed setup instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
 ## :sparkles: Features
 
 ### :bar_chart: Data Visualization
-Seven interactive charts, each answering a specific question about the data, with per-chart filtering
-(bureau and/or application type, where relevant) and a configurable time range.
+Thirteen interactive charts across two datasets, each answering a specific question about the data, with
+per-chart filtering and a configurable time range.
+
+#### Application Processing
+Seven charts, filterable by bureau and/or application type where relevant.
 
 #### **Intake & Processing**
 - **Purpose:** Applications carried over and newly received each month, against the volume the bureaus completed.
@@ -98,6 +103,51 @@ Seven interactive charts, each answering a specific question about the data, wit
   - Interactive choropleth of Japan at the prefectural level, shaded by population density (Statistics Bureau of Japan estimates)
   - Bureau and airport office markers with location-specific tooltips
   - Built-in zoom and pan
+
+#### Resident Population
+Six charts answering a different question from the rest of the dashboard: not how fast applications are
+processed, but who actually lives in Japan and on what visa — 202 nationalities across 43 residence statuses
+(rolled up into 6 purpose-of-stay groups), every half-year since December 2012. Filterable by world region
+and/or nationality where relevant, with a region-to-nationality cascade; charts either sum over a time window
+or show a single half-yearly snapshot, picked with the same range control.
+
+#### **Population Growth**
+- **Purpose:** How the total resident population has grown over time, and who's driving it.
+- **Features:**
+  - Stacked bars of total residents per half-year since 2012, toggleable between purpose-of-stay and world-region breakdowns
+  - Event markers for policy changes and the COVID-19 dip
+  - Filterable by region and nationality
+
+#### **Origins Over Time**
+- **Purpose:** How the largest nationalities have trended across the whole period.
+- **Features:**
+  - Line chart of the largest nationalities or status groups over time
+  - Filterable by region and status group
+
+#### **Resident Flows**
+- **Purpose:** How nationality and residence status cross-tabulate, for a single point in time.
+- **Features:**
+  - Three-column sankey: world region → country → purpose-of-stay group
+  - Top-N country selection with an "other" bucket for the long tail
+  - Snapshot period picker; filterable by region, nationality, and status group
+
+#### **Residence Status Mix**
+- **Purpose:** A nationality's visas broken down by purpose of stay, for a single point in time.
+- **Features:**
+  - Sunburst: purpose-of-stay groups as the inner ring, individual statuses as the outer, click to zoom
+  - Snapshot period picker; filterable by region and nationality
+
+#### **World Origins**
+- **Purpose:** Where residents come from, geographically.
+- **Features:**
+  - World map shaded by resident count on a log scale
+  - Snapshot period picker; filterable by region and status group
+
+#### **Biggest Movers**
+- **Purpose:** Which nationalities gained or lost the most residents between two points in time.
+- **Features:**
+  - Diverging bar chart of the largest gains and losses between range endpoints
+  - Configurable time range (3/5/10 years, or all); filterable by region and status group
 
 ---
 
@@ -199,22 +249,40 @@ The dashboard automatically monitors and updates immigration statistics from the
 
 ### Data Watcher Workflow
 - **Schedule:** Runs daily at 10:05 AM JST, year-round — not just around the expected release window, so it also catches retroactive corrections e-Stat occasionally publishes mid-month
-- **Detection:** Compares `SURVEY_DATE` in e-Stat API responses against the previous run's data to detect new or corrected releases
-- **Conditional Publish:** A build and deploy is only triggered when `SURVEY_DATE` has actually changed — most daily runs find nothing new and exit without publishing anything. When it does change, the watcher calls the deploy workflow directly, so the check and the publish are one linked run
-- **Cache Management:** The watcher owns the e-Stat cache, saving under a key derived from the payload's content hash and pruning superseded entries; the deploy only reads it. Reading the cache daily is also what keeps it from being evicted
+- **Probe, don't download:** Each run asks e-Stat for a single row per table, which returns the table's `SURVEY_DATE` in a couple of kilobytes. On a normal day that is the whole run — the full payloads, hundreds of thousands of rows, are downloaded only once something has actually moved
+- **Detection:** Compares each table's `SURVEY_DATE` against the baseline recorded when it was last published, to detect new or corrected releases
+- **Every table, one run:** Every source table is checked on each run and any one of them moving triggers a deploy — at which point all of them are re-downloaded together. They share a single cache entry, so a deploy can never pair a fresh copy of one with a stale copy of another
+- **Conditional Publish:** A build and deploy is only triggered when a `SURVEY_DATE` has actually changed — most daily runs find nothing new and exit without publishing anything. When it does change, the watcher calls the deploy workflow directly, so the check and the publish are one linked run
+- **Cache Management:** The watcher owns the e-Stat cache, saving under a key derived from the payloads' content hash and pruning superseded entries; the deploy only reads it. Reading the cache daily is also what keeps it from being evicted
+- **Dataset-driven:** The tables come from a single manifest (`scripts/datasets.mjs`). Adding one is a manifest entry plus a transform — no workflow changes
 
 ---
 
 ## :chart_with_upwards_trend: Data Processing
 
+### Data Sources:
+
+Two independent e-Stat tables, published by the Japan Immigration Services Agency, each with its own dashboard behind the **Application Processing / Resident Population** switch:
+
+| | Application Processing | Resident Population |
+|---|---|---|
+| e-Stat table | `0003449073` | `0004019020` (在留外国人統計 表01) |
+| Measures | applications received and processed | people resident, at a point in time |
+| Dimensions | bureau × application type × status | nationality/region × residence status |
+| Cadence | monthly | half-yearly (半期), each June and December |
+| Coverage | rolling | 2012-12 onward |
+
+They share no dimension, which is why they are separate views rather than combined ones: nothing in the residents table can be broken down by bureau, and nothing in the processing table can be broken down by nationality.
+
 ### Data Acquisition:
 - **Source:** Official statistics from Japan Immigration Services Agency via [e-Stat API](https://www.e-stat.go.jp/)
-- **Automation:** Scheduled monitoring and fetching via GitHub Actions workflows
+- **Pagination:** `getStatsData` caps a response at 100,000 rows and reports the continuation offset as `RESULT_INF.NEXT_KEY`. The residents table is roughly twice that, so `scripts/fetch-estat-data.mjs` pages until `NEXT_KEY` is gone, merges, and asserts the merged row count against `TOTAL_NUMBER` — a short read otherwise arrives as a valid, complete-looking payload holding half the table
+- **Automation:** Scheduled monitoring and fetching via GitHub Actions workflows, running the same script a developer runs locally
 - **Validation:** Multi-stage validation including:
-  - HTTP response status checking
-  - JSON structure validation using `jq`
-  - Required field verification (`GET_STATS_DATA.STATISTICAL_DATA`)
-  - Data freshness checks via `SURVEY_DATE` comparison
+  - HTTP response status checking, with a bounded retry budget
+  - Required field verification (`GET_STATS_DATA.STATISTICAL_DATA`), since the API reports errors as a 200 carrying an error envelope
+  - Merged row count asserted against `RESULT_INF.TOTAL_NUMBER`, re-checked at build time before the transform runs
+  - Data freshness checks via `SURVEY_DATE` comparison, which fails loudly rather than reading a missing field as "no change"
 - **Caching:** GitHub Actions cache for optimal performance and API rate limiting
 - **Error Handling:** Comprehensive failure detection with workflow notifications
 
@@ -233,6 +301,16 @@ The dashboard automatically monitors and updates immigration statistics from the
         - Osaka Regional Immigration Bureau (大阪出入国在留管理局管内) is inclusive of Osaka, Kobe, and Kansai Airport.
           - Kobe's Branch is responsible for the Hyogo area.
           - The statistics provided for Kobe and Kansai Airport are removed from the Osaka Regional Bureau, so that each can be represented uniquely.
+
+### Residents Data Corrections:
+
+The Resident Population table needs three corrections of its own, all applied once at build time (`scripts/transform-data.mts`):
+
+- **Residence-status parentage.** e-Stat publishes the 技能実習 (Technical Intern Training) sub-statuses with `@parentCode 1260` — 特定技能合計, Specified Skilled Worker. Taking that at face value roughly triples one category and empties the other. The five 身分・地位 statuses (永住者, 日本人の配偶者等, 永住者の配偶者等, 定住者, 特別永住者) carry no parent at all. The corrected hierarchy is declared in `src/constants/residenceStatuses.ts` rather than read from the payload.
+- **Nested 「うち」 rows.** うち中国〔香港〕/〔その他〕 and うち英国〔香港〕 are contained in their parent country's figure and would double-count if summed, so they are dropped. 韓国・朝鮮 looks like the same case but is not: it is the pre-2015 combined Korea series, and its periods do not overlap 韓国/朝鮮. It is kept, and the time-series views fold the three back into one line so the 2015 recategorization doesn't read as half a million people leaving.
+- **Rollups and zeros.** Every 総数/合計 row is the sum of its own children and is recomputed client-side instead of shipped; e-Stat emits a row per (status, nationality) pair whether or not anyone holds it, and about 60% are zero. Dropping both takes ~191,000 rows to ~42,000. `verifyResidentTotals` then re-adds the kept leaves on **both** axes and compares them against e-Stat's own published totals — a mismatch means the classification has drifted and would produce a chart that looks fine and is quietly wrong, so it fails the build.
+
+Country and continent names are not translated by hand: `src/constants/nationalities.ts` carries ISO 3166-1 codes (and UN M49 codes for the six continents), and `Intl.DisplayNames` resolves them per locale. Only the five rows with no such identity — 朝鮮, 韓国・朝鮮, セルビア・モンテネグロ, ユーゴスラヴィア, 無国籍 — have catalogue entries.
         
         - Fukuoka Regional Immigration Bureau (福岡出入国在留管理局管内) is inclusive of Fukuoka, and Naha.
           - Naha's Branch is responsible for the Okinawa area.
@@ -279,7 +357,7 @@ The dashboard automatically monitors and updates immigration statistics from the
 ### Performance Optimizations
 - **React Memoization:** `useMemo` and `useCallback` for expensive calculations
 - **Lazy Loading:** Dynamic imports for heavy dependencies (KaTeX ~100KB)
-- **Single-Pass Filtering:** Centralized filtering eliminates duplicate operations across all 7 chart components
+- **Single-Pass Filtering:** Centralized filtering eliminates duplicate operations across all 13 chart components in both datasets
 - **Pre-computed Data:** Color scales and static configurations calculated once at mount
 
 ### Build Configuration

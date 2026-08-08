@@ -38,7 +38,7 @@ graph TB
     
     subgraph "Build & Deploy (deploy.yaml)"
         VERIFY["verify.yaml<br/>lint + typecheck + test"]
-        RAW["statData.json<br/>(raw, cached)"]
+        RAW["processingData.json<br/>(raw, cached)"]
         TRANSFORM["transform-data.mts<br/>flatten + deaggregate"]
         STATS["dashboard.json<br/>(packed, compact)"]
         BUILD["Next.js Build<br/>(static export)"]
@@ -172,6 +172,35 @@ Each chart calls `selectData` independently with its own bureau/type/range selec
 
 A sibling `CategoryMixSunburst.tsx` renders the same hierarchy (shared `categoryMixTree.ts`) as a sunburst instead of a treemap, and `ProcessingEfficiencyQuadrantChart.tsx` renders the efficiency data (shared `processingEfficiency.ts`) as a quadrant scatter; neither is currently wired into the chart tab registry.
 
+The Resident Population dataset's six charts follow the same independent-`selectData`-call pattern, against `useSelectedResidents`/`residentsSelectors.ts` instead:
+
+```mermaid
+graph TD
+    RRAW["ResidentRecord[]<br/>Passed to every resident chart as props"]
+    GROWTH["PopulationGrowthChart<br/>residentsGrowth → Sum by period × group/region"]
+    ORIGINS["NationalityTrendChart<br/>useSelectedResidents → Top nationalities over time"]
+    FLOWS["ResidentFlowsSankeyChart<br/>residentsFlows → Region → country → status flow"]
+    STATUSES["ResidenceStatusSunburst<br/>residenceStatusTree → Hierarchical sum, one snapshot"]
+    WORLD["OriginChoroplethChart<br/>useSelectedResidents → Aggregate by ISO country"]
+    MOVERS["NationalityMoversChart<br/>useSelectedResidents → Diff between range endpoints"]
+
+    RRAW --> GROWTH
+    RRAW --> ORIGINS
+    RRAW --> FLOWS
+    RRAW --> STATUSES
+    RRAW --> WORLD
+    RRAW --> MOVERS
+
+    GROWTH -.->|Render| RVIZ1["Bklit ComposedChart (visx)"]
+    ORIGINS -.->|Render| RVIZ2["Bklit LineChart (visx)"]
+    FLOWS -.->|Render| RVIZ3["Bklit Sankey (visx), 3-tier"]
+    STATUSES -.->|Render| RVIZ4["Bklit SunburstChart (visx)"]
+    WORLD -.->|Render| RVIZ5["Bklit Choropleth (visx)"]
+    MOVERS -.->|Render| RVIZ6["Diverging bar (visx)"]
+```
+
+`growth`, `origins`, and `movers` sum over a time window (`timeControl: 'range'`); `flows`, `statuses`, and `worldmap` show one half-yearly snapshot (`timeControl: 'snapshot'`), picked with `SnapshotPeriodSelector` instead of the range picker. A sibling `ResidenceStatusMixChart.tsx` renders the same `residenceStatusTree.ts` hierarchy as a zoomable treemap instead of a sunburst — the same swap-ready-alternate relationship as `CategoryMixTreemap`/`CategoryMixSunburst`, just with the sunburst as the live registry entry this time; it isn't currently wired into the chart tab registry.
+
 ## Component Architecture
 
 ### Component Hierarchy
@@ -185,7 +214,9 @@ graph TD
     APP --> SHELL["📐 DashboardShell<br/>Header + Tabs + Footer"]
     
     SHELL --> FILTER["🔍 FilterPanel<br/>Bureau & Application Type"]
+    SHELL --> RFILTER["🔍 ResidentFilterPanel<br/>Region, Nationality & Status Group"]
     SHELL --> STATS["📊 StatsSummary<br/>Summary Stat Cards"]
+    SHELL --> RSTATS["📊 ResidentsStatsSummary<br/>Summary Stat Cards"]
     SHELL --> ACTIVE["🔀 ActiveChart<br/>Renders the selected tab"]
     SHELL --> TABLE["📋 ChartDataTable<br/>Data table + CSV export"]
     SHELL --> ESTIMATOR["⏱️ EstimationCard<br/>Queue Predictor"]
@@ -199,6 +230,12 @@ graph TD
     CHARTS --> MIX["🗂️ CategoryMixTreemap"]
     CHARTS --> EFFICIENCY["🍭 ProcessingEfficiencyLollipop"]
     CHARTS --> MAP["🗾 GeographicDistributionChart"]
+    CHARTS --> GROWTH["📈 PopulationGrowthChart"]
+    CHARTS --> ORIGINS["📉 NationalityTrendChart"]
+    CHARTS --> FLOWS["🔀 ResidentFlowsSankeyChart"]
+    CHARTS --> STATUSES["☀️ ResidenceStatusSunburst"]
+    CHARTS --> WORLD["🌐 OriginChoroplethChart"]
+    CHARTS --> MOVERS["⚖️ NationalityMoversChart"]
     
     style APP fill:#4CAF50,color:#fff
     style SHELL fill:#2196F3,color:#fff
@@ -234,16 +271,27 @@ The single responsive shell that:
 
 #### **FilterPanel** (`src/components/FilterPanel.tsx`)
 
-Controls for filtering data:
+Controls for filtering the Application Processing dataset:
 - Bureau selection (single-select, plus an optional "Compare With" second bureau)
 - Application type selection
 - A global airport toggle (beside the reset button) that removes the airport branch offices from every chart, stat, and table — their volumes are also subtracted from the nationwide totals, and they drop out of the bureau/compare dropdowns while active
 - Filter availability is driven per-chart by the `ChartComponents` registry
 - Filters are applied to whichever chart is active
 
+#### **ResidentFilterPanel** (`src/components/ResidentFilterPanel.tsx`)
+
+Controls for filtering the Resident Population dataset:
+- World region selection, cascading into the nationality list — picking a region narrows the country options to that region's members, and clears an out-of-region nationality selection
+- Nationality selection
+- Status group selection — 6 purpose-of-stay groups (work, training, residency, and so on), replacing the raw 39 residence-status codes; legacy permalinks built from the old individual codes still resolve, mapped onto their group
+- Filter availability is driven per-chart by the `ChartComponents` registry, same as `FilterPanel`
+- No bureau, application type, or airport toggle — neither dimension exists in this cube
+
 #### **Chart Components** (`src/components/charts/`)
 
-Seven chart components, registered in `src/components/common/ChartComponents.tsx` and rendered as tabs:
+Thirteen chart components across both datasets, registered in `src/components/common/ChartComponents.tsx` and rendered as tabs.
+
+Seven for Application Processing:
 
 | Component | Library | Purpose |
 |-----------|---------|---------|
@@ -256,6 +304,19 @@ Seven chart components, registered in `src/components/common/ChartComponents.tsx
 | GeographicDistributionChart | Bklit Choropleth (visx) | Geographic distribution |
 
 Two swap-ready alternates live beside them, unwired from the registry: `CategoryMixSunburst.tsx` (the Category Mix hierarchy as a sunburst) and `ProcessingEfficiencyQuadrantChart.tsx` (Processing Efficiency as a quadrant scatter — completion rate against intake volume, split at the period medians, d3-scale + raw SVG). Each shares its live sibling's data contract, so swapping is a one-line registry change.
+
+Six for Resident Population, in tab order (the narrative: how the total grew → who grew → how origin and status cross-tabulate → the status detail → where on the map → what changed most recently):
+
+| Component | Library | Purpose |
+|-----------|---------|---------|
+| PopulationGrowthChart | Bklit ComposedChart (visx) | Total residents per half-year, by status group or region |
+| NationalityTrendChart | Bklit LineChart (visx) | Largest nationalities across the whole period |
+| ResidentFlowsSankeyChart | Bklit Sankey (visx), 3-tier | Region → country → status group, one snapshot |
+| ResidenceStatusSunburst | Bklit SunburstChart (visx) | A nationality's visas by purpose of stay, one snapshot |
+| OriginChoroplethChart | Bklit Choropleth (visx) | Resident count by country of origin, log scale |
+| NationalityMoversChart | Diverging bar (visx) | Largest gains/losses between two points in time |
+
+A swap-ready alternate lives beside `ResidenceStatusSunburst`, unwired from the registry: `ResidenceStatusMixChart.tsx` renders the same `residenceStatusTree.ts` hierarchy as a zoomable treemap instead — the same pattern as `CategoryMixTreemap`/`CategoryMixSunburst`, just with the sunburst as the live entry.
 
 Each chart:
 - Receives pre-filtered data as props
@@ -295,8 +356,10 @@ graph TD
     SHELL["DashboardShell<br/>Main State Hub"]
     
     DATA["🗄️ immigrationData<br/>Raw dataset<br/>from dashboard.json"]
+    RDATA["🗄️ residentsData<br/>Raw dataset<br/>from residents.json"]
     
     FILTERS["🔍 Filters (URL, via nuqs)<br/>?bureau=<br/>?type=<br/>?compare="]
+    RFILTERS["🔍 Resident filters (URL, via nuqs)<br/>?region=<br/>?nationality=<br/>?group="]
     
     THEME["🎨 next-themes<br/>theme: light|dark|system<br/>persisted to localStorage"]
     
@@ -305,20 +368,29 @@ graph TD
     UI["UI State<br/>loading, error"]
     
     SHELL --> DATA
+    SHELL --> RDATA
     SHELL --> FILTERS
+    SHELL --> RFILTERS
     SHELL --> THEME
     SHELL --> ESTIMATOR
     SHELL --> UI
     
-    DATA -->|passed as props, airport toggle pre-applied| CHARTS["7 Chart Components"]
+    DATA -->|passed as props, airport toggle pre-applied| CHARTS["7 Processing Chart Components"]
     FILTERS -->|passed as props| CHARTS
     CHARTS -->|each independently calls| FILTERED["🔄 selectData / useSelectedData<br/>Memoized per chart, on its own selection key"]
+
+    RDATA -->|passed as props, unfiltered| RCHARTS["6 Resident Chart Components"]
+    RFILTERS -->|passed as props| RCHARTS
+    RCHARTS -->|each independently calls| RFILTERED["🔄 useSelectedResidents<br/>Memoized per chart, on its own selection key"]
     
     style SHELL fill:#4CAF50,color:#fff
     style DATA fill:#2196F3,color:#fff
+    style RDATA fill:#2196F3,color:#fff
     style FILTERS fill:#9C27B0,color:#fff
+    style RFILTERS fill:#9C27B0,color:#fff
     style THEME fill:#FF9800,color:#fff
     style CHARTS fill:#00BCD4,color:#fff
+    style RCHARTS fill:#00BCD4,color:#fff
 ```
 
 ### Why No Redux/Zustand?
@@ -349,6 +421,23 @@ interface ImmigrationData {
 
 `public/data/dashboard.json` stores this as a packed schema (index tables + flat value tuples, ~10x smaller than the raw payload) that `unpackDashboardData` (`src/utils/dashboardData.ts`) expands back into `ImmigrationData[]`.
 
+The Resident Population dataset is a second, independent cube with its own record, its own packed file, and its own selectors (`src/utils/residentsData.ts`, `residentsSelectors.ts`):
+
+```typescript
+interface ResidentRecord {
+  period: string;       // "2025-12" — a half-year snapshot, not a month
+  status: string;       // e-Stat cat01 residence-status code
+  nationality: string;  // e-Stat cat02 nationality/region code
+  value: number;
+}
+```
+
+The two share no dimension, so they are never merged: `ChartDefinition` is a union discriminated on `dataset`, and the shell narrows on it to pick the filter shape, the range vocabulary, and the props each chart gets. `meta.kind` on the residents file (stride 4) is what stops it being read by the processing unpacker (stride 5), which would otherwise produce three-quarters as many plausible-looking nonsense records rather than an error.
+
+Each `ChartDefinition` also carries a `timeControl`, `'range'` or `'snapshot'`. `growth`, `origins`, and `movers` sum over a picked time window, same as the processing charts; `flows`, `statuses`, and `worldmap` are "stock" figures — one half-yearly snapshot rather than a sum — and use `SnapshotPeriodSelector` (`src/components/common/SnapshotPeriodSelector.tsx`) in place of the range picker. `residentPeriod.ts` formats and orders the half-yearly period strings both controls share.
+
+Filtering is a `region`/`nationality`/`group` triple rather than processing's `bureau`/`type`: `region` narrows `nationality` (a country belongs to exactly one of the world regions declared in `nationalities.ts`), and `group` is the 6-way purpose-of-stay grouping declared in `residenceStatusTree.ts`, replacing the 39 raw e-Stat status codes for filtering purposes. `residentUrlParams.ts` parses both the current group-based URL params and the legacy individual-status-code params from pre-#78 permalinks, mapping the latter onto their group so old shared links keep resolving. `residentsGrowth.ts` builds the growth chart's per-period series (status-group and region breakdowns, plus an `indexSeries()` helper for normalized trend comparisons) and `residentsFlows.ts` builds the sankey's three-tier region→country→status flow, including top-N country selection with an "other" bucket for the long tail. `constants/japanPopulation.ts` is a static year-by-year lookup of Japan's total population, used only as the denominator for the "share of total population" figure in `ResidentsStatsSummary`.
+
 ### 2. Build-Time vs. Runtime Pipeline
 
 Bureau-aggregate correction (deaggregation) now happens **once at build time**, not on every page load:
@@ -356,27 +445,47 @@ Bureau-aggregate correction (deaggregation) now happens **once at build time**, 
 ```mermaid
 graph LR
     subgraph "Build time (scripts/transform-data.mts)"
-        RAW["📥 public/datastore/statData.json<br/>Raw e-Stat payload"]
+        MANIFEST["🗂️ scripts/datasets.mjs<br/>id · statsDataId · raw · out<br/>drives fetch, watcher, cache and build"]
+
+        RAW["📥 public/datastore/processingData.json<br/>Raw e-Stat 0003449073"]
         FLATTEN["🔍 transformData<br/>dataTransform.ts"]
         CORRECT["➖ correctBureauAggregates.ts<br/>Subtract branch totals"]
         PACK["📦 packDashboardData<br/>dashboardData.ts"]
         OUT["📤 public/data/dashboard.json"]
-        
+
+        MANIFEST -.->|registers| RAW
         RAW --> FLATTEN
         FLATTEN --> CORRECT
         CORRECT --> PACK
         PACK --> OUT
+
+        RRAW["📥 public/datastore/residentsData.json<br/>Raw e-Stat 0004019020 (paged + merged)"]
+        RFLAT["🔍 transformResidentsData<br/>Prune rollups, 「うち」 rows, zeros"]
+        RVERIFY["✅ verifyResidentTotals<br/>Re-add leaves on both axes<br/>vs e-Stat's own totals"]
+        RPACK["📦 packResidentsData<br/>residentsData.ts"]
+        ROUT["📤 public/data/residents.json"]
+
+        MANIFEST -.->|registers| RRAW
+        RRAW --> RFLAT
+        RFLAT --> RVERIFY
+        RVERIFY -->|mismatch: fail the build| RFLAT
+        RVERIFY --> RPACK
+        RPACK --> ROUT
     end
-    
+
     subgraph "Runtime (browser)"
         FETCH["📥 Fetch dashboard.json<br/>useImmigrationData"]
         UNPACK["🔓 unpackDashboardData<br/>Validate schema"]
-        
+        RFETCH["📥 Fetch residents.json<br/>useResidentsData"]
+        RUNPACK["🔓 unpackResidentsData<br/>Validate schema + kind"]
+
         FETCH --> UNPACK
+        RFETCH --> RUNPACK
     end
-    
+
     OUT -.->|served as static asset| FETCH
-    
+    ROUT -.->|served as static asset| RFETCH
+
     UNPACK -->|props, unfiltered| INTAKE["IntakeProcessingBarChart"]
     UNPACK -->|props, unfiltered| TYPES["CategorySubmissionsLineChart"]
     UNPACK -->|props, unfiltered| OUTCOMES["OutcomesSankeyChart"]
@@ -384,7 +493,24 @@ graph LR
     UNPACK -->|props, unfiltered| MIX["CategoryMixTreemap"]
     UNPACK -->|props, unfiltered| EFFICIENCY["ProcessingEfficiencyLollipop"]
     UNPACK -->|props, unfiltered| MAP["GeographicDistributionChart"]
+
+    RUNPACK -->|props, unfiltered| GROWTH["PopulationGrowthChart"]
+    RUNPACK -->|props, unfiltered| ORIGINS["NationalityTrendChart"]
+    RUNPACK -->|props, unfiltered| FLOWS["ResidentFlowsSankeyChart"]
+    RUNPACK -->|props, unfiltered| STATUSES["ResidenceStatusSunburst"]
+    RUNPACK -->|props, unfiltered| WORLD["OriginChoroplethChart"]
+    RUNPACK -->|props, unfiltered| MOVERS["NationalityMoversChart"]
 ```
+
+The two chains share no dimension, so they share no code path — but they do share a
+lifecycle, and it is written once. `transform-data.mts` walks `scripts/datasets.mjs` and
+runs each entry through the same sequence (fixture fallback → completeness check →
+transform → optional verify → pack → report), dispatching the cube-specific parts through
+a handler table keyed by dataset id. The manifest is also what the fetch script, the
+watcher and the Actions cache read, so a dataset is registered in exactly one place; see
+[Adding a dataset](DEVELOPMENT.md#adding-a-dataset).
+
+Both files are fetched eagerly at boot (`src/App.tsx`), so switching datasets is instant. A failure to load the residents file is not fatal: the shell disables that half of the switcher and the processing dashboard carries on.
 
 Each chart then independently calls `selectData`/`useSelectedData` (`src/utils/selectors.ts`), memoized on its own selection key — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). "Unfiltered" has one global exception: with the airport toggle off, `DashboardShell` drops the airport branch offices' rows and subtracts their volumes from the nationwide aggregate before the props are passed (`src/utils/excludeAirportData.ts`).
 
@@ -417,11 +543,13 @@ graph TD
     HANEDA --> RESULT
 ```
 
+The residents cube needs a different correction, for the same class of reason — e-Stat's own metadata disagrees with its own totals. `src/constants/residenceStatuses.ts` declares the corrected status hierarchy (the payload misparents the 技能実習 sub-statuses to 特定技能合計 and leaves the five 身分・地位 statuses with no parent at all), and `src/constants/nationalities.ts` flags the nested 「うち」 rows that would double-count. `verifyResidentTotals` (`src/utils/residentsTransform.ts`) then checks the result against e-Stat's published 総数 rows on both axes and fails the build on any mismatch, because the failure mode is a chart that looks entirely plausible and is quietly wrong.
+
 **Code Location:** `src/utils/correctBureauAggregates.ts` → `makeCorrectedAccessor()`, called from `src/utils/dataTransform.ts` → `transformData()` during `scripts/transform-data.mts` (build time). `getCorrectedValue()` subtracts the sum of a bureau's `children` codes (from `src/constants/bureauOptions.ts`) from its own raw value, so the aggregate code (e.g. `101170`) ends up representing only its own HQ processing, while each branch's own code (e.g. `101210` Yokohama) is left untouched. If a branch office hasn't published data for a period yet, that aggregate-bureau entry is skipped rather than emitted with an inflated value (see `isBranchDataIncomplete`).
 
 ### 4. Filtering & Memoization
 
-This runs independently **inside each of the 7 chart components** — there is no single shared cache distributed to all of them:
+This runs independently **inside each of the 13 chart components across both datasets** — there is no single shared cache distributed to all of them. Processing charts memoize through `selectData`/`useSelectedData` (`src/utils/selectors.ts`); residents charts memoize the same way through `useSelectedResidents` (`src/utils/residentsSelectors.ts`):
 
 ```mermaid
 stateDiagram-v2
@@ -483,7 +611,7 @@ graph TD
     
     PERF --> MEMO["📌 Memoization<br/>useMemo/useCallback"]
     PERF --> LAZY["📦 Lazy Loading<br/>Dynamic imports"]
-    PERF --> SINGLE["🔄 Single-Pass Filtering<br/>Per-chart selection, 7 charts"]
+    PERF --> SINGLE["🔄 Single-Pass Filtering<br/>Per-chart selection, 13 charts"]
     PERF --> PRECOMP["⚙️ Pre-computed Values<br/>Calc once at mount"]
     PERF --> BUILD["🔨 Production Build<br/>Minified & tree-shaken"]
     
@@ -525,10 +653,10 @@ const App = dynamic(() => import('../../App'), { ssr: false });
 
 ### Single-Pass Filtering
 
-Each chart calls `useSelectedData`/`selectData` (`src/utils/selectors.ts`) with the filters and range it needs:
+Each Application Processing chart calls `useSelectedData`/`selectData` (`src/utils/selectors.ts`) with the filters and range it needs; each Resident Population chart calls the analogous `useSelectedResidents` (`src/utils/residentsSelectors.ts`):
 - Filtering is memoized per chart on its own selection key
 - Charts that don't use a given filter (see the `ChartComponents` registry) simply don't pass it, avoiding redundant recomputation
-- Distributed to 7 chart components via props
+- Distributed to 13 chart components via props, across both datasets
 
 ### Pre-Computed Values
 

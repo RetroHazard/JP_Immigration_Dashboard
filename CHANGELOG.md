@@ -6,6 +6,22 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
+- **v1.4.0**: Three more views join the Resident Population dataset, alongside a filtering overhaul —
+  - **Population Growth** stacks total foreign residents per half-year since 2012, toggleable between purpose-of-stay and world-region breakdowns, with markers for policy changes and the COVID-19 dip
+  - **Resident Flows** is a three-column sankey — region into country into purpose-of-stay group — showing the full nationality × status cross-tabulation for a single snapshot
+  - **Residence Status Mix** is now a sunburst instead of a treemap: status groups as the inner ring, individual statuses as the outer, click to zoom
+  - The status filter now groups the 39 individual residence-status codes into 6 purpose-of-stay categories (work, training, residency, and so on); a nationality filter cascades from a new world-region filter, so picking a region narrows the country list to match. Old permalinks built from the individual status codes still resolve, mapped onto their group automatically
+  - The resident population's share of Japan's total population is now part of the stats summary, using the Statistics Bureau's annual estimates as the denominator
+  - **Origins Over Time**, **World Origins**, and **Biggest Movers** are unchanged from v1.3.0; a new snapshot-period picker replaces the range picker on the views that show a single point in time rather than a window
+
+- **v1.3.0**: A second dataset — **Resident Population** — joins the existing processing statistics, behind a switch above the chart tabs —
+  - Answers a different question from the rest of the dashboard: not how fast applications are processed, but who actually lives in Japan and on what visa. 202 nationalities across 43 residence statuses, every half-year from December 2012
+  - **Origins Over Time** tracks the largest nationalities across the whole period; **Residence Status Mix** breaks a nationality's visas down by purpose of stay; **World Origins** shades a world map by country of origin; **Biggest Movers** ranks the largest gains and losses between two points in time
+  - The 2015 recategorization that split 韓国・朝鮮 into 韓国 and 朝鮮 is folded back into one line, so it reads as the reporting change it was rather than half a million people leaving and two new populations appearing
+  - Country and continent names come from your browser's own locale data, so all twelve languages get them without a hand-written translation apiece
+  - Existing links keep working exactly as they did — the dataset is worked out from the chart a link names, not from a new parameter
+  - Views that only make sense for application processing — the processing-time estimator, the airport-office toggle, bureau comparison, and the data table — are hidden on this dataset rather than shown doing nothing
+
 - **v1.2.5**: French, German, Italian, Portuguese, and Spanish join Japanese in full translation — the switcher now offers six languages end to end ([#69](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/69)) —
   - Every interface string is translated in all five: chart labels and tooltips, the data table, the estimator, and empty/error states, alongside the text already covered
   - Portuguese follows European usage (pt-PT) rather than Brazilian
@@ -25,6 +41,7 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.4.1**: The Intake & Processing and Application Types charts' axis labels and tooltips showed only month and day, dropping the year — ambiguous once a range spans more than one year, since every January looked the same. Both now show month and year instead.
 - **v1.2.6**: Chart axis numbers could render as clipped or outright wrong values in German, Portuguese, Spanish, and Italian — repeated "0.000" ticks, a leading digit sheared off ("800 mil" reading as "00 mil"), or no labels at all on narrow screens. Two causes stacked together: a CSS rule was silently re-clipping an intentional label overflow, and the axis margin was sized for English-length numbers ("1.2M") rather than the wider forms other locales use ("1,2 Mio.", "800 mil"). The margin now measures each locale's actual label width instead of assuming one —
   - Longer translations in KPI cards, the processing-time estimator heading, and the approval-rate gauge caption no longer lose characters at cramped widths — they wrap instead of silently truncating, or were shortened where that read better
   - The Outcomes Sankey chart's node-label margins are sized the same way, fixing German and Portuguese labels that clipped against the chart edge

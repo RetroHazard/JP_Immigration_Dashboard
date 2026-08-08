@@ -62,6 +62,8 @@ export interface LineChartProps {
   style?: CSSProperties;
   /** Fires when the internal chart phase changes (e.g. OG capture readiness). */
   onPhaseChange?: (phase: ChartPhase) => void;
+  /** LOCAL MODIFICATION: x tick/ticker label format override — see time-series-chart-shell.tsx. */
+  formatDateLabel?: (date: Date) => string;
   /** Child components (Line, Grid, ChartTooltip, etc.) */
   children: ReactNode;
 }
@@ -155,6 +157,7 @@ interface ChartInnerProps {
   xDomain?: [Date, Date];
   xDomainSlotCount?: number;
   tweenYDomainOnXDomainChange?: boolean;
+  formatDateLabel?: (date: Date) => string;
   children: ReactNode;
   containerRef: React.RefObject<HTMLDivElement | null>;
   onPhaseChange: (phase: ChartPhase) => void;
@@ -177,6 +180,7 @@ function ChartInner({
   xDomain,
   xDomainSlotCount,
   tweenYDomainOnXDomainChange,
+  formatDateLabel,
   children,
   containerRef,
   onPhaseChange,
@@ -192,6 +196,7 @@ function ChartInner({
       containerRef={containerRef}
       data={data}
       enterTransition={enterTransition}
+      formatDateLabel={formatDateLabel}
       height={height}
       lines={lines}
       loadingLabel={loadingLabel}
@@ -230,6 +235,7 @@ export function LineChart({
   tweenYDomainOnXDomainChange = false,
   style,
   onPhaseChange,
+  formatDateLabel,
   children,
 }: LineChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -277,6 +283,7 @@ export function LineChart({
             containerRef={containerRef}
             data={data}
             enterTransition={enterTransition}
+            formatDateLabel={formatDateLabel}
             height={height}
             loadingLabel={loadingLabel}
             margin={margin}

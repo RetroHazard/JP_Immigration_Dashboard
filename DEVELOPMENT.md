@@ -107,12 +107,55 @@ npm run build
 
 1. **Build Info Generation** — `react-build-info` injects version and timestamp
 2. **CHANGELOG Syncing** — `scripts/sync-changelog.js` copies `CHANGELOG.md` into `public/`
-3. **Data Transform** — `scripts/transform-data.mts` turns `public/datastore/statData.json` (the raw e-Stat payload, or a generated fixture if it's absent) into the compact `public/data/dashboard.json` the client fetches
+3. **Data Transform** — `scripts/transform-data.mts` walks the dataset manifest (`scripts/datasets.mjs`) and turns each raw e-Stat payload (or a generated fixture, if it's absent) into the compact file the client fetches: `public/datastore/processingData.json` → `public/data/dashboard.json`, and `public/datastore/residentsData.json` → `public/data/residents.json`
 4. **Next.js Build** — Compiles React + TypeScript to a static export (`output: 'export'` in `next.config.ts`)
 5. **Strip Raw Data** — `scripts/strip-raw-data.mjs` removes `datastore/` from the exported output so the verbose raw payload never ships to visitors
 6. **Output Location** — All files go to the `build/` directory
 
 `npm run dev` runs the data transform once (via the `predev` script) and then starts `next dev --turbopack` with build-info generation and CHANGELOG syncing, same as build.
+
+### Working with real e-Stat data locally
+
+Both transforms fall back to a deterministic fixture when their raw payload is absent, so
+nothing below is required to run the dashboard — it is only needed to see real figures.
+
+1. Register for an application ID at [e-Stat](https://www.e-stat.go.jp/) and export it:
+
+   ```bash
+   export ESTAT_APP_ID=<your application id>
+   ```
+
+2. Fetch every table in the manifest:
+
+   ```bash
+   node scripts/fetch-estat-data.mjs --all
+   ```
+
+   Or just one, by its manifest id:
+
+   ```bash
+   node scripts/fetch-estat-data.mjs --dataset residents --force
+   ```
+
+   Without `--force`, a payload that is already on disk is validated and kept rather than
+   re-downloaded — the same behaviour the deploy relies on when the cache has already
+   supplied it. For a table that is not in the manifest, pass `--stats-data-id` and
+   `--out` together.
+
+Use the script rather than fetching by hand. `getStatsData` **caps a response at 100,000
+rows** and reports the continuation offset as `RESULT_INF.NEXT_KEY`; the Foreign Residents
+table is roughly twice that. A short read arrives as HTTP 200 with valid JSON and complete
+metadata, so nothing about it looks wrong — it is simply missing rows. The script pages
+until `NEXT_KEY` is gone, merges, and asserts the merged row count against `TOTAL_NUMBER`
+before writing.
+
+CI runs this exact script — `node scripts/fetch-estat-data.mjs --all` is the deploy's
+fetch step verbatim — so local and CI fetches cannot drift.
+
+`scripts/transform-data.mts` re-checks completeness before transforming either payload
+(`src/utils/estatPayload.ts`). If a file is short it fails immediately and names the
+shortfall, rather than letting it surface downstream as a reconciliation failure against a
+hierarchy that is actually correct. Delete either file to go back to the fixture.
 
 ### Deployment
 
@@ -122,32 +165,46 @@ The project uses **GitHub Pages** for hosting, driven by `.github/workflows/depl
 2. **On new data** — the Data Watcher calls the deploy workflow directly when e-Stat publishes new figures.
 3. **Manually** — via `workflow_dispatch` on the Deploy workflow.
 
-Every path runs the same checks first: `deploy.yaml` calls the reusable `verify.yaml` (lint, typecheck, test) before publishing, so nothing reaches production unverified. Two of `verify.yaml`'s steps are inputs rather than fixtures of it — the fixture build (`run-build`) and the lockfile check (`check-lockfile`) — and the deploy turns both off: it builds against real data itself, and lockfile dev flags do not affect the built output.
+A push to `main` runs the checks first: `deploy.yaml` calls `verify.yaml` (lint, typecheck, test) before publishing, so nothing reaches production unverified. Two of `verify.yaml`'s steps are inputs rather than fixtures of it — the fixture build (`skip-build`) and the lockfile check (`skip-lockfile-check`) — and the deploy turns both off: it builds against real data itself, and lockfile dev flags do not affect the built output.
+
+All three inputs are phrased as `skip-*`, defaulting to false and read with `!`. The `inputs` context is null on a `pull_request`, and GitHub casts both null and false to 0 in a comparison — so a `run-*` flag would read as "off" on exactly the runs that need it on.
+
+The watcher's deploy passes `skip-verify: true`. On a data-only publish the code is the
+commit that already passed lint, typecheck and test on its way into `main`, and none of
+the three read data — re-running them would verify nothing. The build itself still runs,
+which is what catches a payload that fails its completeness or reconciliation checks.
 
 ### Workflow layout
 
 | File | Trigger | Purpose |
 | --- | --- | --- |
-| `verify.yaml` | `workflow_call` | Reusable quality gate: lockfile check, lint, typecheck, test, optional build |
-| `ci.yaml` | `pull_request` | Calls `verify.yaml` with the fixture build and lockfile check enabled; reports as `verify / verify` |
-| `deploy.yaml` | push to `main` (path-filtered), dispatch, `workflow_call` | Verifies, then builds against real data and publishes to Pages |
-| `watcher.yaml` | daily cron, dispatch | Checks e-Stat for new data; calls `deploy.yaml` when it changes |
+| `verify.yaml` | `pull_request`, `workflow_call` | The quality gate: lockfile check, lint, typecheck, test, optional build. Reports as `verify` on a pull request |
+| `deploy.yaml` | push to `main` (path-filtered), dispatch, `workflow_call` | Verifies (unless `skip-verify: true`), then builds against real data and publishes to Pages |
+| `watcher.yaml` | daily cron, dispatch | Probes e-Stat for new data; calls `deploy.yaml` when it changes |
 
-`.github/actions/setup` (Node + install + build info) and `.github/actions/fetch-estat-data` (download + validate) are composite actions shared across the above.
+`.github/actions/setup` (Node + install + build info) is the one composite action.
+Fetching is a plain `node scripts/fetch-estat-data.mjs` step — the script writes its own
+step outputs, so wrapping it in an action added a file without adding behaviour.
 
-CI runs on pull requests only. A `push` trigger would duplicate every run for branches with an open PR; pushes to `main` are covered by `deploy.yaml`'s verify job.
+`verify.yaml` runs on pull requests only. A `push` trigger would duplicate every run for
+branches with an open PR; pushes to `main` are covered by `deploy.yaml`'s verify job.
 
 ### Data Updates
 
-Data is automatically updated via the **Data Watcher Workflow**:
+Data is automatically updated via the **Data Watcher Workflow**. The logic lives in
+`scripts/estat-watch.mjs`, not in the YAML — the workflow only restores the cache, runs
+the script, and acts on its outputs.
 
 - **Schedule:** Daily at 10:05 AM JST, year-round (not just around the expected release window)
-- **Trigger:** A changed `SURVEY_DATE` in the e-Stat API response vs. the previous run
-- **Action:** Deploys only when a change is actually detected. The daily run also refreshes the cache's last-accessed time, which is what keeps it from being evicted.
-- **Cache:** the watcher owns the `estat-data-*` cache and saves under a key derived from the payload's content hash; `deploy.yaml` only reads it, resolving the newest entry through the `estat-data-` restore-key prefix.
-- **Failure modes:** a missing or null `SURVEY_DATE` in a freshly downloaded payload fails the run rather than being read as "no change" — a silent stall is the one outcome a change detector must never produce, so a schema change on e-Stat's side surfaces as a red run. An unreadable *previous* payload (a corrupted cache entry) only warns and re-baselines, since failing there would leave the bad entry in place and wedge every later run.
+- **Probe, don't download:** each run asks e-Stat for a single row per table (`limit=1&metaGetFlg=N`), which returns `TABLE_INF.SURVEY_DATE` in a couple of kilobytes. On a normal day that is the entire run. The full payloads — hundreds of thousands of rows — are downloaded only once something has actually moved.
+- **Trigger:** a `SURVEY_DATE` that differs from the one recorded in `public/datastore/.estat-baseline.json`, restored from the cache.
+- **Action:** deploys only when a change is detected. A table with no baseline yet (first run, evicted cache, or one just added to the manifest) is recorded without deploying — never seen is not the same as moved. The daily run also refreshes the cache's last-accessed time, which is what keeps it from being evicted.
+- **All or nothing:** when any table moves, every table is re-downloaded and the baseline rewritten. One cache entry covers the whole `public/datastore/` directory — including the baseline — so a deploy can never pair a fresh copy of one table with a stale copy of another, and the record of what was published can never be restored without the data it describes.
+- **Cache:** the watcher owns the `estat-data-*` cache and saves under a key derived from the payloads' content hash; `deploy.yaml` only reads it, resolving the newest entry through the `estat-data-` restore-key prefix. A separate `prune` job deletes superseded entries — separate because it needs `actions: write`, which has no business in the job that processes a third-party response. It confirms the entry it is keeping actually exists before deleting anything, since `actions/cache/save` warns rather than fails on a duplicate key.
+- **Failure modes:** a missing or null `SURVEY_DATE` fails the run rather than being read as "no change" — a silent stall is the one outcome a change detector must never produce, so a schema change on e-Stat's side surfaces as a red run *with a run summary that says so*. An unreadable baseline (a corrupted cache entry) only warns and re-baselines, since failing there would leave the bad entry in place and wedge every later run.
 
-See `.github/workflows/watcher.yaml` for details.
+See `.github/workflows/watcher.yaml` and `scripts/estat-watch.mjs` for details. The
+change-detection rule itself is `decide()`, pinned by `scripts/__tests__/estat-watch.test.mjs`.
 
 ## Project Structure
 
@@ -169,7 +226,9 @@ JP_Immigration_Dashboard/
 │   │   ├── DashboardShell.tsx         # The single responsive shell (header, tabs, filters, estimator)
 │   │   ├── ActiveChart.tsx            # Memoized switch over the active chart registry entry
 │   │   ├── FilterPanel.tsx            # Bureau/type filter controls + compare + airport toggle
-│   │   ├── StatsSummary.tsx           # Summary stat cards
+│   │   ├── ResidentFilterPanel.tsx    # Region/nationality/status-group filter controls, cascading
+│   │   ├── StatsSummary.tsx           # Summary stat cards (Application Processing)
+│   │   ├── ResidentsStatsSummary.tsx  # Summary stat cards (Resident Population), incl. % of total population
 │   │   ├── EstimationCard.tsx         # Processing Time Estimator (sidebar/sheet)
 │   │   ├── ChartDataTable.tsx         # Collapsible data table + CSV export
 │   │   ├── ChangelogModal.tsx         # CHANGELOG.md viewer (shadcn Dialog)
@@ -184,7 +243,14 @@ JP_Immigration_Dashboard/
 │   │   │   ├── ProcessingEfficiencyLollipop.tsx  # Custom ranked lollipop (CSS grid rows)
 │   │   │   ├── ProcessingEfficiencyQuadrantChart.tsx  # Alternate quadrant scatter view (same data)
 │   │   │   ├── EfficiencyHoverCard.tsx           # Shared hover card for the efficiency views
-│   │   │   └── GeographicDistributionChart.tsx   # Bklit choropleth (visx + topojson)
+│   │   │   ├── GeographicDistributionChart.tsx   # Bklit choropleth (visx + topojson)
+│   │   │   ├── PopulationGrowthChart.tsx         # Bklit ComposedChart; residents per half-year, group/region toggle
+│   │   │   ├── NationalityTrendChart.tsx         # Bklit LineChart; largest nationalities over time
+│   │   │   ├── ResidentFlowsSankeyChart.tsx      # Bklit Sankey, 3-tier: region → country → status group
+│   │   │   ├── ResidenceStatusSunburst.tsx       # Bklit SunburstChart; live status-mix view
+│   │   │   ├── ResidenceStatusMixChart.tsx       # Alternate treemap view (same hierarchy, unregistered)
+│   │   │   ├── OriginChoroplethChart.tsx         # Bklit choropleth; resident count by country, log scale
+│   │   │   └── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
 │   │   │
 │   │   ├── common/
 │   │   │   ├── ChartComponents.tsx    # Chart registry: label, icon, filters, ranges per chart
@@ -193,7 +259,8 @@ JP_Immigration_Dashboard/
 │   │   │   ├── FormulaTooltip.tsx     # KaTeX formula popover for the estimator
 │   │   │   ├── IconTooltip.tsx        # Wrapper over the shadcn/Radix Tooltip
 │   │   │   ├── LoadingSpinner.tsx
-│   │   │   ├── PeriodSelector.tsx
+│   │   │   ├── PeriodSelector.tsx     # Range picker (Application Processing + "range"-mode resident charts)
+│   │   │   ├── SnapshotPeriodSelector.tsx  # Single half-year picker for "snapshot"-mode resident charts
 │   │   │   ├── SeriesLegend.tsx
 │   │   │   └── StatCard.tsx
 │   │   │
@@ -206,10 +273,12 @@ JP_Immigration_Dashboard/
 │   │   │   └── components/
 │   │   │
 │   │   └── __tests__/
-│   │       └── components.smoke.test.tsx
+│   │       ├── components.smoke.test.tsx
+│   │       └── residents.smoke.test.tsx
 │   │
 │   ├── hooks/
-│   │   └── useImmigrationData.ts      # Fetches + unpacks public/data/dashboard.json
+│   │   ├── useImmigrationData.ts      # Fetches + unpacks public/data/dashboard.json
+│   │   └── useResidentsData.ts        # Fetches + unpacks public/data/residents.json
 │   │
 │   ├── utils/
 │   │   ├── dashboardData.ts           # Pack/unpack format shared with scripts/transform-data.mts
@@ -224,13 +293,24 @@ JP_Immigration_Dashboard/
 │   │   ├── urlApplicationDetails.ts   # Estimator permalink <-> URL params
 │   │   ├── renderChangelog.tsx        # Minimal inline-markdown renderer for the changelog modal
 │   │   ├── logger.ts                  # Dev-only console logger
+│   │   ├── residentsData.ts           # Pack/unpack format for residents.json
+│   │   ├── residentsTransform.ts      # e-Stat payload → ResidentRecord[] flattening + verifyResidentTotals
+│   │   ├── residentsSelectors.ts      # useSelectedResidents; residents-cube analogue of selectors.ts
+│   │   ├── residentsGrowth.ts         # Growth-chart series builders (status-group/region), indexSeries()
+│   │   ├── residentsFlows.ts          # Sankey flow builder: region → country → status, top-N + "other"
+│   │   ├── residenceStatusTree.ts     # Shared hierarchy for the Residence Status views (sunburst + treemap)
+│   │   ├── residentPeriod.ts          # Half-yearly period formatting/ordering
+│   │   ├── residentUrlParams.ts       # URL params for region/nationality/group, incl. legacy status-code mapping
 │   │   └── __tests__/                 # Unit tests (*.test.ts)
 │   │
 │   ├── constants/
 │   │   ├── applicationOptions.ts
 │   │   ├── bureauOptions.ts
 │   │   ├── japanPrefectures.ts
-│   │   └── statusCodes.ts
+│   │   ├── statusCodes.ts
+│   │   ├── nationalities.ts           # Nationality/region identity table (ISO 3166-1, M49 continent codes)
+│   │   ├── residenceStatuses.ts       # Residence-status identity table + corrected parent hierarchy
+│   │   └── japanPopulation.ts         # Japan's total population by year (denominator for % of total)
 │   │
 │   ├── contexts/
 │   │   └── ThemeContext.tsx           # Thin adapter over next-themes
@@ -264,29 +344,38 @@ JP_Immigration_Dashboard/
 │       └── motion.ts                  # Anime.js scope helper + reduced-motion gate
 │
 ├── public/
-│   ├── data/dashboard.json            # Build-time-transformed data the client fetches
-│   ├── datastore/statData.json        # Raw e-Stat payload (build input; stripped from export output)
+│   ├── data/dashboard.json            # Build-time-transformed processing data the client fetches
+│   ├── data/residents.json            # Build-time-transformed residents data the client fetches
+│   ├── datastore/processingData.json  # Raw e-Stat 0003449073 (build input; stripped from export output)
+│   ├── datastore/residentsData.json   # Raw e-Stat 0004019020 (build input; stripped from export output)
+│   ├── datastore/.estat-baseline.json # SURVEY_DATE the watcher last published, per dataset
+
 │   ├── static/japan.topo.json         # TopoJSON for the regional map
+│   ├── static/world.topo.json         # TopoJSON for the world origins map
 │   ├── CHANGELOG.md                   # Synced from the repo root at build time
 │   └── favicon.ico, manifest.webmanifest, og.png, ...
 │
 ├── .github/
 │   ├── workflows/
-│   │   ├── verify.yaml            # Reusable gate: lint, typecheck, test, optional build
-│   │   ├── ci.yaml                # Calls verify.yaml on pull requests
+│   │   ├── verify.yaml            # The gate: lint, typecheck, test, optional build (PRs + called)
 │   │   ├── deploy.yaml            # Verify + build + deploy to Pages (push to main, dispatch, called)
-│   │   └── watcher.yaml           # Scheduled e-Stat data check; calls deploy.yaml on change
+│   │   └── watcher.yaml           # Scheduled e-Stat probe; calls deploy.yaml on change
 │   ├── actions/
-│   │   ├── setup/                 # Composite: Node from .nvmrc, npm ci, build info
-│   │   └── fetch-estat-data/      # Composite: download + validate the e-Stat payload
+│   │   └── setup/                 # Composite: Node from .nvmrc, npm ci, build info
 │   └── ISSUE_TEMPLATE/            # Issue templates
 │
 ├── scripts/
-│   ├── transform-data.mts         # Build-time e-Stat → dashboard.json transform
-│   ├── generate-fixture.mjs       # Deterministic fixture data for local/CI builds
+│   ├── datasets.mjs               # The dataset manifest — single source of truth for the pipeline
+│   ├── transform-data.mts         # Build-time e-Stat → public/data transform, per manifest entry
+│   ├── fetch-estat-data.mjs       # Paged e-Stat download + merge, and the cheap SURVEY_DATE probe
+│   ├── estat-watch.mjs            # The watcher's change-detection logic (see __tests__/)
+│   ├── generate-fixture.mjs       # Deterministic processing fixture for local/CI builds
+│   ├── generateResidentsFixture.mts # Deterministic residents fixture (imports the real code lists)
+│   ├── generate-locale-template.mts # Emits the locale template from src/i18n
 │   ├── strip-raw-data.mjs         # Removes datastore/ from the exported build output
 │   ├── sync-changelog.js          # Copies CHANGELOG.md into public/
 │   ├── vendor-bklit.mjs           # Pulls Bklit UI registry items into the repo
+│   ├── vendor-world-topology.mjs  # One-shot vendoring of world-atlas into public/static
 │   └── og-template.html
 │
 ├── package.json                   # Dependencies and scripts
@@ -341,7 +430,7 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
 
 ### Build & Deployment
 
-- **GitHub Actions** — CI/CD automation (`verify.yaml`, `ci.yaml`, `deploy.yaml`, `watcher.yaml`)
+- **GitHub Actions** — CI/CD automation (`verify.yaml`, `deploy.yaml`, `watcher.yaml`)
 - **GitHub Pages** — Static site hosting
 - **react-build-info** — Build metadata injection (version + build date)
 - **tsx** — Runs the TypeScript build-time data transform script
@@ -355,7 +444,7 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
    git checkout -b feature/feature-name
    ```
 
-2. **Create the chart component** (named export, `ImmigrationChartData` props):
+2. **Create the chart component** (named export). Application Processing charts take `ImmigrationChartData` props; Resident Population charts take `ResidentChartData` instead (both from `src/components/common/ChartComponents.tsx`):
    ```typescript
    // src/components/charts/NewChart.tsx
    import type { ImmigrationChartData } from '../common/ChartComponents';
@@ -365,17 +454,16 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
    };
    ```
 
-3. **Register it in the chart registry** — charts aren't imported into a page directly; they're added to the `CHART_COMPONENTS` array, which drives the tabs, card header, and period selector:
+3. **Register it in the chart registry** — charts aren't imported into a page directly; they're added to `PROCESSING_CHARTS` or `RESIDENT_CHARTS`, which drive the tabs, card header, and period selector. `label`/`description` aren't set here — they resolve through `useChartRegistry()` from the `charts.<key>.label`/`.description` catalogue keys, added per locale (see [Localization](#i18n)):
    ```typescript
    // src/components/common/ChartComponents.tsx
    import { NewChart } from '../charts/NewChart';
 
-   export const CHART_COMPONENTS: ChartDefinition[] = [
+   export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
      // ...existing entries
      {
        key: 'new-chart',
-       label: 'New Chart',
-       description: 'One sentence: what question this chart answers.',
+       dataset: 'processing',
        icon: SomeLucideIcon,
        component: NewChart,
        filters: { bureau: true, appType: true },
@@ -385,6 +473,7 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
      },
    ];
    ```
+   A resident chart follows the same shape but with `dataset: 'residents'`, a `component: React.ComponentType<ResidentChartData>`, `filters: { region, nationality, group }` instead of `{ bureau, appType }`, and a `timeControl` of `'range'` (sums over the picked window, like processing charts) or `'snapshot'` (draws one half-yearly period via `SnapshotPeriodSelector` instead of a window — use this when summing across periods wouldn't make sense, e.g. a cross-tabulation). It goes in `RESIDENT_CHARTS` instead.
 
 4. **Test in dev server:**
    ```bash
@@ -407,19 +496,70 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
 
 ### Updating Data Processing
 
-Data processing is split between a build-time transform and runtime selection:
+Data processing is split between a build-time transform and runtime selection. The two datasets follow the same five steps through parallel modules — they share no dimension, so they share no code path either:
 
-1. **Build-time transform** — `scripts/transform-data.mts` reads the raw e-Stat payload (`public/datastore/statData.json`), flattens it (`src/utils/dataTransform.ts`), corrects bureau aggregates (`src/utils/correctBureauAggregates.ts`), and packs it into `public/data/dashboard.json`
-2. **Fetch data** — `useImmigrationData` hook loads and unpacks `public/data/dashboard.json` via `src/utils/loadLocalData.ts`
-3. **Select/filter data** — `src/utils/selectors.ts` (`selectData`, `useSelectedData`) applies bureau-scope and type filters
-4. **Calculate metrics** — `src/utils/calculateEstimates.ts` (queue estimation), plus per-chart aggregation inside each chart component
-5. **Pass to charts** — Components receive processed data via props
+| | Application Processing | Resident Population |
+|---|---|---|
+| 1. **Build-time transform** | `dataTransform.ts` flattens, `correctBureauAggregates.ts` deaggregates the regional bureaus | `residentsTransform.ts` prunes rollups, nested 「うち」 rows and zeros, then `verifyResidentTotals` reconciles the result against e-Stat's own totals |
+| 2. **Fetch data** | `useImmigrationData` → `loadLocalData.ts` → `public/data/dashboard.json` | `useResidentsData` → `loadResidentsData.ts` → `public/data/residents.json` |
+| 3. **Select/filter** | `selectors.ts` (`selectData`, `useSelectedData`) — bureau scope and type | `residentsSelectors.ts` (`selectResidents`, `useSelectedResidents`) — nationality, status, region, group, period window |
+| 4. **Calculate metrics** | `calculateEstimates.ts` (queue estimation), plus per-chart aggregation | per-chart aggregation; `residenceStatusTree.ts` for the status hierarchy |
+| 5. **Pass to charts** | `ImmigrationChartData` props | `ResidentChartData` props |
+
+Both transforms run from `scripts/transform-data.mts`, and both files are fetched eagerly at boot in `src/App.tsx` so switching datasets is instant.
 
 To modify calculations:
-1. Edit `src/utils/calculateEstimates.ts`, `src/utils/selectors.ts`, or the relevant chart component
+1. Edit the relevant module from the table above, or the chart component itself
 2. Add unit tests in `src/utils/__tests__/`
 3. Test with `npm test`
 4. Verify in dev server with `npm run dev`
+
+### Adding a dataset
+
+The pipeline is driven by the manifest at `scripts/datasets.mjs`. Registering a table
+there is what wires it into the fetch script, the watcher, the cache and the build —
+**nothing in `.github/` needs to change**, no matter how many datasets there are.
+
+1. **Register it.** Add an entry to `DATASETS`:
+
+   ```js
+   { id: 'arrivals', statsDataId: '00034xxxxx',
+     raw: 'public/datastore/arrivalsData.json', out: 'public/data/arrivals.json',
+     label: 'Entries and Departures' },
+   ```
+
+   `raw` must stay under `public/datastore/` — that directory is the unit of caching, and
+   `strip-raw-data.mjs` removes it from the export so the verbose payload never ships.
+
+2. **Teach the build what to do with it.** Add a matching entry to `HANDLERS` in
+   `scripts/transform-data.mts`, keyed by the same `id`. This is the part a manifest
+   cannot express, because flattening an e-Stat cube is specific to that cube:
+
+   | Key | What it does | Required |
+   | --- | --- | --- |
+   | `writeFixture(outPath)` | Emits a deterministic stand-in so a build works without `ESTAT_APP_ID`. Tag it `TABLE_INF.note: 'FIXTURE …'` so a stale one still identifies itself | yes |
+   | `transform(raw)` | Flattens the payload into records | yes |
+   | `verify(raw, records)` | Cross-check against the raw payload; return a message to fail the build, or `null` | no |
+   | `pack(records, meta)` | Packs to the compact index-table form the client unpacks | yes |
+   | `describe(file, records)` | The build log's one-line count summary | yes |
+
+   Registering a dataset without a handler fails the build with exactly this list, rather
+   than silently skipping it.
+
+3. **Add the client half** — a loader, selectors and charts, following the table above.
+   A new packed file needs a `meta.kind` discriminator (see `residentsData.ts`) so it can
+   never be unpacked by the wrong reader.
+
+4. **Fetch and check it:**
+
+   ```bash
+   node scripts/fetch-estat-data.mjs --dataset arrivals --force
+   npm run build && npm test
+   ```
+
+The first watcher run after the manifest changes records the new table's `SURVEY_DATE`
+without deploying — never seen is not the same as moved — and publishes on the next
+change. The daily probe picks it up with no further work.
 
 ### Updating Styles
 
@@ -511,7 +651,7 @@ Because the hook only fires on `npm install`, anything that bypasses lifecycle s
 Run 'npm install' locally and commit the resulting package-lock.json.
 ```
 
-If you see that on a Dependabot PR, run `npm install` on the branch and commit the lockfile. The shaker is idempotent and runs in ~0.3s against the already-installed `node_modules`, so the check costs nothing and needs no second install. The deploy path passes `check-lockfile: false` — the dev flags do not affect the built output, so drift should block a pull request, not a publish.
+If you see that on a Dependabot PR, run `npm install` on the branch and commit the lockfile. The shaker is idempotent and runs in ~0.3s against the already-installed `node_modules`, so the check costs nothing and needs no second install. The deploy path passes `skip-lockfile-check: true` — the dev flags do not affect the built output, so drift should block a pull request, not a publish.
 
 #### Updating Dependencies
 

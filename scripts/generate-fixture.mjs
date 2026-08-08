@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Generates a deterministic e-Stat-shaped fixture at public/datastore/statData.json
+ * Generates a deterministic e-Stat-shaped fixture at public/datastore/processingData.json
  * so local dev and CI can run the dashboard without the ESTAT_APP_ID secret.
  * Mirrors e-Stat semantics: parent bureaus report totals that INCLUDE their
  * branch offices, and the nationwide row is the sum of every leaf bureau
@@ -11,7 +11,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
-const OUT = process.argv[2] ?? 'public/datastore/statData.json';
+const OUT = process.argv[2] ?? 'public/datastore/processingData.json';
 
 // Parent -> branch offices (from src/constants/bureauOptions.ts)
 const CHILDREN = {

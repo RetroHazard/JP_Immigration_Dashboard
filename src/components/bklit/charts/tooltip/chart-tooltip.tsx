@@ -89,6 +89,13 @@ export interface ChartTooltipProps {
    * Default: `var(--chart-tooltip-background)`.
    */
   backgroundColor?: string;
+  /**
+   * LOCAL MODIFICATION: override for the date title above the rows. The
+   * default weekday+month+day format has no year and a meaningless weekday
+   * for half-yearly snapshots; those charts pass a month+year formatter.
+   * (Re-apply after a re-vendor.)
+   */
+  titleFormat?: (date: Date) => string;
 }
 
 interface ChartTooltipInnerProps extends ChartTooltipProps {
@@ -108,6 +115,7 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
   content,
   rows: rowsRenderer,
   dotColor: dotColorProp,
+  titleFormat,
   children,
   className = "",
   container,
@@ -249,8 +257,9 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
       return barXAccessor(tooltipData.point);
     }
     // For line/area charts, use the date
-    return weekdayDateFmt.format(xAccessor(tooltipData.point));
-  }, [tooltipData, barXAccessor, xAccessor]);
+    // LOCAL MODIFICATION: caller-supplied title format wins (see prop doc).
+    return (titleFormat ?? weekdayDateFmt.format)(xAccessor(tooltipData.point));
+  }, [tooltipData, barXAccessor, xAccessor, titleFormat]);
 
   const tooltipContent = (
     <>

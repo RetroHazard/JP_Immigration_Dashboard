@@ -1,0 +1,163 @@
+import { describe, expect, it } from 'vitest';
+
+import type { ResidentRecord } from '../residentsData';
+import {
+  buildNationalitySeries,
+  buildRegionSeries,
+  buildStatusGroupSeries,
+  GROWTH_OTHER,
+  indexSeries,
+} from '../residentsGrowth';
+
+const record = (period: string, status: string, nationality: string, value: number): ResidentRecord => ({
+  period,
+  status,
+  nationality,
+  value,
+});
+
+// 1430 永住者 (residency), 1380 留学 (study), 1270 特定技能1号 (work).
+// 1230 中国 (Asia), 5090 ブラジル (South America), 7000 無国籍 (stateless).
+const DATA: ResidentRecord[] = [
+  record('2024-12', '1430', '1230', 100),
+  record('2024-12', '1380', '5090', 40),
+  record('2025-06', '1430', '1230', 110),
+  record('2025-06', '1380', '5090', 45),
+  record('2025-06', '1270', '1230', 5),
+  record('2025-12', '1430', '1230', 120),
+  record('2025-12', '1380', '5090', 50),
+  record('2025-12', '1270', '1230', 15),
+  record('2025-12', '1430', '7000', 3),
+];
+
+describe('buildStatusGroupSeries', () => {
+  it('reports one row per period, never summed across periods', () => {
+    const series = buildStatusGroupSeries(DATA, { nationality: 'all', region: 'all' }, 'all');
+    expect(series.rows.map((row) => row.period)).toEqual(['2024-12', '2025-06', '2025-12']);
+    expect(series.rows.map((row) => row.total)).toEqual([140, 160, 188]);
+  });
+
+  it('buckets by status group in fixed draw order', () => {
+    const series = buildStatusGroupSeries(DATA, { nationality: 'all', region: 'all' }, 'all');
+    // Only groups with volume, in STATUS_GROUPS order: work, study, residency.
+    expect(series.keys).toEqual(['work', 'study', 'residency']);
+    expect(series.rows[2].values).toEqual({ residency: 123, study: 50, work: 15 });
+    // 2024-12 has no work volume: absent, not zero.
+    expect(series.rows[0].values.work).toBeUndefined();
+  });
+
+  it('narrows to one nationality', () => {
+    const series = buildStatusGroupSeries(DATA, { nationality: '1230', region: 'all' }, 'all');
+    expect(series.keys).toEqual(['work', 'residency']);
+    expect(series.rows[2].total).toBe(135);
+  });
+
+  it('respects the range window', () => {
+    const series = buildStatusGroupSeries(DATA, { nationality: 'all', region: 'all' }, 'latest');
+    expect(series.rows).toHaveLength(1);
+    expect(series.rows[0].period).toBe('2025-12');
+  });
+
+  it('is empty rather than throwing when there is no data', () => {
+    expect(buildStatusGroupSeries([], { nationality: 'all', region: 'all' }, 'all')).toEqual({ keys: [], rows: [] });
+  });
+});
+
+describe('buildRegionSeries', () => {
+  it('buckets by continent, keeping 無国籍 as its own bucket', () => {
+    const series = buildRegionSeries(DATA, { nationality: 'all', region: 'all' }, 'latest');
+    // Asia (1000), South America (5000), stateless (7000) — rollup order.
+    expect(series.keys).toEqual(['1000', '5000', '7000']);
+    expect(series.rows[0].values).toEqual({ '1000': 135, '5000': 50, '7000': 3 });
+  });
+
+  it('drops regions with no volume anywhere in the window', () => {
+    const series = buildRegionSeries(DATA, { nationality: '1230', region: 'all' }, 'all');
+    expect(series.keys).toEqual(['1000']);
+  });
+
+  it('narrows both builders by region', () => {
+    const regionSeries = buildRegionSeries(DATA, { nationality: 'all', region: '5000' }, 'latest');
+    expect(regionSeries.keys).toEqual(['5000']);
+    expect(regionSeries.rows[0].total).toBe(50);
+    const groupSeries = buildStatusGroupSeries(DATA, { nationality: 'all', region: '5000' }, 'latest');
+    expect(groupSeries.keys).toEqual(['study']);
+  });
+});
+
+describe('buildNationalitySeries', () => {
+  // Nine Asian codes so the top-7 cut leaves an Other bucket.
+  const CODES = ['1230', '1360', '1110', '1330', '1270', '1080', '1200', '1380', '1220'];
+  const MANY: ResidentRecord[] = CODES.flatMap((code, index) => [
+    record('2025-06', '1430', code, 900 - index * 50),
+    record('2025-12', '1430', code, 1000 - index * 50),
+  ]);
+
+  it('stacks the top countries largest first with the rest folded into Other', () => {
+    const series = buildNationalitySeries(MANY, { nationality: 'all', region: '1000' }, 'all');
+    // 1110 (South Korea) surfaces under 1130, its pre-2015 combined code.
+    expect(series.keys).toEqual(['1230', '1360', '1130', '1330', '1270', '1080', '1200', GROWTH_OTHER]);
+    // Other = the two smallest codes at 2025-12: 650 + 600.
+    expect(series.rows.at(-1)?.values[GROWTH_OTHER]).toBe(1250);
+    expect(series.rows.at(-1)?.total).toBe(MANY.filter((row) => row.period === '2025-12').reduce((s, r) => s + r.value, 0));
+  });
+
+  it('ranks over the whole window so the stack membership is range-stable', () => {
+    // Both periods contribute to the ranking, not just the latest.
+    const series = buildNationalitySeries(MANY, { nationality: 'all', region: '1000' }, 'all');
+    expect(series.rows).toHaveLength(2);
+    expect(series.rows[0].values['1230']).toBe(900);
+  });
+
+  it('folds the 2015 Korea split into one continuous stack segment', () => {
+    const split = [
+      record('2015-06', '1430', '1130', 500),
+      record('2015-12', '1430', '1110', 460),
+      record('2015-12', '1430', '1120', 40),
+    ];
+    const series = buildNationalitySeries(split, { nationality: 'all', region: '1000' }, 'all');
+    expect(series.keys).toEqual(['1130']);
+    expect(series.rows.map((row) => row.values['1130'])).toEqual([500, 500]);
+  });
+
+  it('is empty rather than throwing when there is no data', () => {
+    expect(buildNationalitySeries([], { nationality: 'all', region: '1000' }, 'all')).toEqual({ keys: [], rows: [] });
+  });
+});
+
+describe('indexSeries', () => {
+  const rows = [
+    { date: 'a', vn: 50, cn: 650 },
+    { date: 'b', vn: 100, cn: 780 },
+    { date: 'c', vn: 200, cn: 910 },
+  ];
+
+  it('re-bases every series to 100 at its first value', () => {
+    const indexed = indexSeries(rows, ['vn', 'cn']);
+    expect(indexed.map((row) => row.vn)).toEqual([100, 200, 400]);
+    expect(indexed.map((row) => row.cn)).toEqual([100, 120, 140]);
+    // Non-series columns pass through untouched.
+    expect(indexed.map((row) => row.date)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('leaves gaps as gaps for a series that starts mid-window', () => {
+    const sparse = [
+      { late: undefined, early: 10 },
+      { late: 30, early: 20 },
+      { late: 60, early: 40 },
+    ];
+    const indexed = indexSeries(sparse, ['late', 'early']);
+    // Base for `late` is its first present value (30), not the window start.
+    expect(indexed.map((row) => row.late)).toEqual([undefined, 100, 200]);
+    expect(indexed.map((row) => row.early)).toEqual([100, 200, 400]);
+  });
+
+  it('never divides by a zero or missing base', () => {
+    const zeros = [
+      { flat: 0, ghost: undefined },
+      { flat: 0, ghost: undefined },
+    ];
+    const indexed = indexSeries(zeros, ['flat', 'ghost']);
+    expect(indexed.every((row) => row.flat === undefined && row.ghost === undefined)).toBe(true);
+  });
+});

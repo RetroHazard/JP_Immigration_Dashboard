@@ -9,6 +9,7 @@ on:
     paths:
       - 'src/**'
       - 'public/**'
+      # Also covers scripts/datasets.mjs, so registering a dataset redeploys.
       - 'scripts/**'
       - 'package.json'
       - 'package-lock.json'
@@ -24,27 +25,47 @@ on:
   workflow_dispatch:
   # Called by watcher.yaml when e-Stat publishes new figures.
   workflow_call:
+    inputs:
+      skip-verify:
+        description: >-
+          Skip lint, typecheck and test before publishing. The watcher passes
+          true: on a data-only deploy the code is the commit that already passed
+          them on its way into main, and none of the three read data.
+
+          Phrased as skip- rather than run- deliberately. `inputs` is null on a
+          push or dispatch, and GitHub's loose equality casts both null and false
+          to 0 — so `inputs.run-verify != false` is *false* on a push, which
+          would silently skip the checks on the one path that most needs them.
+          A default-false flag read with `!` never makes that comparison: null is
+          simply falsy.
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   verify:
-    # run-build: false — the deploy job below builds against the real cached
-    # payload, so building the fixture here as well would be wasted work.
+    if: ${{ !inputs.skip-verify }}
     uses: ./.github/workflows/verify.yaml
     with:
-      run-build: false
+      # The deploy job below builds against the real cached payloads, so
+      # building the fixture here as well would be wasted work.
+      skip-build: true
       # Lockfile dev flags do not affect the built output, so drift should
       # block a pull request, not a publish.
-      check-lockfile: false
+      skip-lockfile-check: true
 
   deploy:
     needs: verify
+    # `needs` on a skipped job resolves to 'skipped', which is not success, so
+    # the default `needs` gate would skip this too. Publish when verify passed
+    # or was deliberately turned off; never when it failed.
+    if: always() && (needs.verify.result == 'success' || needs.verify.result == 'skipped')
     runs-on: ubuntu-latest
-    # Headroom for the fetch action's worst-case curl budget (a 600s retry
-    # window plus a final 300s attempt) on top of install, build and publish,
-    # so a legitimate retry is never cut short by the job timeout.
+    # Headroom for the fetch's worst-case retry budget on top of install, build
+    # and publish, so a legitimate retry is never cut short by the job timeout.
     timeout-minutes: 30
 
     # Serialise deployments without cancelling one that is already publishing —
@@ -76,19 +97,23 @@ jobs:
       # Read-only: watcher.yaml owns writing this cache. The primary key is
       # deliberately unique so it always misses and falls through to the
       # restore-key prefix, which resolves to the most recently saved payload.
+      # One entry covers the whole datastore, so a deploy can never pair a fresh
+      # copy of one table with a stale copy of another.
       - name: Restore e-Stat data
         uses: actions/cache/restore@v6
         with:
-          path: public/datastore/statData.json
+          path: public/datastore
           key: estat-data-${{ github.run_id }}
           restore-keys: |
             estat-data-
 
-      # Downloads only if the cache produced nothing; otherwise just validates.
+      # Downloads only what the cache did not supply; anything already present is
+      # validated and kept. Every dataset in scripts/datasets.mjs, so this step
+      # never needs editing.
       - name: Ensure e-Stat data
-        uses: ./.github/actions/fetch-estat-data
-        with:
-          app-id: ${{ secrets.ESTAT_APP_ID }}
+        env:
+          ESTAT_APP_ID: ${{ secrets.ESTAT_APP_ID }}
+        run: node scripts/fetch-estat-data.mjs --all
 
       - name: Build
         run: npm run build

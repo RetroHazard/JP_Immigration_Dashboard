@@ -30,8 +30,11 @@ function normalizeValues(rawData: RawData) {
  * Validates and parses the @time field from e-Stat data
  * Expected format: YYYYMMDD (e.g., "20250707")
  * Returns: YYYY-MM format (e.g., "2025-07")
+ *
+ * Exported because the Foreign Residents table encodes @time the same way
+ * (`2025001212` -> `2025-12`) and reuses this rather than restating it.
  */
-function validateAndParseMonth(timeStr: string): string {
+export function validateAndParseMonth(timeStr: string): string {
   // Validate format and length
   if (!timeStr || timeStr.length < 10) {
     throw new Error(`Invalid @time format: "${timeStr}" (expected YYYYMMDD with at least 10 characters)`);

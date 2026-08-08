@@ -1,29 +1,49 @@
 name: Verify
 
-# Reusable quality gate. Called by ci.yaml on pull requests and by deploy.yaml
-# before it publishes, so the same checks guard both paths.
+# The quality gate, both as a pull request's own check and as the step
+# deploy.yaml runs before it publishes — so the same checks guard both paths.
+#
+# Pull requests only, never `push`: a push trigger would fire a second, identical
+# run for every push to a branch that has a PR open. Pushes to main are verified
+# by deploy.yaml, which calls this workflow.
+# Both inputs are phrased as skip- with a default of false, and read with `!`.
+# The `inputs` context is null on a `pull_request` — a workflow_call default does
+# not apply to an event that is not a workflow_call — and GitHub's loose equality
+# casts both null and false to 0, so `inputs.run-build` and
+# `inputs.run-build != false` are each false on a pull request. Either phrasing
+# would quietly drop these two steps from the one run that most needs them.
+# `!null` is simply true, with no cross-type cast in play.
 on:
+  pull_request:
   workflow_call:
     inputs:
-      run-build:
+      skip-build:
         description: >-
-          Run the fixture production build. Callers that perform a real build
-          against the cached e-Stat payload afterwards should pass false to
-          avoid building the site twice in one run.
+          Skip the fixture production build. Callers that perform a real build
+          against the cached e-Stat payload afterwards pass true, to avoid
+          building the site twice in one run.
         type: boolean
         required: false
-        default: true
-      check-lockfile:
+        default: false
+      skip-lockfile-check:
         description: >-
-          Fail if package-lock.json is not in its shaken state. Worth gating a
-          pull request on; not worth blocking a deploy, since the dev flags do
-          not affect the built output.
+          Skip the check that package-lock.json is in its shaken state. Worth
+          gating a pull request on; not worth blocking a deploy, since the dev
+          flags do not affect the built output.
         type: boolean
         required: false
-        default: true
+        default: false
 
 permissions:
   contents: read
+
+# On a pull request, supersede the previous run for that PR. On a workflow_call
+# the PR number is empty and the group falls back to the run id, which is unique
+# — so a deploy's verify gets its own group and can never be cancelled by
+# unrelated pull request activity.
+concurrency:
+  group: verify-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
@@ -46,7 +66,7 @@ jobs:
       # already-installed node_modules, so re-running it and diffing catches
       # that without paying for a second install.
       - name: Check lockfile is shaken
-        if: ${{ inputs.check-lockfile }}
+        if: ${{ !inputs.skip-lockfile-check }}
         run: |
           node node_modules/lockfile-shaker/lib/bin.js
           git diff --exit-code package-lock.json || {
@@ -66,5 +86,5 @@ jobs:
       # Builds against the deterministic fixture (no e-Stat secret needed);
       # scripts/transform-data.mts generates it when raw data is absent.
       - name: Build
-        if: ${{ inputs.run-build }}
+        if: ${{ !inputs.skip-build }}
         run: npm run build
