@@ -434,10 +434,13 @@ export const en = {
   'prefecture.47': 'Okinawa',
 
   // ── Resident population dataset ──────────────────────────────────────────
-  // Nationality and region names are NOT here: they come from
-  // Intl.DisplayNames via the ISO/M49 codes in constants/nationalities.ts, so
-  // all thirteen locales get them without a catalogue entry apiece. Only the
-  // handful of rows with no ISO identity are listed under `nationality.*`.
+  // Nationality names are NOT here: they come from Intl.DisplayNames via the
+  // ISO codes in constants/nationalities.ts, so all thirteen locales get them
+  // without a catalogue entry apiece. Only the handful of rows with no ISO
+  // identity are listed under `nationality.*`.
+  // The `region.*` continents ARE all listed: ICU is still tried first via
+  // REGION_M49, but Chrome ships no display names for M49 macro-regions, so
+  // the catalogue has to be able to name every one of them. See below.
   'dataset.label': 'Dataset',
   'dataset.aria': 'Choose which dataset to explore',
   'dataset.processing': 'Application Processing',
@@ -534,8 +537,20 @@ export const en = {
   'statusGroup.residency': 'Residency',
   'statusGroup.other': 'Other',
 
-  // Only the rows with no ISO 3166-1 identity; everything else is ICU.
+  // Every continent rollup: `Intl.DisplayNames` is tried first, but Chrome and
+  // Edge ship no names for UN M49 macro-regions (`.of('142')` gives back '142',
+  // not "Asia"), so these are what actually renders there. 4000 is M49 003 —
+  // e-Stat's 北アメリカ spans Central America and the Caribbean, so it is
+  // "North America", not 021's "Northern America". 7000 has no M49 code at all.
+  'region.1000': 'Asia',
+  'region.2000': 'Europe',
+  'region.3000': 'Africa',
+  'region.4000': 'North America',
+  'region.5000': 'South America',
+  'region.6000': 'Oceania',
   'region.7000': 'Stateless',
+
+  // Only the rows with no ISO 3166-1 identity; everything else is ICU.
   'nationality.1120': 'Korea (Chosen)',
   'nationality.1130': 'Korea (combined)',
   'nationality.2290': 'Serbia and Montenegro',

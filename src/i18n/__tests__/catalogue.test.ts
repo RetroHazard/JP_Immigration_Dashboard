@@ -157,9 +157,22 @@ const isRomanizedProperNoun = (key: string): boolean =>
  * oversight — each entry here has to be argued for individually.
  *
  * Only place names so far: Spanish spells the former Yugoslavia exactly as
- * English does.
+ * English does, and several continents are spelled the English way across the
+ * Romance languages and Tagalog — "Asia" is Spanish and Italian for Asia,
+ * "Europe" is French for Europe, "Africa" is Italian and Tagalog for Africa,
+ * and "Oceania" is Italian, Portuguese and Tagalog for Oceania.
  */
-const IDENTICAL_BY_DESIGN = new Set<string>(['es:nationality.2500']);
+const IDENTICAL_BY_DESIGN = new Set<string>([
+  'es:nationality.2500',
+  'es:region.1000',
+  'fr:region.2000',
+  'it:region.1000',
+  'it:region.3000',
+  'it:region.6000',
+  'pt:region.6000',
+  'tl:region.3000',
+  'tl:region.6000',
+]);
 
 /** Strips placeholders, digits, and punctuation — what's left is prose, if any. */
 const proseOf = (value: string): string => value.replace(PLACEHOLDER, '').replace(/[\s\d\p{P}\p{S}]/gu, '');
