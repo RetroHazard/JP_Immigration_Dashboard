@@ -67,12 +67,16 @@ export const STATELESS = '7000';
 export const NATIONALITY_REGIONS = [...NATIONALITY_ROLLUP_REGIONS, STATELESS] as const;
 
 /**
- * UN M49 codes for the continent rollups. Intl.DisplayNames localizes these
- * the same way it does country codes, so the six continent names come from
- * ICU rather than the catalogue — including e-Stat's 北アメリカ, which spans
- * Central America and the Caribbean and so is M49 003 (the continent) rather
- * than 021 (Northern America). 無国籍 has no M49 equivalent and falls back to
- * `region.7000`.
+ * UN M49 codes for the continent rollups, including e-Stat's 北アメリカ, which
+ * spans Central America and the Caribbean and so is M49 003 (the continent)
+ * rather than 021 (Northern America). 無国籍 has no M49 equivalent at all.
+ *
+ * `useRegionLabel` tries these through Intl.DisplayNames first, but they are
+ * not a substitute for catalogue entries: Chrome and Edge ship no display
+ * names for M49 macro-regions, so `.of('142')` hands back '142' instead of
+ * "Asia" and the label falls through to `region.*`. Node and Firefox do
+ * resolve them, which is why this only ever showed up in the browser. Every
+ * region therefore has a catalogue entry in all thirteen locales.
  */
 export const REGION_M49: Record<string, string> = {
   '1000': '142', // Asia

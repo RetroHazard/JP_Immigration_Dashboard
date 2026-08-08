@@ -544,8 +544,16 @@ export const zhTw: Dictionary = {
   'statusGroup.family': '家庭',
   'statusGroup.residency': '居住',
   'statusGroup.other': '其他',
-  // ── Nationalities with no ISO identity (everything else is ICU) ─────────
+  // ── World regions. ICU is tried first, but Chrome ships no names for M49
+  // macro-regions, so these are what actually renders there. ────────────────
+  'region.1000': '亞洲',
+  'region.2000': '歐洲',
+  'region.3000': '非洲',
+  'region.4000': '北美洲',
+  'region.5000': '南美洲',
+  'region.6000': '大洋洲',
   'region.7000': '無國籍',
+  // ── Nationalities with no ISO identity (everything else is ICU) ─────────
   'nationality.1120': '朝鮮籍',
   'nationality.1130': '韓國・朝鮮合計',
   'nationality.2290': '塞爾維亞及蒙特內哥羅',

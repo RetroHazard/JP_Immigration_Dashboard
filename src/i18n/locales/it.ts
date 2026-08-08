@@ -527,8 +527,16 @@ export const it: Dictionary = {
   'statusGroup.family': 'Famiglia',
   'statusGroup.residency': 'Residenza',
   'statusGroup.other': 'Altro',
-  // ── Nationalities with no ISO identity (everything else is ICU) ─────────
+  // ── World regions. ICU is tried first, but Chrome ships no names for M49
+  // macro-regions, so these are what actually renders there. ────────────────
+  'region.1000': 'Asia',
+  'region.2000': 'Europa',
+  'region.3000': 'Africa',
+  'region.4000': 'America del Nord',
+  'region.5000': 'America del Sud',
+  'region.6000': 'Oceania',
   'region.7000': 'Apolide',
+  // ── Nationalities with no ISO identity (everything else is ICU) ─────────
   'nationality.1120': 'Corea (Chosen)',
   'nationality.1130': 'Corea (aggregata)',
   'nationality.2290': 'Serbia e Montenegro',

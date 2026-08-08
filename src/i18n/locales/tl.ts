@@ -539,8 +539,16 @@ export const tl: Dictionary = {
   'statusGroup.family': 'Pamilya',
   'statusGroup.residency': 'Paninirahan',
   'statusGroup.other': 'Iba pa',
-  // ── Nationalities with no ISO identity (everything else is ICU) ─────────
+  // ── World regions. ICU is tried first, but Chrome ships no names for M49
+  // macro-regions, so these are what actually renders there. ────────────────
+  'region.1000': 'Asya',
+  'region.2000': 'Europa',
+  'region.3000': 'Africa',
+  'region.4000': 'Hilagang Amerika',
+  'region.5000': 'Timog Amerika',
+  'region.6000': 'Oceania',
   'region.7000': 'Walang bansa',
+  // ── Nationalities with no ISO identity (everything else is ICU) ─────────
   'nationality.1120': 'Korea (rehistrong Chosen)',
   'nationality.1130': 'Korea (pinagsama)',
   'nationality.2290': 'Serbia at Montenegro',

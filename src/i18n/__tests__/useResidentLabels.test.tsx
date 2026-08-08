@@ -1,9 +1,11 @@
 // src/i18n/__tests__/useResidentLabels.test.tsx
-// Nationality and continent names come from ICU rather than the catalogue, so
-// what needs asserting here is different from the other domain hooks: that the
-// ISO/M49 codes actually resolve, that the handful with no such identity fall
+// Nationality and continent names are resolved from ICU before the catalogue,
+// so what needs asserting here is different from the other domain hooks: that
+// the ISO/M49 codes actually resolve, that the rows with no such identity fall
 // through to their catalogue entry, and that neither path ever leaks a bare
-// code into the UI.
+// code into the UI. The continents need covering on both paths — ICU names
+// them under vitest but not in every browser, so only the fallback is load-
+// bearing in Chrome.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { nationalities } from '../../constants/nationalities';
@@ -104,6 +106,20 @@ describe('resident label hooks', () => {
     expect(screen.getByTestId('china').textContent).toBe('中国');
     expect(screen.getByTestId('asia').textContent).toBe('アジア');
     expect(screen.getByTestId('stateless').textContent).toBe('無国籍');
+  });
+
+  it('names the continents on an engine with no M49 display names', () => {
+    // The regression behind the `region.1000` labels: Chrome and Edge ship
+    // Intl.DisplayNames but no macro-region data, so `.of('142')` returns
+    // '142' rather than throwing. Node and Firefox resolve it, which is why
+    // the assertions above pass under vitest while the browser showed keys.
+    vi.spyOn(Intl, 'DisplayNames').mockImplementation(
+      () => ({ of: (code: string) => code }) as unknown as Intl.DisplayNames
+    );
+    renderProbe('en');
+    expect(screen.getByTestId('asia').textContent).toBe('Asia');
+    expect(screen.getByTestId('northAmerica').textContent).toBe('North America');
+    expect(screen.getByTestId('stateless').textContent).toBe('Stateless');
   });
 
   it('degrades to the catalogue when Intl.DisplayNames is unavailable', () => {

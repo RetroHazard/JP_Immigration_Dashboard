@@ -543,8 +543,16 @@ export const vi: Dictionary = {
   'statusGroup.family': 'Gia đình',
   'statusGroup.residency': 'Định cư',
   'statusGroup.other': 'Khác',
-  // ── Nationalities with no ISO identity (everything else is ICU) ─────────
+  // ── World regions. ICU is tried first, but Chrome ships no names for M49
+  // macro-regions, so these are what actually renders there. ────────────────
+  'region.1000': 'Châu Á',
+  'region.2000': 'Châu Âu',
+  'region.3000': 'Châu Phi',
+  'region.4000': 'Bắc Mỹ',
+  'region.5000': 'Nam Mỹ',
+  'region.6000': 'Châu Đại Dương',
   'region.7000': 'Không quốc tịch',
+  // ── Nationalities with no ISO identity (everything else is ICU) ─────────
   'nationality.1120': 'Triều Tiên (Chosen)',
   'nationality.1130': 'Hàn Quốc và Triều Tiên (gộp)',
   'nationality.2290': 'Serbia và Montenegro',
