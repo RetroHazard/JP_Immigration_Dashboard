@@ -41,6 +41,9 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.4.2**: World regions showed up as raw codes — `region.1000` instead of "Asia" — on Chrome and Edge, in every language. It affected the Resident Flows sankey's left column, the region filter, Population Growth's by-region view, and the Residence Status sunburst; "Stateless" was the only region that read correctly —
+  - Continent names were being taken from the browser's own locale data, the same as country names. That works for countries everywhere, but Chrome and Edge ship no names for continents specifically, so they handed back the code they were given. Firefox and Safari were unaffected, which is what kept this out of sight
+  - All seven regions are now written into each of the twelve translations, so they read the same whichever browser you use
 - **v1.4.1**: The Intake & Processing and Application Types charts' axis labels and tooltips showed only month and day, dropping the year — ambiguous once a range spans more than one year, since every January looked the same. Both now show month and year instead.
 - **v1.2.6**: Chart axis numbers could render as clipped or outright wrong values in German, Portuguese, Spanish, and Italian — repeated "0.000" ticks, a leading digit sheared off ("800 mil" reading as "00 mil"), or no labels at all on narrow screens. Two causes stacked together: a CSS rule was silently re-clipping an intentional label overflow, and the axis margin was sized for English-length numbers ("1.2M") rather than the wider forms other locales use ("1,2 Mio.", "800 mil"). The margin now measures each locale's actual label width instead of assuming one —
   - Longer translations in KPI cards, the processing-time estimator heading, and the approval-rate gauge caption no longer lose characters at cramped widths — they wrap instead of silently truncating, or were shortened where that read better
