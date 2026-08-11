@@ -17,6 +17,8 @@ import {
   useRef,
   useState,
 } from "react";
+// LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+import type { ChartTapMode } from "@/hooks/useTapPin";
 import { cn } from "@/lib/utils";
 import {
   defaultPieColors,
@@ -51,6 +53,13 @@ export interface PieChartProps {
   /** Callback when hover state changes */
   onHoverChange?: (index: number | null) => void;
   /**
+   * LOCAL MODIFICATION: tap-to-pin handle from the chart owner. When set,
+   * slices are highlighted by tapping instead of hovering. The owner supplies
+   * it rather than the chart creating its own, so a chart whose legend is also
+   * tappable shares one pin between the two. (Re-apply after a re-vendor.)
+   */
+  tapMode?: ChartTapMode | null;
+  /**
    * Hover offset in pixels for slice hover effects.
    * This also determines the padding around the chart to prevent clipping.
    * Default: 10
@@ -83,6 +92,8 @@ interface PieChartInnerProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
   hoveredIndexProp?: number | null;
   onHoverChange?: (index: number | null) => void;
+  // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+  tapMode?: ChartTapMode | null;
   enterTransition?: Transition;
   enterStaggerScale: number;
   geometryScrubbing: boolean;
@@ -162,6 +173,7 @@ const PieChartCore = memo(function PieChartCore({
   containerRef,
   hoveredIndexProp,
   onHoverChange,
+  tapMode,
   enterTransition,
   enterStaggerScale,
   geometryScrubbing,
@@ -328,6 +340,8 @@ const PieChartCore = memo(function PieChartCore({
       hoverOffset,
       hoveredIndex,
       setHoveredIndex,
+      // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+      tapMode,
       animationKey,
       isLoaded: effectiveIsLoaded,
       enterTransition,
@@ -351,6 +365,7 @@ const PieChartCore = memo(function PieChartCore({
       hoverOffset,
       hoveredIndex,
       setHoveredIndex,
+      tapMode,
       animationKey,
       effectiveIsLoaded,
       enterTransition,
@@ -434,6 +449,7 @@ function pieChartCorePropsEqual(
     prev.hoverOffset === next.hoverOffset &&
     prev.hoveredIndexProp === next.hoveredIndexProp &&
     prev.onHoverChange === next.onHoverChange &&
+    prev.tapMode === next.tapMode &&
     prev.enterTransition === next.enterTransition &&
     prev.enterStaggerScale === next.enterStaggerScale &&
     prev.geometryScrubbing === next.geometryScrubbing &&
@@ -452,6 +468,7 @@ export function PieChart({
   className = "",
   hoveredIndex,
   onHoverChange,
+  tapMode,
   hoverOffset = DEFAULT_HOVER_OFFSET,
   enterTransition,
   enterStaggerScale = 1,
@@ -482,6 +499,7 @@ export function PieChart({
           innerRadius={innerRadius}
           onHoverChange={onHoverChange}
           padAngle={padAngle}
+          tapMode={tapMode}
           startAngle={startAngle}
           width={fixedSize}
         >
@@ -513,6 +531,7 @@ export function PieChart({
             innerRadius={innerRadius}
             onHoverChange={onHoverChange}
             padAngle={padAngle}
+            tapMode={tapMode}
             startAngle={startAngle}
             width={width}
           >

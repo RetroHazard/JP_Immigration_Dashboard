@@ -14,6 +14,7 @@ import { useMemo } from 'react';
 import type React from 'react';
 
 import type { StatusGroup } from '../../constants/residenceStatuses';
+import { useCoarsePointer } from '../../hooks/useCoarsePointer';
 import { useLocale } from '../../i18n/LocaleContext';
 import {
   useNationalityLabel,
@@ -34,6 +35,7 @@ import { SunburstLabels } from '../bklit/charts/sunburst-labels';
 import { SunburstSegment } from '../bklit/charts/sunburst-segment';
 import type { ResidentChartData } from '../common/ChartComponents';
 import { SeriesLegend } from '../common/SeriesLegend';
+import { idleSunburstHint } from './sunburstHint';
 
 const BreadcrumbTrail: React.FC = () => {
   const { items, zoomTo } = useSunburstBreadcrumbItems();
@@ -57,6 +59,7 @@ const BreadcrumbTrail: React.FC = () => {
 
 export const ResidenceStatusSunburst: React.FC<ResidentChartData> = ({ data, filters, period: requestedPeriod }) => {
   const { t, formatters } = useLocale();
+  const coarsePointer = useCoarsePointer();
   const statusLabel = useResidenceStatusLabel();
   const groupLabel = useStatusGroupLabel();
   const nationalityLabel = useNationalityLabel();
@@ -133,14 +136,14 @@ export const ResidenceStatusSunburst: React.FC<ResidentChartData> = ({ data, fil
           <SunburstCenter />
           <SunburstLabels fontSize={11} />
           <SunburstHint className="mt-2 min-h-5 text-center text-xs text-muted-foreground">
-            {({ hintText, hoveredArc }) =>
+            {({ hoveredArc, focus }) =>
               hoveredArc
                 ? t('residents.sunburstHint', {
                     trail: hoveredArc.trail.join(' › '),
                     count: formatters.number(hoveredArc.value),
                     percent: formatters.percent((hoveredArc.value / tree.total) * 100),
                   })
-                : hintText
+                : t(idleSunburstHint(focus.depth, coarsePointer))
             }
           </SunburstHint>
         </SunburstChart>

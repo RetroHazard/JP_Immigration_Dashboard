@@ -239,11 +239,17 @@ export const zhCn: Dictionary = {
   'chart.mix.breadcrumbAria': '树状图下钻路径',
   'chart.mix.zoomInHint': '点击某类别可放大',
   'chart.mix.zoomOutHint': '点击背景（或按Esc键）可缩小还原',
+  'chart.mix.zoomInHintTap': '点按某类别可查看详情，再次点按可放大',
+  'chart.mix.zoomOutHintTap': '点按背景可缩小还原',
   'chart.mix.others': '其他',
   'chart.mix.categoryAria': '{category}：{count}件申请。点击可放大。',
   'chart.mix.tooltipValue': '{count}件 · 占{scope}的{percent}',
   'chart.mix.scopeAll': '全部申请',
   'chart.mix.sunburstHint': '{trail} — {count}件（占总数的{percent}）',
+  'chart.sunburst.hintClick': '点击扇区可放大 · 悬停可查看详情',
+  'chart.sunburst.hintTap': '点按扇区可查看详情，再次点按可放大',
+  'chart.sunburst.zoomOutClick': '点击中心可缩小还原',
+  'chart.sunburst.zoomOutTap': '点按中心可缩小还原',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': '支局',

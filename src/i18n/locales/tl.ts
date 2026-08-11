@@ -240,11 +240,17 @@ export const tl: Dictionary = {
   'chart.mix.breadcrumbAria': 'Landas ng drill-down ng treemap',
   'chart.mix.zoomInHint': 'I-click ang isang kategorya para mag-zoom in',
   'chart.mix.zoomOutHint': 'I-click ang background (o pindutin ang Esc) para mag-zoom out',
+  'chart.mix.zoomInHintTap': 'I-tap ang isang kategorya para tingnan, i-tap ulit para mag-zoom in',
+  'chart.mix.zoomOutHintTap': 'I-tap ang background para mag-zoom out',
   'chart.mix.others': 'Iba Pa',
   'chart.mix.categoryAria': '{category}: {count} aplikasyon. Mag-zoom in.',
   'chart.mix.tooltipValue': '{count} aplikasyon · {percent} ng {scope}',
   'chart.mix.scopeAll': 'lahat ng aplikasyon',
   'chart.mix.sunburstHint': '{trail} — {count} aplikasyon ({percent} ng kabuuan)',
+  'chart.sunburst.hintClick': 'I-click ang isang segment para mag-zoom in · i-hover para tingnan',
+  'chart.sunburst.hintTap': 'I-tap ang isang segment para tingnan, i-tap ulit para mag-zoom in',
+  'chart.sunburst.zoomOutClick': 'I-click ang gitna para mag-zoom out',
+  'chart.sunburst.zoomOutTap': 'I-tap ang gitna para mag-zoom out',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': 'sangay na tanggapan',

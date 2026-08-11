@@ -238,11 +238,17 @@ export const vi: Dictionary = {
   'chart.mix.breadcrumbAria': 'Đường dẫn khám phá biểu đồ cây',
   'chart.mix.zoomInHint': 'Nhấp vào một danh mục để phóng to',
   'chart.mix.zoomOutHint': 'Nhấp vào nền (hoặc nhấn Esc) để thu nhỏ',
+  'chart.mix.zoomInHintTap': 'Chạm vào một danh mục để xem, chạm lần nữa để phóng to',
+  'chart.mix.zoomOutHintTap': 'Chạm vào nền để thu nhỏ',
   'chart.mix.others': 'Khác',
   'chart.mix.categoryAria': '{category}: {count} hồ sơ. Phóng to.',
   'chart.mix.tooltipValue': '{count} hồ sơ · {percent} của {scope}',
   'chart.mix.scopeAll': 'tất cả hồ sơ',
   'chart.mix.sunburstHint': '{trail} — {count} hồ sơ ({percent} trên tổng số)',
+  'chart.sunburst.hintClick': 'Nhấp vào một phân đoạn để phóng to · di chuột để xem',
+  'chart.sunburst.hintTap': 'Chạm vào một phân đoạn để xem, chạm lần nữa để phóng to',
+  'chart.sunburst.zoomOutClick': 'Nhấp vào tâm để thu nhỏ',
+  'chart.sunburst.zoomOutTap': 'Chạm vào tâm để thu nhỏ',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': 'chi nhánh',

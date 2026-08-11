@@ -13,7 +13,7 @@
 // in ChartComponents.tsx to switch over.
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { animate } from 'animejs';
 import { scaleLinear, scaleSqrt } from 'd3-scale';
@@ -21,6 +21,8 @@ import type React from 'react';
 import useMeasure from 'react-use-measure';
 
 import { useTheme } from '../../contexts/ThemeContext';
+import { useCoarsePointer } from '../../hooks/useCoarsePointer';
+import { useTapPin } from '../../hooks/useTapPin';
 import { useLocale } from '../../i18n/LocaleContext';
 import { useBureauLabel } from '../../i18n/useDomainLabels';
 import { useAnimeScope } from '../../lib/motion';
@@ -47,6 +49,10 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
   const clipId = `reveal-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const [measureRef, bounds] = useMeasure({ debounce: 10 });
   const [hovered, setHovered] = useState<Hover | null>(null);
+  const plotRef = useRef<HTMLDivElement>(null);
+  const coarsePointer = useCoarsePointer();
+  const clearHover = useCallback(() => setHovered(null), []);
+  const tapMode = useTapPin({ enabled: coarsePointer, containerRef: plotRef, onDismiss: clearHover });
 
   const points = useMemo(
     () => computeEfficiencyPoints(data, filters, range, isDarkMode, bureauLabel),
@@ -108,20 +114,45 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
   const byVolume = [...points].sort((a, b) => b.received - a.received);
   const labeled = [...points].sort((a, b) => b.processed - a.processed).slice(0, LABELED_BUBBLES);
 
-  const hoverProps = (point: EfficiencyPoint) => ({
-    onPointerEnter: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
-    onPointerMove: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
-    onPointerDown: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
-    onPointerLeave: () => setHovered(null),
-  });
+  // Bubbles are small, so on touch the card is anchored above the bubble rather
+  // than at the finger. The pointer handlers are left off entirely there —
+  // pointerleave fires on finger-up and would close the card the tap opened.
+  const hoverProps = (point: EfficiencyPoint) =>
+    tapMode
+      ? {
+          onClick: (e: React.MouseEvent<SVGGElement>) => {
+            e.stopPropagation();
+            const rect = e.currentTarget.getBoundingClientRect();
+            if (tapMode.tap(point.code) === 'unpinned') {
+              setHovered(null);
+              return;
+            }
+            setHovered({ point, x: rect.left + rect.width / 2, y: rect.top });
+          },
+        }
+      : {
+          onPointerEnter: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
+          onPointerMove: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
+          onPointerDown: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
+          onPointerLeave: () => setHovered(null),
+        };
 
   return (
     <div className="chart-card-content">
       <div
         className="relative"
+        onClick={
+          tapMode
+            ? () => {
+                tapMode.clear();
+                setHovered(null);
+              }
+            : undefined
+        }
         ref={(node) => {
           measureRef(node);
           revealRoot.current = node;
+          plotRef.current = node;
         }}
       >
         {ready && (
@@ -131,7 +162,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
             style={{ touchAction: 'pan-y' }}
             role="img"
             aria-label={t('charts.efficiencyQuadrant.aria')}
-            onPointerLeave={() => setHovered(null)}
+            onPointerLeave={tapMode ? undefined : () => setHovered(null)}
           >
             {/* Grid + axes */}
             {yTicks.map((tick) => (

@@ -3,6 +3,8 @@
 import { arc as arcGenerator } from "@visx/shape";
 import { motion, useSpring, useTransform } from "motion/react";
 import { memo, useEffect } from "react";
+// LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+import { activationProps } from "@/hooks/useTapPin";
 import { usePieHover, usePieStable } from "./pie-context";
 import { useEnterComplete } from "./use-enter-complete";
 import { useMountProgress } from "./use-mount-progress";
@@ -341,7 +343,7 @@ export const PieSlice = memo(function PieSlice({
     getColor,
     getFill,
   } = usePieStable();
-  const { hoveredIndex, setHoveredIndex } = usePieHover();
+  const { hoveredIndex, setHoveredIndex, tapMode } = usePieHover();
 
   // Use prop if provided, otherwise use context value
   const hoverOffset = hoverOffsetProp ?? contextHoverOffset;
@@ -493,11 +495,19 @@ export const PieSlice = memo(function PieSlice({
     <g style={{ cursor: "pointer" }}>
       {/* Invisible hitbox - stays in place, handles hover events */}
       {/* biome-ignore lint/a11y/noStaticElementInteractions: SVG path used as hover hitbox for visualization */}
+      {/* LOCAL MODIFICATION: on touch this is a tap target rather than a hover
+          hitbox — the enter/leave pair is not attached at all, so the mouse
+          events synthesized after a tap cannot re-highlight the slice.
+          (Re-apply after a re-vendor.) */}
       <path
         d={hitboxPath}
         fill="transparent"
-        onMouseEnter={() => setHoveredIndex(index)}
-        onMouseLeave={() => setHoveredIndex(null)}
+        {...activationProps(
+          tapMode ?? null,
+          `slice:${index}`,
+          () => setHoveredIndex(index),
+          () => setHoveredIndex(null)
+        )}
       />
 
       {/* Visible slice - animates based on hover effect, no pointer events */}

@@ -5,7 +5,7 @@
 // pins, built-in zoom/pan, and a proper tooltip for both layers.
 'use client';
 
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { FeatureCollection, Geometry } from 'geojson';
 import { Building2, Plane } from 'lucide-react';
@@ -16,6 +16,8 @@ import type { Topology } from 'topojson-specification';
 import { bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useCoarsePointer } from '../../hooks/useCoarsePointer';
+import { activationProps, useTapPin } from '../../hooks/useTapPin';
 import { useLocale } from '../../i18n/LocaleContext';
 import { useBureauLabel, useBureauOptions, usePrefectureById } from '../../i18n/useDomainLabels';
 import { visibleBureauColor, withAlpha } from '../../utils/bureauColors';
@@ -83,6 +85,10 @@ const BureauMarkers: React.FC = memo(() => {
   const { projectPoint, width, height } = useChoroplethStable();
   const { zoom } = useChoroplethZoom();
   const [hovered, setHovered] = useState<MarkerInfo | null>(null);
+  const markerLayerRef = useRef<HTMLDivElement>(null);
+  const coarsePointer = useCoarsePointer();
+  const clearHover = useCallback(() => setHovered(null), []);
+  const tapMode = useTapPin({ enabled: coarsePointer, containerRef: markerLayerRef, onDismiss: clearHover });
   const { t, formatters } = useLocale();
   const bureaus = useBureauOptions();
   const markers: MarkerInfo[] = useMemo(() => {
@@ -102,7 +108,7 @@ const BureauMarkers: React.FC = memo(() => {
   );
 
   return (
-    <div className="pointer-events-none absolute inset-0">
+    <div className="pointer-events-none absolute inset-0" ref={markerLayerRef}>
       {markers.map((marker) => {
         const point = project(marker.coordinates);
         if (!point || point[0] < 0 || point[1] < 0 || point[0] > width || point[1] > height) return null;
@@ -119,8 +125,12 @@ const BureauMarkers: React.FC = memo(() => {
                 : 'size-6 border-primary/40 bg-primary text-primary-foreground'
             }`}
             style={{ left: point[0], top: point[1] }}
-            onMouseEnter={() => setHovered(marker)}
-            onMouseLeave={() => setHovered(null)}
+            {...activationProps(
+              tapMode,
+              marker.code,
+              () => setHovered(marker),
+              () => setHovered(null)
+            )}
             onFocus={() => setHovered(marker)}
             onBlur={() => setHovered(null)}
           >

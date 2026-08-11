@@ -252,11 +252,17 @@ export const zhTw: Dictionary = {
   'chart.mix.breadcrumbAria': '樹狀圖下鑽路徑',
   'chart.mix.zoomInHint': '點選類別以放大',
   'chart.mix.zoomOutHint': '點選背景（或按 Esc 鍵）以縮小',
+  'chart.mix.zoomInHintTap': '點按類別可查看詳情，再次點按可放大',
+  'chart.mix.zoomOutHintTap': '點按背景以縮小',
   'chart.mix.others': '其他',
   'chart.mix.categoryAria': '{category}：{count} 件申請。放大檢視。',
   'chart.mix.tooltipValue': '{count} 件申請・占{scope}的 {percent}',
   'chart.mix.scopeAll': '所有申請',
   'chart.mix.sunburstHint': '{trail} — {count} 件申請（占整體 {percent}）',
+  'chart.sunburst.hintClick': '點選扇區以放大 · 停留可查看詳情',
+  'chart.sunburst.hintTap': '點按扇區可查看詳情，再次點按可放大',
+  'chart.sunburst.zoomOutClick': '點選中心以縮小',
+  'chart.sunburst.zoomOutTap': '點按中心以縮小',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': '分局',

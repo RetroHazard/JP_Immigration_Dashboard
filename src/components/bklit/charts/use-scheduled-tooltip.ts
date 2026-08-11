@@ -6,6 +6,15 @@ export interface ScheduledTooltipControls<T> {
   tooltipData: T | null;
   setTooltipData: React.Dispatch<React.SetStateAction<T | null>>;
   scheduleTooltip: (tooltip: T, dedupeKey?: string) => void;
+  /**
+   * LOCAL MODIFICATION: commit a tooltip immediately, bypassing the rAF batch
+   * and the dedupe check. Tap-to-pin needs this: the dedupe key survives a
+   * `setTooltipData(null)` that doesn't go through `clearTooltip`, which would
+   * otherwise leave a datapoint permanently unable to re-open once unpinned.
+   * A tap is also one discrete event, so there is nothing to coalesce.
+   * (Re-apply after a re-vendor.)
+   */
+  commitTooltipNow: (tooltip: T, dedupeKey?: string) => void;
   clearTooltip: () => void;
   resetTooltipDedupe: () => void;
 }
@@ -72,6 +81,19 @@ export function useScheduledTooltip<T>(): ScheduledTooltipControls<T> {
     [commitTooltip]
   );
 
+  // LOCAL MODIFICATION: see `commitTooltipNow` on the interface above.
+  // (Re-apply after a re-vendor.)
+  const commitTooltipNow = useCallback((tooltip: T, dedupeKey?: string) => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    pendingRef.current = null;
+    pendingKeyRef.current = null;
+    lastKeyRef.current = dedupeKey ?? defaultDedupeKey(tooltip);
+    setTooltipData(tooltip);
+  }, []);
+
   const clearTooltip = useCallback(() => {
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
@@ -91,6 +113,7 @@ export function useScheduledTooltip<T>(): ScheduledTooltipControls<T> {
     tooltipData,
     setTooltipData,
     scheduleTooltip,
+    commitTooltipNow,
     clearTooltip,
     resetTooltipDedupe,
   };

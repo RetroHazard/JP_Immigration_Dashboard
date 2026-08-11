@@ -8,9 +8,21 @@ import { render, type RenderOptions, type RenderResult } from '@testing-library/
 
 import { TooltipProvider } from '@/components/ui/tooltip';
 
+import { setMediaQuery } from '../vitest.setup';
+import { COARSE_POINTER_QUERY, resetCoarsePointerCache } from './hooks/useCoarsePointer';
 import { LOCALE_QUERY_PARAM } from './i18n/config';
 import { LocaleProvider } from './i18n/LocaleContext';
 import type { Locale } from './i18n/locales';
+
+/**
+ * Puts the test in touch mode, where chart tooltips are tap-to-pin rather than
+ * hover. Call before rendering — `useCoarsePointer` memoizes its MediaQueryList
+ * on first read, so the cache reset has to happen while nothing is subscribed.
+ */
+export const setCoarsePointer = (on: boolean): void => {
+  resetCoarsePointerCache();
+  setMediaQuery(COARSE_POINTER_QUERY, on);
+};
 
 interface ProviderOptions extends Omit<RenderOptions, 'wrapper'> {
   locale?: Locale;

@@ -116,6 +116,7 @@ const StaticFeatureLayer = memo(function StaticFeatureLayer({
   hoveredIndex,
   onFeatureEnter,
   onFeatureLeave,
+  onFeatureTap,
 }: {
   records: FeatureRecord[];
   stroke: string;
@@ -125,6 +126,11 @@ const StaticFeatureLayer = memo(function StaticFeatureLayer({
   hoveredIndex: number | null;
   onFeatureEnter: (index: number) => void;
   onFeatureLeave: () => void;
+  /**
+   * LOCAL MODIFICATION: set only on a coarse pointer, where a tap toggles the
+   * feature rather than selecting it outright. (Re-apply after a re-vendor.)
+   */
+  onFeatureTap?: (index: number) => void;
 }) {
   // One delegated listener per event instead of two closures per feature.
   const handlePointerOver = useCallback(
@@ -137,18 +143,39 @@ const StaticFeatureLayer = memo(function StaticFeatureLayer({
     [onFeatureEnter]
   );
 
+  // LOCAL MODIFICATION: (Re-apply after a re-vendor.)
+  const handleTap = useCallback(
+    (event: React.MouseEvent) => {
+      const index = featureIndexFromEvent(event);
+      if (index !== null) {
+        onFeatureTap?.(index);
+      }
+    },
+    [onFeatureTap]
+  );
+
   const highlighted =
     hoveredIndex === null
       ? undefined
       : records.find((record) => record.index === hoveredIndex);
 
+  /**
+   * LOCAL MODIFICATION: on touch the delegated hover pair is left off entirely
+   * rather than guarded, so the mouse events a browser synthesizes after a tap
+   * cannot re-select the feature a second tap just dismissed.
+   * (Re-apply after a re-vendor.)
+   */
+  const hitHandlers = onFeatureTap
+    ? { onClick: handleTap }
+    : {
+        onClick: handlePointerOver,
+        onMouseLeave: onFeatureLeave,
+        onMouseOver: handlePointerOver,
+      };
+
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: delegated hit target for the feature paths
-    <g
-      onClick={handlePointerOver}
-      onMouseLeave={onFeatureLeave}
-      onMouseOver={handlePointerOver}
-    >
+    <g {...hitHandlers}>
       <g
         opacity={hoveredIndex === null ? baseOpacity : dimOpacity}
         style={{ transition: "opacity 0.18s ease-out" }}
@@ -183,6 +210,8 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
   hoveredIndex,
   onFeatureEnter,
   onFeatureLeave,
+  // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+  onFeatureTap,
   revealEpoch,
 }: {
   records: FeatureRecord[];
@@ -193,6 +222,7 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
   hoveredIndex: number | null;
   onFeatureEnter: (index: number) => void;
   onFeatureLeave: () => void;
+  onFeatureTap?: (index: number) => void;
   revealEpoch: number;
 }) {
   const { enterTransition, animationDuration } = useChoroplethStable();
@@ -212,6 +242,7 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
         hoveredIndex={hoveredIndex}
         onFeatureEnter={onFeatureEnter}
         onFeatureLeave={onFeatureLeave}
+        onFeatureTap={onFeatureTap}
         records={records}
         stroke={stroke}
         strokeWidth={strokeWidth}
@@ -256,8 +287,13 @@ export const ChoroplethFeature = memo(function ChoroplethFeature({
     width,
     height,
   } = useChoroplethStable();
-  const { hoveredFeatureIndex, setHoveredFeatureIndex, setTooltipData } =
-    useChoroplethInteraction();
+  const {
+    hoveredFeatureIndex,
+    setHoveredFeatureIndex,
+    setTooltipData,
+    // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+    tapMode,
+  } = useChoroplethInteraction();
 
   const featureCentroids = useMemo(() => {
     return features.map((feature) => {
@@ -352,12 +388,36 @@ export const ChoroplethFeature = memo(function ChoroplethFeature({
     setTooltipData(null);
   }, [setHoveredFeatureIndex, setTooltipData]);
 
+  /**
+   * LOCAL MODIFICATION: the touch equivalent of enter/leave. A tap selects the
+   * prefecture; tapping the same one again dismisses it, which a plain
+   * select-on-click has no way to express. The pin also registers page-wide,
+   * so opening a tooltip on another chart closes this one.
+   * (Re-apply after a re-vendor.)
+   */
+  const handleFeatureTap = useCallback(
+    (index: number) => {
+      if (!tapMode) {
+        return;
+      }
+      if (tapMode.tap(`feature:${index}`) === "unpinned") {
+        handleFeatureLeave();
+        return;
+      }
+      handleFeatureEnter(index);
+    },
+    [handleFeatureEnter, handleFeatureLeave, tapMode]
+  );
+
   const layerProps = {
     baseOpacity: 0.85,
     dimOpacity: fadedOpacity,
     hoveredIndex: hoveredFeatureIndex,
     onFeatureEnter: handleFeatureEnter,
     onFeatureLeave: handleFeatureLeave,
+    // LOCAL MODIFICATION: absent on hover devices, which is what selects the
+    // vendored handler set. (Re-apply after a re-vendor.)
+    onFeatureTap: tapMode ? handleFeatureTap : undefined,
     records,
     stroke,
     strokeWidth,

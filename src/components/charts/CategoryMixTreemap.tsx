@@ -19,6 +19,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
 
+import { useCoarsePointer } from '../../hooks/useCoarsePointer';
+import { useTapPin } from '../../hooks/useTapPin';
 import { useLocale } from '../../i18n/LocaleContext';
 import { useApplicationType, useBureauCompact, useBureauLabel } from '../../i18n/useDomainLabels';
 import type { MixTree } from '../../utils/categoryMixTree';
@@ -196,6 +198,7 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
   const [focusKey, setFocusKey] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  const coarsePointer = useCoarsePointer();
 
   // Tiles animate only between focus states. Renders caused by mount or a
   // container resize snap instantly, so tiles never "fly in" from stale rects.
@@ -211,29 +214,38 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
   const tipChipRef = useRef<HTMLSpanElement>(null);
   const tipNameRef = useRef<HTMLSpanElement>(null);
   const tipValueRef = useRef<HTMLDivElement>(null);
-  const moveTip = (event: React.MouseEvent) => {
+  const placeTip = (anchorX: number, anchorY: number) => {
     const tip = tipRef.current;
     if (!tip) return;
     const pad = 14;
     const bounds = tip.getBoundingClientRect();
-    let x = event.clientX + pad;
-    let y = event.clientY + pad;
-    if (x + bounds.width > window.innerWidth - 8) x = event.clientX - bounds.width - pad;
-    if (y + bounds.height > window.innerHeight - 8) y = event.clientY - bounds.height - pad;
+    let x = anchorX + pad;
+    let y = anchorY + pad;
+    if (x + bounds.width > window.innerWidth - 8) x = anchorX - bounds.width - pad;
+    if (y + bounds.height > window.innerHeight - 8) y = anchorY - bounds.height - pad;
     tip.style.left = `${x}px`;
     tip.style.top = `${y}px`;
   };
+  const moveTip = (event: React.MouseEvent) => placeTip(event.clientX, event.clientY);
   const showTip = (event: React.MouseEvent, name: string, color: string, detail: string) => {
+    showTipAt(event.clientX, event.clientY, name, color, detail);
+  };
+  const showTipAt = (anchorX: number, anchorY: number, name: string, color: string, detail: string) => {
     const tip = tipRef.current;
     if (!tip || !tipChipRef.current || !tipNameRef.current || !tipValueRef.current) return;
     tipChipRef.current.style.background = color;
     tipNameRef.current.textContent = name;
     tipValueRef.current.textContent = detail;
     tip.style.display = 'block';
-    moveTip(event);
+    placeTip(anchorX, anchorY);
   };
   const hideTip = () => {
     if (tipRef.current) tipRef.current.style.display = 'none';
+  };
+  /** On touch the finger covers the tile, so anchor above it instead. */
+  const showTipOnTile = (element: Element, name: string, color: string, detail: string) => {
+    const rect = element.getBoundingClientRect();
+    showTipAt(rect.left + rect.width / 2, rect.top, name, color, detail);
   };
 
   useEffect(() => {
@@ -259,6 +271,27 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [zoomOut]);
+
+  const tapMode = useTapPin({ enabled: coarsePointer, containerRef, onDismiss: hideTip });
+
+  /**
+   * A tile tap has to serve two purposes that a mouse got to keep separate:
+   * inspecting and zooming. First tap shows the tooltip, second tap on the same
+   * tile drills in — so the tooltip is reachable at all on touch, where a
+   * single-tap zoom used to move the tile out from under the finger before it
+   * could be read. Leaves have nothing to drill into, so their second tap just
+   * closes.
+   */
+  const tapTile = (event: React.MouseEvent, key: string, drillTo: string | null, name: string, color: string, detail: string) => {
+    event.stopPropagation();
+    if (!tapMode) return;
+    if (tapMode.tap(key) === 'unpinned') {
+      hideTip();
+      if (drillTo !== null) setFocusKey(drillTo);
+      return;
+    }
+    showTipOnTile(event.currentTarget, name, color, detail);
+  };
 
   const layout = useMemo(() => computeLayout(tree, focusKey, width, HEIGHT), [tree, focusKey, width]);
   const focused = focusKey !== null ? tree.categories.find((category) => category.key === focusKey) : undefined;
@@ -303,14 +336,31 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
           )}
         </nav>
         <span className="text-xxs text-muted-foreground">
-          {t(focusKey === null ? 'chart.mix.zoomInHint' : 'chart.mix.zoomOutHint')}
+          {t(
+            focusKey === null
+              ? coarsePointer
+                ? 'chart.mix.zoomInHintTap'
+                : 'chart.mix.zoomInHint'
+              : coarsePointer
+                ? 'chart.mix.zoomOutHintTap'
+                : 'chart.mix.zoomOutHint'
+          )}
         </span>
       </div>
       <div
         ref={containerRef}
         className="relative overflow-hidden rounded-xl bg-muted"
         style={{ height: HEIGHT }}
-        onClick={zoomOut}
+        onClick={() => {
+          // On touch a background tap dismisses the tooltip first and only
+          // zooms out once nothing is pinned, matching the tile behaviour.
+          if (tapMode?.pinned) {
+            tapMode.clear();
+            hideTip();
+            return;
+          }
+          zoomOut();
+        }}
       >
         {tree.categories.map((category) => {
           const rect = layout['c:' + category.key];
@@ -328,23 +378,41 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
                 count: fmt(category.value),
               })}
               onClick={(event) => {
+                if (tapMode) {
+                  tapTile(
+                    event,
+                    `c:${category.key}`,
+                    focusKey === null ? category.key : null,
+                    categoryLabel(category.key),
+                    category.color,
+                    labels.tooltipValue({
+                      count: fmt(category.value),
+                      percent: formatters.percent((category.value / tree.total) * 100),
+                      scope: labels.scopeAll,
+                    })
+                  );
+                  return;
+                }
                 event.stopPropagation();
                 hideTip();
                 if (focusKey === null) setFocusKey(category.key);
               }}
-              onMouseMove={(event) =>
-                showTip(
-                  event,
-                  categoryLabel(category.key),
-                  category.color,
-                  labels.tooltipValue({
-                    count: fmt(category.value),
-                    percent: formatters.percent((category.value / tree.total) * 100),
-                    scope: labels.scopeAll,
-                  })
-                )
+              onMouseLeave={tapMode ? undefined : hideTip}
+              onMouseMove={
+                tapMode
+                  ? undefined
+                  : (event) =>
+                      showTip(
+                        event,
+                        categoryLabel(category.key),
+                        category.color,
+                        labels.tooltipValue({
+                          count: fmt(category.value),
+                          percent: formatters.percent((category.value / tree.total) * 100),
+                          scope: labels.scopeAll,
+                        })
+                      )
               }
-              onMouseLeave={hideTip}
               className="absolute overflow-hidden rounded-lg text-left hover:brightness-105 motion-reduce:transition-none"
               style={{
                 ...tileStyle(rect),
@@ -386,6 +454,31 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
                 className="absolute cursor-pointer overflow-hidden rounded-md text-foreground hover:brightness-105 motion-reduce:transition-none"
                 style={{ ...tileStyle(rect), background: mixLeafColor(category.color, rank) }}
                 onClick={(event) => {
+                  if (tapMode) {
+                    // The `__rest` tile carries no figures, so it has nothing
+                    // to inspect — it keeps the plain zoom behaviour.
+                    if (rest) {
+                      event.stopPropagation();
+                      tapMode.clear();
+                      hideTip();
+                      if (focusKey === null) setFocusKey(category.key);
+                      return;
+                    }
+                    const ofLabel = focusKey === category.key ? categoryLabel(category.key) : labels.scopeAll;
+                    tapTile(
+                      event,
+                      key,
+                      focusKey === null ? category.key : null,
+                      `${leafLabel(leaf.code)} · ${categoryShort(category.key)}`,
+                      mixLeafColor(category.color, rank),
+                      labels.tooltipValue({
+                        count: fmt(leaf.value),
+                        percent: formatters.percent((leaf.value / base) * 100),
+                        scope: ofLabel,
+                      })
+                    );
+                    return;
+                  }
                   // At the root a leaf click zooms into its category; when
                   // focused it bubbles to the background and zooms out.
                   hideTip();
@@ -394,22 +487,26 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
                     setFocusKey(category.key);
                   }
                 }}
-                onMouseMove={(event) => {
-                  event.stopPropagation();
-                  if (rest) return;
-                  const ofLabel = focusKey === category.key ? categoryLabel(category.key) : labels.scopeAll;
-                  showTip(
-                    event,
-                    `${leafLabel(leaf.code)} · ${categoryShort(category.key)}`,
-                    mixLeafColor(category.color, rank),
-                    labels.tooltipValue({
-                      count: fmt(leaf.value),
-                      percent: formatters.percent((leaf.value / base) * 100),
-                      scope: ofLabel,
-                    })
-                  );
-                }}
-                onMouseLeave={hideTip}
+                onMouseLeave={tapMode ? undefined : hideTip}
+                onMouseMove={
+                  tapMode
+                    ? undefined
+                    : (event) => {
+                        event.stopPropagation();
+                        if (rest) return;
+                        const ofLabel = focusKey === category.key ? categoryLabel(category.key) : labels.scopeAll;
+                        showTip(
+                          event,
+                          `${leafLabel(leaf.code)} · ${categoryShort(category.key)}`,
+                          mixLeafColor(category.color, rank),
+                          labels.tooltipValue({
+                            count: fmt(leaf.value),
+                            percent: formatters.percent((leaf.value / base) * 100),
+                            scope: ofLabel,
+                          })
+                        );
+                      }
+                }
               >
                 {showLabel && (
                   <span className="flex flex-col px-2 py-1 text-xs font-semibold leading-tight">

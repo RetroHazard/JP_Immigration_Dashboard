@@ -241,11 +241,17 @@ export const it: Dictionary = {
   'chart.mix.breadcrumbAria': 'Percorso di esplorazione della treemap',
   'chart.mix.zoomInHint': 'Fai clic su una categoria per ingrandire',
   'chart.mix.zoomOutHint': 'Fai clic sullo sfondo (o premi Esc) per rimpicciolire',
+  'chart.mix.zoomInHintTap': 'Tocca una categoria per esaminarla, tocca di nuovo per ingrandire',
+  'chart.mix.zoomOutHintTap': 'Tocca lo sfondo per rimpicciolire',
   'chart.mix.others': 'Altri',
   'chart.mix.categoryAria': '{category}: {count} domande. Ingrandisci.',
   'chart.mix.tooltipValue': '{count} domande · {percent} di {scope}',
   'chart.mix.scopeAll': 'tutte le domande',
   'chart.mix.sunburstHint': '{trail} — {count} domande ({percent} del totale)',
+  'chart.sunburst.hintClick': 'Fai clic su un segmento per ingrandire · passa il cursore per esaminarlo',
+  'chart.sunburst.hintTap': 'Tocca un segmento per esaminarlo, tocca di nuovo per ingrandire',
+  'chart.sunburst.zoomOutClick': 'Fai clic al centro per rimpicciolire',
+  'chart.sunburst.zoomOutTap': 'Tocca il centro per rimpicciolire',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': 'ufficio distaccato',

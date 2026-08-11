@@ -201,6 +201,9 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
   const visible = tooltipData !== null;
   const x = tooltipData?.x ?? 0;
   const xWithMargin = x + margin.left;
+  // LOCAL MODIFICATION: set only when a tap opened this tooltip; the hover
+  // path leaves it undefined. (Re-apply after a re-vendor.)
+  const touchAnchorY = tooltipData?.tapY;
 
   // For horizontal charts, get the y position from the first line's yPosition (center of bar)
   const firstLineDataKey = lines[0]?.dataKey;
@@ -340,7 +343,13 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
       )}
 
       {/* Tooltip Box */}
+      {/* LOCAL MODIFICATION: a tooltip opened by a tap carries the y of the
+          touch, and is placed above it rather than pinned to the top of the
+          plot — where, on a phone, it covers the data and the date axis. The
+          vendored `top` override has to come off for that, or it would win.
+          (Re-apply after a re-vendor.) */}
       <TooltipBox
+        anchorAboveY={touchAnchorY}
         animate={boxMotion.animate}
         backgroundColor={backgroundColor}
         className={className}
@@ -349,7 +358,7 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
         containerWidth={width}
         panelStyle={panelStyle}
         springConfig={boxMotion.springConfig}
-        top={isHorizontal ? undefined : margin.top}
+        top={touchAnchorY === undefined && !isHorizontal ? margin.top : undefined}
         visible={visible}
         x={xWithMargin}
         y={isHorizontal ? yWithMargin : margin.top}

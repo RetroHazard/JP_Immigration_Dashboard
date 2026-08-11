@@ -235,11 +235,17 @@ export const ja: Dictionary = {
   'chart.mix.breadcrumbAria': 'ツリーマップの階層パス',
   'chart.mix.zoomInHint': 'カテゴリをクリックすると拡大します',
   'chart.mix.zoomOutHint': '背景をクリック（または Esc キー）で戻ります',
+  'chart.mix.zoomInHintTap': 'カテゴリをタップすると詳細、もう一度タップで拡大します',
+  'chart.mix.zoomOutHintTap': '背景をタップすると戻ります',
   'chart.mix.others': 'その他',
   'chart.mix.categoryAria': '{category}：{count}件。拡大します。',
   'chart.mix.tooltipValue': '{count}件・{scope}の{percent}',
   'chart.mix.scopeAll': '全申請',
   'chart.mix.sunburstHint': '{trail} — {count}件（全体の{percent}）',
+  'chart.sunburst.hintClick': 'セグメントをクリックすると拡大、カーソルを合わせると詳細が表示されます',
+  'chart.sunburst.hintTap': 'セグメントをタップすると詳細、もう一度タップで拡大します',
+  'chart.sunburst.zoomOutClick': '中央をクリックすると戻ります',
+  'chart.sunburst.zoomOutTap': '中央をタップすると戻ります',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': '支局',

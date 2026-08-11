@@ -662,7 +662,12 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
   zoomMax: number;
   constrain?: Constrain;
 }) {
-  const { setHoveredFeatureIndex, setTooltipData } = useChoroplethInteraction();
+  const {
+    setHoveredFeatureIndex,
+    setTooltipData,
+    // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+    tapMode,
+  } = useChoroplethInteraction();
   const svgRef = useRef<SVGSVGElement>(null);
 
   // Native listeners below fire outside React's render cycle, so they read the
@@ -673,21 +678,29 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
   constrainRef.current = constrain;
 
   const handleMouseLeave = useCallback(() => {
-    setHoveredFeatureIndex(null);
-    setTooltipData(null);
+    // LOCAL MODIFICATION: on a coarse pointer this only ends a drag. Clearing
+    // the tooltip here as well would let the mouse events synthesized after a
+    // tap dismiss the pin the tap just set. (Re-apply after a re-vendor.)
+    if (!tapMode) {
+      setHoveredFeatureIndex(null);
+      setTooltipData(null);
+    }
     zoomRef.current?.dragEnd();
-  }, [setHoveredFeatureIndex, setTooltipData]);
+  }, [setHoveredFeatureIndex, setTooltipData, tapMode]);
 
   const handleBackgroundClick = useCallback(
     (event: React.MouseEvent<SVGSVGElement>) => {
       // A tap on empty ocean dismisses the tooltip; taps on a feature are
       // handled by the feature layer and stop propagating before they land here.
       if (event.target === event.currentTarget) {
+        // LOCAL MODIFICATION: release the page-wide pin too, or the registry
+        // keeps a dead owner and its listeners. (Re-apply after a re-vendor.)
+        tapMode?.clear();
         setHoveredFeatureIndex(null);
         setTooltipData(null);
       }
     },
-    [setHoveredFeatureIndex, setTooltipData]
+    [setHoveredFeatureIndex, setTooltipData, tapMode]
   );
 
   // Wheel and two-finger gestures need non-passive listeners so preventDefault

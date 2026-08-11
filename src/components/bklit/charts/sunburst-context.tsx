@@ -8,6 +8,8 @@ import {
   useContext,
   useMemo,
 } from "react";
+// LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+import type { ChartTapMode } from "@/hooks/useTapPin";
 import type { ArcDatum, Focus, SunburstEnterTiming } from "./sunburst";
 import type { SunburstNode } from "./sunburst-data";
 
@@ -48,6 +50,13 @@ export interface SunburstHoverContextValue {
   setHoveredArcIndex: (index: number | null) => void;
   hoveredArc: ArcDatum | null;
   setHoveredArc: (arc: ArcDatum | null) => void;
+  /**
+   * LOCAL MODIFICATION: on touch a segment is inspected by tapping it and
+   * zoomed by tapping it again, since a single-tap zoom moved the segment out
+   * from under the finger before it could be read. Null on hover devices.
+   * (Re-apply after a re-vendor.)
+   */
+  tapMode?: ChartTapMode | null;
 }
 
 export interface SunburstStableContextValue {
@@ -171,12 +180,15 @@ export function SunburstProvider({
       setHoveredArcIndex: value.setHoveredArcIndex,
       hoveredArc: value.hoveredArc,
       setHoveredArc: value.setHoveredArc,
+      // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+      tapMode: value.tapMode,
     }),
     [
       value.hoveredArcIndex,
       value.setHoveredArcIndex,
       value.hoveredArc,
       value.setHoveredArc,
+      value.tapMode,
     ]
   );
 

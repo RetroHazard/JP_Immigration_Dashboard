@@ -6,12 +6,14 @@
 // message, and labelled rows reflow cleanly at any screen width.
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { animate } from 'animejs';
 import type React from 'react';
 
 import { useTheme } from '../../contexts/ThemeContext';
+import { useCoarsePointer } from '../../hooks/useCoarsePointer';
+import { useTapPin } from '../../hooks/useTapPin';
 import { useLocale } from '../../i18n/LocaleContext';
 import { useBureauCompact, useBureauLabel } from '../../i18n/useDomainLabels';
 import { useAnimeScope } from '../../lib/motion';
@@ -30,12 +32,36 @@ interface Hover {
   y: number;
 }
 
+/**
+ * Rows are `tabIndex={0}`, so a mouse click focuses one as well as hovering it.
+ * `:focus-visible` is the browser's own answer to "did this focus come from the
+ * keyboard": a Tab matches it, a click does not.
+ */
+const isKeyboardFocus = (element: HTMLElement): boolean => {
+  try {
+    return element.matches(':focus-visible');
+  } catch {
+    // A selector engine that doesn't implement the pseudo-class at all: fall
+    // back to the old unconditional behaviour rather than losing the
+    // keyboard affordance. (jsdom implements it and answers false, so tests
+    // exercise the pointer branch, not this one.)
+    return true;
+  }
+};
+
 export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { isDarkMode } = useTheme();
   const { t, formatters } = useLocale();
   const bureauLabel = useBureauLabel();
   const bureauCompact = useBureauCompact();
   const [hovered, setHovered] = useState<Hover | null>(null);
+  const rowsRef = useRef<HTMLDivElement>(null);
+  // Whether the card currently on screen was opened by keyboard focus, so that
+  // only a blur that follows one of those closes it again.
+  const focusShownRef = useRef(false);
+  const coarsePointer = useCoarsePointer();
+  const clearHover = useCallback(() => setHovered(null), []);
+  const tapMode = useTapPin({ enabled: coarsePointer, containerRef: rowsRef, onDismiss: clearHover });
 
   const points = useMemo(
     () => computeEfficiencyPoints(data, filters, range, isDarkMode, bureauLabel),
@@ -85,19 +111,71 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
     );
   }
 
+  // Anchoring at the row rather than the pointer, which is what the keyboard
+  // path already does: on touch the pointer is a finger sitting on top of the
+  // row the card is describing.
+  const showAtRow = (point: EfficiencyPoint, element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    setHovered({ point, x: rect.left + rect.width / 2, y: rect.top });
+  };
+
+  // On touch the pointer handlers are left off rather than guarded: pointerleave
+  // fires on finger-up, so keeping them would close the card the tap opened.
   const hoverProps = (point: EfficiencyPoint) => ({
-    onPointerEnter: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
-    onPointerMove: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
-    onPointerLeave: () => setHovered(null),
+    ...(tapMode
+      ? {
+          onClick: (e: React.MouseEvent<HTMLElement>) => {
+            // Otherwise the card's "tapped a gap" handler undoes this.
+            e.stopPropagation();
+            const target = e.currentTarget;
+            if (tapMode.tap(point.code) === 'unpinned') {
+              setHovered(null);
+              return;
+            }
+            showAtRow(point, target);
+          },
+        }
+      : {
+          onPointerEnter: (e: React.PointerEvent) => {
+            // The pointer takes ownership of the card, so a later blur from a
+            // row the mouse has already left can't close it.
+            focusShownRef.current = false;
+            setHovered({ point, x: e.clientX, y: e.clientY });
+          },
+          onPointerMove: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
+          onPointerLeave: () => setHovered(null),
+        }),
+    // Kept on both: this is the keyboard path, and it is unaffected by pointer
+    // type. It is gated on `:focus-visible` because clicking a row focuses it
+    // too, and re-anchoring there would tear the card away from the cursor for
+    // no reason the person clicking asked for.
     onFocus: (e: React.FocusEvent<HTMLElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      setHovered({ point, x: rect.left + rect.width / 2, y: rect.top });
+      if (!isKeyboardFocus(e.currentTarget)) return;
+      focusShownRef.current = true;
+      showAtRow(point, e.currentTarget);
     },
-    onBlur: () => setHovered(null),
+    onBlur: () => {
+      if (!focusShownRef.current) return;
+      focusShownRef.current = false;
+      setHovered(null);
+    },
   });
 
   return (
-    <div className="chart-card-content">
+    // The ref marks the tap boundary: a tap anywhere inside is the chart's to
+    // interpret, and the click handler covers the gaps between rows.
+    <div
+      className="chart-card-content"
+      onClick={
+        tapMode
+          ? () => {
+              tapMode.clear();
+              setHovered(null);
+            }
+          : undefined
+      }
+      ref={rowsRef}
+    >
       <div ref={motionRoot}>
         <div className="relative">
           {ranked.map((point) => {

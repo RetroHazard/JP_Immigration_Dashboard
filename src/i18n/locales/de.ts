@@ -238,11 +238,17 @@ export const de: Dictionary = {
   'chart.mix.breadcrumbAria': 'Treemap-Navigationspfad',
   'chart.mix.zoomInHint': 'Klicken Sie auf eine Kategorie, um hineinzuzoomen',
   'chart.mix.zoomOutHint': 'Klicken Sie auf den Hintergrund (oder drücken Sie Esc), um herauszuzoomen',
+  'chart.mix.zoomInHintTap': 'Tippen Sie auf eine Kategorie für Details, erneut zum Hineinzoomen',
+  'chart.mix.zoomOutHintTap': 'Tippen Sie auf den Hintergrund, um herauszuzoomen',
   'chart.mix.others': 'Sonstige',
   'chart.mix.categoryAria': '{category}: {count} Anträge. Hineinzoomen.',
   'chart.mix.tooltipValue': '{count} Anträge · {percent} von {scope}',
   'chart.mix.scopeAll': 'allen Anträgen',
   'chart.mix.sunburstHint': '{trail} — {count} Anträge ({percent} der Gesamtzahl)',
+  'chart.sunburst.hintClick': 'Klicken Sie auf ein Segment, um hineinzuzoomen · zum Betrachten den Mauszeiger darüber bewegen',
+  'chart.sunburst.hintTap': 'Tippen Sie auf ein Segment für Details, erneut zum Hineinzoomen',
+  'chart.sunburst.zoomOutClick': 'Klicken Sie in die Mitte, um herauszuzoomen',
+  'chart.sunburst.zoomOutTap': 'Tippen Sie in die Mitte, um herauszuzoomen',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': 'Zweigstelle',

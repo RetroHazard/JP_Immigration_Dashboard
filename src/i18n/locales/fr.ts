@@ -237,11 +237,17 @@ export const fr: Dictionary = {
   'chart.mix.breadcrumbAria': "Chemin d'exploration de la carte proportionnelle",
   'chart.mix.zoomInHint': 'Cliquez sur une catégorie pour zoomer',
   'chart.mix.zoomOutHint': "Cliquez sur l'arrière-plan (ou appuyez sur Échap) pour dézoomer",
+  'chart.mix.zoomInHintTap': "Touchez une catégorie pour l'examiner, touchez à nouveau pour zoomer",
+  'chart.mix.zoomOutHintTap': "Touchez l'arrière-plan pour dézoomer",
   'chart.mix.others': 'Autres',
   'chart.mix.categoryAria': '{category} : {count} demandes. Zoomer.',
   'chart.mix.tooltipValue': '{count} demandes · {percent} de {scope}',
   'chart.mix.scopeAll': "l'ensemble des demandes",
   'chart.mix.sunburstHint': '{trail} — {count} demandes ({percent} du total)',
+  'chart.sunburst.hintClick': "Cliquez sur un segment pour zoomer · survolez pour l'examiner",
+  'chart.sunburst.hintTap': 'Touchez un segment pour l\'examiner, touchez à nouveau pour zoomer',
+  'chart.sunburst.zoomOutClick': 'Cliquez au centre pour dézoomer',
+  'chart.sunburst.zoomOutTap': 'Touchez le centre pour dézoomer',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': 'bureau annexe',
