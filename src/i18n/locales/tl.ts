@@ -38,6 +38,7 @@ export const tl: Dictionary = {
   'nav.themeDark': 'Madilim',
   'nav.about': 'Tungkol Dito',
   'nav.changelog': 'Listahan ng Pagbabago',
+  'nav.sourceCode': 'Source Code',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': 'Datos: {range}',

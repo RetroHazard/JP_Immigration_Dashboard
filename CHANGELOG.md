@@ -6,6 +6,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
+- **v1.4.4**: The header now links to the project's source repository, next to the theme toggle on desktop and under About in the mobile settings drawer
+
 - **v1.4.0**: Three more views join the Resident Population dataset, alongside a filtering overhaul —
   - **Population Growth** stacks total foreign residents per half-year since 2012, toggleable between purpose-of-stay and world-region breakdowns, with markers for policy changes and the COVID-19 dip
   - **Resident Flows** is a three-column sankey — region into country into purpose-of-stay group — showing the full nationality × status cross-tabulation for a single snapshot
@@ -38,9 +40,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Holding was the only way to see a value, and letting go dismissed it, so a reading could never be held still long enough to compare against anything. A tap now pins the tooltip open; tap the same point again to close it, or another point to move it. Tapping outside the chart, scrolling, or opening a tooltip on a different chart also closes it, so only ever one is on screen
   - Most charts had no touch handling at all and were relying on the mouse events a browser invents after a tap. That is why a tooltip would sometimes flash and vanish, or stay stuck on the wrong point: the map, both sankeys, the bureau-share ring, the treemap, and the efficiency ranking are all covered now
   - The time-series charts blocked page scrolling anywhere over the plot area, which on a phone is most of the screen. They no longer do
-  - A tapped tooltip opens above the point you tapped, rather than across the middle of the chart. It was landing on top of the data it was describing and running into the date axis, and your finger was on whatever it left over
   - Where a tap had to mean two things, it now means them in order: on the treemap and the Residence Status sunburst, the first tap shows the figures and a second tap on the same tile or segment zooms in. Previously a single tap zoomed, which moved the thing you tapped out from under your finger before you could read it
-  - Tooltips are positioned above the point you tapped rather than under your fingertip, and are capped to the width of their card so a long bureau or nationality name can't push them off the edge
+  - A tooltip opens above the point you tapped rather than across the middle of the chart, and is capped to the width of its card so a long bureau or nationality name can't push it off the edge. On a phone the plot is shorter than the tooltip is tall, so the old placement covered the data it was describing and ran into the date axis, with your finger on whatever was left
   - Nothing changes with a mouse or trackpad: hover, the drag-to-select range, and every existing keyboard shortcut behave exactly as before. The switch keys off whether the device has a hovering pointer at all, not window width, so a narrow desktop window keeps hover
 
 - **v1.2.6**: The language switcher is now a compact button that opens a list, in both the desktop header and the mobile settings drawer, instead of always showing every language at once —

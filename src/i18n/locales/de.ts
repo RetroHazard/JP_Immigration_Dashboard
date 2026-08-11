@@ -38,6 +38,7 @@ export const de: Dictionary = {
   'nav.themeDark': 'Dunkel',
   'nav.about': 'Über',
   'nav.changelog': 'Änderungsprotokoll',
+  'nav.sourceCode': 'Quellcode',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': 'Daten: {range}',
