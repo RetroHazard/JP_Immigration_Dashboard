@@ -77,8 +77,11 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           <Line dataKey="processed" stroke="var(--chart-3)" curve={curveMonotoneX} strokeWidth={2.25} fadeEdges={false} />
           <XAxis />
           {/* Rows are named explicitly: the tooltip would otherwise show the
-              raw series ids now that those are no longer display text. */}
+              raw series ids now that those are no longer display text.
+              Only the line gets a dot — a stacked bar's dot is placed at its
+              raw axis value, which is nowhere near its segment. */}
           <ChartTooltip
+            dotKeys={['processed']}
             titleFormat={(date) => formatters.monthYear(date)}
             rows={(point) =>
               series.map((entry) => ({

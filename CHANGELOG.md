@@ -41,6 +41,7 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.4.3**: Hovering the Population Growth chart drew a dot per series that sat below its own bar segment, bunched near the bottom of the plot, in both the by-purpose and by-region views. The dots are gone — the highlighted bars and the tooltip already give every value, and the dots only offered a second, wrong reading of them. Intake & Processing had the same problem on its two stacked bars; there the dot survives on the completed-applications line, where it tracks the line correctly.
 - **v1.4.2**: World regions showed up as raw codes — `region.1000` instead of "Asia" — on Chrome and Edge, in every language. It affected the Resident Flows sankey's left column, the region filter, Population Growth's by-region view, and the Residence Status sunburst; "Stateless" was the only region that read correctly —
   - Continent names were being taken from the browser's own locale data, the same as country names. That works for countries everywhere, but Chrome and Edge ship no names for continents specifically, so they handed back the code they were given. Firefox and Safari were unaffected, which is what kept this out of sight
   - All seven regions are now written into each of the twelve translations, so they read the same whichever browser you use
