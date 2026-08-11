@@ -3,8 +3,6 @@
 import { geoCentroid } from "d3-geo";
 import { motion, useTransform } from "motion/react";
 import { memo, useCallback, useMemo } from "react";
-// LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
-import { activationProps } from "@/hooks/useTapPin";
 import { useEnterComplete } from "../use-enter-complete";
 import { useMountProgress } from "../use-mount-progress";
 import {
@@ -58,6 +56,57 @@ function resolveFeatureFill(
   );
 }
 
+/** Feature index carried by the delegated handlers, or null for a miss. */
+function featureIndexFromEvent(event: React.SyntheticEvent): number | null {
+  const attribute = (event.target as Element | null)?.getAttribute?.(
+    "data-feature-index"
+  );
+  if (attribute == null) {
+    return null;
+  }
+  const index = Number(attribute);
+  return Number.isNaN(index) ? null : index;
+}
+
+/**
+ * The paths themselves. Deliberately free of per-feature handlers and of any
+ * hover-dependent prop, so this memo holds across hover and pan — the geometry
+ * is the expensive part and it never needs to re-render for an interaction.
+ *
+ * `non-scaling-stroke` is what keeps borders hairline-thin at every zoom level.
+ * The zoom transform sits on an ancestor <g>, and SVG scales stroke width along
+ * with geometry, so a 0.75 border renders 12px wide at 16x. Dividing the width
+ * by the live zoom scale instead would drag this layer into the zoom context and
+ * re-render all 47 paths per gesture frame; a static attribute leaves the memo
+ * intact and hands the work to the rasteriser.
+ */
+const FeaturePaths = memo(function FeaturePaths({
+  records,
+  stroke,
+  strokeWidth,
+}: {
+  records: FeatureRecord[];
+  stroke: string;
+  strokeWidth: number;
+}) {
+  return (
+    <>
+      {records.map((record) => (
+        <path
+          className="cursor-pointer"
+          d={record.path}
+          data-feature-index={record.index}
+          fill={record.fill}
+          key={record.index}
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+    </>
+  );
+});
+
 const StaticFeatureLayer = memo(function StaticFeatureLayer({
   records,
   stroke,
@@ -65,7 +114,9 @@ const StaticFeatureLayer = memo(function StaticFeatureLayer({
   baseOpacity,
   dimOpacity,
   hoveredIndex,
-  featureProps,
+  onFeatureEnter,
+  onFeatureLeave,
+  onFeatureTap,
 }: {
   records: FeatureRecord[];
   stroke: string;
@@ -73,65 +124,80 @@ const StaticFeatureLayer = memo(function StaticFeatureLayer({
   baseOpacity: number;
   dimOpacity: number;
   hoveredIndex: number | null;
-  // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
-  featureProps: (record: FeatureRecord) => Record<string, unknown>;
+  onFeatureEnter: (index: number) => void;
+  onFeatureLeave: () => void;
+  /**
+   * LOCAL MODIFICATION: set only on a coarse pointer, where a tap toggles the
+   * feature rather than selecting it outright. (Re-apply after a re-vendor.)
+   */
+  onFeatureTap?: (index: number) => void;
 }) {
-  const isDimmed = hoveredIndex !== null;
+  // One delegated listener per event instead of two closures per feature.
+  const handlePointerOver = useCallback(
+    (event: React.MouseEvent) => {
+      const index = featureIndexFromEvent(event);
+      if (index !== null) {
+        onFeatureEnter(index);
+      }
+    },
+    [onFeatureEnter]
+  );
 
-  if (!isDimmed) {
-    return (
-      <g opacity={baseOpacity}>
-        {records.map((record) => (
-          // biome-ignore lint/a11y/noStaticElementInteractions: SVG path used as hover hitbox
-          <path
-            className="cursor-pointer"
-            d={record.path}
-            fill={record.fill}
-            key={`base-${record.index}`}
-            {...featureProps(record)}
-            stroke={stroke}
-            strokeWidth={strokeWidth}
-          />
-        ))}
-      </g>
-    );
-  }
+  // LOCAL MODIFICATION: (Re-apply after a re-vendor.)
+  const handleTap = useCallback(
+    (event: React.MouseEvent) => {
+      const index = featureIndexFromEvent(event);
+      if (index !== null) {
+        onFeatureTap?.(index);
+      }
+    },
+    [onFeatureTap]
+  );
 
-  const highlighted = records.find((record) => record.index === hoveredIndex);
+  const highlighted =
+    hoveredIndex === null
+      ? undefined
+      : records.find((record) => record.index === hoveredIndex);
+
+  /**
+   * LOCAL MODIFICATION: on touch the delegated hover pair is left off entirely
+   * rather than guarded, so the mouse events a browser synthesizes after a tap
+   * cannot re-select the feature a second tap just dismissed.
+   * (Re-apply after a re-vendor.)
+   */
+  const hitHandlers = onFeatureTap
+    ? { onClick: handleTap }
+    : {
+        onClick: handlePointerOver,
+        onMouseLeave: onFeatureLeave,
+        onMouseOver: handlePointerOver,
+      };
 
   return (
-    <>
-      <g opacity={dimOpacity} style={{ transition: "opacity 0.18s ease-out" }}>
-        {records
-          .filter((record) => record.index !== hoveredIndex)
-          .map((record) => (
-            // biome-ignore lint/a11y/noStaticElementInteractions: SVG path used as hover hitbox
-            <path
-              className="cursor-pointer"
-              d={record.path}
-              fill={record.fill}
-              key={`base-${record.index}`}
-              {...featureProps(record)}
-              stroke={stroke}
-              strokeWidth={strokeWidth}
-            />
-          ))}
-      </g>
-      {highlighted ? (
-        // biome-ignore lint/a11y/noStaticElementInteractions: SVG path used as hover hitbox
-        <path
-          className="cursor-pointer"
-          d={highlighted.path}
-          fill={highlighted.fill}
-          key={`highlight-${highlighted.index}`}
-          {...featureProps(highlighted)}
-          opacity={1}
+    // biome-ignore lint/a11y/noStaticElementInteractions: delegated hit target for the feature paths
+    <g {...hitHandlers}>
+      <g
+        opacity={hoveredIndex === null ? baseOpacity : dimOpacity}
+        style={{ transition: "opacity 0.18s ease-out" }}
+      >
+        <FeaturePaths
+          records={records}
           stroke={stroke}
           strokeWidth={strokeWidth}
-          style={{ transition: "opacity 0.18s ease-out" }}
         />
-      ) : null}
-    </>
+      </g>
+      {/* Always mounted, so hovering swaps one `d` attribute rather than
+          remounting the whole layer. Transparent to pointers, so the path
+          underneath keeps ownership of the hover. */}
+      <path
+        d={highlighted?.path ?? ""}
+        fill={highlighted?.fill ?? "none"}
+        pointerEvents="none"
+        stroke={highlighted ? stroke : "none"}
+        strokeWidth={strokeWidth}
+        vectorEffect="non-scaling-stroke"
+      />
+    </g>
   );
 });
 
@@ -142,7 +208,10 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
   baseOpacity,
   dimOpacity,
   hoveredIndex,
-  featureProps,
+  onFeatureEnter,
+  onFeatureLeave,
+  // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+  onFeatureTap,
   revealEpoch,
 }: {
   records: FeatureRecord[];
@@ -151,8 +220,9 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
   baseOpacity: number;
   dimOpacity: number;
   hoveredIndex: number | null;
-  // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
-  featureProps: (record: FeatureRecord) => Record<string, unknown>;
+  onFeatureEnter: (index: number) => void;
+  onFeatureLeave: () => void;
+  onFeatureTap?: (index: number) => void;
   revealEpoch: number;
 }) {
   const { enterTransition, animationDuration } = useChoroplethStable();
@@ -169,8 +239,10 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
       <StaticFeatureLayer
         baseOpacity={baseOpacity}
         dimOpacity={dimOpacity}
-        featureProps={featureProps}
         hoveredIndex={hoveredIndex}
+        onFeatureEnter={onFeatureEnter}
+        onFeatureLeave={onFeatureLeave}
+        onFeatureTap={onFeatureTap}
         records={records}
         stroke={stroke}
         strokeWidth={strokeWidth}
@@ -187,18 +259,11 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
         ease: "easeOut",
       }}
     >
-      {records.map((record) => (
-        // biome-ignore lint/a11y/noStaticElementInteractions: SVG path used as hover hitbox
-        <path
-          className="cursor-pointer"
-          d={record.path}
-          fill={record.fill}
-          key={`enter-${record.index}`}
-          {...featureProps(record)}
-          stroke={stroke}
-          strokeWidth={strokeWidth}
-        />
-      ))}
+      <FeaturePaths
+        records={records}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+      />
     </motion.g>
   );
 });
@@ -293,8 +358,20 @@ export const ChoroplethFeature = memo(function ChoroplethFeature({
     pathGenerator,
   ]);
 
+  const recordsByIndex = useMemo(() => {
+    const lookup = new Map<number, FeatureRecord>();
+    for (const record of records) {
+      lookup.set(record.index, record);
+    }
+    return lookup;
+  }, [records]);
+
   const handleFeatureEnter = useCallback(
-    (record: FeatureRecord) => {
+    (index: number) => {
+      const record = recordsByIndex.get(index);
+      if (!record) {
+        return;
+      }
       setHoveredFeatureIndex(record.index);
       setTooltipData({
         featureIndex: record.index,
@@ -303,7 +380,7 @@ export const ChoroplethFeature = memo(function ChoroplethFeature({
         feature: record.feature,
       });
     },
-    [height, setHoveredFeatureIndex, setTooltipData, width]
+    [height, recordsByIndex, setHoveredFeatureIndex, setTooltipData, width]
   );
 
   const handleFeatureLeave = useCallback(() => {
@@ -312,28 +389,35 @@ export const ChoroplethFeature = memo(function ChoroplethFeature({
   }, [setHoveredFeatureIndex, setTooltipData]);
 
   /**
-   * LOCAL MODIFICATION: replaces the onFeatureEnter/onFeatureLeave pair the
-   * layers used to spread. On a coarse pointer this yields an onClick and no
-   * mouse handlers at all, so the events a browser synthesizes after a tap
-   * cannot re-select or clear the tapped feature.
+   * LOCAL MODIFICATION: the touch equivalent of enter/leave. A tap selects the
+   * prefecture; tapping the same one again dismisses it, which a plain
+   * select-on-click has no way to express. The pin also registers page-wide,
+   * so opening a tooltip on another chart closes this one.
    * (Re-apply after a re-vendor.)
    */
-  const featureProps = useCallback(
-    (record: FeatureRecord) =>
-      activationProps(
-        tapMode ?? null,
-        `feature:${record.index}`,
-        () => handleFeatureEnter(record),
-        handleFeatureLeave
-      ),
+  const handleFeatureTap = useCallback(
+    (index: number) => {
+      if (!tapMode) {
+        return;
+      }
+      if (tapMode.tap(`feature:${index}`) === "unpinned") {
+        handleFeatureLeave();
+        return;
+      }
+      handleFeatureEnter(index);
+    },
     [handleFeatureEnter, handleFeatureLeave, tapMode]
   );
 
   const layerProps = {
     baseOpacity: 0.85,
     dimOpacity: fadedOpacity,
-    featureProps,
     hoveredIndex: hoveredFeatureIndex,
+    onFeatureEnter: handleFeatureEnter,
+    onFeatureLeave: handleFeatureLeave,
+    // LOCAL MODIFICATION: absent on hover devices, which is what selects the
+    // vendored handler set. (Re-apply after a re-vendor.)
+    onFeatureTap: tapMode ? handleFeatureTap : undefined,
     records,
     stroke,
     strokeWidth,

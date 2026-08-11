@@ -5,10 +5,10 @@
 // pins, built-in zoom/pan, and a proper tooltip for both layers.
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { FeatureCollection, Geometry } from 'geojson';
-import { Building2, Minus, Plane, Plus, RotateCcw } from 'lucide-react';
+import { Building2, Plane } from 'lucide-react';
 import type React from 'react';
 import { feature } from 'topojson-client';
 import type { Topology } from 'topojson-specification';
@@ -29,7 +29,7 @@ import {
   ChoroplethFeatureComponent,
   type ChoroplethFeatureProperties,
   ChoroplethTooltip,
-  useChoropleth,
+  useChoroplethStable,
   useChoroplethZoom,
 } from '../bklit/charts/choropleth';
 import type { ImmigrationChartData } from '../common/ChartComponents';
@@ -78,8 +78,11 @@ const MARKER_GEOMETRY = bureauOptions
   });
 
 /** Bureau/airport pins: HTML overlay so they stay constant-size across zoom. */
-const BureauMarkers: React.FC = () => {
-  const { projectPoint, width, height } = useChoropleth();
+// Subscribes to the stable and zoom contexts only — never the interaction one.
+// `useChoropleth()` spreads both, which made every prefecture hover re-render
+// and re-project all nine pins.
+const BureauMarkers: React.FC = memo(() => {
+  const { projectPoint, width, height } = useChoroplethStable();
   const { zoom } = useChoroplethZoom();
   const [hovered, setHovered] = useState<MarkerInfo | null>(null);
   const markerLayerRef = useRef<HTMLDivElement>(null);
@@ -94,12 +97,15 @@ const BureauMarkers: React.FC = () => {
   }, [bureaus]);
 
   const transform = zoom?.transformMatrix;
-  const project = (coords: [number, number]): [number, number] | null => {
-    const point = projectPoint(coords);
-    if (!point) return null;
-    if (!transform) return point;
-    return [point[0] * transform.scaleX + transform.translateX, point[1] * transform.scaleY + transform.translateY];
-  };
+  const project = useCallback(
+    (coords: [number, number]): [number, number] | null => {
+      const point = projectPoint(coords);
+      if (!point) return null;
+      if (!transform) return point;
+      return [point[0] * transform.scaleX + transform.translateX, point[1] * transform.scaleY + transform.translateY];
+    },
+    [projectPoint, transform]
+  );
 
   return (
     <div className="pointer-events-none absolute inset-0" ref={markerLayerRef}>
@@ -160,31 +166,8 @@ const BureauMarkers: React.FC = () => {
       )}
     </div>
   );
-};
-
-/** Zoom controls using the chart's own zoom instance (labeled, iconized). */
-const ZoomControls: React.FC = () => {
-  const { t } = useLocale();
-  const { zoom } = useChoroplethZoom();
-  if (!zoom) return null;
-  return (
-    <div className="absolute right-2 top-2 flex flex-col gap-1.5">
-      <button onClick={() => zoom.scale({ scaleX: 1.4, scaleY: 1.4 })} className="zoom-button" aria-label={t('map.zoomIn')}>
-        <Plus className="size-4" aria-hidden="true" />
-      </button>
-      <button
-        onClick={() => zoom.scale({ scaleX: 1 / 1.4, scaleY: 1 / 1.4 })}
-        className="zoom-button"
-        aria-label={t('map.zoomOut')}
-      >
-        <Minus className="size-4" aria-hidden="true" />
-      </button>
-      <button onClick={() => zoom.reset()} className="zoom-button" aria-label={t('map.resetView')}>
-        <RotateCcw className="size-4" aria-hidden="true" />
-      </button>
-    </div>
-  );
-};
+});
+BureauMarkers.displayName = 'BureauMarkers';
 
 export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () => {
   const { t, formatters } = useLocale();
@@ -284,7 +267,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
         zoomMax={16}
       >
         <ChoroplethFeatureComponent
-          getFeatureColor={(geoFeature) => getFeatureColor(geoFeature)}
+          getFeatureColor={getFeatureColor}
           stroke="var(--card)"
           strokeWidth={0.75}
         />
@@ -321,7 +304,6 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
           }}
         />
         <BureauMarkers />
-        <ZoomControls />
       </ChoroplethChart>
     </div>
   );
