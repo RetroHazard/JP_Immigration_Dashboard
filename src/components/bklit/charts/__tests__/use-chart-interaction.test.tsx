@@ -101,6 +101,15 @@ describe('hover devices are unaffected', () => {
     const { result } = mount(false);
     expect(result.current.interactionStyle.touchAction).toBe('none');
   });
+
+  it('records no touch anchor, so the panel keeps its vendored placement', async () => {
+    const { result } = mount(false);
+    act(() => result.current.interactionHandlers.onMouseMove?.(mouseAt(205)));
+    await flushFrame();
+
+    expect(result.current.tooltipData).not.toBeNull();
+    expect(result.current.tooltipData?.tapY).toBeUndefined();
+  });
 });
 
 describe('clicking a hover chart leaves its tooltip alone', () => {
@@ -239,6 +248,15 @@ describe('touch devices tap to pin', () => {
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     });
     expect(result.current.tooltipData).toBeNull();
+  });
+
+  it('records where the finger landed, so the panel can sit above it', () => {
+    const { result } = mount(true);
+    // The helper's events carry clientY 100, and jsdom's zero-sized rect makes
+    // visx's fallback return it unchanged.
+    act(() => result.current.interactionHandlers.onClick?.(mouseAt(205)));
+
+    expect(result.current.tooltipData?.tapY).toBe(100);
   });
 
   it('dismissTap clears a pin from the chart margins', () => {

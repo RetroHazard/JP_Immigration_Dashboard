@@ -220,6 +220,16 @@ export function useChartInteraction({
     [margin.left]
   );
 
+  /**
+   * LOCAL MODIFICATION: the tap's y in container pixels — `localPoint` is
+   * already relative to the svg, which fills the container, so no margin is
+   * subtracted the way `getChartX` does. Only the tap path needs it.
+   * (Re-apply after a re-vendor.)
+   */
+  const getTapY = useCallback((event: React.MouseEvent<SVGGElement>): number | undefined => {
+    return localPoint(event)?.y;
+  }, []);
+
   const handleMouseMove = useCallback(
     (event: React.MouseEvent<SVGGElement>) => {
       const chartX = getChartX(event);
@@ -343,12 +353,15 @@ export function useChartInteraction({
         return;
       }
       lastHoveredXRef.current = chartX;
-      commitTooltipNow(tooltip);
+      // `tapY` rides along on the tooltip so the panel can sit above the
+      // finger; nothing else reads it, and the hover path never sets it.
+      commitTooltipNow({ ...tooltip, tapY: getTapY(event) });
     },
     [
       commitTooltipNow,
       dismissTooltip,
       getChartX,
+      getTapY,
       resolveTooltipFromX,
       tapMode,
     ]
