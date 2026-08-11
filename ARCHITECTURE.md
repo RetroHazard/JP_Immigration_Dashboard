@@ -910,9 +910,31 @@ The Processing Efficiency and Category Mix charts don't use `visx` at all — Bk
 ### Why Bklit UI (vendored) over Chart.js?
 
 - **Design-token theming** — Every chart reads the same CSS variables as the rest of the UI, in both themes
-- **Vendored source** — Components are copied into the repo (shadcn registry model), so gaps are patched locally (e.g. responsive choropleth scale, Sankey value units)
+- **Vendored source** — Components are copied into the repo (shadcn registry model), so gaps are patched locally (e.g. responsive choropleth scale, Sankey value units, the choropleth render/gesture patches below)
 - **SVG rendering** — Text alternatives and styling that canvas can't offer
 - **Composable API** — Charts assemble from Grid/Axis/Series/Tooltip parts, so remixes stay small
+
+#### Local patches to the vendored choropleth
+
+`scripts/vendor-bklit.mjs` overwrites `src/components/bklit/`, so re-vendoring drops these.
+They must be reapplied — the map is unusable without them, especially on touch devices.
+
+- **Projection above the zoom boundary** (`choropleth-chart.tsx`) — `<Zoom>` is rendered
+  *below* the stable-context provider, and `featurePaths` is memoised on `[data, mercator]`.
+  Upstream generates every SVG path string inside the component that re-renders on each
+  pan/pinch frame, so d3-geo re-projected the whole topology per frame (~60k vertices for
+  Japan). The zoom transform only ever needs to reach the wrapper `<g>`.
+- **Structurally stable feature layer** (`choropleth-feature.tsx`) — one `<g>` plus an
+  always-mounted highlight `<path>`, instead of upstream's branch between a `<g>` and a
+  Fragment, which made React unmount and remount every feature path on hover in *and* out.
+  Per-feature listeners are replaced by delegation on the parent `<g>` (`data-feature-index`).
+- **Gesture handling** (`choropleth-chart.tsx`) — `zoom.containerRef` is deliberately *not*
+  attached. Upstream's `useGesture` pans on a single finger, which traps page scroll on a
+  full-width map. Instead: `touch-action: pan-y`, wheel/two-finger listeners bound manually
+  (non-passive), mouse drag wired to `zoom.dragStart/dragMove/dragEnd`, and a delegated
+  `click` so tapping a feature opens its tooltip on touch devices.
+  Pinch composes against a gesture-local matrix, because several `touchmove` events can land
+  between two React renders and `zoom.transformMatrix` is a render-time snapshot.
 
 ## Testing Strategy
 

@@ -5,7 +5,7 @@
 // pins, built-in zoom/pan, and a proper tooltip for both layers.
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { FeatureCollection, Geometry } from 'geojson';
 import { Building2, Minus, Plane, Plus, RotateCcw } from 'lucide-react';
@@ -27,7 +27,7 @@ import {
   ChoroplethFeatureComponent,
   type ChoroplethFeatureProperties,
   ChoroplethTooltip,
-  useChoropleth,
+  useChoroplethStable,
   useChoroplethZoom,
 } from '../bklit/charts/choropleth';
 import type { ImmigrationChartData } from '../common/ChartComponents';
@@ -76,8 +76,11 @@ const MARKER_GEOMETRY = bureauOptions
   });
 
 /** Bureau/airport pins: HTML overlay so they stay constant-size across zoom. */
-const BureauMarkers: React.FC = () => {
-  const { projectPoint, width, height } = useChoropleth();
+// Subscribes to the stable and zoom contexts only — never the interaction one.
+// `useChoropleth()` spreads both, which made every prefecture hover re-render
+// and re-project all nine pins.
+const BureauMarkers: React.FC = memo(() => {
+  const { projectPoint, width, height } = useChoroplethStable();
   const { zoom } = useChoroplethZoom();
   const [hovered, setHovered] = useState<MarkerInfo | null>(null);
   const { t, formatters } = useLocale();
@@ -88,12 +91,15 @@ const BureauMarkers: React.FC = () => {
   }, [bureaus]);
 
   const transform = zoom?.transformMatrix;
-  const project = (coords: [number, number]): [number, number] | null => {
-    const point = projectPoint(coords);
-    if (!point) return null;
-    if (!transform) return point;
-    return [point[0] * transform.scaleX + transform.translateX, point[1] * transform.scaleY + transform.translateY];
-  };
+  const project = useCallback(
+    (coords: [number, number]): [number, number] | null => {
+      const point = projectPoint(coords);
+      if (!point) return null;
+      if (!transform) return point;
+      return [point[0] * transform.scaleX + transform.translateX, point[1] * transform.scaleY + transform.translateY];
+    },
+    [projectPoint, transform]
+  );
 
   return (
     <div className="pointer-events-none absolute inset-0">
@@ -150,7 +156,8 @@ const BureauMarkers: React.FC = () => {
       )}
     </div>
   );
-};
+});
+BureauMarkers.displayName = 'BureauMarkers';
 
 /** Zoom controls using the chart's own zoom instance (labeled, iconized). */
 const ZoomControls: React.FC = () => {
@@ -274,7 +281,7 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
         zoomMax={16}
       >
         <ChoroplethFeatureComponent
-          getFeatureColor={(geoFeature) => getFeatureColor(geoFeature)}
+          getFeatureColor={getFeatureColor}
           stroke="var(--card)"
           strokeWidth={0.75}
         />

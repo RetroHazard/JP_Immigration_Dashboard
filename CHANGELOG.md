@@ -41,6 +41,11 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.4.4**: The Regional Map was sluggish to pan and zoom, and close to unusable on a phone — both are fixed —
+  - Panning and zooming re-drew the entire map from scratch on every frame, and hovering a prefecture tore down and rebuilt all 47 shapes. Neither is needed: the map now redraws only what actually changed, which takes dragging from roughly 300ms a frame to a steady 60fps, and a great deal more than that on a phone
+  - On a phone the map used to swallow the page scroll, so a finger landing on it left you stuck. One finger now scrolls the dashboard as it should, and two fingers pan and zoom the map
+  - Tapping a prefecture on a touch device did nothing, because the map only ever listened for a mouse. Tapping one now opens its details, and tapping the sea closes them again
+  - The map's shape data carried far more coastline detail than a screen can show — enough for roughly nineteen points per pixel on a phone. It has been thinned to what actually renders, which also cuts the download from 416KB to 160KB. The map looks the same
 - **v1.4.3**: Hovering the Population Growth chart drew a dot per series that sat below its own bar segment, bunched near the bottom of the plot, in both the by-purpose and by-region views. The dots are gone — the highlighted bars and the tooltip already give every value, and the dots only offered a second, wrong reading of them. Intake & Processing had the same problem on its two stacked bars; there the dot survives on the completed-applications line, where it tracks the line correctly.
 - **v1.4.2**: World regions showed up as raw codes — `region.1000` instead of "Asia" — on Chrome and Edge, in every language. It affected the Resident Flows sankey's left column, the region filter, Population Growth's by-region view, and the Residence Status sunburst; "Stateless" was the only region that read correctly —
   - Continent names were being taken from the browser's own locale data, the same as country names. That works for countries everywhere, but Chrome and Edge ship no names for continents specifically, so they handed back the code they were given. Firefox and Safari were unaffected, which is what kept this out of sight

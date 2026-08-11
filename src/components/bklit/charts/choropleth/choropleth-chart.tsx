@@ -1,8 +1,9 @@
 "use client";
 
+import { localPoint } from "@visx/event";
 import { Mercator } from "@visx/geo";
 import { ParentSize } from "@visx/responsive";
-import type { TransformMatrix } from "@visx/zoom";
+import type { GenericWheelEvent, Scale, TransformMatrix } from "@visx/zoom";
 import { Zoom } from "@visx/zoom";
 import type { FeatureCollection, Geometry } from "geojson";
 import type { Transition } from "motion/react";
@@ -190,7 +191,72 @@ interface ChoroplethMercatorContentProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
   svgChildren: React.ReactNode[];
   overlayChildren: React.ReactNode[];
-  zoom?: ZoomInstance<SVGSVGElement>;
+  zoomEnabled: boolean;
+  zoomMin: number;
+  zoomMax: number;
+  initialZoom: TransformMatrix;
+}
+
+/** Module-level so <Zoom> doesn't see a new callback identity every render. */
+function wheelDelta(event: GenericWheelEvent): Scale {
+  const zoomScale = event.deltaY > 0 ? 0.95 : 1.05;
+  return { scaleX: zoomScale, scaleY: zoomScale };
+}
+
+const ChoroplethZoomProvider = memo(function ChoroplethZoomProvider({
+  zoom,
+  children,
+}: {
+  zoom: ZoomInstance<SVGSVGElement> | null;
+  children: React.ReactNode;
+}) {
+  const value = useMemo(() => ({ zoom }), [zoom]);
+  return (
+    <ChoroplethZoomContext.Provider value={value}>
+      {children}
+    </ChoroplethZoomContext.Provider>
+  );
+});
+
+/** Midpoint of two touches, in screen coordinates. */
+function touchMidpoint(touches: TouchList) {
+  const [a, b] = [touches[0], touches[1]];
+  return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+}
+
+function touchDistance(touches: TouchList) {
+  const [a, b] = [touches[0], touches[1]];
+  return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+}
+
+/**
+ * Compose a screen-space pan then a scale about `origin` onto `matrix`.
+ *
+ * `factor` is clamped so the result always lands inside [min, max]: visx's
+ * constrain rejects an out-of-range matrix wholesale, which would silently
+ * desync the caller's running gesture matrix from the committed state.
+ */
+function panThenScale(
+  matrix: TransformMatrix,
+  pan: { x: number; y: number },
+  factor: number,
+  origin: { x: number; y: number },
+  min: number,
+  max: number
+): TransformMatrix {
+  const clamped = Math.min(
+    Math.max(factor, min / matrix.scaleX),
+    max / matrix.scaleX
+  );
+  const translateX = matrix.translateX + pan.x;
+  const translateY = matrix.translateY + pan.y;
+  return {
+    ...matrix,
+    scaleX: matrix.scaleX * clamped,
+    scaleY: matrix.scaleY * clamped,
+    translateX: origin.x + (translateX - origin.x) * clamped,
+    translateY: origin.y + (translateY - origin.y) * clamped,
+  };
 }
 
 const ChoroplethSvg = memo(function ChoroplethSvg({
@@ -198,35 +264,157 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
   width,
   svgChildren,
   zoom,
+  zoomMin,
+  zoomMax,
 }: {
   height: number;
   width: number;
   svgChildren: React.ReactNode[];
   zoom?: ZoomInstance<SVGSVGElement>;
+  zoomMin: number;
+  zoomMax: number;
 }) {
   const { setHoveredFeatureIndex, setTooltipData } = useChoroplethInteraction();
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  // Native listeners below fire outside React's render cycle, so they read the
+  // live zoom instance from a ref rather than a captured closure.
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
 
   const handleMouseLeave = useCallback(() => {
     setHoveredFeatureIndex(null);
     setTooltipData(null);
+    zoomRef.current?.dragEnd();
   }, [setHoveredFeatureIndex, setTooltipData]);
 
+  const handleBackgroundClick = useCallback(
+    (event: React.MouseEvent<SVGSVGElement>) => {
+      // A tap on empty ocean dismisses the tooltip; taps on a feature are
+      // handled by the feature layer and stop propagating before they land here.
+      if (event.target === event.currentTarget) {
+        setHoveredFeatureIndex(null);
+        setTooltipData(null);
+      }
+    },
+    [setHoveredFeatureIndex, setTooltipData]
+  );
+
+  // Wheel and two-finger gestures need non-passive listeners so preventDefault
+  // works; React's synthetic touchmove is passive, hence the manual wiring.
+  useEffect(() => {
+    const node = svgRef.current;
+    if (!node) {
+      return;
+    }
+
+    // The running matrix for the current gesture. Several touchmove events can
+    // land between two React renders, so `zoom.transformMatrix` (a render-time
+    // snapshot) goes stale mid-gesture and each move would compose against the
+    // same base, the later one clobbering the earlier. Composing against our
+    // own accumulator keeps the gesture independent of render timing.
+    let pinch: {
+      distance: number;
+      midpoint: { x: number; y: number };
+      matrix: TransformMatrix;
+    } | null = null;
+
+    const beginPinch = (event: TouchEvent, matrix: TransformMatrix) => ({
+      distance: touchDistance(event.touches),
+      midpoint: touchMidpoint(event.touches),
+      matrix,
+    });
+
+    const onWheel = (event: WheelEvent) => {
+      zoomRef.current?.handleWheel(event);
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      // One finger belongs to the page: `touch-action: pan-y` lets the
+      // dashboard scroll straight through the map. Only two fingers drive it.
+      const instance = zoomRef.current;
+      if (!instance || event.touches.length < 2) {
+        pinch = null;
+        return;
+      }
+      event.preventDefault();
+      pinch = beginPinch(event, instance.transformMatrix);
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      const instance = zoomRef.current;
+      if (!instance || !pinch || event.touches.length < 2) {
+        return;
+      }
+      event.preventDefault();
+
+      const distance = touchDistance(event.touches);
+      const midpoint = touchMidpoint(event.touches);
+      const pan = {
+        x: midpoint.x - pinch.midpoint.x,
+        y: midpoint.y - pinch.midpoint.y,
+      };
+      const factor = pinch.distance > 0 ? distance / pinch.distance : 1;
+      const origin = localPoint(node, event) ?? { x: width / 2, y: height / 2 };
+
+      const matrix = panThenScale(
+        pinch.matrix,
+        pan,
+        factor,
+        origin,
+        zoomMin,
+        zoomMax
+      );
+      instance.setTransformMatrix(matrix);
+      pinch = { distance, midpoint, matrix };
+    };
+
+    const onTouchEnd = (event: TouchEvent) => {
+      const instance = zoomRef.current;
+      pinch =
+        instance && event.touches.length >= 2
+          ? // A finger lifted from a 3+ touch: restart from where we are.
+            beginPinch(event, pinch?.matrix ?? instance.transformMatrix)
+          : null;
+    };
+
+    node.addEventListener("wheel", onWheel, { passive: false });
+    node.addEventListener("touchstart", onTouchStart, { passive: false });
+    node.addEventListener("touchmove", onTouchMove, { passive: false });
+    node.addEventListener("touchend", onTouchEnd);
+    node.addEventListener("touchcancel", onTouchEnd);
+    return () => {
+      node.removeEventListener("wheel", onWheel);
+      node.removeEventListener("touchstart", onTouchStart);
+      node.removeEventListener("touchmove", onTouchMove);
+      node.removeEventListener("touchend", onTouchEnd);
+      node.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, [height, width, zoomMin, zoomMax]);
+
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: SVG canvas is the pan surface
     <svg
       aria-hidden="true"
       height={height}
+      onClick={handleBackgroundClick}
+      onMouseDown={zoom?.dragStart}
       onMouseLeave={handleMouseLeave}
-      ref={zoom?.containerRef}
+      onMouseMove={zoom?.dragMove}
+      onMouseUp={zoom?.dragEnd}
+      ref={svgRef}
       style={{
         contain: "layout style paint",
         cursor: zoom?.isDragging ? "grabbing" : "grab",
-        touchAction: "none",
+        // Vertical page scroll passes through; the map answers to two fingers.
+        touchAction: zoom ? "pan-y" : undefined,
       }}
       width={width}
     >
       <g
         style={{
           transition: zoom?.isDragging ? "none" : "transform 0.18s ease-out",
+          willChange: "transform",
         }}
         transform={zoom ? zoom.toString() : undefined}
       >
@@ -251,11 +439,24 @@ const ChoroplethMercatorContent = memo(function ChoroplethMercatorContent({
   containerRef,
   svgChildren,
   overlayChildren,
-  zoom,
+  zoomEnabled,
+  zoomMin,
+  zoomMax,
+  initialZoom,
 }: ChoroplethMercatorContentProps) {
-  const featurePaths = data.features.map(
-    (feature) => mercator.path(feature) ?? null
-  ) as (string | null)[];
+  // Projecting every vertex is by far the most expensive thing this chart does
+  // (the Japan topology is ~21k points across 47 features). It depends only on
+  // the projection and the data — never on the zoom transform, which is applied
+  // as an SVG transform on a wrapper <g> below. Keeping this above <Zoom> is
+  // what stops it from re-running on every pan/pinch frame.
+  const featurePaths = useMemo(
+    () =>
+      data.features.map((feature) => mercator.path(feature) ?? null) as (
+        | string
+        | null
+      )[],
+    [data, mercator]
+  );
 
   const pathGenerator = useCallback(
     (feature: ChoroplethFeature) => mercator.path(feature) ?? undefined,
@@ -317,22 +518,48 @@ const ChoroplethMercatorContent = memo(function ChoroplethMercatorContent({
     ]
   );
 
+  // <Zoom> lives *below* the provider on purpose: its transform changes on
+  // every gesture frame, and anything rendered above it is spared that churn.
+  // The feature layer sits in `svgChildren`, whose element identities never
+  // change here, so React skips it entirely while panning — only the <g>
+  // transform, and the zoom-context consumers (tooltip, markers), update.
+  const canvas = (zoom: ZoomInstance<SVGSVGElement> | null) => (
+    <ChoroplethZoomProvider zoom={zoom}>
+      <ChoroplethSvg
+        height={height}
+        svgChildren={svgChildren}
+        width={width}
+        zoom={zoom ?? undefined}
+        zoomMax={zoomMax}
+        zoomMin={zoomMin}
+      />
+      {overlayChildren}
+    </ChoroplethZoomProvider>
+  );
+
   return (
-    <ChoroplethZoomContext.Provider value={{ zoom: zoom ?? null }}>
-      <ChoroplethStableProvider value={stableValue}>
-        <ChoroplethInteractionShell>
-          <div className="relative h-full w-full" ref={containerRef}>
-            <ChoroplethSvg
+    <ChoroplethStableProvider value={stableValue}>
+      <ChoroplethInteractionShell>
+        <div className="relative h-full w-full" ref={containerRef}>
+          {zoomEnabled ? (
+            <Zoom<SVGSVGElement>
               height={height}
-              svgChildren={svgChildren}
+              initialTransformMatrix={initialZoom}
+              scaleXMax={zoomMax}
+              scaleXMin={zoomMin}
+              scaleYMax={zoomMax}
+              scaleYMin={zoomMin}
+              wheelDelta={wheelDelta}
               width={width}
-              zoom={zoom}
-            />
-            {overlayChildren}
-          </div>
-        </ChoroplethInteractionShell>
-      </ChoroplethStableProvider>
-    </ChoroplethZoomContext.Provider>
+            >
+              {(zoom) => canvas(zoom)}
+            </Zoom>
+          ) : (
+            canvas(null)
+          )}
+        </div>
+      </ChoroplethInteractionShell>
+    </ChoroplethStableProvider>
   );
 });
 
@@ -408,6 +635,7 @@ function ChoroplethChartInner({
     data,
     enterTransition,
     height,
+    initialZoom,
     innerHeight,
     innerWidth,
     isLoaded,
@@ -416,6 +644,9 @@ function ChoroplethChartInner({
     revealEpoch,
     svgChildren,
     width,
+    zoomEnabled,
+    zoomMax,
+    zoomMin,
   };
 
   return (
@@ -425,37 +656,9 @@ function ChoroplethChartInner({
       scale={scale}
       translate={translate as [number, number]}
     >
-      {(mercator) => {
-        const content = (zoom?: ZoomInstance<SVGSVGElement>) => (
-          <ChoroplethMercatorContent
-            {...mercatorContentProps}
-            mercator={mercator}
-            zoom={zoom}
-          />
-        );
-
-        if (zoomEnabled) {
-          return (
-            <Zoom<SVGSVGElement>
-              height={height}
-              initialTransformMatrix={initialZoom}
-              scaleXMax={zoomMax}
-              scaleXMin={zoomMin}
-              scaleYMax={zoomMax}
-              scaleYMin={zoomMin}
-              wheelDelta={(event) => {
-                const zoomScale = event.deltaY > 0 ? 0.95 : 1.05;
-                return { scaleX: zoomScale, scaleY: zoomScale };
-              }}
-              width={width}
-            >
-              {(zoom) => content(zoom)}
-            </Zoom>
-          );
-        }
-
-        return content();
-      }}
+      {(mercator) => (
+        <ChoroplethMercatorContent {...mercatorContentProps} mercator={mercator} />
+      )}
     </Mercator>
   );
 }
@@ -477,7 +680,12 @@ export function ChoroplethChart({
   className = "",
   children,
 }: ChoroplethChartProps) {
-  const margin = { ...DEFAULT_MARGIN, ...marginProp };
+  // A fresh object here would flow into the stable context's dep list and
+  // defeat every memo boundary below it.
+  const margin = useMemo(
+    () => ({ ...DEFAULT_MARGIN, ...marginProp }),
+    [marginProp?.top, marginProp?.right, marginProp?.bottom, marginProp?.left]
+  );
 
   return (
     <div className={cn("relative w-full", className)} style={{ aspectRatio }}>

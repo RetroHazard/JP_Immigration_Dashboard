@@ -56,6 +56,49 @@ function resolveFeatureFill(
   );
 }
 
+/** Feature index carried by the delegated handlers, or null for a miss. */
+function featureIndexFromEvent(event: React.SyntheticEvent): number | null {
+  const attribute = (event.target as Element | null)?.getAttribute?.(
+    "data-feature-index"
+  );
+  if (attribute == null) {
+    return null;
+  }
+  const index = Number(attribute);
+  return Number.isNaN(index) ? null : index;
+}
+
+/**
+ * The paths themselves. Deliberately free of per-feature handlers and of any
+ * hover-dependent prop, so this memo holds across hover and pan — the geometry
+ * is the expensive part and it never needs to re-render for an interaction.
+ */
+const FeaturePaths = memo(function FeaturePaths({
+  records,
+  stroke,
+  strokeWidth,
+}: {
+  records: FeatureRecord[];
+  stroke: string;
+  strokeWidth: number;
+}) {
+  return (
+    <>
+      {records.map((record) => (
+        <path
+          className="cursor-pointer"
+          d={record.path}
+          data-feature-index={record.index}
+          fill={record.fill}
+          key={record.index}
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+        />
+      ))}
+    </>
+  );
+});
+
 const StaticFeatureLayer = memo(function StaticFeatureLayer({
   records,
   stroke,
@@ -72,68 +115,53 @@ const StaticFeatureLayer = memo(function StaticFeatureLayer({
   baseOpacity: number;
   dimOpacity: number;
   hoveredIndex: number | null;
-  onFeatureEnter: (record: FeatureRecord) => void;
+  onFeatureEnter: (index: number) => void;
   onFeatureLeave: () => void;
 }) {
-  const isDimmed = hoveredIndex !== null;
+  // One delegated listener per event instead of two closures per feature.
+  const handlePointerOver = useCallback(
+    (event: React.MouseEvent) => {
+      const index = featureIndexFromEvent(event);
+      if (index !== null) {
+        onFeatureEnter(index);
+      }
+    },
+    [onFeatureEnter]
+  );
 
-  if (!isDimmed) {
-    return (
-      <g opacity={baseOpacity}>
-        {records.map((record) => (
-          // biome-ignore lint/a11y/noStaticElementInteractions: SVG path used as hover hitbox
-          <path
-            className="cursor-pointer"
-            d={record.path}
-            fill={record.fill}
-            key={`base-${record.index}`}
-            onMouseEnter={() => onFeatureEnter(record)}
-            onMouseLeave={onFeatureLeave}
-            stroke={stroke}
-            strokeWidth={strokeWidth}
-          />
-        ))}
-      </g>
-    );
-  }
-
-  const highlighted = records.find((record) => record.index === hoveredIndex);
+  const highlighted =
+    hoveredIndex === null
+      ? undefined
+      : records.find((record) => record.index === hoveredIndex);
 
   return (
-    <>
-      <g opacity={dimOpacity} style={{ transition: "opacity 0.18s ease-out" }}>
-        {records
-          .filter((record) => record.index !== hoveredIndex)
-          .map((record) => (
-            // biome-ignore lint/a11y/noStaticElementInteractions: SVG path used as hover hitbox
-            <path
-              className="cursor-pointer"
-              d={record.path}
-              fill={record.fill}
-              key={`base-${record.index}`}
-              onMouseEnter={() => onFeatureEnter(record)}
-              onMouseLeave={onFeatureLeave}
-              stroke={stroke}
-              strokeWidth={strokeWidth}
-            />
-          ))}
-      </g>
-      {highlighted ? (
-        // biome-ignore lint/a11y/noStaticElementInteractions: SVG path used as hover hitbox
-        <path
-          className="cursor-pointer"
-          d={highlighted.path}
-          fill={highlighted.fill}
-          key={`highlight-${highlighted.index}`}
-          onMouseEnter={() => onFeatureEnter(highlighted)}
-          onMouseLeave={onFeatureLeave}
-          opacity={1}
+    // biome-ignore lint/a11y/noStaticElementInteractions: delegated hit target for the feature paths
+    <g
+      onClick={handlePointerOver}
+      onMouseLeave={onFeatureLeave}
+      onMouseOver={handlePointerOver}
+    >
+      <g
+        opacity={hoveredIndex === null ? baseOpacity : dimOpacity}
+        style={{ transition: "opacity 0.18s ease-out" }}
+      >
+        <FeaturePaths
+          records={records}
           stroke={stroke}
           strokeWidth={strokeWidth}
-          style={{ transition: "opacity 0.18s ease-out" }}
         />
-      ) : null}
-    </>
+      </g>
+      {/* Always mounted, so hovering swaps one `d` attribute rather than
+          remounting the whole layer. Transparent to pointers, so the path
+          underneath keeps ownership of the hover. */}
+      <path
+        d={highlighted?.path ?? ""}
+        fill={highlighted?.fill ?? "none"}
+        pointerEvents="none"
+        stroke={highlighted ? stroke : "none"}
+        strokeWidth={strokeWidth}
+      />
+    </g>
   );
 });
 
@@ -154,7 +182,7 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
   baseOpacity: number;
   dimOpacity: number;
   hoveredIndex: number | null;
-  onFeatureEnter: (record: FeatureRecord) => void;
+  onFeatureEnter: (index: number) => void;
   onFeatureLeave: () => void;
   revealEpoch: number;
 }) {
@@ -191,19 +219,11 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
         ease: "easeOut",
       }}
     >
-      {records.map((record) => (
-        // biome-ignore lint/a11y/noStaticElementInteractions: SVG path used as hover hitbox
-        <path
-          className="cursor-pointer"
-          d={record.path}
-          fill={record.fill}
-          key={`enter-${record.index}`}
-          onMouseEnter={() => onFeatureEnter(record)}
-          onMouseLeave={onFeatureLeave}
-          stroke={stroke}
-          strokeWidth={strokeWidth}
-        />
-      ))}
+      <FeaturePaths
+        records={records}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+      />
     </motion.g>
   );
 });
@@ -293,8 +313,20 @@ export const ChoroplethFeature = memo(function ChoroplethFeature({
     pathGenerator,
   ]);
 
+  const recordsByIndex = useMemo(() => {
+    const lookup = new Map<number, FeatureRecord>();
+    for (const record of records) {
+      lookup.set(record.index, record);
+    }
+    return lookup;
+  }, [records]);
+
   const handleFeatureEnter = useCallback(
-    (record: FeatureRecord) => {
+    (index: number) => {
+      const record = recordsByIndex.get(index);
+      if (!record) {
+        return;
+      }
       setHoveredFeatureIndex(record.index);
       setTooltipData({
         featureIndex: record.index,
@@ -303,7 +335,7 @@ export const ChoroplethFeature = memo(function ChoroplethFeature({
         feature: record.feature,
       });
     },
-    [height, setHoveredFeatureIndex, setTooltipData, width]
+    [height, recordsByIndex, setHoveredFeatureIndex, setTooltipData, width]
   );
 
   const handleFeatureLeave = useCallback(() => {
