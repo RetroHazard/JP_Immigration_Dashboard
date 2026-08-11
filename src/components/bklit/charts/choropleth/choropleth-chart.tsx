@@ -204,18 +204,35 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
   svgChildren: React.ReactNode[];
   zoom?: ZoomInstance<SVGSVGElement>;
 }) {
-  const { setHoveredFeatureIndex, setTooltipData } = useChoroplethInteraction();
+  const {
+    setHoveredFeatureIndex,
+    setTooltipData,
+    // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+    tapMode,
+  } = useChoroplethInteraction();
 
   const handleMouseLeave = useCallback(() => {
     setHoveredFeatureIndex(null);
     setTooltipData(null);
   }, [setHoveredFeatureIndex, setTooltipData]);
 
+  /**
+   * LOCAL MODIFICATION: on touch there is no pointer to leave the map, so a tap
+   * on the sea is the way to dismiss. Feature taps stop propagating, so this
+   * only ever sees the misses. (Re-apply after a re-vendor.)
+   */
+  const handleBackgroundTap = useCallback(() => {
+    tapMode?.clear();
+    setHoveredFeatureIndex(null);
+    setTooltipData(null);
+  }, [setHoveredFeatureIndex, setTooltipData, tapMode]);
+
   return (
     <svg
       aria-hidden="true"
       height={height}
-      onMouseLeave={handleMouseLeave}
+      onClick={tapMode ? handleBackgroundTap : undefined}
+      onMouseLeave={tapMode ? undefined : handleMouseLeave}
       ref={zoom?.containerRef}
       style={{
         contain: "layout style paint",

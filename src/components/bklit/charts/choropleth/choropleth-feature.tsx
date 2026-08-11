@@ -3,6 +3,8 @@
 import { geoCentroid } from "d3-geo";
 import { motion, useTransform } from "motion/react";
 import { memo, useCallback, useMemo } from "react";
+// LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+import { activationProps } from "@/hooks/useTapPin";
 import { useEnterComplete } from "../use-enter-complete";
 import { useMountProgress } from "../use-mount-progress";
 import {
@@ -63,8 +65,7 @@ const StaticFeatureLayer = memo(function StaticFeatureLayer({
   baseOpacity,
   dimOpacity,
   hoveredIndex,
-  onFeatureEnter,
-  onFeatureLeave,
+  featureProps,
 }: {
   records: FeatureRecord[];
   stroke: string;
@@ -72,8 +73,8 @@ const StaticFeatureLayer = memo(function StaticFeatureLayer({
   baseOpacity: number;
   dimOpacity: number;
   hoveredIndex: number | null;
-  onFeatureEnter: (record: FeatureRecord) => void;
-  onFeatureLeave: () => void;
+  // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+  featureProps: (record: FeatureRecord) => Record<string, unknown>;
 }) {
   const isDimmed = hoveredIndex !== null;
 
@@ -87,8 +88,7 @@ const StaticFeatureLayer = memo(function StaticFeatureLayer({
             d={record.path}
             fill={record.fill}
             key={`base-${record.index}`}
-            onMouseEnter={() => onFeatureEnter(record)}
-            onMouseLeave={onFeatureLeave}
+            {...featureProps(record)}
             stroke={stroke}
             strokeWidth={strokeWidth}
           />
@@ -111,8 +111,7 @@ const StaticFeatureLayer = memo(function StaticFeatureLayer({
               d={record.path}
               fill={record.fill}
               key={`base-${record.index}`}
-              onMouseEnter={() => onFeatureEnter(record)}
-              onMouseLeave={onFeatureLeave}
+              {...featureProps(record)}
               stroke={stroke}
               strokeWidth={strokeWidth}
             />
@@ -125,8 +124,7 @@ const StaticFeatureLayer = memo(function StaticFeatureLayer({
           d={highlighted.path}
           fill={highlighted.fill}
           key={`highlight-${highlighted.index}`}
-          onMouseEnter={() => onFeatureEnter(highlighted)}
-          onMouseLeave={onFeatureLeave}
+          {...featureProps(highlighted)}
           opacity={1}
           stroke={stroke}
           strokeWidth={strokeWidth}
@@ -144,8 +142,7 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
   baseOpacity,
   dimOpacity,
   hoveredIndex,
-  onFeatureEnter,
-  onFeatureLeave,
+  featureProps,
   revealEpoch,
 }: {
   records: FeatureRecord[];
@@ -154,8 +151,8 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
   baseOpacity: number;
   dimOpacity: number;
   hoveredIndex: number | null;
-  onFeatureEnter: (record: FeatureRecord) => void;
-  onFeatureLeave: () => void;
+  // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+  featureProps: (record: FeatureRecord) => Record<string, unknown>;
   revealEpoch: number;
 }) {
   const { enterTransition, animationDuration } = useChoroplethStable();
@@ -172,9 +169,8 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
       <StaticFeatureLayer
         baseOpacity={baseOpacity}
         dimOpacity={dimOpacity}
+        featureProps={featureProps}
         hoveredIndex={hoveredIndex}
-        onFeatureEnter={onFeatureEnter}
-        onFeatureLeave={onFeatureLeave}
         records={records}
         stroke={stroke}
         strokeWidth={strokeWidth}
@@ -198,8 +194,7 @@ const EnterFeatureLayer = memo(function EnterFeatureLayer({
           d={record.path}
           fill={record.fill}
           key={`enter-${record.index}`}
-          onMouseEnter={() => onFeatureEnter(record)}
-          onMouseLeave={onFeatureLeave}
+          {...featureProps(record)}
           stroke={stroke}
           strokeWidth={strokeWidth}
         />
@@ -227,8 +222,13 @@ export const ChoroplethFeature = memo(function ChoroplethFeature({
     width,
     height,
   } = useChoroplethStable();
-  const { hoveredFeatureIndex, setHoveredFeatureIndex, setTooltipData } =
-    useChoroplethInteraction();
+  const {
+    hoveredFeatureIndex,
+    setHoveredFeatureIndex,
+    setTooltipData,
+    // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+    tapMode,
+  } = useChoroplethInteraction();
 
   const featureCentroids = useMemo(() => {
     return features.map((feature) => {
@@ -311,12 +311,29 @@ export const ChoroplethFeature = memo(function ChoroplethFeature({
     setTooltipData(null);
   }, [setHoveredFeatureIndex, setTooltipData]);
 
+  /**
+   * LOCAL MODIFICATION: replaces the onFeatureEnter/onFeatureLeave pair the
+   * layers used to spread. On a coarse pointer this yields an onClick and no
+   * mouse handlers at all, so the events a browser synthesizes after a tap
+   * cannot re-select or clear the tapped feature.
+   * (Re-apply after a re-vendor.)
+   */
+  const featureProps = useCallback(
+    (record: FeatureRecord) =>
+      activationProps(
+        tapMode ?? null,
+        `feature:${record.index}`,
+        () => handleFeatureEnter(record),
+        handleFeatureLeave
+      ),
+    [handleFeatureEnter, handleFeatureLeave, tapMode]
+  );
+
   const layerProps = {
     baseOpacity: 0.85,
     dimOpacity: fadedOpacity,
+    featureProps,
     hoveredIndex: hoveredFeatureIndex,
-    onFeatureEnter: handleFeatureEnter,
-    onFeatureLeave: handleFeatureLeave,
     records,
     stroke,
     strokeWidth,

@@ -13,6 +13,9 @@ import {
   useRef,
   useState,
 } from "react";
+// LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+import { useCoarsePointer } from "@/hooks/useCoarsePointer";
+import { useTapPin } from "@/hooks/useTapPin";
 import { cn } from "@/lib/utils";
 import {
   type Margin,
@@ -182,6 +185,39 @@ const SankeyChartCore = memo(function SankeyChartCore({
     setMousePos(null);
   }, [setHoveredNodeIndex]);
 
+  /**
+   * LOCAL MODIFICATION: tap-to-pin on touch devices. The tooltip is positioned
+   * from `mousePos`, which only `handleMouseMove` used to set — so the tap
+   * position is recorded on `pointerdown`, which still reaches this element
+   * even though node and link taps stop their click from bubbling.
+   * (Re-apply after a re-vendor.)
+   */
+  const coarsePointer = useCoarsePointer();
+  const dismiss = useCallback(() => {
+    setHoveredNodeIndex(null);
+    setHoveredLinkIndex(null);
+    setTooltipData(null);
+    setMousePos(null);
+  }, [setHoveredNodeIndex]);
+  const tapMode = useTapPin({
+    enabled: coarsePointer,
+    containerRef,
+    onDismiss: dismiss,
+  });
+
+  const handleTapPosition = useCallback((event: React.PointerEvent) => {
+    const point = localPoint(event);
+    if (point) {
+      setMousePos({ x: point.x, y: point.y });
+    }
+  }, []);
+
+  /** A tap on the empty space between nodes and links dismisses. */
+  const handleBackgroundTap = useCallback(() => {
+    tapMode?.clear();
+    dismiss();
+  }, [dismiss, tapMode]);
+
   const contextValue = {
     graph,
     nodes: graph.nodes,
@@ -204,6 +240,8 @@ const SankeyChartCore = memo(function SankeyChartCore({
     revealEpoch,
     mousePos,
     createPath,
+    // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+    tapMode,
   };
 
   return (
@@ -212,8 +250,10 @@ const SankeyChartCore = memo(function SankeyChartCore({
         <svg
           aria-hidden="true"
           height={height}
-          onMouseLeave={handleMouseLeave}
-          onMouseMove={handleMouseMove}
+          onClick={tapMode ? handleBackgroundTap : undefined}
+          onMouseLeave={tapMode ? undefined : handleMouseLeave}
+          onMouseMove={tapMode ? undefined : handleMouseMove}
+          onPointerDown={tapMode ? handleTapPosition : undefined}
           width={width}
         >
           <g transform={`translate(${margin.left},${margin.top})`}>

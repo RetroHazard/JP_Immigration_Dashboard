@@ -3,6 +3,8 @@
 import type { SankeyNode as SankeyNodeType } from "d3-sankey";
 import { motion, type Transition } from "motion/react";
 import { type ReactNode, useCallback, useMemo } from "react";
+// LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+import { activationProps } from "@/hooks/useTapPin";
 import { intFmt } from "../chart-formatters";
 import { transitionWithDelay } from "../motion-utils";
 // LOCAL MODIFICATION: transitive hover connectivity for multi-tier sankeys.
@@ -203,8 +205,8 @@ interface AnimatedNodeProps {
   isFaded: boolean;
   fadedOpacity: number;
   animationDuration: number;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
+  // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+  hitProps: Record<string, unknown>;
   name: string;
   value: number;
   labelSide: LabelSide;
@@ -269,8 +271,7 @@ function AnimatedNode({
   isFaded,
   fadedOpacity,
   animationDuration,
-  onMouseEnter,
-  onMouseLeave,
+  hitProps,
   name,
   value,
   labelSide,
@@ -307,8 +308,7 @@ function AnimatedNode({
 
   return (
     <motion.g
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      {...hitProps}
       style={{ cursor: "pointer" }}
     >
       <motion.rect
@@ -394,6 +394,8 @@ export function SankeyNode({
     setHoveredNodeIndex,
     setTooltipData,
     animationDuration,
+    // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+    tapMode,
   } = useSankey();
 
   // Default colors using CSS variables
@@ -576,8 +578,12 @@ export function SankeyNode({
             labelOrientation={labelOrientation}
             name={node.name}
             valueUnit={valueUnit}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            hitProps={activationProps(
+              tapMode ?? null,
+              `node:${index}`,
+              handleMouseEnter,
+              handleMouseLeave
+            )}
             rx={lineCap}
             showLabels={showLabels && (labelSide !== "middle" || showMiddleLabels)}
             showValueLabels={showValueLabels}

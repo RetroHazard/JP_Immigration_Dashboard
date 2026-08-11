@@ -8,10 +8,14 @@ import {
   type Dispatch,
   type RefObject,
   type SetStateAction,
+  useCallback,
   useContext,
   useMemo,
   useState,
 } from "react";
+// LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+import { useCoarsePointer } from "@/hooks/useCoarsePointer";
+import { type ChartTapMode, useTapPin } from "@/hooks/useTapPin";
 
 // ZoomState from visx/zoom that includes isDragging
 interface ZoomState {
@@ -63,6 +67,12 @@ export interface ChoroplethInteractionContextValue {
   setHoveredFeatureIndex: (index: number | null) => void;
   tooltipData: ChoroplethTooltipData | null;
   setTooltipData: Dispatch<SetStateAction<ChoroplethTooltipData | null>>;
+  /**
+   * LOCAL MODIFICATION: on touch, features are selected by tapping rather than
+   * by the mouse events a browser synthesizes after a tap. Null on hover
+   * devices. (Re-apply after a re-vendor.)
+   */
+  tapMode?: ChartTapMode | null;
 }
 
 export interface ChoroplethStableContextValue {
@@ -133,14 +143,29 @@ export function ChoroplethInteractionShell({
     null
   );
 
+  // LOCAL MODIFICATION: tap-to-pin on touch devices.
+  // (Re-apply after a re-vendor.)
+  const { containerRef } = useChoroplethStable();
+  const coarsePointer = useCoarsePointer();
+  const dismiss = useCallback(() => {
+    setHoveredFeatureIndex(null);
+    setTooltipData(null);
+  }, []);
+  const tapMode = useTapPin({
+    enabled: coarsePointer,
+    containerRef,
+    onDismiss: dismiss,
+  });
+
   const interaction = useMemo<ChoroplethInteractionContextValue>(
     () => ({
       hoveredFeatureIndex,
       setHoveredFeatureIndex,
       tooltipData,
       setTooltipData,
+      tapMode,
     }),
-    [hoveredFeatureIndex, tooltipData]
+    [hoveredFeatureIndex, tapMode, tooltipData]
   );
 
   return (
@@ -202,12 +227,15 @@ export function ChoroplethProvider({
       setHoveredFeatureIndex: value.setHoveredFeatureIndex,
       tooltipData: value.tooltipData,
       setTooltipData: value.setTooltipData,
+      // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+      tapMode: value.tapMode,
     }),
     [
       value.hoveredFeatureIndex,
       value.setHoveredFeatureIndex,
       value.tooltipData,
       value.setTooltipData,
+      value.tapMode,
     ]
   );
 
