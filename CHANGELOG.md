@@ -24,15 +24,16 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Existing links keep working exactly as they did — the dataset is worked out from the chart a link names, not from a new parameter
   - Views that only make sense for application processing — the processing-time estimator, the airport-office toggle, bureau comparison, and the data table — are hidden on this dataset rather than shown doing nothing
 
+- **v1.2.7**: Korean, Chinese (Simplified and Traditional), Vietnamese, and Tagalog join the six existing languages — twelve full translations end to end ([#69](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/69)) —
+  - Korean and both Chinese variants write bureau and prefecture names in their own script throughout, not romanized forms, the same standard Japanese already sets
+  - Tagalog is the only one of the twelve besides English that inflects for plural count; Korean, Chinese, and Vietnamese use one form regardless of count, the same as Japanese
+  - Numbers, dates, and pluralized phrases follow each language's own rules, the same as every other locale
+
 - **v1.2.5**: French, German, Italian, Portuguese, and Spanish join Japanese in full translation — the switcher now offers six languages end to end ([#69](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/69)) —
   - Every interface string is translated in all five: chart labels and tooltips, the data table, the estimator, and empty/error states, alongside the text already covered
   - Portuguese follows European usage (pt-PT) rather than Brazilian
   - Numbers, dates, and pluralized phrases follow each language's own rules, the same as every other locale
   - Bureau and application-type abbreviations (the terminal-style `CTS`, `EXT`-style codes) are left in Latin script where that's how each language actually renders them, rather than forced into an artificial translation
-- **v1.2.7**: Korean, Chinese (Simplified and Traditional), Vietnamese, and Tagalog join the six existing languages — twelve full translations end to end ([#69](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/69)) —
-  - Korean and both Chinese variants write bureau and prefecture names in their own script throughout, not romanized forms, the same standard Japanese already sets
-  - Tagalog is the only one of the twelve besides English that inflects for plural count; Korean, Chinese, and Vietnamese use one form regardless of count, the same as Japanese
-  - Numbers, dates, and pluralized phrases follow each language's own rules, the same as every other locale
 
 ### Changed
 
@@ -160,8 +161,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
-- **v0.4.2**: Simplified the estimation formula, fixing abnormal results that could occur when an application date shifted across a month boundary. ([#25](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/25))
 - **v0.4.3**: Fixed a double-counting bug in the processed-applications estimate.
+- **v0.4.2**: Simplified the estimation formula, fixing abnormal results that could occur when an application date shifted across a month boundary. ([#25](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/25))
 
 ## 2025-03
 
@@ -186,15 +187,15 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
-- Initial launch: application-intake bar chart, Estimation Card, Filter Panel, and Stats Summary, with a collapsible details pane showing the underlying formula.
+- **v0.2.2**: Follow-up UI polish.
 - **v0.2.1**: Mobile-first responsive design and dark mode —
   - Mobile-friendly layout with native breakpoints
   - Dark mode with a toggle switch
   - Drawer-style Estimation Card and tooltips on mobile
   ([#10](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/10))
-- **v0.2.2**: Follow-up UI polish.
+- Initial launch: application-intake bar chart, Estimation Card, Filter Panel, and Stats Summary, with a collapsible details pane showing the underlying formula.
 
 ### Fixed
 
-- **v0.1.1**: Added guidance text for the month picker on Safari (macOS), which didn't natively support that input type at the time; fixed the displayed "Last Updated" date so it reflects the actual build instead of updating every time the page loads.
 - **v0.1.2**: The Estimation Card no longer shows no details when an application's completion date is already past due. ([#5](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/5))
+- **v0.1.1**: Added guidance text for the month picker on Safari (macOS), which didn't natively support that input type at the time; fixed the displayed "Last Updated" date so it reflects the actual build instead of updating every time the page loads.
