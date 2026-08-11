@@ -38,6 +38,7 @@ export const vi: Dictionary = {
   'nav.themeDark': 'Tối',
   'nav.about': 'Giới thiệu',
   'nav.changelog': 'Nhật ký thay đổi',
+  'nav.sourceCode': 'Mã nguồn',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': 'Dữ liệu: {range}',

@@ -61,6 +61,7 @@ export const zhTw: Dictionary = {
   'nav.themeDark': '深色',
   'nav.about': '關於',
   'nav.changelog': '更新日誌',
+  'nav.sourceCode': '原始碼',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': '資料範圍：{range}',

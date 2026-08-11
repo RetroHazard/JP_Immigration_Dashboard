@@ -54,6 +54,7 @@ export const zhCn: Dictionary = {
   'nav.themeDark': '深色',
   'nav.about': '关于本站',
   'nav.changelog': '更新日志',
+  'nav.sourceCode': '源代码',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': '数据范围：{range}',
