@@ -33,14 +33,26 @@ const yScale = scaleLinear<number>({ domain: [0, 50], range: [200, 0] });
  * Event or carries a real `nativeEvent`. jsdom has no `createSVGPoint`, so visx
  * takes its bounding-box fallback — and jsdom reports a zero rect, which makes
  * the local x equal `clientX`. That is exactly what these assertions assume.
+ *
+ * The underlying event type is immaterial: these tests invoke the handlers
+ * directly, so one object stands in for a click, a move or a press.
  */
-const clickAt = (clientX: number) => {
+const mouseAt = (clientX: number) => {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   svg.append(g);
   document.body.append(svg);
   const nativeEvent = new MouseEvent('click', { clientX, clientY: 100, bubbles: true });
   return { currentTarget: g, target: g, clientX, clientY: 100, nativeEvent } as unknown as React.MouseEvent<SVGGElement>;
+};
+
+/** The hover path batches into a rAF, so its assertions need a frame first. */
+const flushFrame = async () => {
+  await act(async () => {
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => resolve());
+    });
+  });
 };
 
 const mount = (coarse: boolean) => {
@@ -91,6 +103,68 @@ describe('hover devices are unaffected', () => {
   });
 });
 
+describe('clicking a hover chart leaves its tooltip alone', () => {
+  it('survives a press and release that never travels', async () => {
+    // Regression: mousedown used to clear outright, on the assumption that
+    // every press was the start of a range drag.
+    const { result } = mount(false);
+
+    act(() => result.current.interactionHandlers.onMouseMove?.(mouseAt(205)));
+    await flushFrame();
+    expect(result.current.tooltipData?.index).toBe(2);
+
+    act(() => result.current.interactionHandlers.onMouseDown?.(mouseAt(205)));
+    act(() => result.current.interactionHandlers.onMouseUp?.());
+
+    expect(result.current.tooltipData?.index).toBe(2);
+    expect(result.current.selection).toBeNull();
+  });
+
+  it('keeps tracking the cursor while a held button stays under the threshold', async () => {
+    const { result } = mount(false);
+
+    act(() => result.current.interactionHandlers.onMouseMove?.(mouseAt(205)));
+    await flushFrame();
+    act(() => result.current.interactionHandlers.onMouseDown?.(mouseAt(205)));
+    act(() => result.current.interactionHandlers.onMouseMove?.(mouseAt(207)));
+    await flushFrame();
+
+    expect(result.current.tooltipData).not.toBeNull();
+    expect(result.current.selection).toBeNull();
+  });
+
+  it('still starts a range drag once the cursor travels', async () => {
+    const { result } = mount(false);
+
+    act(() => result.current.interactionHandlers.onMouseMove?.(mouseAt(100)));
+    await flushFrame();
+    expect(result.current.tooltipData).not.toBeNull();
+
+    act(() => result.current.interactionHandlers.onMouseDown?.(mouseAt(100)));
+    act(() => result.current.interactionHandlers.onMouseMove?.(mouseAt(300)));
+
+    expect(result.current.tooltipData).toBeNull();
+    expect(result.current.selection?.active).toBe(true);
+    expect(result.current.selection?.startX).toBe(100);
+    expect(result.current.selection?.endX).toBe(300);
+  });
+
+  it('goes back to hovering after a drag is released', async () => {
+    const { result } = mount(false);
+
+    act(() => result.current.interactionHandlers.onMouseDown?.(mouseAt(100)));
+    act(() => result.current.interactionHandlers.onMouseMove?.(mouseAt(300)));
+    act(() => result.current.interactionHandlers.onMouseUp?.());
+    expect(result.current.selection).toBeNull();
+
+    act(() => result.current.interactionHandlers.onMouseMove?.(mouseAt(305)));
+    await flushFrame();
+
+    expect(result.current.tooltipData).not.toBeNull();
+    expect(result.current.selection).toBeNull();
+  });
+});
+
 describe('touch devices tap to pin', () => {
   it('attaches only a click, so post-tap mouse events find no handler', () => {
     const { result } = mount(true);
@@ -99,7 +173,7 @@ describe('touch devices tap to pin', () => {
     expect(handlers.onClick).toBeTypeOf('function');
     expect(handlers.onMouseMove).toBeUndefined();
     expect(handlers.onMouseLeave).toBeUndefined();
-    // onMouseDown clears the tooltip — attached, it would eat the pin.
+    // onMouseDown arms a range drag — attached, it would fight the pin.
     expect(handlers.onMouseDown).toBeUndefined();
     expect(result.current.isTapMode).toBe(true);
   });
@@ -112,11 +186,11 @@ describe('touch devices tap to pin', () => {
   it('pins a datapoint, then closes it when tapped again', () => {
     const { result } = mount(true);
 
-    act(() => result.current.interactionHandlers.onClick?.(clickAt(0)));
+    act(() => result.current.interactionHandlers.onClick?.(mouseAt(0)));
     expect(result.current.tooltipData).not.toBeNull();
     expect(result.current.pinned).toBe(true);
 
-    act(() => result.current.interactionHandlers.onClick?.(clickAt(0)));
+    act(() => result.current.interactionHandlers.onClick?.(mouseAt(0)));
     expect(result.current.tooltipData).toBeNull();
     expect(result.current.pinned).toBe(false);
   });
@@ -124,10 +198,10 @@ describe('touch devices tap to pin', () => {
   it('moves the pin to a different datapoint', () => {
     const { result } = mount(true);
 
-    act(() => result.current.interactionHandlers.onClick?.(clickAt(0)));
+    act(() => result.current.interactionHandlers.onClick?.(mouseAt(0)));
     const first = result.current.tooltipData?.index;
 
-    act(() => result.current.interactionHandlers.onClick?.(clickAt(400)));
+    act(() => result.current.interactionHandlers.onClick?.(mouseAt(400)));
     expect(result.current.tooltipData?.index).not.toBe(first);
     expect(result.current.pinned).toBe(true);
   });
@@ -137,17 +211,17 @@ describe('touch devices tap to pin', () => {
     // commitTooltipNow the second pin on the same point is swallowed.
     const { result } = mount(true);
 
-    act(() => result.current.interactionHandlers.onClick?.(clickAt(0)));
-    act(() => result.current.interactionHandlers.onClick?.(clickAt(0)));
+    act(() => result.current.interactionHandlers.onClick?.(mouseAt(0)));
+    act(() => result.current.interactionHandlers.onClick?.(mouseAt(0)));
     expect(result.current.tooltipData).toBeNull();
 
-    act(() => result.current.interactionHandlers.onClick?.(clickAt(0)));
+    act(() => result.current.interactionHandlers.onClick?.(mouseAt(0)));
     expect(result.current.tooltipData).not.toBeNull();
   });
 
   it('dismisses on a tap outside the chart', () => {
     const { result } = mount(true);
-    act(() => result.current.interactionHandlers.onClick?.(clickAt(0)));
+    act(() => result.current.interactionHandlers.onClick?.(mouseAt(0)));
     expect(result.current.pinned).toBe(true);
 
     act(() => {
@@ -159,7 +233,7 @@ describe('touch devices tap to pin', () => {
 
   it('dismisses on Escape', () => {
     const { result } = mount(true);
-    act(() => result.current.interactionHandlers.onClick?.(clickAt(0)));
+    act(() => result.current.interactionHandlers.onClick?.(mouseAt(0)));
 
     act(() => {
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
@@ -169,7 +243,7 @@ describe('touch devices tap to pin', () => {
 
   it('dismissTap clears a pin from the chart margins', () => {
     const { result } = mount(true);
-    act(() => result.current.interactionHandlers.onClick?.(clickAt(0)));
+    act(() => result.current.interactionHandlers.onClick?.(mouseAt(0)));
     expect(result.current.pinned).toBe(true);
 
     act(() => result.current.dismissTap());
@@ -182,7 +256,7 @@ describe('data sanity', () => {
   it('resolves the nearest datapoint to the tap', () => {
     const { result } = mount(true);
     // 400px maps the 4-day domain, so ~100px per day.
-    act(() => result.current.interactionHandlers.onClick?.(clickAt(205)));
+    act(() => result.current.interactionHandlers.onClick?.(mouseAt(205)));
     expect(result.current.tooltipData?.index).toBe(2);
     expect(xAccessor(result.current.tooltipData?.point ?? {}).getTime()).toBe(data[2].date.getTime());
   });

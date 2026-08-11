@@ -32,6 +32,23 @@ interface Hover {
   y: number;
 }
 
+/**
+ * Rows are `tabIndex={0}`, so a mouse click focuses one as well as hovering it.
+ * `:focus-visible` is the browser's own answer to "did this focus come from the
+ * keyboard": a Tab matches it, a click does not.
+ */
+const isKeyboardFocus = (element: HTMLElement): boolean => {
+  try {
+    return element.matches(':focus-visible');
+  } catch {
+    // A selector engine that doesn't implement the pseudo-class at all: fall
+    // back to the old unconditional behaviour rather than losing the
+    // keyboard affordance. (jsdom implements it and answers false, so tests
+    // exercise the pointer branch, not this one.)
+    return true;
+  }
+};
+
 export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { isDarkMode } = useTheme();
   const { t, formatters } = useLocale();
@@ -39,6 +56,9 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
   const bureauCompact = useBureauCompact();
   const [hovered, setHovered] = useState<Hover | null>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
+  // Whether the card currently on screen was opened by keyboard focus, so that
+  // only a blur that follows one of those closes it again.
+  const focusShownRef = useRef(false);
   const coarsePointer = useCoarsePointer();
   const clearHover = useCallback(() => setHovered(null), []);
   const tapMode = useTapPin({ enabled: coarsePointer, containerRef: rowsRef, onDismiss: clearHover });
@@ -116,13 +136,29 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
           },
         }
       : {
-          onPointerEnter: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
+          onPointerEnter: (e: React.PointerEvent) => {
+            // The pointer takes ownership of the card, so a later blur from a
+            // row the mouse has already left can't close it.
+            focusShownRef.current = false;
+            setHovered({ point, x: e.clientX, y: e.clientY });
+          },
           onPointerMove: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
           onPointerLeave: () => setHovered(null),
         }),
-    // Kept on both: this is the keyboard path, and it is unaffected by pointer type.
-    onFocus: (e: React.FocusEvent<HTMLElement>) => showAtRow(point, e.currentTarget),
-    onBlur: () => setHovered(null),
+    // Kept on both: this is the keyboard path, and it is unaffected by pointer
+    // type. It is gated on `:focus-visible` because clicking a row focuses it
+    // too, and re-anchoring there would tear the card away from the cursor for
+    // no reason the person clicking asked for.
+    onFocus: (e: React.FocusEvent<HTMLElement>) => {
+      if (!isKeyboardFocus(e.currentTarget)) return;
+      focusShownRef.current = true;
+      showAtRow(point, e.currentTarget);
+    },
+    onBlur: () => {
+      if (!focusShownRef.current) return;
+      focusShownRef.current = false;
+      setHovered(null);
+    },
   });
 
   return (

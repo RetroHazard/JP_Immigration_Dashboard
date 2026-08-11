@@ -261,7 +261,7 @@ Every user-visible string resolves through a per-language catalogue; `src/i18n/R
 
   | Vendored file | Change |
   |---|---|
-  | `charts/use-chart-interaction.ts` | Touch handlers (and the two-finger range selection) replaced by one `onClick`; `touch-action` becomes `manipulation` on touch, so tall charts stop being a page-scroll dead zone |
+  | `charts/use-chart-interaction.ts` | Touch handlers (and the two-finger range selection) replaced by one `onClick`; `touch-action` becomes `manipulation` on touch, so tall charts stop being a page-scroll dead zone. Separately, a `mousedown` no longer clears the tooltip outright — it arms a drag that only starts, and only clears, once the cursor travels past `DRAG_THRESHOLD_PX`. The vendored code had to assume every press was the start of a range drag, so on a hover device clicking a chart looked like it dismissed the tooltip |
   | `charts/time-series-chart-shell.tsx` | `touch-action` moved to the `<svg>` (nested SVG support for it is patchy); axis-gutter tap dismisses |
   | `charts/use-scheduled-tooltip.ts` | Adds `commitTooltipNow`, so a datapoint that was unpinned can be re-pinned — the dedupe key otherwise survives the clear |
   | `charts/tooltip/tooltip-box.tsx` | The panel gains a `max-width`; its 140px floor with no ceiling could otherwise outgrow its own container on a narrow phone. It deliberately stays `pointer-events-none`: a tap on a pinned panel should fall through to the datapoint beneath, which is what makes both "tap the same point to close" and "tap the neighbouring point to move" work when the panel covers them |

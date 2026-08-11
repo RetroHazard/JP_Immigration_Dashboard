@@ -12,6 +12,15 @@ import { normalizeYAxisId } from "./y-axis-scales";
 type ScaleTime = ReturnType<typeof scaleTime<number>>;
 type ScaleLinear = ReturnType<typeof scaleLinear<number>>;
 
+/**
+ * LOCAL MODIFICATION: how far the cursor must travel with the button held
+ * before the gesture counts as a range drag rather than a click. Without a
+ * threshold, `mousedown` had to assume every press was a drag and clear the
+ * tooltip immediately, so clicking a chart looked like it dismissed the
+ * tooltip. (Re-apply after a re-vendor.)
+ */
+const DRAG_THRESHOLD_PX = 4;
+
 export interface ChartSelection {
   startX: number;
   endX: number;
@@ -93,6 +102,10 @@ export function useChartInteraction({
   } = useScheduledTooltip<TooltipData>();
 
   const isDraggingRef = useRef(false);
+  // LOCAL MODIFICATION: the button is down but the gesture has not travelled
+  // far enough to be a drag yet, so it may still turn out to be a click.
+  // (Re-apply after a re-vendor.)
+  const pendingDragRef = useRef(false);
   const dragStartXRef = useRef<number>(0);
   const lastHoveredXRef = useRef<number | null>(null);
 
@@ -214,6 +227,20 @@ export function useChartInteraction({
         return;
       }
 
+      // LOCAL MODIFICATION: a held button only becomes a drag once it has
+      // travelled far enough, and the tooltip is cleared at that moment rather
+      // than on `mousedown`. Below the threshold the hover path keeps running,
+      // so a plain click leaves the tooltip exactly as it found it.
+      // (Re-apply after a re-vendor.)
+      if (
+        pendingDragRef.current &&
+        !isDraggingRef.current &&
+        Math.abs(chartX - dragStartXRef.current) > DRAG_THRESHOLD_PX
+      ) {
+        isDraggingRef.current = true;
+        clearTooltip();
+      }
+
       if (isDraggingRef.current) {
         const startX = Math.min(dragStartXRef.current, chartX);
         const endX = Math.max(dragStartXRef.current, chartX);
@@ -233,7 +260,13 @@ export function useChartInteraction({
         scheduleTooltip(tooltip);
       }
     },
-    [getChartX, resolveTooltipFromX, resolveIndexFromX, scheduleTooltip]
+    [
+      clearTooltip,
+      getChartX,
+      resolveTooltipFromX,
+      resolveIndexFromX,
+      scheduleTooltip,
+    ]
   );
 
   const handleMouseLeave = useCallback(() => {
@@ -242,6 +275,9 @@ export function useChartInteraction({
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
     }
+    // LOCAL MODIFICATION: an armed-but-never-promoted press must not survive
+    // the cursor leaving. (Re-apply after a re-vendor.)
+    pendingDragRef.current = false;
     setSelection(null);
   }, [clearTooltip]);
 
@@ -251,18 +287,24 @@ export function useChartInteraction({
       if (chartX === null) {
         return;
       }
-      isDraggingRef.current = true;
+      // LOCAL MODIFICATION: this used to set `isDraggingRef` and call
+      // `clearTooltip()` outright, which dismissed the tooltip on every click
+      // because a press cannot yet be told apart from a drag. Both now happen
+      // in `handleMouseMove`, once the cursor has actually travelled.
+      // (Re-apply after a re-vendor.)
+      pendingDragRef.current = true;
       dragStartXRef.current = chartX;
-      clearTooltip();
       setSelection(null);
     },
-    [getChartX, clearTooltip]
+    [getChartX]
   );
 
   const handleMouseUp = useCallback(() => {
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
     }
+    // LOCAL MODIFICATION: see `handleMouseDown`. (Re-apply after a re-vendor.)
+    pendingDragRef.current = false;
     setSelection(null);
   }, []);
 
