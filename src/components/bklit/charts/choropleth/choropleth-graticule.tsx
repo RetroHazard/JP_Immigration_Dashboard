@@ -26,6 +26,9 @@ export const ChoroplethGraticule = memo(function ChoroplethGraticule({
       step={step}
       stroke={stroke}
       strokeWidth={strokeWidth}
+      // Forwarded onto the underlying <path>: keeps the lines hairline-thin
+      // under the zoom transform, same as the feature borders.
+      vectorEffect="non-scaling-stroke"
     />
   );
 });

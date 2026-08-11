@@ -10,6 +10,7 @@ export {
   defaultChoroplethColors,
   type Margin,
   useChoropleth,
+  useChoroplethStable,
   useChoroplethZoom,
 } from "./choropleth-context";
 export {

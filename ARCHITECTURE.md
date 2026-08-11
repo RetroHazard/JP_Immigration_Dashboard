@@ -340,7 +340,7 @@ Summary statistics display, built from `StatCard` (`src/components/common/StatCa
 
 ### Header & Footer
 
-There is no separate `layouts/` directory — the header (branding, language switcher, theme toggle, changelog trigger) and footer (attribution, e-Stat credit) markup live directly inside `DashboardShell.tsx`. The language switcher renders nothing while `LOCALE_SWITCHER_ENABLED` is false (see below); it is on today.
+There is no separate `layouts/` directory — the header (branding, language switcher, theme toggle, source-repository link, changelog trigger) and footer (attribution, e-Stat credit) markup live directly inside `DashboardShell.tsx`. The language switcher renders nothing while `LOCALE_SWITCHER_ENABLED` is false (see below); it is on today. The source-repository link is an icon button on desktop and a row under About in the mobile settings drawer.
 
 #### **ErrorBoundary** (`src/components/common/ErrorBoundary.tsx`)
 - Catches React errors
@@ -910,9 +910,50 @@ The Processing Efficiency and Category Mix charts don't use `visx` at all — Bk
 ### Why Bklit UI (vendored) over Chart.js?
 
 - **Design-token theming** — Every chart reads the same CSS variables as the rest of the UI, in both themes
-- **Vendored source** — Components are copied into the repo (shadcn registry model), so gaps are patched locally (e.g. responsive choropleth scale, Sankey value units)
+- **Vendored source** — Components are copied into the repo (shadcn registry model), so gaps are patched locally (e.g. responsive choropleth scale, Sankey value units, the choropleth render/gesture patches below)
 - **SVG rendering** — Text alternatives and styling that canvas can't offer
 - **Composable API** — Charts assemble from Grid/Axis/Series/Tooltip parts, so remixes stay small
+
+#### Local patches to the vendored choropleth
+
+`scripts/vendor-bklit.mjs` overwrites `src/components/bklit/`, so re-vendoring drops these.
+They must be reapplied — the map is unusable without them, especially on touch devices.
+
+- **Projection above the zoom boundary** (`choropleth-chart.tsx`) — `<Zoom>` is rendered
+  *below* the stable-context provider, and `featurePaths` is memoised on `[data, mercator]`.
+  Upstream generates every SVG path string inside the component that re-renders on each
+  pan/pinch frame, so d3-geo re-projected the whole topology per frame (~60k vertices for
+  Japan). The zoom transform only ever needs to reach the wrapper `<g>`.
+- **Structurally stable feature layer** (`choropleth-feature.tsx`) — one `<g>` plus an
+  always-mounted highlight `<path>`, instead of upstream's branch between a `<g>` and a
+  Fragment, which made React unmount and remount every feature path on hover in *and* out.
+  Per-feature listeners are replaced by delegation on the parent `<g>` (`data-feature-index`).
+- **Gesture handling** (`choropleth-chart.tsx`) — `zoom.containerRef` is deliberately *not*
+  attached. Upstream's `useGesture` pans on a single finger, which traps page scroll on a
+  full-width map. Instead: `touch-action: pan-y`, wheel/two-finger listeners bound manually
+  (non-passive), mouse drag wired to `zoom.dragStart/dragMove/dragEnd`, and a delegated
+  `click` so tapping a feature opens its tooltip on touch devices.
+  Pinch composes against a gesture-local matrix, because several `touchmove` events can land
+  between two React renders and `zoom.transformMatrix` is a render-time snapshot.
+- **Hairline borders** (`choropleth-feature.tsx`, `choropleth-graticule.tsx`) —
+  `vector-effect: non-scaling-stroke` on the feature paths, the highlight path and the
+  graticule. The zoom transform sits on an ancestor `<g>` and SVG scales stroke width with
+  geometry, so upstream's border renders 12px wide at the Regional Map's 16× ceiling. Dividing
+  the width by the live scale instead would pull the layer into the zoom context and re-render
+  all 47 paths per frame, undoing the patch above.
+- **Pan bound** (`choropleth-chart.tsx`) — a `constrain` prop on `<Zoom>`; upstream ships no
+  translate constraint at all, so the map can be dragged clean out of the card. Note that
+  supplying `constrain` *replaces* visx's scale check rather than adding to it, so it enforces
+  `zoomMin`/`zoomMax` too. Two rules, binding at opposite ends of the zoom range:
+  the map's bounding box must overlap the viewport by 60% per axis (stops a fling), and the
+  view centre must stay within a quarter-viewport of a landmass (stops a zoomed-in view of open
+  sea). The second reads an occupancy grid built once per projection from each feature's
+  largest polygon, outlined and scanline-filled — bounding boxes cannot answer "is there map
+  here" for an archipelago, and outlines alone leave big islands hollow.
+
+  The bound is deliberately an overlap minimum rather than an edge lock: the Japan projection
+  already leaves a gap at the top at rest, so "content must cover the viewport" would snap the
+  map on the first drag.
 
 ## Testing Strategy
 

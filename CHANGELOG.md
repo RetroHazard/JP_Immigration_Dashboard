@@ -36,6 +36,7 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Changed
 
+- **v1.4.4**: The Regional Map's zoom and reset buttons are gone — a holdover from the map's previous implementation that the World Origins map never had. Both maps now work the same way: scroll wheel or pinch to zoom, drag or two-finger drag to pan.
 - **v1.2.6**: The language switcher is now a compact button that opens a list, in both the desktop header and the mobile settings drawer, instead of always showing every language at once —
   - The desktop header previously spelled out all seven language names side by side in one non-shrinking pill; at native-name lengths it crowded the app title from 640px wide up, in every language including English
   - The mobile settings drawer had the same problem in miniature — a stack of language rows that grew taller with every language added, pushing Theme and About further down each time
@@ -43,6 +44,13 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.4.4**: The Regional Map was sluggish to pan and zoom, and close to unusable on a phone — both are fixed —
+  - Panning and zooming re-drew the entire map from scratch on every frame, and hovering a prefecture tore down and rebuilt all 47 shapes. Neither is needed: the map now redraws only what actually changed, which takes dragging from roughly 300ms a frame to a steady 60fps, and a great deal more than that on a phone
+  - On a phone the map used to swallow the page scroll, so a finger landing on it left you stuck. One finger now scrolls the dashboard as it should, and two fingers pan and zoom the map
+  - Tapping a prefecture on a touch device did nothing, because the map only ever listened for a mouse. Tapping one now opens its details, and tapping the sea closes them again
+  - Zooming in thickened every prefecture border along with the shapes, until at the deepest zoom the outlines all but swallowed the prefectures they were outlining. Borders now stay the same hairline width at every zoom level, on both maps
+  - Panning could throw the map clean out of its card, leaving an empty box and no obvious way back — worse since there is no longer a reset button. Both maps are now bounded: you can always see the map, and once zoomed in you can no longer wander off into open sea
+  - The map's shape data carried far more coastline detail than a screen can show — enough for roughly nineteen points per pixel on a phone. It has been thinned to what actually renders, which also cuts the download from 416KB to 160KB. The map looks the same
 - **v1.4.3**: Hovering the Population Growth chart drew a dot per series that sat below its own bar segment, bunched near the bottom of the plot, in both the by-purpose and by-region views. The dots are gone — the highlighted bars and the tooltip already give every value, and the dots only offered a second, wrong reading of them. Intake & Processing had the same problem on its two stacked bars; there the dot survives on the completed-applications line, where it tracks the line correctly.
 - **v1.4.2**: World regions showed up as raw codes — `region.1000` instead of "Asia" — on Chrome and Edge, in every language. It affected the Resident Flows sankey's left column, the region filter, Population Growth's by-region view, and the Residence Status sunburst; "Stateless" was the only region that read correctly —
   - Continent names were being taken from the browser's own locale data, the same as country names. That works for countries everywhere, but Chrome and Edge ship no names for continents specifically, so they handed back the code they were given. Firefox and Safari were unaffected, which is what kept this out of sight
