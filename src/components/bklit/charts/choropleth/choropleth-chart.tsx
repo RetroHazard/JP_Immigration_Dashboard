@@ -171,9 +171,395 @@ const DEFAULT_INITIAL_ZOOM: TransformMatrix = {
 };
 
 interface MercatorRenderProps {
+  // visx hands the render prop d3-geo's own `geoPath` instance, so `bounds` is
+  // there alongside the call signature.
   // biome-ignore lint/suspicious/noExplicitAny: visx geo projection bundle
-  path: (geo: any) => string | null;
+  path: ((geo: any) => string | null) & {
+    // biome-ignore lint/suspicious/noExplicitAny: same
+    bounds?: (geo: any) => [[number, number], [number, number]];
+  };
   projection: (coords: [number, number]) => [number, number] | null | undefined;
+}
+
+/** A projected bounding box in user space. */
+type Box = { x0: number; x1: number; y0: number; y1: number };
+
+/**
+ * Where the map has ink, as a coarse grid over the content box: for every cell,
+ * the centre of the nearest cell that any geometry passes through.
+ *
+ * Bounding boxes can't answer this. Japan's box is a diagonal rectangle that is
+ * mostly sea, and so is the box of an island prefecture like Nagasaki — zoomed
+ * in you can sit well inside either and see nothing but water. The grid is
+ * built from the projected coastline itself, so "is there map near here" costs
+ * one array read.
+ */
+type Occupancy = {
+  x0: number;
+  y0: number;
+  cell: number;
+  cols: number;
+  rows: number;
+  /** Per cell, the index of the nearest occupied cell (-1 if the map is empty). */
+  nearest: Int32Array;
+};
+
+/** Cells along the longer axis of the content box. */
+const OCCUPANCY_STEPS = 96;
+
+type ContentBounds = { outer: Box; occupancy: Occupancy | null };
+
+/**
+ * Fraction of the map (or of the viewport, whichever is smaller) that has to
+ * stay on screen along each axis.
+ *
+ * Not an edge lock: the Japan projection deliberately leaves a gap at the top
+ * and overflows the bottom, so "content must cover the viewport" is already
+ * false at rest and would snap the map on the first drag. Measured across
+ * 320-1400px viewports, both charts sit at 0.76 or better when untouched, so
+ * 0.6 binds a runaway pan without ever moving a view the user hasn't moved.
+ */
+const PAN_MIN_VISIBLE = 0.6;
+
+/**
+ * How far off-centre the nearest feature is allowed to sit, as a fraction of
+ * the viewport. At 0.25 the closest feature always reaches at least a quarter
+ * of the way in from an edge, so there is something to look at wherever the
+ * view lands.
+ *
+ * Measured against the viewport in *user* space, so it is slack at low zoom
+ * (where the whole map is on screen anyway and the outer box does the work) and
+ * only starts to bind once you are zoomed in far enough to lose the map.
+ */
+const CENTER_SLACK = 0.25;
+
+/**
+ * Slack for the scale comparison. `panThenScale` clamps its factor to exactly
+ * `max / scaleX`, whose product can land a float hair above `max`; without the
+ * slack that reads as out-of-range and the whole gesture frame is rejected.
+ */
+const SCALE_EPSILON = 1e-6;
+
+/**
+ * Clamp one axis of a translate so the transformed span [scale*c0 + t,
+ * scale*c1 + t] keeps at least `PAN_MIN_VISIBLE` of itself inside [0, viewport].
+ *
+ * `overlap = min(end, viewport) - max(start, 0) >= keep` reduces to two linear
+ * bounds on `t`, which is why this is a clamp rather than a search.
+ */
+function clampTranslate(
+  translate: number,
+  scale: number,
+  c0: number,
+  c1: number,
+  viewport: number
+): number {
+  const keep = PAN_MIN_VISIBLE * Math.min(scale * (c1 - c0), viewport);
+  const lower = keep - scale * c1;
+  const upper = viewport - keep - scale * c0;
+  // Unreachable for any fraction below 1, but a degenerate bbox shouldn't
+  // produce a NaN-shaped window.
+  if (lower > upper) {
+    return (lower + upper) / 2;
+  }
+  return Math.min(Math.max(translate, lower), upper);
+}
+
+type Ring = { x: number; y: number }[];
+
+/** Project a ring of [lon, lat] positions into user space. */
+function projectRing(
+  // biome-ignore lint/suspicious/noExplicitAny: GeoJSON types are complex
+  positions: any,
+  project: (coords: [number, number]) => [number, number] | null | undefined
+): Ring {
+  const ring: Ring = [];
+  if (!Array.isArray(positions)) {
+    return ring;
+  }
+  for (const position of positions) {
+    if (!Array.isArray(position) || typeof position[0] !== "number") {
+      continue;
+    }
+    const point = project(position as [number, number]);
+    if (point && Number.isFinite(point[0]) && Number.isFinite(point[1])) {
+      ring.push({ x: point[0], y: point[1] });
+    }
+  }
+  return ring;
+}
+
+/** Twice the shoelace area — sign and halving don't matter for a comparison. */
+function ringArea(ring: Ring): number {
+  let sum = 0;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const a = ring[i] as { x: number; y: number };
+    const b = ring[j] as { x: number; y: number };
+    sum += (b.x + a.x) * (b.y - a.y);
+  }
+  return Math.abs(sum);
+}
+
+/**
+ * The outer ring of each feature's largest polygon — its main landmass.
+ *
+ * Anchoring to *any* geometry is too weak: Tokyo owns islets 1,700km out in the
+ * Pacific, so "there is map nearby" can be satisfied by a speck too small to
+ * see, and the card still reads as empty. One landmass per feature keeps every
+ * prefecture reachable while making a view of open sea unreachable.
+ */
+function mainLandmasses(
+  features: FeatureCollection<Geometry, ChoroplethFeatureProperties>["features"],
+  project: (coords: [number, number]) => [number, number] | null | undefined
+): Ring[] {
+  const rings: Ring[] = [];
+
+  const collect = (geometry: Geometry | null | undefined): void => {
+    if (!geometry) {
+      return;
+    }
+    if (geometry.type === "GeometryCollection") {
+      for (const inner of geometry.geometries) {
+        collect(inner);
+      }
+      return;
+    }
+    // Only areal geometry has a landmass to speak of.
+    const polygons =
+      geometry.type === "Polygon"
+        ? [geometry.coordinates]
+        : geometry.type === "MultiPolygon"
+          ? geometry.coordinates
+          : [];
+
+    let largest: Ring | null = null;
+    let largestArea = 0;
+    for (const polygon of polygons) {
+      const ring = projectRing(polygon[0], project);
+      if (ring.length < 3) {
+        continue;
+      }
+      const area = ringArea(ring);
+      if (area > largestArea) {
+        largestArea = area;
+        largest = ring;
+      }
+    }
+    if (largest) {
+      rings.push(largest);
+    }
+  };
+
+  for (const feature of features) {
+    collect(feature.geometry);
+  }
+  return rings;
+}
+
+/**
+ * Mark the cells the geometry passes through, then flood outwards so every cell
+ * knows its nearest occupied neighbour. One multi-source BFS over a few thousand
+ * cells, run once per projection rather than per frame.
+ */
+function buildOccupancy(
+  outer: Box,
+  features: FeatureCollection<Geometry, ChoroplethFeatureProperties>["features"],
+  project: (coords: [number, number]) => [number, number] | null | undefined
+): Occupancy | null {
+  const width = outer.x1 - outer.x0;
+  const height = outer.y1 - outer.y0;
+  const cell = Math.max(width, height) / OCCUPANCY_STEPS;
+  if (!(cell > 0)) {
+    return null;
+  }
+  const cols = Math.max(1, Math.ceil(width / cell) + 1);
+  const rows = Math.max(1, Math.ceil(height / cell) + 1);
+  const total = cols * rows;
+
+  const nearest = new Int32Array(total).fill(-1);
+  const queue: number[] = [];
+  const mark = (x: number, y: number) => {
+    const col = Math.min(
+      cols - 1,
+      Math.max(0, Math.floor((x - outer.x0) / cell))
+    );
+    const row = Math.min(
+      rows - 1,
+      Math.max(0, Math.floor((y - outer.y0) / cell))
+    );
+    const index = row * cols + col;
+    if (nearest[index] === -1) {
+      nearest[index] = index;
+      queue.push(index);
+    }
+  };
+
+  const rings = mainLandmasses(features, project);
+
+  // The outline, so an island thinner than a cell still registers...
+  for (const ring of rings) {
+    for (const point of ring) {
+      mark(point.x, point.y);
+    }
+  }
+
+  // ...and the interior, by scanline. Without this a big island is a hollow
+  // outline, and zoomed in far enough the middle of Hokkaido counts as "no map
+  // nearby" — the one place you would most want to be able to look at.
+  const crossings: number[][] = Array.from({ length: rows }, () => []);
+  for (const ring of rings) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const a = ring[j] as { x: number; y: number };
+      const b = ring[i] as { x: number; y: number };
+      if (a.y === b.y) {
+        continue;
+      }
+      const top = Math.min(a.y, b.y);
+      const bottom = Math.max(a.y, b.y);
+      const first = Math.max(0, Math.ceil((top - outer.y0) / cell - 0.5));
+      const last = Math.min(rows - 1, Math.floor((bottom - outer.y0) / cell - 0.5));
+      for (let row = first; row <= last; row++) {
+        const y = outer.y0 + (row + 0.5) * cell;
+        if (y < top || y >= bottom) {
+          continue;
+        }
+        (crossings[row] as number[]).push(a.x + ((y - a.y) / (b.y - a.y)) * (b.x - a.x));
+      }
+    }
+  }
+  for (let row = 0; row < rows; row++) {
+    const xs = (crossings[row] as number[]).sort((p, q) => p - q);
+    const y = outer.y0 + (row + 0.5) * cell;
+    for (let i = 0; i + 1 < xs.length; i += 2) {
+      // Cells whose centre falls between this pair of crossings.
+      const from = Math.max(
+        0,
+        Math.ceil(((xs[i] as number) - outer.x0) / cell - 0.5)
+      );
+      const to = Math.min(
+        cols - 1,
+        Math.floor(((xs[i + 1] as number) - outer.x0) / cell - 0.5)
+      );
+      for (let col = from; col <= to; col++) {
+        mark(outer.x0 + (col + 0.5) * cell, y);
+      }
+    }
+  }
+  if (queue.length === 0) {
+    return null;
+  }
+
+  for (let head = 0; head < queue.length; head++) {
+    const index = queue[head] as number;
+    const source = nearest[index] as number;
+    const col = index % cols;
+    const row = (index - col) / cols;
+    for (const [dc, dr] of [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ]) {
+      const nc = col + (dc as number);
+      const nr = row + (dr as number);
+      if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) {
+        continue;
+      }
+      const neighbour = nr * cols + nc;
+      if (nearest[neighbour] === -1) {
+        nearest[neighbour] = source;
+        queue.push(neighbour);
+      }
+    }
+  }
+
+  return { x0: outer.x0, y0: outer.y0, cell, cols, rows, nearest };
+}
+
+/** Centre of the nearest cell the map actually passes through. */
+function nearestInked(
+  occupancy: Occupancy,
+  x: number,
+  y: number
+): { x: number; y: number } | null {
+  const { x0, y0, cell, cols, rows, nearest } = occupancy;
+  const col = Math.min(cols - 1, Math.max(0, Math.floor((x - x0) / cell)));
+  const row = Math.min(rows - 1, Math.max(0, Math.floor((y - y0) / cell)));
+  const index = nearest[row * cols + col] ?? -1;
+  if (index < 0) {
+    return null;
+  }
+  const ic = index % cols;
+  const ir = (index - ic) / cols;
+  return { x: x0 + (ic + 0.5) * cell, y: y0 + (ir + 0.5) * cell };
+}
+
+type Constrain = (
+  next: TransformMatrix,
+  prev: TransformMatrix
+) => TransformMatrix;
+
+/**
+ * Supplying `constrain` replaces visx's scale check outright rather than adding
+ * to it, so this has to enforce the zoom range as well as the pan bound.
+ */
+function makeConstrain(
+  bounds: ContentBounds,
+  width: number,
+  height: number,
+  zoomMin: number,
+  zoomMax: number
+): Constrain {
+  return (next, prev) => {
+    const outOfRange =
+      next.scaleX > zoomMax + SCALE_EPSILON ||
+      next.scaleX < zoomMin - SCALE_EPSILON ||
+      next.scaleY > zoomMax + SCALE_EPSILON ||
+      next.scaleY < zoomMin - SCALE_EPSILON;
+    // Rejecting wholesale is visx's own behaviour for a scale it won't accept.
+    if (outOfRange) {
+      return prev;
+    }
+
+    // Keep ink near the middle of the view first...
+    let { translateX, translateY } = next;
+    if (bounds.occupancy) {
+      const cx = (width / 2 - translateX) / next.scaleX;
+      const cy = (height / 2 - translateY) / next.scaleY;
+      const inked = nearestInked(bounds.occupancy, cx, cy);
+      if (inked) {
+        const limitX = (CENTER_SLACK * width) / next.scaleX;
+        const limitY = (CENTER_SLACK * height) / next.scaleY;
+        const centreX =
+          inked.x + Math.min(Math.max(cx - inked.x, -limitX), limitX);
+        const centreY =
+          inked.y + Math.min(Math.max(cy - inked.y, -limitY), limitY);
+        translateX = width / 2 - centreX * next.scaleX;
+        translateY = height / 2 - centreY * next.scaleY;
+      }
+    }
+
+    // ...then hold the map itself inside the box. The two rules bind at
+    // opposite ends of the zoom range, so whichever isn't doing the work here
+    // passes its input straight through.
+    return {
+      ...next,
+      translateX: clampTranslate(
+        translateX,
+        next.scaleX,
+        bounds.outer.x0,
+        bounds.outer.x1,
+        width
+      ),
+      translateY: clampTranslate(
+        translateY,
+        next.scaleY,
+        bounds.outer.y0,
+        bounds.outer.y1,
+        height
+      ),
+    };
+  };
 }
 
 interface ChoroplethMercatorContentProps {
@@ -266,6 +652,7 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
   zoom,
   zoomMin,
   zoomMax,
+  constrain,
 }: {
   height: number;
   width: number;
@@ -273,6 +660,7 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
   zoom?: ZoomInstance<SVGSVGElement>;
   zoomMin: number;
   zoomMax: number;
+  constrain?: Constrain;
 }) {
   const { setHoveredFeatureIndex, setTooltipData } = useChoroplethInteraction();
   const svgRef = useRef<SVGSVGElement>(null);
@@ -281,6 +669,8 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
   // live zoom instance from a ref rather than a captured closure.
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
+  const constrainRef = useRef(constrain);
+  constrainRef.current = constrain;
 
   const handleMouseLeave = useCallback(() => {
     setHoveredFeatureIndex(null);
@@ -357,7 +747,7 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
       const factor = pinch.distance > 0 ? distance / pinch.distance : 1;
       const origin = localPoint(node, event) ?? { x: width / 2, y: height / 2 };
 
-      const matrix = panThenScale(
+      const proposed = panThenScale(
         pinch.matrix,
         pan,
         factor,
@@ -365,6 +755,11 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
         zoomMin,
         zoomMax
       );
+      // Store what the chart will actually commit, not what we asked for: past
+      // the pan bound the two diverge, and an accumulator that kept running off
+      // into the clamped region would leave the reverse pan dead until it caught
+      // back up.
+      const matrix = constrainRef.current?.(proposed, pinch.matrix) ?? proposed;
       instance.setTransformMatrix(matrix);
       pinch = { distance, midpoint, matrix };
     };
@@ -458,6 +853,45 @@ const ChoroplethMercatorContent = memo(function ChoroplethMercatorContent({
     [data, mercator]
   );
 
+  // Where the projected geometry actually sits, which is what the pan bound is
+  // measured against — the drawn map rarely fills the canvas exactly.
+  const contentBounds = useMemo<ContentBounds | null>(() => {
+    const measure = mercator.path.bounds;
+    if (typeof measure !== "function") {
+      return null;
+    }
+    // biome-ignore lint/suspicious/noExplicitAny: GeoJSON types are complex
+    const boxOf = (geo: any): Box | null => {
+      try {
+        const [[x0, y0], [x1, y1]] = measure(geo);
+        return [x0, y0, x1, y1].every(Number.isFinite) && x1 > x0 && y1 > y0
+          ? { x0, x1, y0, y1 }
+          : null;
+      } catch {
+        return null;
+      }
+    };
+
+    const outer = boxOf(data);
+    if (!outer) {
+      // An empty or degenerate collection has no bounds to speak of; the chart
+      // falls back to visx's scale-only constraint.
+      return null;
+    }
+    return {
+      outer,
+      occupancy: buildOccupancy(outer, data.features, mercator.projection),
+    };
+  }, [data, mercator]);
+
+  const constrain = useMemo(
+    () =>
+      contentBounds
+        ? makeConstrain(contentBounds, width, height, zoomMin, zoomMax)
+        : undefined,
+    [contentBounds, width, height, zoomMin, zoomMax]
+  );
+
   const pathGenerator = useCallback(
     (feature: ChoroplethFeature) => mercator.path(feature) ?? undefined,
     [mercator]
@@ -526,6 +960,7 @@ const ChoroplethMercatorContent = memo(function ChoroplethMercatorContent({
   const canvas = (zoom: ZoomInstance<SVGSVGElement> | null) => (
     <ChoroplethZoomProvider zoom={zoom}>
       <ChoroplethSvg
+        constrain={constrain}
         height={height}
         svgChildren={svgChildren}
         width={width}
@@ -543,6 +978,7 @@ const ChoroplethMercatorContent = memo(function ChoroplethMercatorContent({
         <div className="relative h-full w-full" ref={containerRef}>
           {zoomEnabled ? (
             <Zoom<SVGSVGElement>
+              constrain={constrain}
               height={height}
               initialTransformMatrix={initialZoom}
               scaleXMax={zoomMax}

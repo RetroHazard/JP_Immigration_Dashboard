@@ -72,6 +72,13 @@ function featureIndexFromEvent(event: React.SyntheticEvent): number | null {
  * The paths themselves. Deliberately free of per-feature handlers and of any
  * hover-dependent prop, so this memo holds across hover and pan — the geometry
  * is the expensive part and it never needs to re-render for an interaction.
+ *
+ * `non-scaling-stroke` is what keeps borders hairline-thin at every zoom level.
+ * The zoom transform sits on an ancestor <g>, and SVG scales stroke width along
+ * with geometry, so a 0.75 border renders 12px wide at 16x. Dividing the width
+ * by the live zoom scale instead would drag this layer into the zoom context and
+ * re-render all 47 paths per gesture frame; a static attribute leaves the memo
+ * intact and hands the work to the rasteriser.
  */
 const FeaturePaths = memo(function FeaturePaths({
   records,
@@ -93,6 +100,7 @@ const FeaturePaths = memo(function FeaturePaths({
           key={record.index}
           stroke={stroke}
           strokeWidth={strokeWidth}
+          vectorEffect="non-scaling-stroke"
         />
       ))}
     </>
@@ -160,6 +168,7 @@ const StaticFeatureLayer = memo(function StaticFeatureLayer({
         pointerEvents="none"
         stroke={highlighted ? stroke : "none"}
         strokeWidth={strokeWidth}
+        vectorEffect="non-scaling-stroke"
       />
     </g>
   );

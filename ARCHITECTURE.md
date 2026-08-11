@@ -935,6 +935,25 @@ They must be reapplied — the map is unusable without them, especially on touch
   `click` so tapping a feature opens its tooltip on touch devices.
   Pinch composes against a gesture-local matrix, because several `touchmove` events can land
   between two React renders and `zoom.transformMatrix` is a render-time snapshot.
+- **Hairline borders** (`choropleth-feature.tsx`, `choropleth-graticule.tsx`) —
+  `vector-effect: non-scaling-stroke` on the feature paths, the highlight path and the
+  graticule. The zoom transform sits on an ancestor `<g>` and SVG scales stroke width with
+  geometry, so upstream's border renders 12px wide at the Regional Map's 16× ceiling. Dividing
+  the width by the live scale instead would pull the layer into the zoom context and re-render
+  all 47 paths per frame, undoing the patch above.
+- **Pan bound** (`choropleth-chart.tsx`) — a `constrain` prop on `<Zoom>`; upstream ships no
+  translate constraint at all, so the map can be dragged clean out of the card. Note that
+  supplying `constrain` *replaces* visx's scale check rather than adding to it, so it enforces
+  `zoomMin`/`zoomMax` too. Two rules, binding at opposite ends of the zoom range:
+  the map's bounding box must overlap the viewport by 60% per axis (stops a fling), and the
+  view centre must stay within a quarter-viewport of a landmass (stops a zoomed-in view of open
+  sea). The second reads an occupancy grid built once per projection from each feature's
+  largest polygon, outlined and scanline-filled — bounding boxes cannot answer "is there map
+  here" for an archipelago, and outlines alone leave big islands hollow.
+
+  The bound is deliberately an overlap minimum rather than an edge lock: the Japan projection
+  already leaves a gap at the top at rest, so "content must cover the viewport" would snap the
+  map on the first drag.
 
 ## Testing Strategy
 
