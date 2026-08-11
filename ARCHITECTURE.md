@@ -340,7 +340,7 @@ Summary statistics display, built from `StatCard` (`src/components/common/StatCa
 
 ### Header & Footer
 
-There is no separate `layouts/` directory — the header (branding, language switcher, theme toggle, changelog trigger) and footer (attribution, e-Stat credit) markup live directly inside `DashboardShell.tsx`. The language switcher renders nothing while `LOCALE_SWITCHER_ENABLED` is false (see below); it is on today.
+There is no separate `layouts/` directory — the header (branding, language switcher, theme toggle, source-repository link, changelog trigger) and footer (attribution, e-Stat credit) markup live directly inside `DashboardShell.tsx`. The language switcher renders nothing while `LOCALE_SWITCHER_ENABLED` is false (see below); it is on today. The source-repository link is an icon button on desktop and a row under About in the mobile settings drawer.
 
 #### **ErrorBoundary** (`src/components/common/ErrorBoundary.tsx`)
 - Catches React errors
