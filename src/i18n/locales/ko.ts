@@ -55,6 +55,7 @@ export const ko: Dictionary = {
   'nav.themeDark': '다크',
   'nav.about': '소개',
   'nav.changelog': '변경 이력',
+  'nav.sourceCode': '소스 코드',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': '데이터: {range}',

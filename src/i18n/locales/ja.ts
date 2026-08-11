@@ -49,6 +49,7 @@ export const ja: Dictionary = {
   'nav.themeDark': 'ダーク',
   'nav.about': 'このサイトについて',
   'nav.changelog': '更新履歴',
+  'nav.sourceCode': 'ソースコード',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': '対象期間：{range}',
