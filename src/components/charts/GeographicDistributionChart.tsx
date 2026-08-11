@@ -8,7 +8,7 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { FeatureCollection, Geometry } from 'geojson';
-import { Building2, Minus, Plane, Plus, RotateCcw } from 'lucide-react';
+import { Building2, Plane } from 'lucide-react';
 import type React from 'react';
 import { feature } from 'topojson-client';
 import type { Topology } from 'topojson-specification';
@@ -159,30 +159,6 @@ const BureauMarkers: React.FC = memo(() => {
 });
 BureauMarkers.displayName = 'BureauMarkers';
 
-/** Zoom controls using the chart's own zoom instance (labeled, iconized). */
-const ZoomControls: React.FC = () => {
-  const { t } = useLocale();
-  const { zoom } = useChoroplethZoom();
-  if (!zoom) return null;
-  return (
-    <div className="absolute right-2 top-2 flex flex-col gap-1.5">
-      <button onClick={() => zoom.scale({ scaleX: 1.4, scaleY: 1.4 })} className="zoom-button" aria-label={t('map.zoomIn')}>
-        <Plus className="size-4" aria-hidden="true" />
-      </button>
-      <button
-        onClick={() => zoom.scale({ scaleX: 1 / 1.4, scaleY: 1 / 1.4 })}
-        className="zoom-button"
-        aria-label={t('map.zoomOut')}
-      >
-        <Minus className="size-4" aria-hidden="true" />
-      </button>
-      <button onClick={() => zoom.reset()} className="zoom-button" aria-label={t('map.resetView')}>
-        <RotateCcw className="size-4" aria-hidden="true" />
-      </button>
-    </div>
-  );
-};
-
 export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () => {
   const { t, formatters } = useLocale();
   const { isDarkMode } = useTheme();
@@ -318,7 +294,6 @@ export const GeographicDistributionChart: React.FC<ImmigrationChartData> = () =>
           }}
         />
         <BureauMarkers />
-        <ZoomControls />
       </ChoroplethChart>
     </div>
   );

@@ -34,6 +34,7 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Changed
 
+- **v1.4.4**: The Regional Map's zoom and reset buttons are gone — a holdover from the map's previous implementation that the World Origins map never had. Both maps now work the same way: scroll wheel or pinch to zoom, drag or two-finger drag to pan.
 - **v1.2.6**: The language switcher is now a compact button that opens a list, in both the desktop header and the mobile settings drawer, instead of always showing every language at once —
   - The desktop header previously spelled out all seven language names side by side in one non-shrinking pill; at native-name lengths it crowded the app title from 640px wide up, in every language including English
   - The mobile settings drawer had the same problem in miniature — a stack of language rows that grew taller with every language added, pushing Theme and About further down each time
