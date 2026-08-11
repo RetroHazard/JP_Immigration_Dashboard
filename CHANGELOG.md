@@ -34,6 +34,14 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Changed
 
+- **v1.5.0**: On phones and tablets, chart tooltips are now opened by tapping rather than by holding a finger down —
+  - Holding was the only way to see a value, and letting go dismissed it, so a reading could never be held still long enough to compare against anything. A tap now pins the tooltip open; tap the same point again to close it, or another point to move it. Tapping outside the chart, scrolling, or opening a tooltip on a different chart also closes it, so only ever one is on screen
+  - Most charts had no touch handling at all and were relying on the mouse events a browser invents after a tap. That is why a tooltip would sometimes flash and vanish, or stay stuck on the wrong point: the map, both sankeys, the bureau-share ring, the treemap, and the efficiency ranking are all covered now
+  - The time-series charts blocked page scrolling anywhere over the plot area, which on a phone is most of the screen. They no longer do
+  - Where a tap had to mean two things, it now means them in order: on the treemap and the Residence Status sunburst, the first tap shows the figures and a second tap on the same tile or segment zooms in. Previously a single tap zoomed, which moved the thing you tapped out from under your finger before you could read it
+  - Tooltips are positioned above the point you tapped rather than under your fingertip, and are capped to the width of their card so a long bureau or nationality name can't push them off the edge
+  - Nothing changes with a mouse or trackpad: hover, the drag-to-select range, and every existing keyboard shortcut behave exactly as before. The switch keys off whether the device has a hovering pointer at all, not window width, so a narrow desktop window keeps hover
+
 - **v1.2.6**: The language switcher is now a compact button that opens a list, in both the desktop header and the mobile settings drawer, instead of always showing every language at once —
   - The desktop header previously spelled out all seven language names side by side in one non-shrinking pill; at native-name lengths it crowded the app title from 640px wide up, in every language including English
   - The mobile settings drawer had the same problem in miniature — a stack of language rows that grew taller with every language added, pushing Theme and About further down each time
@@ -41,6 +49,7 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.5.0**: The hint under the Category Mix and Residence Status sunbursts ("Click a segment to zoom in · hover to inspect") was in English in every language. It is now translated, and reads differently on touch, where neither "click" nor "hover" describes anything you can do.
 - **v1.4.3**: Hovering the Population Growth chart drew a dot per series that sat below its own bar segment, bunched near the bottom of the plot, in both the by-purpose and by-region views. The dots are gone — the highlighted bars and the tooltip already give every value, and the dots only offered a second, wrong reading of them. Intake & Processing had the same problem on its two stacked bars; there the dot survives on the completed-applications line, where it tracks the line correctly.
 - **v1.4.2**: World regions showed up as raw codes — `region.1000` instead of "Asia" — on Chrome and Edge, in every language. It affected the Resident Flows sankey's left column, the region filter, Population Growth's by-region view, and the Residence Status sunburst; "Stateless" was the only region that read correctly —
   - Continent names were being taken from the browser's own locale data, the same as country names. That works for countries everywhere, but Chrome and Edge ship no names for continents specifically, so they handed back the code they were given. Firefox and Safari were unaffected, which is what kept this out of sight

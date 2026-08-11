@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from "motion/react";
 import type * as React from "react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
+// LOCAL MODIFICATION: tap-to-open on touch. (Re-apply after a re-vendor.)
+import { useCoarsePointer } from "@/hooks/useCoarsePointer";
 import { cn } from "@/lib/utils";
 import { chartCssVars } from "../chart-context";
 
@@ -143,6 +145,8 @@ export function MarkerGroup({
   isMuted = false,
 }: MarkerGroupProps) {
   const [isHovered, setIsHovered] = useState(false);
+  // LOCAL MODIFICATION: tap-to-open on touch. (Re-apply after a re-vendor.)
+  const coarsePointer = useCoarsePointer();
   const shouldFan = (isHovered || forceOpen) && markers.length > 1;
   const hasMultiple = markers.length > 1;
   const fannedMarkers =
@@ -182,6 +186,29 @@ export function MarkerGroup({
     e.stopPropagation(); // Prevent chart crosshair from moving while hovering markers
   };
 
+  /**
+   * LOCAL MODIFICATION: on touch the fan opens on tap and closes on the next
+   * one. The mouse handlers are left off there so the events synthesized after
+   * a tap can't immediately re-close it — and, as with the hover path, the
+   * event is stopped so the chart underneath doesn't also move its crosshair.
+   * (Re-apply after a re-vendor.)
+   */
+  const handleTap = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsHovered((open) => {
+      onHover?.(open ? null : markers);
+      return !open;
+    });
+  };
+
+  const hitProps = coarsePointer
+    ? { onClick: handleTap }
+    : {
+        onMouseEnter: handleMouseEnter,
+        onMouseLeave: handleMouseLeave,
+        onMouseMove: handleMouseMove,
+      };
+
   const portalX = x + marginLeft;
   const portalY = y + marginTop;
 
@@ -220,9 +247,7 @@ export function MarkerGroup({
         {/* Interactive marker group */}
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Chart marker interaction */}
         <g
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onMouseMove={handleMouseMove}
+          {...hitProps}
           style={{ cursor: "pointer" }}
         >
           <motion.g
@@ -295,9 +320,7 @@ export function MarkerGroup({
           // biome-ignore lint/a11y/noNoninteractiveElementInteractions: Marker hover portal
           <div
             className="absolute"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onMouseMove={handleMouseMove}
+            {...hitProps}
             style={{
               // Position the div so its center is at the marker position
               // The div covers the entire fan area to prevent mouseLeave when moving between markers
