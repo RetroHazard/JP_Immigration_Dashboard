@@ -248,6 +248,10 @@ export const template: Dictionary = {
   // 'chart.mix.breadcrumbAria': 'Treemap drill-down path',
   // 'chart.mix.zoomInHint': 'Click a category to zoom in',
   // 'chart.mix.zoomOutHint': 'Click the background (or press Esc) to zoom out',
+  // Touch takes two taps where a mouse takes a hover and a click: the first
+  // shows the figures, the second drills in.
+  // 'chart.mix.zoomInHintTap': 'Tap a category to inspect it, tap again to zoom in',
+  // 'chart.mix.zoomOutHintTap': 'Tap the background to zoom out',
   // 'chart.mix.others': 'Others',
   // 'chart.mix.categoryAria': '{category}: {count} applications. Zoom in.',
   // 'chart.mix.tooltipValue': '{count} applications · {percent} of {scope}',

@@ -240,6 +240,8 @@ export const it: Dictionary = {
   'chart.mix.breadcrumbAria': 'Percorso di esplorazione della treemap',
   'chart.mix.zoomInHint': 'Fai clic su una categoria per ingrandire',
   'chart.mix.zoomOutHint': 'Fai clic sullo sfondo (o premi Esc) per rimpicciolire',
+  'chart.mix.zoomInHintTap': 'Tocca una categoria per esaminarla, tocca di nuovo per ingrandire',
+  'chart.mix.zoomOutHintTap': 'Tocca lo sfondo per rimpicciolire',
   'chart.mix.others': 'Altri',
   'chart.mix.categoryAria': '{category}: {count} domande. Ingrandisci.',
   'chart.mix.tooltipValue': '{count} domande · {percent} di {scope}',

@@ -251,6 +251,8 @@ export const zhTw: Dictionary = {
   'chart.mix.breadcrumbAria': '樹狀圖下鑽路徑',
   'chart.mix.zoomInHint': '點選類別以放大',
   'chart.mix.zoomOutHint': '點選背景（或按 Esc 鍵）以縮小',
+  'chart.mix.zoomInHintTap': '點按類別可查看詳情，再次點按可放大',
+  'chart.mix.zoomOutHintTap': '點按背景以縮小',
   'chart.mix.others': '其他',
   'chart.mix.categoryAria': '{category}：{count} 件申請。放大檢視。',
   'chart.mix.tooltipValue': '{count} 件申請・占{scope}的 {percent}',

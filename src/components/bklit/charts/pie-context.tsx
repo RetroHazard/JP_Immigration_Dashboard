@@ -8,6 +8,8 @@ import {
   useContext,
   useMemo,
 } from "react";
+// LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+import type { ChartTapMode } from "@/hooks/useTapPin";
 
 // CSS variable references for pie chart theming
 export const pieCssVars = {
@@ -56,6 +58,13 @@ export interface PieArcData {
 export interface PieHoverContextValue {
   hoveredIndex: number | null;
   setHoveredIndex: (index: number | null) => void;
+  /**
+   * LOCAL MODIFICATION: supplied by the chart owner on touch devices, so a
+   * slice is highlighted by tapping rather than by the mouse events a browser
+   * synthesizes after a tap. Absent on hover devices.
+   * (Re-apply after a re-vendor.)
+   */
+  tapMode?: ChartTapMode | null;
 }
 
 export interface PieStableContextValue {
@@ -163,8 +172,10 @@ export function PieProvider({
     () => ({
       hoveredIndex: value.hoveredIndex,
       setHoveredIndex: value.setHoveredIndex,
+      // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+      tapMode: value.tapMode,
     }),
-    [value.hoveredIndex, value.setHoveredIndex]
+    [value.hoveredIndex, value.setHoveredIndex, value.tapMode]
   );
 
   return (

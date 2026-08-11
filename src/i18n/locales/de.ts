@@ -237,6 +237,8 @@ export const de: Dictionary = {
   'chart.mix.breadcrumbAria': 'Treemap-Navigationspfad',
   'chart.mix.zoomInHint': 'Klicken Sie auf eine Kategorie, um hineinzuzoomen',
   'chart.mix.zoomOutHint': 'Klicken Sie auf den Hintergrund (oder drücken Sie Esc), um herauszuzoomen',
+  'chart.mix.zoomInHintTap': 'Tippen Sie auf eine Kategorie für Details, erneut zum Hineinzoomen',
+  'chart.mix.zoomOutHintTap': 'Tippen Sie auf den Hintergrund, um herauszuzoomen',
   'chart.mix.others': 'Sonstige',
   'chart.mix.categoryAria': '{category}: {count} Anträge. Hineinzoomen.',
   'chart.mix.tooltipValue': '{count} Anträge · {percent} von {scope}',

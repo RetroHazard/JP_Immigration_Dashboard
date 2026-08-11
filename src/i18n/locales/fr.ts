@@ -236,6 +236,8 @@ export const fr: Dictionary = {
   'chart.mix.breadcrumbAria': "Chemin d'exploration de la carte proportionnelle",
   'chart.mix.zoomInHint': 'Cliquez sur une catégorie pour zoomer',
   'chart.mix.zoomOutHint': "Cliquez sur l'arrière-plan (ou appuyez sur Échap) pour dézoomer",
+  'chart.mix.zoomInHintTap': "Touchez une catégorie pour l'examiner, touchez à nouveau pour zoomer",
+  'chart.mix.zoomOutHintTap': "Touchez l'arrière-plan pour dézoomer",
   'chart.mix.others': 'Autres',
   'chart.mix.categoryAria': '{category} : {count} demandes. Zoomer.',
   'chart.mix.tooltipValue': '{count} demandes · {percent} de {scope}',

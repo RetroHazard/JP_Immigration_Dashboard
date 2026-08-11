@@ -237,6 +237,8 @@ export const vi: Dictionary = {
   'chart.mix.breadcrumbAria': 'Đường dẫn khám phá biểu đồ cây',
   'chart.mix.zoomInHint': 'Nhấp vào một danh mục để phóng to',
   'chart.mix.zoomOutHint': 'Nhấp vào nền (hoặc nhấn Esc) để thu nhỏ',
+  'chart.mix.zoomInHintTap': 'Chạm vào một danh mục để xem, chạm lần nữa để phóng to',
+  'chart.mix.zoomOutHintTap': 'Chạm vào nền để thu nhỏ',
   'chart.mix.others': 'Khác',
   'chart.mix.categoryAria': '{category}: {count} hồ sơ. Phóng to.',
   'chart.mix.tooltipValue': '{count} hồ sơ · {percent} của {scope}',

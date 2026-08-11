@@ -6,12 +6,14 @@
 // message, and labelled rows reflow cleanly at any screen width.
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { animate } from 'animejs';
 import type React from 'react';
 
 import { useTheme } from '../../contexts/ThemeContext';
+import { useCoarsePointer } from '../../hooks/useCoarsePointer';
+import { useTapPin } from '../../hooks/useTapPin';
 import { useLocale } from '../../i18n/LocaleContext';
 import { useBureauCompact, useBureauLabel } from '../../i18n/useDomainLabels';
 import { useAnimeScope } from '../../lib/motion';
@@ -36,6 +38,10 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
   const bureauLabel = useBureauLabel();
   const bureauCompact = useBureauCompact();
   const [hovered, setHovered] = useState<Hover | null>(null);
+  const rowsRef = useRef<HTMLDivElement>(null);
+  const coarsePointer = useCoarsePointer();
+  const clearHover = useCallback(() => setHovered(null), []);
+  const tapMode = useTapPin({ enabled: coarsePointer, containerRef: rowsRef, onDismiss: clearHover });
 
   const points = useMemo(
     () => computeEfficiencyPoints(data, filters, range, isDarkMode, bureauLabel),
@@ -85,19 +91,55 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
     );
   }
 
+  // Anchoring at the row rather than the pointer, which is what the keyboard
+  // path already does: on touch the pointer is a finger sitting on top of the
+  // row the card is describing.
+  const showAtRow = (point: EfficiencyPoint, element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    setHovered({ point, x: rect.left + rect.width / 2, y: rect.top });
+  };
+
+  // On touch the pointer handlers are left off rather than guarded: pointerleave
+  // fires on finger-up, so keeping them would close the card the tap opened.
   const hoverProps = (point: EfficiencyPoint) => ({
-    onPointerEnter: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
-    onPointerMove: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
-    onPointerLeave: () => setHovered(null),
-    onFocus: (e: React.FocusEvent<HTMLElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      setHovered({ point, x: rect.left + rect.width / 2, y: rect.top });
-    },
+    ...(tapMode
+      ? {
+          onClick: (e: React.MouseEvent<HTMLElement>) => {
+            // Otherwise the card's "tapped a gap" handler undoes this.
+            e.stopPropagation();
+            const target = e.currentTarget;
+            if (tapMode.tap(point.code) === 'unpinned') {
+              setHovered(null);
+              return;
+            }
+            showAtRow(point, target);
+          },
+        }
+      : {
+          onPointerEnter: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
+          onPointerMove: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
+          onPointerLeave: () => setHovered(null),
+        }),
+    // Kept on both: this is the keyboard path, and it is unaffected by pointer type.
+    onFocus: (e: React.FocusEvent<HTMLElement>) => showAtRow(point, e.currentTarget),
     onBlur: () => setHovered(null),
   });
 
   return (
-    <div className="chart-card-content">
+    // The ref marks the tap boundary: a tap anywhere inside is the chart's to
+    // interpret, and the click handler covers the gaps between rows.
+    <div
+      className="chart-card-content"
+      onClick={
+        tapMode
+          ? () => {
+              tapMode.clear();
+              setHovered(null);
+            }
+          : undefined
+      }
+      ref={rowsRef}
+    >
       <div ref={motionRoot}>
         <div className="relative">
           {ranked.map((point) => {

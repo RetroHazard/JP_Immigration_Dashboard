@@ -242,6 +242,8 @@ export const ko: Dictionary = {
   'chart.mix.breadcrumbAria': '트리맵 드릴다운 경로',
   'chart.mix.zoomInHint': '항목을 클릭하면 확대됩니다',
   'chart.mix.zoomOutHint': '배경을 클릭하거나 Esc 키를 누르면 축소됩니다',
+  'chart.mix.zoomInHintTap': '항목을 탭하면 세부 정보가, 다시 탭하면 확대됩니다',
+  'chart.mix.zoomOutHintTap': '배경을 탭하면 축소됩니다',
   'chart.mix.others': '기타',
   'chart.mix.categoryAria': '{category}: {count}건. 확대.',
   'chart.mix.tooltipValue': '{count}건 · {scope}의 {percent}',

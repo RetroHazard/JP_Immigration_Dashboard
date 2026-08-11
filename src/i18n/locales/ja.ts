@@ -234,6 +234,8 @@ export const ja: Dictionary = {
   'chart.mix.breadcrumbAria': 'ツリーマップの階層パス',
   'chart.mix.zoomInHint': 'カテゴリをクリックすると拡大します',
   'chart.mix.zoomOutHint': '背景をクリック（または Esc キー）で戻ります',
+  'chart.mix.zoomInHintTap': 'カテゴリをタップすると詳細、もう一度タップで拡大します',
+  'chart.mix.zoomOutHintTap': '背景をタップすると戻ります',
   'chart.mix.others': 'その他',
   'chart.mix.categoryAria': '{category}：{count}件。拡大します。',
   'chart.mix.tooltipValue': '{count}件・{scope}の{percent}',
