@@ -376,6 +376,7 @@ JP_Immigration_Dashboard/
 │   ├── sync-changelog.js          # Copies CHANGELOG.md into public/
 │   ├── vendor-bklit.mjs           # Pulls Bklit UI registry items into the repo
 │   ├── vendor-world-topology.mjs  # One-shot vendoring of world-atlas into public/static
+│   ├── simplify-japan-topology.mjs # One-shot Visvalingam–Whyatt pass over public/static/japan.topo.json
 │   └── og-template.html
 │
 ├── package.json                   # Dependencies and scripts
