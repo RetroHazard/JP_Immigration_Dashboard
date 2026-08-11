@@ -6,6 +6,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
+- **v1.4.4**: The header now links to the project's source repository, next to the theme toggle on desktop and under About in the mobile settings drawer
+
 - **v1.4.0**: Three more views join the Resident Population dataset, alongside a filtering overhaul —
   - **Population Growth** stacks total foreign residents per half-year since 2012, toggleable between purpose-of-stay and world-region breakdowns, with markers for policy changes and the COVID-19 dip
   - **Resident Flows** is a three-column sankey — region into country into purpose-of-stay group — showing the full nationality × status cross-tabulation for a single snapshot

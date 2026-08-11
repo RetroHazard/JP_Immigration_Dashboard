@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { animate, stagger } from 'animejs';
-import { Calculator, ChevronsLeft, History, Menu, Moon, Sun } from 'lucide-react';
+import { Calculator, ChevronsLeft, ExternalLink, History, Menu, Moon, Sun } from 'lucide-react';
 import { createParser, parseAsBoolean, parseAsStringLiteral, useQueryState } from 'nuqs';
 import type React from 'react';
 
@@ -52,6 +52,7 @@ import { CHART_KEYS, CHARTS_BY_DATASET, datasetForChart,DATASETS } from './commo
 import { LanguageSwitcher } from './common/LanguageSwitcher';
 import { PeriodSelector } from './common/PeriodSelector';
 import { SnapshotPeriodSelector } from './common/SnapshotPeriodSelector';
+import { GitHubIcon } from './icons/GitHubIcon';
 import { ActiveChart } from './ActiveChart';
 import { ChangelogModal } from './ChangelogModal';
 import { ChartDataTable } from './ChartDataTable';
@@ -60,6 +61,8 @@ import { FilterPanel } from './FilterPanel';
 import { ResidentFilterPanel } from './ResidentFilterPanel';
 import { ResidentsStatsSummary } from './ResidentsStatsSummary';
 import { StatsSummary } from './StatsSummary';
+
+const REPO_URL = 'https://github.com/RetroHazard/JP_Immigration_Dashboard';
 
 const BUREAU_VALUES = bureauOptions.map((option) => option.value);
 const TYPE_VALUES = applicationOptions.map((option) => option.value);
@@ -314,6 +317,15 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
                 <History className="size-3.5" aria-hidden="true" />
                 {t('nav.version', { version: buildInfo.buildVersion })}
               </button>
+              <a
+                href={REPO_URL}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={t('nav.sourceCode')}
+                className="hidden size-9 items-center justify-center rounded-full border border-border text-secondary-foreground transition-colors hover:bg-muted sm:flex"
+              >
+                <GitHubIcon className="size-4" />
+              </a>
               <button
                 onClick={toggleTheme}
                 aria-label={t(isDarkMode ? 'nav.switchToLightTheme' : 'nav.switchToDarkTheme')}
@@ -389,6 +401,19 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
                           {t('nav.version', { version: buildInfo.buildVersion })}
                         </span>
                       </button>
+                      <a
+                        href={REPO_URL}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="mt-2 flex w-full items-center justify-between rounded-lg border border-border px-3 py-2 text-sm text-secondary-foreground transition-colors hover:bg-muted"
+                      >
+                        <span className="flex items-center gap-2">
+                          <GitHubIcon className="size-4" />
+                          {t('nav.sourceCode')}
+                        </span>
+                        <ExternalLink className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                      </a>
                     </section>
                   </div>
                 </SheetContent>

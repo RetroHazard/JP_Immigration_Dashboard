@@ -53,6 +53,7 @@ export const template: Dictionary = {
   // 'nav.themeDark': 'Dark',
   // 'nav.about': 'About',
   // 'nav.changelog': 'Changelog',
+  // 'nav.sourceCode': 'Source code',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   // 'dashboard.dataCoverage': 'Data: {range}',
