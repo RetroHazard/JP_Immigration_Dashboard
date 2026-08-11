@@ -29,6 +29,14 @@ export interface ChartTooltipProps {
   showCrosshair?: boolean;
   /** Whether to show dots on the lines. Default: true */
   showDots?: boolean;
+  /**
+   * LOCAL MODIFICATION: restrict the dot layer to these dataKeys. ComposedChart
+   * registers a zero-width LineConfig per SeriesBar, and those dots are placed
+   * from the raw value rather than the stacked segment top, so stacked charts
+   * point this at their real lines only. Omit for the default (a dot per
+   * registered line). (Re-apply after a re-vendor.)
+   */
+  dotKeys?: readonly string[];
   /** Dot style: filled circle or transparent ring. Default: "dot" */
   dotVariant?: "dot" | "ring";
   /** Dot / ring radius in pixels. Default: 5 */
@@ -106,6 +114,7 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
   showDatePill = true,
   showCrosshair = true,
   showDots = true,
+  dotKeys,
   dotVariant = "dot",
   dotSize = 5,
   dotRadiusFraction,
@@ -301,23 +310,31 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
           width="100%"
         >
           <g transform={`translate(${margin.left},${margin.top})`}>
-            {lines.map((line, index) => (
-              <TooltipDot
-                color={resolveDotColor(line, index)}
-                cornerRadiusFraction={
-                  dotVariant === "ring" ? dotRadiusFraction : undefined
-                }
-                key={line.dataKey}
-                size={resolvedDotSize}
-                springConfig={springConfig}
-                strokeColor={chartCssVars.background}
-                strokeWidth={dotVariant === "ring" ? dotStrokeWidth : undefined}
-                variant={dotVariant}
-                visible={visible}
-                x={tooltipData?.xPositions?.[line.dataKey] ?? x}
-                y={tooltipData?.yPositions[line.dataKey] ?? 0}
-              />
-            ))}
+            {/* LOCAL MODIFICATION: the dotKeys allowlist filters this layer.
+                The original index is carried through — resolveDotColor() looks
+                the color up by position in the rows array. */}
+            {lines
+              .map((line, index) => ({ line, index }))
+              .filter(({ line }) => !dotKeys || dotKeys.includes(line.dataKey))
+              .map(({ line, index }) => (
+                <TooltipDot
+                  color={resolveDotColor(line, index)}
+                  cornerRadiusFraction={
+                    dotVariant === "ring" ? dotRadiusFraction : undefined
+                  }
+                  key={line.dataKey}
+                  size={resolvedDotSize}
+                  springConfig={springConfig}
+                  strokeColor={chartCssVars.background}
+                  strokeWidth={
+                    dotVariant === "ring" ? dotStrokeWidth : undefined
+                  }
+                  variant={dotVariant}
+                  visible={visible}
+                  x={tooltipData?.xPositions?.[line.dataKey] ?? x}
+                  y={tooltipData?.yPositions[line.dataKey] ?? 0}
+                />
+              ))}
           </g>
         </svg>
       )}

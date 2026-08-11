@@ -214,7 +214,11 @@ export const PopulationGrowthChart: React.FC<ResidentChartData> = ({ data, filte
             ))}
             <XAxis />
             <ChartMarkers items={markers} size={24} />
+            {/* Dots off: every series here is a bar, and the tooltip places a
+                bar's dot at its raw axis value rather than on the stacked
+                segment. The highlighted bars carry the reading anyway. */}
             <ChartTooltip
+              showDots={false}
               titleFormat={(date) => formatters.monthYear(date)}
               rows={(point) => [
                 ...visible.map((entry) => ({
