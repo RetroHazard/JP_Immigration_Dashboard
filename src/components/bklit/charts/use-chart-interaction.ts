@@ -55,8 +55,10 @@ interface ChartInteractionResult {
   };
   interactionStyle: React.CSSProperties;
   /**
-   * LOCAL MODIFICATION: true while a tapped tooltip is held open. The panel
-   * becomes interactive so it can be tapped to dismiss.
+   * LOCAL MODIFICATION: true while a tap is holding the tooltip open, as
+   * opposed to it tracking a hovering cursor. Nothing renders differently for
+   * it today — the panel stays `pointer-events-none` so taps reach the
+   * datapoint underneath — but it is the one way to tell the two states apart.
    * (Re-apply after a re-vendor.)
    */
   pinned: boolean;

@@ -427,7 +427,6 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
     interactionStyle,
     // LOCAL MODIFICATION: tap-to-pin state for touch devices.
     // (Re-apply after a re-vendor.)
-    pinned,
     dismissTap,
     isTapMode,
   } = useChartInteraction({
@@ -540,8 +539,6 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       columnWidth,
       tooltipData,
       setTooltipData,
-      // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
-      pinned,
       containerRef,
       lines,
       referenceAreas,
@@ -585,7 +582,6 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       columnWidth,
       tooltipData,
       setTooltipData,
-      pinned,
       containerRef,
       lines,
       referenceAreas,

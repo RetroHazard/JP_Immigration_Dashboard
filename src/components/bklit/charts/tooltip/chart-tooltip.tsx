@@ -140,9 +140,6 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
 }: ChartTooltipInnerProps) {
   const {
     tooltipData,
-    // LOCAL MODIFICATION: tap-to-pin — a pinned panel becomes tappable so it
-    // can dismiss itself. (Re-apply after a re-vendor.)
-    pinned,
     width,
     height,
     innerHeight,
@@ -350,7 +347,6 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
         containerHeight={height}
         containerRef={containerRef}
         containerWidth={width}
-        interactive={pinned}
         panelStyle={panelStyle}
         springConfig={boxMotion.springConfig}
         top={isHorizontal ? undefined : margin.top}

@@ -264,8 +264,7 @@ Every user-visible string resolves through a per-language catalogue; `src/i18n/R
   | `charts/use-chart-interaction.ts` | Touch handlers (and the two-finger range selection) replaced by one `onClick`; `touch-action` becomes `manipulation` on touch, so tall charts stop being a page-scroll dead zone |
   | `charts/time-series-chart-shell.tsx` | `touch-action` moved to the `<svg>` (nested SVG support for it is patchy); axis-gutter tap dismisses |
   | `charts/use-scheduled-tooltip.ts` | Adds `commitTooltipNow`, so a datapoint that was unpinned can be re-pinned — the dedupe key otherwise survives the clear |
-  | `charts/chart-context.tsx`, `charts/tooltip/chart-tooltip.tsx` | Carry `pinned` down to the panel |
-  | `charts/tooltip/tooltip-box.tsx` | A pinned panel becomes tappable (it portals into the chart container, so a tap would otherwise fall through and re-pin what is beneath) and gains a `max-width` |
+  | `charts/tooltip/tooltip-box.tsx` | The panel gains a `max-width`; its 140px floor with no ceiling could otherwise outgrow its own container on a narrow phone. It deliberately stays `pointer-events-none`: a tap on a pinned panel should fall through to the datapoint beneath, which is what makes both "tap the same point to close" and "tap the neighbouring point to move" work when the panel covers them |
   | `charts/sunburst-{chart,context,segment}.tsx` | First tap inspects, second zooms |
   | `charts/sankey/{sankey-chart,sankey-context,sankey-node,sankey-link}.tsx` | Tap position recorded on `pointerdown`, since node/link clicks stop propagating |
   | `charts/choropleth/{choropleth-chart,choropleth-context,choropleth-feature}.tsx` | Three repeated hover pairs collapse into one `featureProps` builder; keeps `touch-action: none` for visx `Zoom` |
