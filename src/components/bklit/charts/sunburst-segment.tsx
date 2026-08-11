@@ -47,7 +47,12 @@ export const SunburstSegment = memo(function SunburstSegment({
     maxExpandedThickness,
     zoomTo,
   } = useSunburstStable();
-  const { setHoveredArc, setHoveredArcIndex } = useSunburstHover();
+  const {
+    setHoveredArc,
+    setHoveredArcIndex,
+    // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+    tapMode,
+  } = useSunburstHover();
 
   const arc = arcs[index];
   const segmentDelay =
@@ -109,13 +114,38 @@ export const SunburstSegment = memo(function SunburstSegment({
     transformOrigin: "0px 0px",
   };
 
-  const hitHandlers = {
-    onClick: () => arc.hasChildren && zoomTo(arc.id),
-    onPointerEnter: () => {
-      setHoveredArc(arc);
-      setHoveredArcIndex(index);
-    },
+  const inspect = () => {
+    setHoveredArc(arc);
+    setHoveredArcIndex(index);
   };
+
+  /**
+   * LOCAL MODIFICATION: on touch the first tap inspects and a second tap on the
+   * same segment zooms. A single-tap zoom made inspection impossible there —
+   * the segment moved out from under the finger before its trail could be
+   * read — and pointerenter is not a hover on a touch device anyway.
+   * (Re-apply after a re-vendor.)
+   */
+  const hitHandlers = tapMode
+    ? {
+        onClick: (event: React.MouseEvent) => {
+          // Otherwise the chart's "tapped off the ring" handler clears this.
+          event.stopPropagation();
+          if (tapMode.tap(arc.id) === "unpinned") {
+            setHoveredArcIndex(null);
+            if (arc.hasChildren) {
+              zoomTo(arc.id);
+            }
+            return;
+          }
+          inspect();
+        },
+        onPointerEnter: undefined,
+      }
+    : {
+        onClick: () => arc.hasChildren && zoomTo(arc.id),
+        onPointerEnter: inspect,
+      };
 
   const visualPathProps = {
     fill: segmentFill,

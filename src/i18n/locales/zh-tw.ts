@@ -258,6 +258,10 @@ export const zhTw: Dictionary = {
   'chart.mix.tooltipValue': '{count} 件申請・占{scope}的 {percent}',
   'chart.mix.scopeAll': '所有申請',
   'chart.mix.sunburstHint': '{trail} — {count} 件申請（占整體 {percent}）',
+  'chart.sunburst.hintClick': '點選扇區以放大 · 停留可查看詳情',
+  'chart.sunburst.hintTap': '點按扇區可查看詳情，再次點按可放大',
+  'chart.sunburst.zoomOutClick': '點選中心以縮小',
+  'chart.sunburst.zoomOutTap': '點按中心以縮小',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': '分局',

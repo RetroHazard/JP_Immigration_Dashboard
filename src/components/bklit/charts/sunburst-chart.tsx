@@ -14,6 +14,9 @@ import {
   useRef,
   useState,
 } from "react";
+// LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+import { useCoarsePointer } from "@/hooks/useCoarsePointer";
+import { useTapPin } from "@/hooks/useTapPin";
 import {
   type ArcDatum,
   buildArcs,
@@ -177,6 +180,28 @@ const SunburstChartCore = memo(function SunburstChartCore({
     },
     [setHoveredArcIndex]
   );
+
+  /**
+   * LOCAL MODIFICATION: tap-to-pin on touch devices. A segment tap inspects and
+   * a second tap on the same segment zooms — a single-tap zoom moved the
+   * segment out from under the finger before its trail could be read.
+   * (Re-apply after a re-vendor.)
+   */
+  const coarsePointer = useCoarsePointer();
+  const dismiss = useCallback(() => {
+    setHoveredArcIndex(null);
+  }, [setHoveredArcIndex]);
+  const tapMode = useTapPin({
+    enabled: coarsePointer,
+    containerRef,
+    onDismiss: dismiss,
+  });
+
+  /** A tap on the svg but off the ring clears the inspection. */
+  const handleBackgroundTap = useCallback(() => {
+    tapMode?.clear();
+    setHoveredArcIndex(null);
+  }, [setHoveredArcIndex, tapMode]);
 
   const setFocusId = useCallback(
     (nextId: string) => {
@@ -438,6 +463,8 @@ const SunburstChartCore = memo(function SunburstChartCore({
     setHoveredArcIndex,
     hoveredArc,
     setHoveredArc,
+    // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+    tapMode,
   };
 
   return (
@@ -460,7 +487,8 @@ const SunburstChartCore = memo(function SunburstChartCore({
             animate={{ opacity: 1 }}
             aria-label={`Sunburst chart of ${data.name}`}
             initial={{ opacity: 0 }}
-            onPointerLeave={() => setHoveredArc(null)}
+            onClick={tapMode ? handleBackgroundTap : undefined}
+            onPointerLeave={tapMode ? undefined : () => setHoveredArc(null)}
             role="img"
             style={{ display: "block", overflow: "visible" }}
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}

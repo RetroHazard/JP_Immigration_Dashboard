@@ -243,6 +243,10 @@ export const fr: Dictionary = {
   'chart.mix.tooltipValue': '{count} demandes · {percent} de {scope}',
   'chart.mix.scopeAll': "l'ensemble des demandes",
   'chart.mix.sunburstHint': '{trail} — {count} demandes ({percent} du total)',
+  'chart.sunburst.hintClick': "Cliquez sur un segment pour zoomer · survolez pour l'examiner",
+  'chart.sunburst.hintTap': 'Touchez un segment pour l\'examiner, touchez à nouveau pour zoomer',
+  'chart.sunburst.zoomOutClick': 'Cliquez au centre pour dézoomer',
+  'chart.sunburst.zoomOutTap': 'Touchez le centre pour dézoomer',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': 'bureau annexe',

@@ -249,6 +249,10 @@ export const ko: Dictionary = {
   'chart.mix.tooltipValue': '{count}건 · {scope}의 {percent}',
   'chart.mix.scopeAll': '전체 신청',
   'chart.mix.sunburstHint': '{trail} — {count}건 (전체의 {percent})',
+  'chart.sunburst.hintClick': '구간을 클릭하면 확대되고, 마우스를 올리면 세부 정보가 표시됩니다',
+  'chart.sunburst.hintTap': '구간을 탭하면 세부 정보가, 다시 탭하면 확대됩니다',
+  'chart.sunburst.zoomOutClick': '가운데를 클릭하면 축소됩니다',
+  'chart.sunburst.zoomOutTap': '가운데를 탭하면 축소됩니다',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': '지국',

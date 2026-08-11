@@ -13,6 +13,7 @@ import { useCallback, useMemo } from 'react';
 
 import type React from 'react';
 
+import { useCoarsePointer } from '../../hooks/useCoarsePointer';
 import { useLocale } from '../../i18n/LocaleContext';
 import { useApplicationType, useBureauLabel } from '../../i18n/useDomainLabels';
 import { buildCategoryMixTree, mixLeafColor } from '../../utils/categoryMixTree';
@@ -26,6 +27,7 @@ import { SunburstLabels } from '../bklit/charts/sunburst-labels';
 import { SunburstSegment } from '../bklit/charts/sunburst-segment';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { SeriesLegend } from '../common/SeriesLegend';
+import { idleSunburstHint } from './sunburstHint';
 
 const BreadcrumbTrail: React.FC = () => {
   const { items, zoomTo } = useSunburstBreadcrumbItems();
@@ -51,6 +53,7 @@ export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filt
   const tree = useMemo(() => buildCategoryMixTree(data, filters, range), [data, filters, range]);
   // The tree carries codes only; display names are resolved here.
   const { t, formatters } = useLocale();
+  const coarsePointer = useCoarsePointer();
   const applicationType = useApplicationType();
   const getBureauLabel = useBureauLabel();
   const typeLabel = useCallback((code: string) => applicationType(code)?.label ?? code, [applicationType]);
@@ -104,14 +107,14 @@ export const CategoryMixSunburst: React.FC<ImmigrationChartData> = ({ data, filt
           <SunburstCenter />
           <SunburstLabels fontSize={11} />
           <SunburstHint className="mt-2 min-h-5 text-center text-xs text-muted-foreground">
-            {({ hintText, hoveredArc }) =>
+            {({ hoveredArc, focus }) =>
               hoveredArc
                 ? t('chart.mix.sunburstHint', {
                     trail: hoveredArc.trail.join(' › '),
                     count: formatters.number(hoveredArc.value),
                     percent: formatters.percent((hoveredArc.value / tree.total) * 100),
                   })
-                : hintText
+                : t(idleSunburstHint(focus.depth, coarsePointer))
             }
           </SunburstHint>
         </SunburstChart>

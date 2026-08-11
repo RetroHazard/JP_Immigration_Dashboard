@@ -257,6 +257,12 @@ export const template: Dictionary = {
   // 'chart.mix.tooltipValue': '{count} applications · {percent} of {scope}',
   // 'chart.mix.scopeAll': 'all applications',
   // 'chart.mix.sunburstHint': '{trail} — {count} applications ({percent} of total)',
+  // Shown under any sunburst when nothing is selected. Bklit's own fallback
+  // for this is hardcoded English, so the charts pass these in instead.
+  // 'chart.sunburst.hintClick': 'Click a segment to zoom in · hover to inspect',
+  // 'chart.sunburst.hintTap': 'Tap a segment to inspect it, tap again to zoom in',
+  // 'chart.sunburst.zoomOutClick': 'Click the center to zoom out',
+  // 'chart.sunburst.zoomOutTap': 'Tap the center to zoom out',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   // 'chart.efficiency.branchOffice': 'branch office',

@@ -244,6 +244,10 @@ export const vi: Dictionary = {
   'chart.mix.tooltipValue': '{count} hồ sơ · {percent} của {scope}',
   'chart.mix.scopeAll': 'tất cả hồ sơ',
   'chart.mix.sunburstHint': '{trail} — {count} hồ sơ ({percent} trên tổng số)',
+  'chart.sunburst.hintClick': 'Nhấp vào một phân đoạn để phóng to · di chuột để xem',
+  'chart.sunburst.hintTap': 'Chạm vào một phân đoạn để xem, chạm lần nữa để phóng to',
+  'chart.sunburst.zoomOutClick': 'Nhấp vào tâm để thu nhỏ',
+  'chart.sunburst.zoomOutTap': 'Chạm vào tâm để thu nhỏ',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': 'chi nhánh',

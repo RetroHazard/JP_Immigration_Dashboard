@@ -248,6 +248,10 @@ export const pt: Dictionary = {
   'chart.mix.tooltipValue': '{count} candidaturas · {percent} de {scope}',
   'chart.mix.scopeAll': 'todas as candidaturas',
   'chart.mix.sunburstHint': '{trail} — {count} candidaturas ({percent} do total)',
+  'chart.sunburst.hintClick': 'Clique num segmento para ampliar · passe o cursor para o ver',
+  'chart.sunburst.hintTap': 'Toque num segmento para o ver, toque novamente para ampliar',
+  'chart.sunburst.zoomOutClick': 'Clique no centro para reduzir',
+  'chart.sunburst.zoomOutTap': 'Toque no centro para reduzir',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': 'sucursal',
