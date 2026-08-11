@@ -55,6 +55,7 @@ export const ko: Dictionary = {
   'nav.themeDark': '다크',
   'nav.about': '소개',
   'nav.changelog': '변경 이력',
+  'nav.sourceCode': '소스 코드',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': '데이터: {range}',
@@ -242,11 +243,17 @@ export const ko: Dictionary = {
   'chart.mix.breadcrumbAria': '트리맵 드릴다운 경로',
   'chart.mix.zoomInHint': '항목을 클릭하면 확대됩니다',
   'chart.mix.zoomOutHint': '배경을 클릭하거나 Esc 키를 누르면 축소됩니다',
+  'chart.mix.zoomInHintTap': '항목을 탭하면 세부 정보가, 다시 탭하면 확대됩니다',
+  'chart.mix.zoomOutHintTap': '배경을 탭하면 축소됩니다',
   'chart.mix.others': '기타',
   'chart.mix.categoryAria': '{category}: {count}건. 확대.',
   'chart.mix.tooltipValue': '{count}건 · {scope}의 {percent}',
   'chart.mix.scopeAll': '전체 신청',
   'chart.mix.sunburstHint': '{trail} — {count}건 (전체의 {percent})',
+  'chart.sunburst.hintClick': '구간을 클릭하면 확대되고, 마우스를 올리면 세부 정보가 표시됩니다',
+  'chart.sunburst.hintTap': '구간을 탭하면 세부 정보가, 다시 탭하면 확대됩니다',
+  'chart.sunburst.zoomOutClick': '가운데를 클릭하면 축소됩니다',
+  'chart.sunburst.zoomOutTap': '가운데를 탭하면 축소됩니다',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': '지국',
@@ -270,9 +277,6 @@ export const ko: Dictionary = {
   'map.legendNote': '색상 = 관할 관리국 · 명도 = 인구 밀도',
   'map.bureau': '관리국',
   'map.airportOffice': '공항 지국',
-  'map.zoomIn': '확대',
-  'map.zoomOut': '축소',
-  'map.resetView': '보기 초기화',
   'map.loadError': '지도 데이터를 불러올 수 없습니다. 페이지를 새로고침해 주세요.',
   'map.loading': '지도 데이터 불러오는 중…',
   'map.areaValue': '{value}km²',

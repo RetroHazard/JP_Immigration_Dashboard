@@ -9,6 +9,8 @@ import {
   type SetStateAction,
   useContext,
 } from "react";
+// LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+import type { ChartTapMode } from "@/hooks/useTapPin";
 
 export interface Margin {
   top: number;
@@ -76,6 +78,13 @@ export interface SankeyContextValue {
 
   // Link path generator
   createPath: (link: SankeyLink<SankeyNodeDatum, SankeyLinkDatum>) => string;
+
+  /**
+   * LOCAL MODIFICATION: on touch, nodes and links are selected by tapping
+   * rather than by the mouse events a browser synthesizes after a tap. Null on
+   * hover devices. (Re-apply after a re-vendor.)
+   */
+  tapMode?: ChartTapMode | null;
 }
 
 const SankeyContext = createContext<SankeyContextValue | null>(null);

@@ -6,6 +6,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
+- **v1.4.4**: The header now links to the project's source repository, next to the theme toggle on desktop and under About in the mobile settings drawer
+
 - **v1.4.0**: Three more views join the Resident Population dataset, alongside a filtering overhaul —
   - **Population Growth** stacks total foreign residents per half-year since 2012, toggleable between purpose-of-stay and world-region breakdowns, with markers for policy changes and the COVID-19 dip
   - **Resident Flows** is a three-column sankey — region into country into purpose-of-stay group — showing the full nationality × status cross-tabulation for a single snapshot
@@ -22,17 +24,28 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Existing links keep working exactly as they did — the dataset is worked out from the chart a link names, not from a new parameter
   - Views that only make sense for application processing — the processing-time estimator, the airport-office toggle, bureau comparison, and the data table — are hidden on this dataset rather than shown doing nothing
 
-- **v1.2.5**: French, German, Italian, Portuguese, and Spanish join Japanese in full translation — the switcher now offers six languages end to end ([#69](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/69)) —
-  - Every interface string is translated in all five: chart labels and tooltips, the data table, the estimator, and empty/error states, alongside the text already covered
-  - Portuguese follows European usage (pt-PT) rather than Brazilian
-  - Numbers, dates, and pluralized phrases follow each language's own rules, the same as every other locale
-  - Bureau and application-type abbreviations (the terminal-style `CTS`, `EXT`-style codes) are left in Latin script where that's how each language actually renders them, rather than forced into an artificial translation
 - **v1.2.7**: Korean, Chinese (Simplified and Traditional), Vietnamese, and Tagalog join the six existing languages — twelve full translations end to end ([#69](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/69)) —
   - Korean and both Chinese variants write bureau and prefecture names in their own script throughout, not romanized forms, the same standard Japanese already sets
   - Tagalog is the only one of the twelve besides English that inflects for plural count; Korean, Chinese, and Vietnamese use one form regardless of count, the same as Japanese
   - Numbers, dates, and pluralized phrases follow each language's own rules, the same as every other locale
 
+- **v1.2.5**: French, German, Italian, Portuguese, and Spanish join Japanese in full translation — the switcher now offers six languages end to end ([#69](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/69)) —
+  - Every interface string is translated in all five: chart labels and tooltips, the data table, the estimator, and empty/error states, alongside the text already covered
+  - Portuguese follows European usage (pt-PT) rather than Brazilian
+  - Numbers, dates, and pluralized phrases follow each language's own rules, the same as every other locale
+  - Bureau and application-type abbreviations (the terminal-style `CTS`, `EXT`-style codes) are left in Latin script where that's how each language actually renders them, rather than forced into an artificial translation
+
 ### Changed
+
+- **v1.5.0**: On phones and tablets, chart tooltips are now opened by tapping rather than by holding a finger down —
+  - Holding was the only way to see a value, and letting go dismissed it, so a reading could never be held still long enough to compare against anything. A tap now pins the tooltip open; tap the same point again to close it, or another point to move it. Tapping outside the chart, scrolling, or opening a tooltip on a different chart also closes it, so only ever one is on screen
+  - Most charts had no touch handling at all and were relying on the mouse events a browser invents after a tap. That is why a tooltip would sometimes flash and vanish, or stay stuck on the wrong point: the map, both sankeys, the bureau-share ring, the treemap, and the efficiency ranking are all covered now
+  - The time-series charts blocked page scrolling anywhere over the plot area, which on a phone is most of the screen. They no longer do
+  - Where a tap had to mean two things, it now means them in order: on the treemap and the Residence Status sunburst, the first tap shows the figures and a second tap on the same tile or segment zooms in. Previously a single tap zoomed, which moved the thing you tapped out from under your finger before you could read it
+  - A tooltip opens above the point you tapped rather than across the middle of the chart, and is capped to the width of its card so a long bureau or nationality name can't push it off the edge. On a phone the plot is shorter than the tooltip is tall, so the old placement covered the data it was describing and ran into the date axis, with your finger on whatever was left
+  - Nothing changes with a mouse or trackpad: hover, the drag-to-select range, and every existing keyboard shortcut behave exactly as before. The switch keys off whether the device has a hovering pointer at all, not window width, so a narrow desktop window keeps hover
+
+- **v1.4.4**: The Regional Map's zoom and reset buttons are gone — a holdover from the map's previous implementation that the World Origins map never had. Both maps now work the same way: scroll wheel or pinch to zoom, drag or two-finger drag to pan.
 
 - **v1.2.6**: The language switcher is now a compact button that opens a list, in both the desktop header and the mobile settings drawer, instead of always showing every language at once —
   - The desktop header previously spelled out all seven language names side by side in one non-shrinking pill; at native-name lengths it crowded the app title from 640px wide up, in every language including English
@@ -40,6 +53,18 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Both now cost a fixed amount of header/drawer space no matter how many locales are registered, so adding a language no longer reshuffles the layout around it
 
 ### Fixed
+
+- **v1.5.0**: Clicking a chart with a mouse no longer disturbs the tooltip you were reading —
+  - On the four line and bar time-series charts, pressing the mouse button hid the tooltip and it stayed hidden until you moved the cursor again. A press had to be treated as the start of a drag-to-highlight, because there was no way yet to tell the two apart. A drag now only begins once the cursor has actually travelled a few pixels, so a click leaves the tooltip exactly where it was and dragging a range still works as before
+  - On the Processing Efficiency ranking, clicking a row tore its card away from the cursor and re-anchored it above the row, because clicking a row also focuses it and focusing was meant for keyboard use. Keyboard navigation still opens the card that way; a mouse click now leaves it alone
+- **v1.5.0**: The hint under the Category Mix and Residence Status sunbursts ("Click a segment to zoom in · hover to inspect") was in English in every language. It is now translated, and reads differently on touch, where neither "click" nor "hover" describes anything you can do.
+- **v1.4.4**: The Regional Map was sluggish to pan and zoom, and close to unusable on a phone — both are fixed —
+  - Panning and zooming re-drew the entire map from scratch on every frame, and hovering a prefecture tore down and rebuilt all 47 shapes. Neither is needed: the map now redraws only what actually changed, which takes dragging from roughly 300ms a frame to a steady 60fps, and a great deal more than that on a phone
+  - On a phone the map used to swallow the page scroll, so a finger landing on it left you stuck. One finger now scrolls the dashboard as it should, and two fingers pan and zoom the map
+  - Tapping a prefecture on a touch device did nothing, because the map only ever listened for a mouse. Tapping one now opens its details, and tapping the sea closes them again
+  - Zooming in thickened every prefecture border along with the shapes, until at the deepest zoom the outlines all but swallowed the prefectures they were outlining. Borders now stay the same hairline width at every zoom level, on both maps
+  - Panning could throw the map clean out of its card, leaving an empty box and no obvious way back — worse since there is no longer a reset button. Both maps are now bounded: you can always see the map, and once zoomed in you can no longer wander off into open sea
+  - The map's shape data carried far more coastline detail than a screen can show — enough for roughly nineteen points per pixel on a phone. It has been thinned to what actually renders, which also cuts the download from 416KB to 160KB. The map looks the same
 
 - **v1.4.3**: Hovering the Population Growth chart drew a dot per series that sat below its own bar segment, bunched near the bottom of the plot, in both the by-purpose and by-region views. The dots are gone — the highlighted bars and the tooltip already give every value, and the dots only offered a second, wrong reading of them. Intake & Processing had the same problem on its two stacked bars; there the dot survives on the completed-applications line, where it tracks the line correctly.
 - **v1.4.2**: World regions showed up as raw codes — `region.1000` instead of "Asia" — on Chrome and Edge, in every language. It affected the Resident Flows sankey's left column, the region filter, Population Growth's by-region view, and the Residence Status sunburst; "Stateless" was the only region that read correctly —
@@ -136,8 +161,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
-- **v0.4.2**: Simplified the estimation formula, fixing abnormal results that could occur when an application date shifted across a month boundary. ([#25](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/25))
 - **v0.4.3**: Fixed a double-counting bug in the processed-applications estimate.
+- **v0.4.2**: Simplified the estimation formula, fixing abnormal results that could occur when an application date shifted across a month boundary. ([#25](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/25))
 
 ## 2025-03
 
@@ -162,15 +187,15 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
-- Initial launch: application-intake bar chart, Estimation Card, Filter Panel, and Stats Summary, with a collapsible details pane showing the underlying formula.
+- **v0.2.2**: Follow-up UI polish.
 - **v0.2.1**: Mobile-first responsive design and dark mode —
   - Mobile-friendly layout with native breakpoints
   - Dark mode with a toggle switch
   - Drawer-style Estimation Card and tooltips on mobile
   ([#10](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/10))
-- **v0.2.2**: Follow-up UI polish.
+- Initial launch: application-intake bar chart, Estimation Card, Filter Panel, and Stats Summary, with a collapsible details pane showing the underlying formula.
 
 ### Fixed
 
-- **v0.1.1**: Added guidance text for the month picker on Safari (macOS), which didn't natively support that input type at the time; fixed the displayed "Last Updated" date so it reflects the actual build instead of updating every time the page loads.
 - **v0.1.2**: The Estimation Card no longer shows no details when an application's completion date is already past due. ([#5](https://github.com/RetroHazard/JP_Immigration_Dashboard/pull/5))
+- **v0.1.1**: Added guidance text for the month picker on Safari (macOS), which didn't natively support that input type at the time; fixed the displayed "Last Updated" date so it reflects the actual build instead of updating every time the page loads.

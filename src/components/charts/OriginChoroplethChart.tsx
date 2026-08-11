@@ -9,7 +9,7 @@
 // prefectures, and what keeps the join working in all twelve locales.
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { FeatureCollection, Geometry } from 'geojson';
 import type React from 'react';
@@ -101,10 +101,25 @@ export const OriginChoroplethChart: React.FC<ResidentChartData> = ({ data, filte
     };
   }, [max]);
 
-  const valueOf = (geoFeature: ChoroplethFeature): { code?: string; value: number } => {
-    const code = CODE_BY_ISO3N.get(isoOf(geoFeature));
-    return { code, value: code ? (totals.get(code) ?? 0) : 0 };
-  };
+  const valueOf = useCallback(
+    (geoFeature: ChoroplethFeature): { code?: string; value: number } => {
+      const code = CODE_BY_ISO3N.get(isoOf(geoFeature));
+      return { code, value: code ? (totals.get(code) ?? 0) : 0 };
+    },
+    [totals]
+  );
+
+  // Stable identity: an inline arrow here would invalidate the feature layer's
+  // memo on every render, re-deriving all ~180 country fills.
+  const getFeatureColor = useCallback(
+    (geoFeature: ChoroplethFeature) => {
+      const alpha = shadeOf(valueOf(geoFeature).value);
+      return alpha === null
+        ? 'var(--muted)'
+        : `color-mix(in oklab, var(--chart-1) ${alpha * 100}%, transparent)`;
+    },
+    [shadeOf, valueOf]
+  );
 
   if (loadError) {
     return (
@@ -143,12 +158,7 @@ export const OriginChoroplethChart: React.FC<ResidentChartData> = ({ data, filte
       <div role="img" aria-label={t('charts.worldmap.aria')}>
         <ChoroplethChart data={features} aspectRatio="16 / 9" zoomEnabled zoomMin={0.9} zoomMax={12}>
           <ChoroplethFeatureComponent
-            getFeatureColor={(geoFeature) => {
-              const alpha = shadeOf(valueOf(geoFeature).value);
-              return alpha === null
-                ? 'var(--muted)'
-                : `color-mix(in oklab, var(--chart-1) ${alpha * 100}%, transparent)`;
-            }}
+            getFeatureColor={getFeatureColor}
             stroke="var(--card)"
             strokeWidth={0.4}
           />

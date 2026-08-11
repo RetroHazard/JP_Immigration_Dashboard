@@ -38,6 +38,7 @@ export const pt: Dictionary = {
   'nav.themeDark': 'Escuro',
   'nav.about': 'Sobre',
   'nav.changelog': 'Registo de alterações',
+  'nav.sourceCode': 'Código-fonte',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': 'Dados: {range}',
@@ -241,11 +242,17 @@ export const pt: Dictionary = {
   'chart.mix.breadcrumbAria': 'Caminho de exploração do treemap',
   'chart.mix.zoomInHint': 'Clique numa categoria para ampliar',
   'chart.mix.zoomOutHint': 'Clique no fundo (ou prima Esc) para reduzir',
+  'chart.mix.zoomInHintTap': 'Toque numa categoria para a ver, toque novamente para ampliar',
+  'chart.mix.zoomOutHintTap': 'Toque no fundo para reduzir',
   'chart.mix.others': 'Outros',
   'chart.mix.categoryAria': '{category}: {count} candidaturas. Ampliar.',
   'chart.mix.tooltipValue': '{count} candidaturas · {percent} de {scope}',
   'chart.mix.scopeAll': 'todas as candidaturas',
   'chart.mix.sunburstHint': '{trail} — {count} candidaturas ({percent} do total)',
+  'chart.sunburst.hintClick': 'Clique num segmento para ampliar · passe o cursor para o ver',
+  'chart.sunburst.hintTap': 'Toque num segmento para o ver, toque novamente para ampliar',
+  'chart.sunburst.zoomOutClick': 'Clique no centro para reduzir',
+  'chart.sunburst.zoomOutTap': 'Toque no centro para reduzir',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': 'sucursal',
@@ -269,9 +276,6 @@ export const pt: Dictionary = {
   'map.legendNote': 'Cor = gabinete responsável · intensidade = densidade populacional',
   'map.bureau': 'Gabinete',
   'map.airportOffice': 'Gabinete aeroportuário',
-  'map.zoomIn': 'Ampliar',
-  'map.zoomOut': 'Reduzir',
-  'map.resetView': 'Repor vista',
   'map.loadError': 'Não foi possível carregar os dados do mapa. Tente recarregar a página.',
   'map.loading': 'A carregar os dados do mapa...',
   'map.areaValue': '{value} km²',

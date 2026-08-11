@@ -38,6 +38,7 @@ export const vi: Dictionary = {
   'nav.themeDark': 'Tối',
   'nav.about': 'Giới thiệu',
   'nav.changelog': 'Nhật ký thay đổi',
+  'nav.sourceCode': 'Mã nguồn',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': 'Dữ liệu: {range}',
@@ -237,11 +238,17 @@ export const vi: Dictionary = {
   'chart.mix.breadcrumbAria': 'Đường dẫn khám phá biểu đồ cây',
   'chart.mix.zoomInHint': 'Nhấp vào một danh mục để phóng to',
   'chart.mix.zoomOutHint': 'Nhấp vào nền (hoặc nhấn Esc) để thu nhỏ',
+  'chart.mix.zoomInHintTap': 'Chạm vào một danh mục để xem, chạm lần nữa để phóng to',
+  'chart.mix.zoomOutHintTap': 'Chạm vào nền để thu nhỏ',
   'chart.mix.others': 'Khác',
   'chart.mix.categoryAria': '{category}: {count} hồ sơ. Phóng to.',
   'chart.mix.tooltipValue': '{count} hồ sơ · {percent} của {scope}',
   'chart.mix.scopeAll': 'tất cả hồ sơ',
   'chart.mix.sunburstHint': '{trail} — {count} hồ sơ ({percent} trên tổng số)',
+  'chart.sunburst.hintClick': 'Nhấp vào một phân đoạn để phóng to · di chuột để xem',
+  'chart.sunburst.hintTap': 'Chạm vào một phân đoạn để xem, chạm lần nữa để phóng to',
+  'chart.sunburst.zoomOutClick': 'Nhấp vào tâm để thu nhỏ',
+  'chart.sunburst.zoomOutTap': 'Chạm vào tâm để thu nhỏ',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': 'chi nhánh',
@@ -265,9 +272,6 @@ export const vi: Dictionary = {
   'map.legendNote': 'Màu = cục quản lý · độ đậm = mật độ dân số',
   'map.bureau': 'Trụ sở cục',
   'map.airportOffice': 'Văn phòng sân bay',
-  'map.zoomIn': 'Phóng to',
-  'map.zoomOut': 'Thu nhỏ',
-  'map.resetView': 'Đặt lại chế độ xem',
   'map.loadError': 'Không thể tải dữ liệu bản đồ. Hãy thử tải lại trang.',
   'map.loading': 'Đang tải dữ liệu bản đồ...',
   'map.areaValue': '{value} km²',

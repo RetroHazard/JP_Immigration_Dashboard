@@ -58,6 +58,8 @@ export function SankeyTooltip({
     nodes,
     links,
     mousePos,
+    // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+    tapMode,
   } = useSankey();
 
   if (!tooltipData) {
@@ -67,6 +69,14 @@ export function SankeyTooltip({
   // Use mouse position if available, otherwise fallback to anchor point
   const x = mousePos ? mousePos.x : tooltipData.x + margin.left;
   const y = mousePos ? mousePos.y : tooltipData.y + margin.top;
+
+  /**
+   * LOCAL MODIFICATION: on touch the panel goes above the finger rather than
+   * beside it — `mousePos` is the tap itself, so the vendored placement
+   * centres the panel on the very point being read. (Re-apply after a
+   * re-vendor.)
+   */
+  const anchorAboveY = tapMode ? y : undefined;
 
   // Render node tooltip
   if (tooltipData.type === "node" && tooltipData.nodeIndex !== undefined) {
@@ -82,6 +92,7 @@ export function SankeyTooltip({
     if (nodeContent) {
       return (
         <TooltipBox
+          anchorAboveY={anchorAboveY}
           className={className}
           containerHeight={height}
           containerRef={containerRef}
@@ -106,6 +117,7 @@ export function SankeyTooltip({
 
     return (
       <TooltipBox
+        anchorAboveY={anchorAboveY}
         className={className}
         containerHeight={height}
         containerRef={containerRef}
@@ -140,6 +152,7 @@ export function SankeyTooltip({
     if (linkContent) {
       return (
         <TooltipBox
+          anchorAboveY={anchorAboveY}
           className={className}
           containerHeight={height}
           containerRef={containerRef}
@@ -164,6 +177,7 @@ export function SankeyTooltip({
 
     return (
       <TooltipBox
+        anchorAboveY={anchorAboveY}
         className={className}
         containerHeight={height}
         containerRef={containerRef}

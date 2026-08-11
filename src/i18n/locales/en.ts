@@ -41,6 +41,7 @@ export const en = {
   'nav.themeDark': 'Dark',
   'nav.about': 'About',
   'nav.changelog': 'Changelog',
+  'nav.sourceCode': 'Source code',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': 'Data: {range}',
@@ -236,11 +237,21 @@ export const en = {
   'chart.mix.breadcrumbAria': 'Treemap drill-down path',
   'chart.mix.zoomInHint': 'Click a category to zoom in',
   'chart.mix.zoomOutHint': 'Click the background (or press Esc) to zoom out',
+  // Touch takes two taps where a mouse takes a hover and a click: the first
+  // shows the figures, the second drills in.
+  'chart.mix.zoomInHintTap': 'Tap a category to inspect it, tap again to zoom in',
+  'chart.mix.zoomOutHintTap': 'Tap the background to zoom out',
   'chart.mix.others': 'Others',
   'chart.mix.categoryAria': '{category}: {count} applications. Zoom in.',
   'chart.mix.tooltipValue': '{count} applications · {percent} of {scope}',
   'chart.mix.scopeAll': 'all applications',
   'chart.mix.sunburstHint': '{trail} — {count} applications ({percent} of total)',
+  // Shown under any sunburst when nothing is selected. Bklit's own fallback
+  // for this is hardcoded English, so the charts pass these in instead.
+  'chart.sunburst.hintClick': 'Click a segment to zoom in · hover to inspect',
+  'chart.sunburst.hintTap': 'Tap a segment to inspect it, tap again to zoom in',
+  'chart.sunburst.zoomOutClick': 'Click the center to zoom out',
+  'chart.sunburst.zoomOutTap': 'Tap the center to zoom out',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': 'branch office',
@@ -264,9 +275,6 @@ export const en = {
   'map.legendNote': 'Color = service bureau · intensity = population density',
   'map.bureau': 'Bureau',
   'map.airportOffice': 'Airport office',
-  'map.zoomIn': 'Zoom in',
-  'map.zoomOut': 'Zoom out',
-  'map.resetView': 'Reset view',
   'map.loadError': 'Unable to load the map data. Try reloading the page.',
   'map.loading': 'Loading Map Data...',
   'map.areaValue': '{value} km²',

@@ -54,6 +54,7 @@ export const zhCn: Dictionary = {
   'nav.themeDark': '深色',
   'nav.about': '关于本站',
   'nav.changelog': '更新日志',
+  'nav.sourceCode': '源代码',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': '数据范围：{range}',
@@ -238,11 +239,17 @@ export const zhCn: Dictionary = {
   'chart.mix.breadcrumbAria': '树状图下钻路径',
   'chart.mix.zoomInHint': '点击某类别可放大',
   'chart.mix.zoomOutHint': '点击背景（或按Esc键）可缩小还原',
+  'chart.mix.zoomInHintTap': '点按某类别可查看详情，再次点按可放大',
+  'chart.mix.zoomOutHintTap': '点按背景可缩小还原',
   'chart.mix.others': '其他',
   'chart.mix.categoryAria': '{category}：{count}件申请。点击可放大。',
   'chart.mix.tooltipValue': '{count}件 · 占{scope}的{percent}',
   'chart.mix.scopeAll': '全部申请',
   'chart.mix.sunburstHint': '{trail} — {count}件（占总数的{percent}）',
+  'chart.sunburst.hintClick': '点击扇区可放大 · 悬停可查看详情',
+  'chart.sunburst.hintTap': '点按扇区可查看详情，再次点按可放大',
+  'chart.sunburst.zoomOutClick': '点击中心可缩小还原',
+  'chart.sunburst.zoomOutTap': '点按中心可缩小还原',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': '支局',
@@ -268,9 +275,6 @@ export const zhCn: Dictionary = {
   'map.legendNote': '颜色 = 管辖受理局 · 深浅 = 人口密度',
   'map.bureau': '管理局',
   'map.airportOffice': '机场支局',
-  'map.zoomIn': '放大',
-  'map.zoomOut': '缩小',
-  'map.resetView': '重置视图',
   'map.loadError': '无法加载地图数据，请尝试重新加载页面。',
   'map.loading': '正在加载地图数据…',
   'map.areaValue': '{value}km²',

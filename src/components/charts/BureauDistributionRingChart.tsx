@@ -4,12 +4,14 @@
 // past that, more slices would stop being distinguishable anyway).
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import type React from 'react';
 
 import { bureauOptions } from '../../constants/bureauOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
+import { useCoarsePointer } from '../../hooks/useCoarsePointer';
+import { activationProps, useTapPin } from '../../hooks/useTapPin';
 import { useLocale } from '../../i18n/LocaleContext';
 import { useBureauCompact } from '../../i18n/useDomainLabels';
 import { getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
@@ -32,6 +34,10 @@ const SLICE_COLORS = [
 
 export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const coarsePointer = useCoarsePointer();
+  const clearHover = useCallback(() => setHoveredIndex(null), []);
+  const tapMode = useTapPin({ enabled: coarsePointer, containerRef: cardRef, onDismiss: clearHover });
   const { t, formatters } = useLocale();
   // Compact names: the legend doesn't truncate, so a long label pushes the
   // percentage and value columns off the end of the row instead of clipping.
@@ -78,7 +84,20 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
   }
 
   return (
-    <div className="chart-card-content">
+    // The ref bounds the tap: inside is the chart's to interpret, and the
+    // click handler is the "tapped a gap" path that clears the highlight.
+    <div
+      className="chart-card-content"
+      onClick={
+        tapMode
+          ? () => {
+              tapMode.clear();
+              setHoveredIndex(null);
+            }
+          : undefined
+      }
+      ref={cardRef}
+    >
       <div
         className="flex flex-col items-center gap-6 sm:flex-row sm:justify-center sm:gap-10"
         role="img"
@@ -92,6 +111,9 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
             cornerRadius={3}
             hoveredIndex={hoveredIndex}
             onHoverChange={setHoveredIndex}
+            // One pin shared with the legend below, so a slice tap and a
+            // legend tap can't both claim to be the highlighted one.
+            tapMode={tapMode}
           >
             {slices.map((slice, index) => (
               <PieSlice key={slice.label} index={index} color={slice.color} />
@@ -106,8 +128,12 @@ export const BureauDistributionRingChart: React.FC<ImmigrationChartData> = ({ da
               className={`flex cursor-default items-center gap-2 transition-opacity ${
                 hoveredIndex !== null && hoveredIndex !== index ? 'opacity-40' : ''
               }`}
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
+              {...activationProps(
+                tapMode,
+                `legend:${index}`,
+                () => setHoveredIndex(index),
+                () => setHoveredIndex(null)
+              )}
             >
               <span aria-hidden="true" className="size-2.5 rounded-[3px]" style={{ backgroundColor: slice.color }} />
               <span className="text-secondary-foreground">{slice.label}</span>

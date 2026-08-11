@@ -526,11 +526,6 @@
   }
 }
 
-@utility zoom-button {
-  @apply h-8 w-8 flex items-center justify-center bg-card rounded-full shadow-soft border border-border hover:bg-muted transition-colors
-        sm:text-xl;
-}
-
 @utility vertical-align-sub {
   vertical-align: -0.125em;
 }

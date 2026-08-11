@@ -49,6 +49,7 @@ export const ja: Dictionary = {
   'nav.themeDark': 'ダーク',
   'nav.about': 'このサイトについて',
   'nav.changelog': '更新履歴',
+  'nav.sourceCode': 'ソースコード',
 
   // ── Dashboard chrome ─────────────────────────────────────────────────────
   'dashboard.dataCoverage': '対象期間：{range}',
@@ -234,11 +235,17 @@ export const ja: Dictionary = {
   'chart.mix.breadcrumbAria': 'ツリーマップの階層パス',
   'chart.mix.zoomInHint': 'カテゴリをクリックすると拡大します',
   'chart.mix.zoomOutHint': '背景をクリック（または Esc キー）で戻ります',
+  'chart.mix.zoomInHintTap': 'カテゴリをタップすると詳細、もう一度タップで拡大します',
+  'chart.mix.zoomOutHintTap': '背景をタップすると戻ります',
   'chart.mix.others': 'その他',
   'chart.mix.categoryAria': '{category}：{count}件。拡大します。',
   'chart.mix.tooltipValue': '{count}件・{scope}の{percent}',
   'chart.mix.scopeAll': '全申請',
   'chart.mix.sunburstHint': '{trail} — {count}件（全体の{percent}）',
+  'chart.sunburst.hintClick': 'セグメントをクリックすると拡大、カーソルを合わせると詳細が表示されます',
+  'chart.sunburst.hintTap': 'セグメントをタップすると詳細、もう一度タップで拡大します',
+  'chart.sunburst.zoomOutClick': '中央をクリックすると戻ります',
+  'chart.sunburst.zoomOutTap': '中央をタップすると戻ります',
 
   // ── Chart: Processing Efficiency ─────────────────────────────────────────
   'chart.efficiency.branchOffice': '支局',
@@ -264,9 +271,6 @@ export const ja: Dictionary = {
   'map.legendNote': '色＝管轄官署・濃さ＝人口密度',
   'map.bureau': '管理局',
   'map.airportOffice': '空港支局',
-  'map.zoomIn': '拡大',
-  'map.zoomOut': '縮小',
-  'map.resetView': '表示をリセット',
   'map.loadError': '地図データを読み込めませんでした。ページを再読み込みしてください。',
   'map.loading': '地図データを読み込んでいます…',
   'map.areaValue': '{value}km²',

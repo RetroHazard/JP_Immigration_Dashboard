@@ -6,6 +6,8 @@ import type {
 } from "d3-sankey";
 import { motion, useTransform } from "motion/react";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+// LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+import { activationProps } from "@/hooks/useTapPin";
 import { useMountProgress } from "../use-mount-progress";
 // LOCAL MODIFICATION: transitive hover connectivity for multi-tier sankeys.
 import { getReachableNodes } from "./sankey-connectivity";
@@ -89,8 +91,8 @@ interface AnimatedLinkProps {
   isHighlighted: boolean;
   fadedOpacity: number;
   animationDuration: number;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
+  // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+  hitProps: Record<string, unknown>;
 }
 
 function AnimatedLink({
@@ -104,8 +106,7 @@ function AnimatedLink({
   isHighlighted,
   fadedOpacity,
   animationDuration,
-  onMouseEnter,
-  onMouseLeave,
+  hitProps,
 }: AnimatedLinkProps) {
   const { enterTransition, revealEpoch } = useSankey();
   const pathRef = useRef<SVGPathElement>(null);
@@ -156,8 +157,7 @@ function AnimatedLink({
       d={path}
       fill="none"
       initial={{ opacity: initialOpacity }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      {...hitProps}
       ref={pathRef}
       stroke={stroke}
       strokeDasharray={dashArray}
@@ -189,6 +189,8 @@ export function SankeyLink({
     setTooltipData,
     animationDuration,
     createPath,
+    // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+    tapMode,
   } = useSankey();
 
   // LOCAL MODIFICATION: nodes on a path through the hovered node — shared
@@ -342,8 +344,12 @@ export function SankeyLink({
             isFaded={isFaded}
             isHighlighted={isHighlighted}
             key={`link-${sourceIdx}-${targetIdx}-${link.width ?? link.value ?? ""}`}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            hitProps={activationProps(
+              tapMode ?? null,
+              `link:${index}`,
+              handleMouseEnter,
+              handleMouseLeave
+            )}
             path={path}
             stroke={linkStroke}
             strokeOpacity={strokeOpacity}
