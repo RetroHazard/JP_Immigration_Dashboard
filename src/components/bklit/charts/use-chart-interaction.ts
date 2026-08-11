@@ -3,6 +3,8 @@
 import { localPoint } from "@visx/event";
 import type { scaleLinear, scaleTime } from "@visx/scale";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useCoarsePointer } from "@/hooks/useCoarsePointer";
+import { useTapPin } from "@/hooks/useTapPin";
 import type { LineConfig, Margin, TooltipData } from "./chart-context";
 import { useScheduledTooltip } from "./use-scheduled-tooltip";
 import { normalizeYAxisId } from "./y-axis-scales";
@@ -32,6 +34,11 @@ interface UseChartInteractionParams {
     lo: number
   ) => number;
   canInteract: boolean;
+  /**
+   * LOCAL MODIFICATION: the chart's outer element, used as the boundary for
+   * "tapped outside" dismissal in tap mode. (Re-apply after a re-vendor.)
+   */
+  containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 interface ChartInteractionResult {
@@ -44,11 +51,19 @@ interface ChartInteractionResult {
     onMouseLeave?: () => void;
     onMouseDown?: (event: React.MouseEvent<SVGGElement>) => void;
     onMouseUp?: () => void;
-    onTouchStart?: (event: React.TouchEvent<SVGGElement>) => void;
-    onTouchMove?: (event: React.TouchEvent<SVGGElement>) => void;
-    onTouchEnd?: () => void;
+    onClick?: (event: React.MouseEvent<SVGGElement>) => void;
   };
   interactionStyle: React.CSSProperties;
+  /**
+   * LOCAL MODIFICATION: true while a tapped tooltip is held open. The panel
+   * becomes interactive so it can be tapped to dismiss.
+   * (Re-apply after a re-vendor.)
+   */
+  pinned: boolean;
+  /** LOCAL MODIFICATION: dismiss handler for taps on the chart's empty space. */
+  dismissTap: () => void;
+  /** LOCAL MODIFICATION: whether this chart is currently in tap mode. */
+  isTapMode: boolean;
 }
 
 export function useChartInteraction({
@@ -61,19 +76,43 @@ export function useChartInteraction({
   xAccessor,
   bisectDate,
   canInteract,
+  containerRef,
 }: UseChartInteractionParams): ChartInteractionResult {
   const [selection, setSelection] = useState<ChartSelection | null>(null);
   const {
     tooltipData,
     setTooltipData,
     scheduleTooltip,
+    commitTooltipNow,
     clearTooltip,
-    resetTooltipDedupe,
+    // LOCAL MODIFICATION: `resetTooltipDedupe` went unused when the two-finger
+    // selection branch was removed; `commitTooltipNow` covers the dedupe reset
+    // the tap path needs. (Re-apply after a re-vendor.)
   } = useScheduledTooltip<TooltipData>();
 
   const isDraggingRef = useRef(false);
   const dragStartXRef = useRef<number>(0);
   const lastHoveredXRef = useRef<number | null>(null);
+
+  // LOCAL MODIFICATION: tap-to-pin on touch devices. On a coarse pointer the
+  // mouse handlers below are never attached — the tooltip is driven entirely
+  // from `handleClick` — which is what keeps the compatibility mouse events a
+  // browser fires after `touchend` from re-opening or clearing a pinned
+  // tooltip. (Re-apply after a re-vendor.)
+  const coarsePointer = useCoarsePointer();
+  const dismissTooltip = useCallback(() => {
+    lastHoveredXRef.current = null;
+    clearTooltip();
+  }, [clearTooltip]);
+  const tapMode = useTapPin({
+    enabled: coarsePointer && canInteract,
+    containerRef,
+    onDismiss: dismissTooltip,
+  });
+  // The re-anchor effect below must release the pin without depending on
+  // `tapMode`, whose identity changes on every pin.
+  const tapModeRef = useRef(tapMode);
+  tapModeRef.current = tapMode;
 
   const resolveTooltipFromX = useCallback(
     (pixelX: number): TooltipData | null => {
@@ -225,87 +264,57 @@ export function useChartInteraction({
     setSelection(null);
   }, []);
 
-  const handleTouchStart = useCallback(
-    (event: React.TouchEvent<SVGGElement>) => {
-      if (event.touches.length === 1) {
-        event.preventDefault();
-        const chartX = getChartX(event, 0);
-        if (chartX === null) {
-          return;
-        }
-        lastHoveredXRef.current = chartX;
-        const tooltip = resolveTooltipFromX(chartX);
-        if (tooltip) {
-          scheduleTooltip(tooltip);
-        }
-      } else if (event.touches.length === 2) {
-        event.preventDefault();
-        resetTooltipDedupe();
-        clearTooltip();
-        const x0 = getChartX(event, 0);
-        const x1 = getChartX(event, 1);
-        if (x0 === null || x1 === null) {
-          return;
-        }
-        const startX = Math.min(x0, x1);
-        const endX = Math.max(x0, x1);
-        setSelection({
-          startX,
-          endX,
-          startIndex: resolveIndexFromX(startX),
-          endIndex: resolveIndexFromX(endX),
-          active: true,
-        });
+  /**
+   * LOCAL MODIFICATION: replaces the touch handlers, which showed a tooltip
+   * while a finger was held down and cleared it on `touchend`. A tap now pins
+   * the tooltip until it is tapped again, another datapoint is tapped, or the
+   * registry dismisses it.
+   *
+   * `click` rather than touch bookkeeping: the browser already tells a tap
+   * apart from a scroll or a drag, with the right slop per platform, and
+   * withholds the click entirely when the gesture becomes a scroll. The old
+   * `preventDefault()` calls were no-ops anyway — React registers
+   * `touchstart`/`touchmove` passively — which is why `touchAction: "none"`
+   * was needed, and why removing them costs nothing.
+   *
+   * The two-finger range selection is gone with them. It only ever set
+   * `selection`, which the mouse-drag path still sets on desktop, so the
+   * highlight band behaves exactly as before there.
+   * (Re-apply after a re-vendor.)
+   */
+  const handleClick = useCallback(
+    (event: React.MouseEvent<SVGGElement>) => {
+      if (!tapMode) {
+        return;
       }
+      const chartX = getChartX(event);
+      const tooltip = chartX === null ? null : resolveTooltipFromX(chartX);
+      if (!tooltip) {
+        tapMode.clear();
+        dismissTooltip();
+        return;
+      }
+      if (tapMode.tap(String(tooltip.index)) === "unpinned") {
+        dismissTooltip();
+        return;
+      }
+      lastHoveredXRef.current = chartX;
+      commitTooltipNow(tooltip);
     },
     [
+      commitTooltipNow,
+      dismissTooltip,
       getChartX,
       resolveTooltipFromX,
-      resolveIndexFromX,
-      scheduleTooltip,
-      resetTooltipDedupe,
-      clearTooltip,
+      tapMode,
     ]
   );
 
-  const handleTouchMove = useCallback(
-    (event: React.TouchEvent<SVGGElement>) => {
-      if (event.touches.length === 1) {
-        event.preventDefault();
-        const chartX = getChartX(event, 0);
-        if (chartX === null) {
-          return;
-        }
-        lastHoveredXRef.current = chartX;
-        const tooltip = resolveTooltipFromX(chartX);
-        if (tooltip) {
-          scheduleTooltip(tooltip);
-        }
-      } else if (event.touches.length === 2) {
-        event.preventDefault();
-        const x0 = getChartX(event, 0);
-        const x1 = getChartX(event, 1);
-        if (x0 === null || x1 === null) {
-          return;
-        }
-        const startX = Math.min(x0, x1);
-        const endX = Math.max(x0, x1);
-        setSelection({
-          startX,
-          endX,
-          startIndex: resolveIndexFromX(startX),
-          endIndex: resolveIndexFromX(endX),
-          active: true,
-        });
-      }
-    },
-    [getChartX, resolveTooltipFromX, resolveIndexFromX, scheduleTooltip]
-  );
-
-  const handleTouchEnd = useCallback(() => {
-    clearTooltip();
-    setSelection(null);
-  }, [clearTooltip]);
+  /** LOCAL MODIFICATION: taps on the chart's margins/empty space dismiss. */
+  const dismissTap = useCallback(() => {
+    tapModeRef.current?.clear();
+    dismissTooltip();
+  }, [dismissTooltip]);
 
   const clearSelection = useCallback(() => {
     setSelection(null);
@@ -321,24 +330,44 @@ export function useChartInteraction({
       scheduleTooltip(tooltip, `${tooltip.index}:${Math.round(tooltip.x)}`);
       return;
     }
+    // LOCAL MODIFICATION: also drop the pin, or the registry keeps a dead
+    // owner (and its document listeners) after the data changes underneath it.
+    // (Re-apply after a re-vendor.)
+    tapModeRef.current?.clear();
     clearTooltip();
   }, [canInteract, clearTooltip, resolveTooltipFromX, scheduleTooltip]);
 
-  const interactionHandlers = canInteract
-    ? {
-        onMouseMove: handleMouseMove,
-        onMouseLeave: handleMouseLeave,
-        onMouseDown: handleMouseDown,
-        onMouseUp: handleMouseUp,
-        onTouchStart: handleTouchStart,
-        onTouchMove: handleTouchMove,
-        onTouchEnd: handleTouchEnd,
-      }
-    : {};
+  // LOCAL MODIFICATION: on a coarse pointer only `onClick` is attached. The
+  // mouse handlers are deliberately absent rather than guarded, so the
+  // synthesized mouse events a browser fires after a tap have nothing to land
+  // on — including `handleMouseDown`, which clears the tooltip and would
+  // otherwise eat the pin. (Re-apply after a re-vendor.)
+  const buildHandlers = () => {
+    if (!canInteract) {
+      return {};
+    }
+    if (tapMode) {
+      return { onClick: handleClick };
+    }
+    return {
+      onMouseMove: handleMouseMove,
+      onMouseLeave: handleMouseLeave,
+      onMouseDown: handleMouseDown,
+      onMouseUp: handleMouseUp,
+    };
+  };
+  const interactionHandlers = buildHandlers();
 
   const interactionStyle: React.CSSProperties = {
     cursor: canInteract ? "crosshair" : "default",
-    touchAction: "none",
+    // LOCAL MODIFICATION: `none` blanket-blocked page scrolling over the plot
+    // area, which on a phone makes these tall charts a scroll dead zone. It was
+    // only needed because the touch handlers wanted to preventDefault; with
+    // those gone, `manipulation` keeps vertical scroll working and still
+    // suppresses double-tap zoom on a quick pin/unpin. Hover devices keep the
+    // vendored default, which the mouse-drag selection relies on.
+    // (Re-apply after a re-vendor.)
+    touchAction: tapMode ? "manipulation" : "none",
   };
 
   return {
@@ -348,5 +377,8 @@ export function useChartInteraction({
     clearSelection,
     interactionHandlers,
     interactionStyle,
+    pinned: tapMode?.pinned ?? false,
+    dismissTap,
+    isTapMode: tapMode !== null,
   };
 }

@@ -425,9 +425,15 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
     clearSelection,
     interactionHandlers,
     interactionStyle,
+    // LOCAL MODIFICATION: tap-to-pin state for touch devices.
+    // (Re-apply after a re-vendor.)
+    pinned,
+    dismissTap,
+    isTapMode,
   } = useChartInteraction({
     bisectDate,
     canInteract,
+    containerRef,
     data: visiblePlotData,
     lines,
     margin,
@@ -534,6 +540,8 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       columnWidth,
       tooltipData,
       setTooltipData,
+      // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+      pinned,
       containerRef,
       lines,
       referenceAreas,
@@ -577,6 +585,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       columnWidth,
       tooltipData,
       setTooltipData,
+      pinned,
       containerRef,
       lines,
       referenceAreas,
@@ -660,7 +669,16 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       value={referenceAreaRegistration}
     >
       <ChartProvider value={contextValue}>
-        <svg aria-hidden="true" height={height} width={width}>
+        {/* LOCAL MODIFICATION: `touch-action` is declared here rather than on
+            the interaction <g> below — support for it on nested SVG elements is
+            patchy, and on the <g> it made the whole plot area a page-scroll
+            dead zone on phones. (Re-apply after a re-vendor.) */}
+        <svg
+          aria-hidden="true"
+          height={height}
+          style={{ touchAction: interactionStyle.touchAction }}
+          width={width}
+        >
           <defs>
             {defsChildren}
             {useClipReveal ? (
@@ -680,7 +698,17 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
             ) : null}
           </defs>
 
-          <rect fill="transparent" height={height} width={width} x={0} y={0} />
+          {/* LOCAL MODIFICATION: this rect sits outside the interaction <g>,
+              so on touch it is the axis-gutter "tapped empty space" target.
+              (Re-apply after a re-vendor.) */}
+          <rect
+            fill="transparent"
+            height={height}
+            onClick={isTapMode ? dismissTap : undefined}
+            width={width}
+            x={0}
+            y={0}
+          />
 
           <g
             {...interactionHandlers}

@@ -97,6 +97,12 @@ export interface ChartHoverContextValue {
   // Tooltip state
   tooltipData: TooltipData | null;
   setTooltipData: Dispatch<SetStateAction<TooltipData | null>>;
+  /**
+   * LOCAL MODIFICATION: true while a touch tap is holding the tooltip open, as
+   * opposed to it tracking a hovering cursor. The panel reads this to become
+   * tappable so it can be dismissed. (Re-apply after a re-vendor.)
+   */
+  pinned?: boolean;
 
   // Selection state (optional - only present when useChartInteraction is used)
   /** Current drag/pinch selection range */
@@ -340,6 +346,8 @@ export function ChartProvider({
     () => ({
       tooltipData: value.tooltipData,
       setTooltipData: value.setTooltipData,
+      // LOCAL MODIFICATION: tap-to-pin. (Re-apply after a re-vendor.)
+      pinned: value.pinned,
       selection: value.selection,
       clearSelection: value.clearSelection,
       hoveredBarIndex: value.hoveredBarIndex,
@@ -350,6 +358,7 @@ export function ChartProvider({
     [
       value.tooltipData,
       value.setTooltipData,
+      value.pinned,
       value.selection,
       value.clearSelection,
       value.hoveredBarIndex,

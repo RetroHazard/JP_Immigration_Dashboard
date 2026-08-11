@@ -4,6 +4,8 @@ import { motion, useSpring } from "motion/react";
 import type { RefObject } from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+// LOCAL MODIFICATION: tap-to-pin dismissal. (Re-apply after a re-vendor.)
+import { closeActivePin } from "@/lib/tooltip-pin";
 import { cn } from "@/lib/utils";
 import { type SpringConfig, useChartConfig } from "../chart-config-context";
 import { chartCssVars } from "../chart-context";
@@ -46,6 +48,16 @@ export interface TooltipBoxProps {
    * Default: `var(--chart-tooltip-background)`.
    */
   backgroundColor?: string;
+  /**
+   * LOCAL MODIFICATION: set while a touch tap is holding the panel open. The
+   * panel is normally `pointer-events-none`, but it portals into the chart
+   * container — which is the element the pin registry treats as "inside the
+   * chart" — so a tap on a pinned panel would fall straight through and re-pin
+   * whatever sits beneath it. When interactive, the panel swallows the tap and
+   * dismisses instead, which also gives touch users a large close target.
+   * (Re-apply after a re-vendor.)
+   */
+  interactive?: boolean;
 }
 
 // Local extension: after the horizontal flip, clamp the panel inside the
@@ -105,6 +117,7 @@ function TooltipBoxInner({
   entrance = true,
   panelStyle,
   backgroundColor = chartCssVars.tooltipBackground,
+  interactive = false,
   container,
 }: Omit<TooltipBoxProps, "visible" | "containerRef"> & {
   container: HTMLElement;
@@ -208,16 +221,36 @@ function TooltipBoxInner({
   );
   const panelStyleResolved = {
     transformOrigin,
+    // LOCAL MODIFICATION: the panel has a 140px floor and no ceiling, so on a
+    // ~360px phone a long bureau or nationality name could render it wider than
+    // its own container and push it past the card's clipped edge. Capping it to
+    // the container guarantees `placeTooltip` always has somewhere to put it.
+    // (Re-apply after a re-vendor.)
+    maxWidth: Math.max(140, containerWidth - offset * 2),
     ...(panelStyle?.backgroundColor === undefined && {
       backgroundColor,
     }),
     ...panelStyle,
   };
 
+  // LOCAL MODIFICATION: see the `interactive` prop — a pinned panel has to
+  // absorb its own taps rather than let them through to the chart underneath.
+  // (Re-apply after a re-vendor.)
+  const pointerEventsClass = interactive
+    ? "pointer-events-auto cursor-pointer"
+    : "pointer-events-none";
+  const dismissOnTap = interactive
+    ? (event: React.PointerEvent) => {
+        event.stopPropagation();
+        closeActivePin();
+      }
+    : undefined;
+
   if (!entrance) {
     return createPortal(
       <div
-        className={cn("pointer-events-none absolute z-50", className)}
+        className={cn(pointerEventsClass, "absolute z-50", className)}
+        onPointerDown={dismissOnTap}
         ref={tooltipRef}
         style={{ left: staticPosition.left, top: staticPosition.top }}
       >
@@ -232,9 +265,10 @@ function TooltipBoxInner({
   return createPortal(
     <motion.div
       animate={{ opacity: 1 }}
-      className={cn("pointer-events-none absolute z-50", className)}
+      className={cn(pointerEventsClass, "absolute z-50", className)}
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
+      onPointerDown={dismissOnTap}
       ref={tooltipRef}
       style={{ left: finalLeft, top: finalTop }}
       transition={{ duration: 0.1 }}
