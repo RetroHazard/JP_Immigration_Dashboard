@@ -145,33 +145,94 @@ export const es: Dictionary = {
   'estimator.disclaimerEmphasis': 'estimación',
 
   // ── Estimator: the "Show the math" breakdown ─────────────────────────────
-  'estimator.formula.step1': 'Cola en el momento de la solicitud',
-  'estimator.formula.step2': 'Posición en la cola y tasa diaria',
-  'estimator.formula.step3': 'Días restantes',
-  'estimator.formula.explainAria': 'Explicar las variables de la fórmula de {title}',
-  'estimator.formula.var.dRem.title': 'Días restantes',
-  'estimator.formula.var.dRem.description': 'Días estimados hasta que finalice la tramitación.',
-  'estimator.formula.var.qPos.title': 'Posición en la cola',
-  'estimator.formula.var.qPos.description': 'Posición estimada en la cola de tramitación.',
-  'estimator.formula.var.rDaily.title': 'Tasa diaria',
-  'estimator.formula.var.rDaily.description': 'Solicitudes tramitadas en promedio por día.',
-  'estimator.formula.var.cProc.title': 'Tramitadas confirmadas',
-  'estimator.formula.var.cProc.description': 'Número confirmado de solicitudes tramitadas desde el envío.',
-  'estimator.formula.var.eProc.title': 'Tramitadas estimadas',
-  'estimator.formula.var.eProc.description':
-    'Número estimado de solicitudes tramitadas desde el último dato disponible.',
-  'estimator.formula.var.sigmaP.title': 'Total tramitadas',
-  'estimator.formula.var.sigmaP.description': 'Suma de solicitudes tramitadas utilizada para calcular los promedios.',
+  'estimator.formula.step1': 'Base de rendimiento',
+  'estimator.formula.step2': 'Cola al presentar',
+  'estimator.formula.step3': 'Tramitado desde la solicitud',
+  'estimator.formula.step4': 'Posición en la cola y días restantes',
+  'estimator.formula.step5': 'Días enteros y margen',
+  'estimator.formula.explainAria': 'Explicar las variables de la fórmula {title}',
+  // Step 1 — throughput baseline.
+  'estimator.formula.var.sigmaP.title': 'Total tramitado',
+  'estimator.formula.var.sigmaP.description':
+    'Solicitudes resueltas en el periodo muestreado, es decir los seis últimos meses publicados, o menos si los datos terminan antes.',
+  'estimator.formula.var.sigmaN.title': 'Total recibido',
+  'estimator.formula.var.sigmaN.description': 'Solicitudes recibidas en ese mismo periodo muestreado.',
   'estimator.formula.var.sigmaD.title': 'Total de días',
-  'estimator.formula.var.sigmaD.description': 'Suma de días utilizada para calcular los promedios.',
-  'estimator.formula.var.qApp.title': 'Cola de solicitudes',
-  'estimator.formula.var.qApp.description': 'Posición estimada en la cola en el momento del envío.',
-  'estimator.formula.var.cPrev.title': 'Arrastradas',
-  'estimator.formula.var.cPrev.description': 'Solicitudes arrastradas del mes anterior.',
-  'estimator.formula.var.nApp.title': 'Nuevas solicitudes',
-  'estimator.formula.var.nApp.description': 'Solicitudes estimadas recibidas antes del envío.',
-  'estimator.formula.var.pApp.title': 'Solicitudes tramitadas',
-  'estimator.formula.var.pApp.description': 'Solicitudes estimadas tramitadas antes del envío.',
+  'estimator.formula.var.sigmaD.description': 'Días naturales del periodo muestreado, sumados mes a mes.',
+  'estimator.formula.var.rProc.title': 'Ritmo de tramitación',
+  'estimator.formula.var.rProc.description':
+    'Solicitudes resueltas al día, promediadas sobre todo el periodo muestreado.',
+  'estimator.formula.var.rNew.title': 'Ritmo de entrada',
+  'estimator.formula.var.rNew.description': 'Solicitudes recibidas al día, promediadas sobre ese mismo periodo.',
+  // Step 2 — the queue on the application date.
+  'estimator.formula.var.tPrev.title': 'Total del mes anterior',
+  'estimator.formula.var.tPrev.description':
+    'Todas las solicitudes en cartera el mes anterior al suyo: el arrastre más las nuevas entradas.',
+  'estimator.formula.var.pPrev.title': 'Tramitado el mes anterior',
+  'estimator.formula.var.pPrev.description': 'Solicitudes resueltas durante el mes anterior al suyo.',
+  'estimator.formula.var.cSeed.title': 'Inicio de la simulación',
+  'estimator.formula.var.cSeed.description':
+    'El último arrastre publicado, usado como punto de partida cuando el mes anterior al suyo no tiene cifras propias.',
+  'estimator.formula.var.mSim.title': 'Meses simulados',
+  'estimator.formula.var.mSim.description':
+    'Cuántos meses se ha proyectado el arrastre hasta llegar a su mes de solicitud.',
+  'estimator.formula.var.cPrev.title': 'Arrastre',
+  'estimator.formula.var.cPrev.description':
+    'Solicitudes aún pendientes al comenzar su mes de solicitud. Se toma del mes anterior cuando está publicado y, si no, se proyecta mes a mes desde el último mes con cifras.',
+  'estimator.formula.var.nMonth.title': 'Recibido en el mes',
+  'estimator.formula.var.nMonth.description': 'Solicitudes recibidas a lo largo de todo su mes de solicitud.',
+  'estimator.formula.var.pMonth.title': 'Tramitado en el mes',
+  'estimator.formula.var.pMonth.description': 'Solicitudes resueltas a lo largo de todo su mes de solicitud.',
+  'estimator.formula.var.dMonth.title': 'Días del mes',
+  'estimator.formula.var.dMonth.description':
+    'Días naturales de su mes de solicitud, empleados para repartir los totales mensuales por igual entre los días.',
+  'estimator.formula.var.aDay.title': 'Día de la solicitud',
+  'estimator.formula.var.aDay.description':
+    'Qué día del mes presentó, es decir hasta dónde se había acumulado la cola.',
+  'estimator.formula.var.nApp.title': 'Recibido antes que usted',
+  'estimator.formula.var.nApp.description':
+    'Solicitudes recibidas antes en su mes de solicitud, prorrateadas hasta el día en que presentó.',
+  'estimator.formula.var.pApp.title': 'Tramitado antes que usted',
+  'estimator.formula.var.pApp.description':
+    'Solicitudes resueltas antes en su mes de solicitud, prorrateadas del mismo modo.',
+  'estimator.formula.var.qApp.title': 'Cola al presentar',
+  'estimator.formula.var.qApp.description': 'Cuántas solicitudes iban por delante de la suya el día en que presentó.',
+  // Step 3 — progress since the application date.
+  'estimator.formula.var.pAfter.title': 'Tramitado en meses posteriores',
+  'estimator.formula.var.pAfter.description':
+    'Solicitudes resueltas en los meses publicados posteriores a su mes de solicitud.',
+  'estimator.formula.var.tApp.title': 'Días desde la solicitud',
+  'estimator.formula.var.tApp.description': 'Días naturales entre su fecha de solicitud y hoy.',
+  'estimator.formula.var.tData.title': 'Días desde los datos',
+  'estimator.formula.var.tData.description': 'Días naturales entre el final del último mes publicado y hoy.',
+  'estimator.formula.var.cProc.title': 'Tramitado confirmado',
+  'estimator.formula.var.cProc.description':
+    'Resoluciones posteriores a su solicitud que las cifras publicadas ya recogen.',
+  'estimator.formula.var.eProc.title': 'Tramitado previsto',
+  'estimator.formula.var.eProc.description':
+    'Solicitudes que se suponen resueltas en el tramo que las cifras publicadas aún no cubren. Se vuelve negativo cuando esas cifras ya superan lo que preveía el ritmo medio.',
+  'estimator.formula.var.sProc.title': 'Tramitado desde entonces',
+  'estimator.formula.var.sProc.description':
+    'Todo lo resuelto desde que presentó: lo confirmado y lo previsto juntos, redondeados a solicitudes enteras.',
+  // Step 4 — position in the queue, and how long it takes to clear.
+  'estimator.formula.var.qPos.title': 'Posición en la cola',
+  'estimator.formula.var.qPos.description':
+    'Cuántas solicitudes siguen por delante de la suya. Cero o menos significa que la estimación ya ha pasado.',
+  'estimator.formula.var.dRem.title': 'Días restantes',
+  'estimator.formula.var.dRem.description': 'Días necesarios para despejar el resto de la cola al ritmo actual.',
+  // Step 5 — the whole-day offset, and the spread around it.
+  'estimator.formula.var.dEst.title': 'Días enteros',
+  'estimator.formula.var.dEst.description':
+    'Los días restantes redondeados alejándose de cero: el desplazamiento que se suma a hoy para dar la fecha mostrada arriba.',
+  'estimator.formula.var.sigmaR.title': 'Dispersión del ritmo',
+  'estimator.formula.var.sigmaR.description':
+    'Desviación típica de los ritmos mensuales de tramitación, esto es cuánto varía el paso de un mes a otro.',
+  'estimator.formula.var.rBar.title': 'Ritmo mensual medio',
+  'estimator.formula.var.rBar.description':
+    'La media de los ritmos mensuales con igual peso por mes, no ponderada por volumen.',
+  'estimator.formula.var.uDays.title': 'Incertidumbre',
+  'estimator.formula.var.uDays.description':
+    'El margen ± que aparece junto al resultado: cuánto se mueve la estimación si el paso varía tanto como lo ha hecho últimamente.',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card

@@ -6,6 +6,12 @@
 export interface Formatters {
   /** Grouped integer, e.g. "12,345". */
   number: (value: number) => string;
+  /**
+   * Fixed-precision decimal, e.g. "112.71" / "112,71". `number` won't do for a
+   * rate - it leaves ICU's default of up to three fraction digits in place -
+   * and `toFixed` hardcodes a `.`, which is wrong for half the catalogue.
+   */
+  decimal: (value: number, digits?: number) => string;
   /** Abbreviated integer for cramped chart labels, e.g. "12K" / "1.2万". */
   compactNumber: (value: number) => string;
   /** Takes a 0-100 percentage (the shape the app carries), not a 0-1 ratio. */
@@ -55,6 +61,20 @@ const build = (intlTag: string): Formatters => {
     return formatter;
   };
 
+  // Same shape as the percent cache, for the same reason.
+  const decimalByDigits = new Map<number, Intl.NumberFormat>();
+  const decimalFor = (digits: number) => {
+    let formatter = decimalByDigits.get(digits);
+    if (!formatter) {
+      formatter = new Intl.NumberFormat(intlTag, {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits,
+      });
+      decimalByDigits.set(digits, formatter);
+    }
+    return formatter;
+  };
+
   const abbreviateFallback = (value: number): string => {
     const [threshold, suffix] = FALLBACK_ABBREVIATIONS.find(([t]) => Math.abs(value) >= t) ?? [1, ''];
     const mantissa = new Intl.NumberFormat(intlTag, { maximumFractionDigits: 1 }).format(value / threshold);
@@ -77,6 +97,7 @@ const build = (intlTag: string): Formatters => {
 
   return {
     number: (value) => number.format(value),
+    decimal: (value, digits = 2) => decimalFor(digits).format(value),
     compactNumber,
     percent: (value, digits = 1) => percentFor(digits).format(value / 100),
     monthYear: (date) => monthYear.format(date),

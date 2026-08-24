@@ -346,7 +346,7 @@ Each chart:
 Interactive queue position estimator:
 - Accepts user input (bureau, application type, submission date)
 - Calls `calculateEstimatedDate` (`src/utils/calculateEstimates.ts`)
-- Displays a "Show the math" breakdown with KaTeX formulas (`FormulaTooltip`)
+- Displays a "Show the math" breakdown with KaTeX formulas (`EstimationFormula`, in step cards from `FormulaTooltip`). `buildFormulaSteps` is a pure function of the model variables and the branch record `calculateEstimatedDate` returns, so the dependency ordering between steps is unit-tested rather than assumed
 - Generates shareable permalinks (`src/utils/urlApplicationDetails.ts`)
 
 #### **StatsSummary** (`src/components/StatsSummary.tsx`)

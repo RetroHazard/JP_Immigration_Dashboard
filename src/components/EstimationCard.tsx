@@ -20,7 +20,6 @@ import {
   X,
 } from 'lucide-react';
 import type React from 'react';
-import { BlockMath } from 'react-katex';
 
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { useLocale } from '../i18n/LocaleContext';
@@ -32,8 +31,8 @@ import { calculateEstimatedDate } from '../utils/calculateEstimates';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { ESTIMATOR_PARAM_NAMES } from '../utils/urlApplicationDetails';
 import { FilterInput } from './common/FilterInput';
-import { FormulaTooltip, useVariableExplanations } from './common/FormulaTooltip';
 import { IconTooltip } from './common/IconTooltip';
+import { EstimationFormula } from './EstimationFormula';
 
 interface EstimationCardProps {
   data: ImmigrationData[];
@@ -110,7 +109,6 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
   const { t, tPlural, formatters } = useLocale();
   const nonAirportBureaus = useNonAirportBureaus();
   const applicationOptions = useApplicationOptions();
-  const variableExplanations = useVariableExplanations();
   const [showMath, setShowMath] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const queueFillRef = useRef<HTMLDivElement>(null);
@@ -347,69 +345,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
               </span>
             </button>
 
-            {/* Steps follow the dependency order: the queue at application
-                feeds the current position and rate, which feed the estimate */}
-            {showMath && vars && (
-              <div className="space-y-2">
-                <FormulaTooltip
-                  step={1}
-                  title={t('estimator.formula.step1')}
-                  variables={{
-                    'Q_{\\text{app}}': variableExplanations.qApp,
-                    'C_{\\text{prev}}': variableExplanations.cPrev,
-                    'N_{\\text{app}}': variableExplanations.nApp,
-                    'P_{\\text{app}}': variableExplanations.pApp,
-                  }}
-                >
-                  <BlockMath
-                    math={`
-                    \\begin{aligned}
-                    &Q_{\\text{app}} \\approx \\underbrace{C_{\\text{prev}}}_{${vars.C_prev.toFixed()}} + \\underbrace{N_{\\text{app}}}_{${vars.N_app.toFixed()}} - \\underbrace{P_{\\text{app}}}_{${vars.P_app.toFixed()}} \\\\
-                    \\end{aligned}
-                  `}
-                  />
-                </FormulaTooltip>
-                <FormulaTooltip
-                  step={2}
-                  title={t('estimator.formula.step2')}
-                  variables={{
-                    'C_{\\text{proc}}': variableExplanations.cProc,
-                    'E_{\\text{proc}}': variableExplanations.eProc,
-                    '\\sum P': variableExplanations.sigmaP,
-                    '\\sum D': variableExplanations.sigmaD,
-                  }}
-                >
-                  <BlockMath
-                    math={`
-                    \\begin{aligned}
-                    &\\begin{cases}
-                    Q_{\\text{pos}} \\approx \\underbrace{Q_{\\text{app}}}_{${vars.Q_app.toFixed()}} - \\underbrace{C_{\\text{proc}}}_{${vars.C_proc.toFixed()}} - \\underbrace{E_{\\text{proc}}}_{${vars.E_proc.toFixed()}} \\\\
-                    \\\\
-                    R_{\\text{daily}} \\approx \\left\\lbrack\\dfrac{\\sum P}{\\sum D}\\right\\rbrack = \\left\\lbrack\\dfrac{${vars.Sigma_P}}{${vars.Sigma_D}}\\right\\rbrack \\\\
-                    \\end{cases}
-                    \\end{aligned}
-                  `}
-                  />
-                </FormulaTooltip>
-                <FormulaTooltip
-                  step={3}
-                  title={t('estimator.formula.step3')}
-                  variables={{
-                    'D_{\\text{rem}}': variableExplanations.dRem,
-                    'Q_{\\text{pos}}': variableExplanations.qPos,
-                    'R_{\\text{daily}}': variableExplanations.rDaily,
-                  }}
-                >
-                  <BlockMath
-                    math={`
-                    \\begin{aligned}
-                    &D_{\\text{rem}} \\approx \\left\\lbrack\\dfrac{Q_{\\text{pos}}}{R_{\\text{daily}}}\\right\\rbrack = \\left\\lbrack\\dfrac{{${vars.Q_pos.toFixed()}}}{${vars.R_daily.toFixed(2)}}\\right\\rbrack \\approx ${vars.D_rem.toFixed()} \\ \\text{d} \\\\
-                    \\end{aligned}
-                  `}
-                  />
-                </FormulaTooltip>
-              </div>
-            )}
+            {showMath && vars && <EstimationFormula vars={vars} branches={estimatedDate.details.branches} />}
 
             <p className="text-xxs italic text-muted-foreground sm:text-xs">
               {/* The emphasised word sits mid-sentence, so the sentence stays

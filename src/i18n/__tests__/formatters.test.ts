@@ -13,6 +13,15 @@ describe('createFormatters', () => {
     expect(ja.number(1234567)).toBe('1,234,567');
   });
 
+  it('holds a decimal to a fixed precision, with the locale’s own separator', () => {
+    // `number` leaves ICU's default of up to three fraction digits in place,
+    // which is one too many for a rate; `toFixed` would hardcode a '.'.
+    expect(createFormatters('en-US').decimal(112.706)).toBe('112.71');
+    expect(createFormatters('de-DE').decimal(112.706)).toBe('112,71');
+    expect(createFormatters('en-US').decimal(112.7, 0)).toBe('113');
+    expect(createFormatters('fr-FR').decimal(1007.654)).toBe('1\u202f007,65');
+  });
+
   it('takes a 0-100 percentage rather than a ratio', () => {
     expect(en.percent(75)).toBe('75.0%');
     expect(en.percent(75, 0)).toBe('75%');

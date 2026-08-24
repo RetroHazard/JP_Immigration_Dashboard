@@ -145,32 +145,95 @@ export const tl: Dictionary = {
   'estimator.disclaimerEmphasis': 'tantiya',
 
   // ── Estimator: the "Show the math" breakdown ─────────────────────────────
-  'estimator.formula.step1': 'Pila sa oras ng aplikasyon',
-  'estimator.formula.step2': 'Posisyon sa pila at araw-araw na rate',
-  'estimator.formula.step3': 'Natitirang araw',
-  'estimator.formula.explainAria': 'Ipaliwanag ang mga variable sa formula ng {title}',
-  'estimator.formula.var.dRem.title': 'Natitirang Araw',
-  'estimator.formula.var.dRem.description': 'Tinatayang bilang ng araw bago makumpleto ang pagproseso.',
-  'estimator.formula.var.qPos.title': 'Posisyon sa Pila',
-  'estimator.formula.var.qPos.description': 'Tinatayang posisyon sa pila ng pagproseso.',
-  'estimator.formula.var.rDaily.title': 'Araw-araw na Rate',
-  'estimator.formula.var.rDaily.description': 'Karaniwang bilang ng aplikasyong naiproseso kada araw.',
-  'estimator.formula.var.cProc.title': 'Kumpirmadong Naiproseso',
-  'estimator.formula.var.cProc.description': 'Kumpirmadong bilang ng aplikasyong naiproseso mula nang isumite.',
-  'estimator.formula.var.eProc.title': 'Tinatayang Naiproseso',
-  'estimator.formula.var.eProc.description': 'Tinatayang bilang ng aplikasyong naiproseso mula sa huling datos.',
-  'estimator.formula.var.sigmaP.title': 'Kabuuang Naiproseso',
-  'estimator.formula.var.sigmaP.description': 'Kabuuan ng naiprosesong aplikasyon na ginamit sa pagkalkula ng average.',
-  'estimator.formula.var.sigmaD.title': 'Kabuuang Araw',
-  'estimator.formula.var.sigmaD.description': 'Kabuuan ng araw na ginamit sa pagkalkula ng average.',
-  'estimator.formula.var.qApp.title': 'Pila ng Aplikasyon',
-  'estimator.formula.var.qApp.description': 'Tinatayang posisyon sa pila sa oras ng pagsumite.',
-  'estimator.formula.var.cPrev.title': 'Dinalang Balanse',
-  'estimator.formula.var.cPrev.description': 'Mga aplikasyong dinala mula sa nakaraang buwan.',
-  'estimator.formula.var.nApp.title': 'Bagong Aplikasyon',
-  'estimator.formula.var.nApp.description': 'Tinatayang aplikasyong natanggap bago ang pagsumite.',
-  'estimator.formula.var.pApp.title': 'Naiprosesong Aplikasyon',
-  'estimator.formula.var.pApp.description': 'Tinatayang aplikasyong naiproseso bago ang pagsumite.',
+  'estimator.formula.step1': 'Batayang bilis ng proseso',
+  'estimator.formula.step2': 'Pila noong nag-apply',
+  'estimator.formula.step3': 'Naproseso mula nang mag-apply',
+  'estimator.formula.step4': 'Pwesto sa pila at natitirang araw',
+  'estimator.formula.step5': 'Buong araw at saklaw ng pagkakaiba',
+  'estimator.formula.explainAria': 'Ipaliwanag ang mga variable sa pormulang {title}',
+  // Step 1 — throughput baseline.
+  'estimator.formula.var.sigmaP.title': 'Kabuuang naproseso',
+  'estimator.formula.var.sigmaP.description':
+    'Mga aplikasyong natapos sa saklaw na sinuri, ang huling anim na buwang inilathala, o mas kaunti kung doon lang umabot ang datos.',
+  'estimator.formula.var.sigmaN.title': 'Kabuuang natanggap',
+  'estimator.formula.var.sigmaN.description': 'Mga aplikasyong tinanggap sa parehong saklaw na sinuri.',
+  'estimator.formula.var.sigmaD.title': 'Kabuuang araw',
+  'estimator.formula.var.sigmaD.description': 'Mga araw sa kalendaryo sa loob ng saklaw na sinuri, sinuma buwan-buwan.',
+  'estimator.formula.var.rProc.title': 'Bilis ng pagproseso',
+  'estimator.formula.var.rProc.description':
+    'Mga aplikasyong natatapos kada araw, pinagtantiya sa buong saklaw na sinuri.',
+  'estimator.formula.var.rNew.title': 'Bilis ng pagpasok',
+  'estimator.formula.var.rNew.description': 'Mga aplikasyong natatanggap kada araw, pinagtantiya sa parehong saklaw.',
+  // Step 2 — the queue on the application date.
+  'estimator.formula.var.tPrev.title': 'Kabuuan noong nakaraang buwan',
+  'estimator.formula.var.tPrev.description':
+    'Lahat ng aplikasyong hawak noong buwan bago ang sa iyo: ang dala mula sa nauna kasama ang bagong natanggap.',
+  'estimator.formula.var.pPrev.title': 'Naproseso noong nakaraang buwan',
+  'estimator.formula.var.pPrev.description': 'Mga aplikasyong natapos noong buwan bago ang sa iyo.',
+  'estimator.formula.var.cSeed.title': 'Simula ng pagtaya',
+  'estimator.formula.var.cSeed.description':
+    'Ang huling inilathalang dala, ginagamit na panimula kapag walang sariling bilang ang buwan bago ang sa iyo.',
+  'estimator.formula.var.mSim.title': 'Bilang ng buwang tinaya',
+  'estimator.formula.var.mSim.description': 'Ilang buwan isinulong ang dala para maabot ang buwan ng iyong aplikasyon.',
+  'estimator.formula.var.cPrev.title': 'Dalang naiwan',
+  'estimator.formula.var.cPrev.description':
+    'Mga aplikasyong naghihintay pa nang magsimula ang buwan ng iyong aplikasyon. Kinukuha sa nakaraang buwan kapag inilathala na ito, kung wala ay isinusulong isang buwan bawat hakbang mula sa huling buwang may bilang.',
+  'estimator.formula.var.nMonth.title': 'Natanggap sa buwan',
+  'estimator.formula.var.nMonth.description': 'Mga aplikasyong natanggap sa buong buwan ng iyong aplikasyon.',
+  'estimator.formula.var.pMonth.title': 'Naproseso sa buwan',
+  'estimator.formula.var.pMonth.description': 'Mga aplikasyong natapos sa buong buwan ng iyong aplikasyon.',
+  'estimator.formula.var.dMonth.title': 'Araw sa buwan',
+  'estimator.formula.var.dMonth.description':
+    'Mga araw sa kalendaryo ng buwan ng iyong aplikasyon, ginagamit upang pantay na ikalat ang buwanang kabuuan sa bawat araw.',
+  'estimator.formula.var.aDay.title': 'Araw ng aplikasyon',
+  'estimator.formula.var.aDay.description':
+    'Kung ilang araw na ang buwan nang mag-apply ka, kaya nasusukat kung gaano na kataas ang naipong pila.',
+  'estimator.formula.var.nApp.title': 'Natanggap bago ka',
+  'estimator.formula.var.nApp.description':
+    'Mga aplikasyong natanggap nang mas maaga sa buwan ng iyong aplikasyon, hinati ayon sa araw ng iyong pag-apply.',
+  'estimator.formula.var.pApp.title': 'Naproseso bago ka',
+  'estimator.formula.var.pApp.description':
+    'Mga aplikasyong natapos nang mas maaga sa buwan ng iyong aplikasyon, hinati sa parehong paraan.',
+  'estimator.formula.var.qApp.title': 'Pila noong nag-apply',
+  'estimator.formula.var.qApp.description': 'Ilang aplikasyon ang nauna sa iyo noong araw na nag-apply ka.',
+  // Step 3 — progress since the application date.
+  'estimator.formula.var.pAfter.title': 'Naproseso sa sumunod na buwan',
+  'estimator.formula.var.pAfter.description':
+    'Mga aplikasyong natapos sa mga inilathalang buwan matapos ang buwan ng iyong aplikasyon.',
+  'estimator.formula.var.tApp.title': 'Araw mula nang mag-apply',
+  'estimator.formula.var.tApp.description': 'Mga araw sa kalendaryo mula sa petsa ng iyong aplikasyon hanggang ngayon.',
+  'estimator.formula.var.tData.title': 'Araw mula sa huling datos',
+  'estimator.formula.var.tData.description':
+    'Mga araw sa kalendaryo mula sa katapusan ng pinakahuling inilathalang buwan hanggang ngayon.',
+  'estimator.formula.var.cProc.title': 'Nakumpirmang naproseso',
+  'estimator.formula.var.cProc.description':
+    'Mga natapos mula nang mag-apply ka na nasasaklaw na ng inilathalang bilang.',
+  'estimator.formula.var.eProc.title': 'Tinatayang naproseso',
+  'estimator.formula.var.eProc.description':
+    'Mga aplikasyong ipinapalagay na natapos sa bahaging hindi pa naaabot ng inilathalang bilang. Nagiging negatibo ito kapag mas marami nang naitala ang inilathalang buwan kaysa sa hinuhulaan ng karaniwang bilis.',
+  'estimator.formula.var.sProc.title': 'Naproseso mula noon',
+  'estimator.formula.var.sProc.description':
+    'Lahat ng nagawa mula nang mag-apply ka: ang nakumpirma at ang tinataya nang magkasama, binilog sa buong aplikasyon.',
+  // Step 4 — position in the queue, and how long it takes to clear.
+  'estimator.formula.var.qPos.title': 'Pwesto sa pila',
+  'estimator.formula.var.qPos.description':
+    'Ilang aplikasyon pa ang nauuna sa iyo. Kapag sero o mas mababa, lumipas na ang tinatayang petsa.',
+  'estimator.formula.var.dRem.title': 'Natitirang araw',
+  'estimator.formula.var.dRem.description':
+    'Mga araw na kailangan upang maubos ang natitirang pila sa kasalukuyang bilis.',
+  // Step 5 — the whole-day offset, and the spread around it.
+  'estimator.formula.var.dEst.title': 'Buong araw',
+  'estimator.formula.var.dEst.description':
+    'Ang natitirang araw na binilog palayo sa sero: ang idinaragdag sa araw na ito upang makuha ang petsang nasa itaas.',
+  'estimator.formula.var.sigmaR.title': 'Pagkakalat ng bilis',
+  'estimator.formula.var.sigmaR.description':
+    'Ang standard deviation ng buwanang bilis ng pagproseso, ibig sabihin kung gaano nagbabago ang takbo buwan-buwan.',
+  'estimator.formula.var.rBar.title': 'Karaniwang buwanang bilis',
+  'estimator.formula.var.rBar.description':
+    'Ang katamtaman ng buwanang bilis na pantay ang timbang sa bawat buwan, hindi nakabatay sa dami.',
+  'estimator.formula.var.uDays.title': 'Kawalang-katiyakan',
+  'estimator.formula.var.uDays.description':
+    'Ang saklaw na ± na nasa tabi ng resulta: kung gaano gumagalaw ang tantiya kapag nagbago ang takbo nang kasing lawak ng nakaraan.',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card

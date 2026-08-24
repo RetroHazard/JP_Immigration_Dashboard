@@ -146,33 +146,93 @@ export const pt: Dictionary = {
   'estimator.disclaimerEmphasis': 'estimativa',
 
   // ── Estimator: the "Show the math" breakdown ─────────────────────────────
-  'estimator.formula.step1': 'Fila no momento da candidatura',
-  'estimator.formula.step2': 'Posição na fila e taxa diária',
-  'estimator.formula.step3': 'Dias restantes',
-  'estimator.formula.explainAria': 'Explicar as variáveis da fórmula de {title}',
-  'estimator.formula.var.dRem.title': 'Dias Restantes',
-  'estimator.formula.var.dRem.description': 'Dias estimados até à conclusão do processamento.',
-  'estimator.formula.var.qPos.title': 'Posição na Fila',
-  'estimator.formula.var.qPos.description': 'Posição estimada na fila de processamento.',
-  'estimator.formula.var.rDaily.title': 'Taxa Diária',
-  'estimator.formula.var.rDaily.description': 'Média de candidaturas processadas por dia.',
-  'estimator.formula.var.cProc.title': 'Processadas Confirmadas',
-  'estimator.formula.var.cProc.description': 'Número confirmado de candidaturas processadas desde a submissão.',
-  'estimator.formula.var.eProc.title': 'Processadas Estimadas',
+  'estimator.formula.step1': 'Base de produtividade',
+  'estimator.formula.step2': 'Fila na data do pedido',
+  'estimator.formula.step3': 'Tratado desde o pedido',
+  'estimator.formula.step4': 'Posição na fila e dias restantes',
+  'estimator.formula.step5': 'Dias inteiros e margem',
+  'estimator.formula.explainAria': 'Explicar as variáveis da fórmula {title}',
+  // Step 1 — throughput baseline.
+  'estimator.formula.var.sigmaP.title': 'Total tratado',
+  'estimator.formula.var.sigmaP.description':
+    'Pedidos concluídos no período amostrado, ou seja, os últimos seis meses publicados, ou menos se os dados terminarem antes.',
+  'estimator.formula.var.sigmaN.title': 'Total recebido',
+  'estimator.formula.var.sigmaN.description': 'Pedidos recebidos nesse mesmo período amostrado.',
+  'estimator.formula.var.sigmaD.title': 'Total de dias',
+  'estimator.formula.var.sigmaD.description': 'Dias de calendário do período amostrado, somados mês a mês.',
+  'estimator.formula.var.rProc.title': 'Ritmo de tratamento',
+  'estimator.formula.var.rProc.description':
+    'Pedidos concluídos por dia, em média ao longo de todo o período amostrado.',
+  'estimator.formula.var.rNew.title': 'Ritmo de entrada',
+  'estimator.formula.var.rNew.description': 'Pedidos recebidos por dia, em média ao longo desse mesmo período.',
+  // Step 2 — the queue on the application date.
+  'estimator.formula.var.tPrev.title': 'Total do mês anterior',
+  'estimator.formula.var.tPrev.description':
+    'Todos os pedidos em carteira no mês anterior ao seu: o transporte mais as novas entradas.',
+  'estimator.formula.var.pPrev.title': 'Tratado no mês anterior',
+  'estimator.formula.var.pPrev.description': 'Pedidos concluídos durante o mês anterior ao seu.',
+  'estimator.formula.var.cSeed.title': 'Início da simulação',
+  'estimator.formula.var.cSeed.description':
+    'O último transporte publicado, usado como ponto de partida quando o mês anterior ao seu não tem números próprios.',
+  'estimator.formula.var.mSim.title': 'Meses simulados',
+  'estimator.formula.var.mSim.description':
+    'Quantos meses o transporte foi projetado até alcançar o mês do seu pedido.',
+  'estimator.formula.var.cPrev.title': 'Transporte',
+  'estimator.formula.var.cPrev.description':
+    'Pedidos ainda à espera no início do mês do seu pedido. Retirado do mês anterior quando este está publicado e, caso contrário, projetado mês a mês a partir do último mês com números.',
+  'estimator.formula.var.nMonth.title': 'Recebido no mês',
+  'estimator.formula.var.nMonth.description': 'Pedidos recebidos ao longo de todo o mês do seu pedido.',
+  'estimator.formula.var.pMonth.title': 'Tratado no mês',
+  'estimator.formula.var.pMonth.description': 'Pedidos concluídos ao longo de todo o mês do seu pedido.',
+  'estimator.formula.var.dMonth.title': 'Dias do mês',
+  'estimator.formula.var.dMonth.description':
+    'Dias de calendário do mês do seu pedido, usados para repartir os totais mensais por igual pelos dias.',
+  'estimator.formula.var.aDay.title': 'Dia do pedido',
+  'estimator.formula.var.aDay.description': 'Em que dia do mês apresentou, isto é, até onde a fila se tinha acumulado.',
+  'estimator.formula.var.nApp.title': 'Recebido antes de si',
+  'estimator.formula.var.nApp.description':
+    'Pedidos recebidos mais cedo no mês do seu pedido, repartidos proporcionalmente até ao dia em que apresentou.',
+  'estimator.formula.var.pApp.title': 'Tratado antes de si',
+  'estimator.formula.var.pApp.description':
+    'Pedidos concluídos mais cedo no mês do seu pedido, repartidos da mesma maneira.',
+  'estimator.formula.var.qApp.title': 'Fila no pedido',
+  'estimator.formula.var.qApp.description': 'Quantos pedidos estavam à frente do seu no dia em que apresentou.',
+  // Step 3 — progress since the application date.
+  'estimator.formula.var.pAfter.title': 'Tratado nos meses seguintes',
+  'estimator.formula.var.pAfter.description':
+    'Pedidos concluídos nos meses publicados posteriores ao mês do seu pedido.',
+  'estimator.formula.var.tApp.title': 'Dias desde o pedido',
+  'estimator.formula.var.tApp.description': 'Dias de calendário entre a data do seu pedido e hoje.',
+  'estimator.formula.var.tData.title': 'Dias desde os dados',
+  'estimator.formula.var.tData.description': 'Dias de calendário entre o fim do último mês publicado e hoje.',
+  'estimator.formula.var.cProc.title': 'Tratado confirmado',
+  'estimator.formula.var.cProc.description':
+    'Conclusões posteriores ao seu pedido que os números publicados já contemplam.',
+  'estimator.formula.var.eProc.title': 'Tratado projetado',
   'estimator.formula.var.eProc.description':
-    'Número estimado de candidaturas processadas desde o último ponto de dados.',
-  'estimator.formula.var.sigmaP.title': 'Total Processado',
-  'estimator.formula.var.sigmaP.description': 'Soma das candidaturas processadas utilizada para calcular médias.',
-  'estimator.formula.var.sigmaD.title': 'Total de Dias',
-  'estimator.formula.var.sigmaD.description': 'Soma de dias utilizada para calcular médias.',
-  'estimator.formula.var.qApp.title': 'Fila de Candidaturas',
-  'estimator.formula.var.qApp.description': 'Posição estimada na fila no momento da submissão.',
-  'estimator.formula.var.cPrev.title': 'Transitadas',
-  'estimator.formula.var.cPrev.description': 'Candidaturas transitadas do mês anterior.',
-  'estimator.formula.var.nApp.title': 'Novas Candidaturas',
-  'estimator.formula.var.nApp.description': 'Candidaturas estimadas recebidas antes da submissão.',
-  'estimator.formula.var.pApp.title': 'Candidaturas Processadas',
-  'estimator.formula.var.pApp.description': 'Candidaturas estimadas processadas antes da submissão.',
+    'Pedidos que se presumem concluídos no troço que os números publicados ainda não cobrem. Fica negativo quando esses números já ultrapassam o que o ritmo médio previa.',
+  'estimator.formula.var.sProc.title': 'Tratado desde então',
+  'estimator.formula.var.sProc.description':
+    'Tudo o que foi despachado desde que apresentou: o confirmado e o projetado em conjunto, arredondados a pedidos inteiros.',
+  // Step 4 — position in the queue, and how long it takes to clear.
+  'estimator.formula.var.qPos.title': 'Posição na fila',
+  'estimator.formula.var.qPos.description':
+    'Quantos pedidos continuam à frente do seu. Zero ou menos significa que a estimativa já passou.',
+  'estimator.formula.var.dRem.title': 'Dias restantes',
+  'estimator.formula.var.dRem.description': 'Dias necessários para escoar o resto da fila ao ritmo atual.',
+  // Step 5 — the whole-day offset, and the spread around it.
+  'estimator.formula.var.dEst.title': 'Dias inteiros',
+  'estimator.formula.var.dEst.description':
+    'Os dias restantes arredondados afastando-se de zero: o desvio somado a hoje para dar a data mostrada acima.',
+  'estimator.formula.var.sigmaR.title': 'Dispersão do ritmo',
+  'estimator.formula.var.sigmaR.description':
+    'Desvio-padrão dos ritmos mensais de tratamento, ou seja, quanto o passo varia de mês para mês.',
+  'estimator.formula.var.rBar.title': 'Ritmo mensal médio',
+  'estimator.formula.var.rBar.description':
+    'A média dos ritmos mensais com peso igual por mês, e não ponderada pelo volume.',
+  'estimator.formula.var.uDays.title': 'Incerteza',
+  'estimator.formula.var.uDays.description':
+    'A margem ± apresentada junto ao resultado: quanto a estimativa se desloca se o passo variar tanto como tem variado.',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card

@@ -167,6 +167,8 @@ or show a single half-yearly snapshot, picked with the same range control.
   - Queue position tracking
   - Historical processing rate analysis (rolling 6-month average)
   - Predictive modeling with a step-by-step calculation breakdown rendered in LaTeX (KaTeX)
+    - Five dependency-ordered steps: throughput baseline, queue at application, processed since application, queue position and remaining days, completion offset and spread
+    - Every derived value shows its own working, and shows the branch the estimate actually took where the model has more than one
     - Inline tooltip reference w/ variable explanations
   - One-click reset
   - Shareable permalink for a filled-out estimate (bureau, application type, and date)

@@ -37,6 +37,12 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Changed
 
+- **v1.6.0**: The estimator's "Show the math" breakdown now shows how every figure in it is reached, not just the last three steps —
+  - Five steps instead of three, ordered so that no symbol is used before the step that defines it. The daily processing rate used to be introduced in step 2 and then relied on by step 1
+  - Each derived value now shows its own working — the carry-over, the pro-rated figures for your application month, the processed-since totals, and the ± spread beside the result, none of which had a formula before
+  - Where the model takes a different route because a month has not been published yet, the breakdown shows the route your estimate actually took rather than a general form
+  - Figures inside the formulas now use your own language's digit grouping, and the queue position no longer rounds its parts separately from its total, which could leave the subtraction on screen one short of the answer beside it
+
 - **v1.5.0**: On phones and tablets, chart tooltips are now opened by tapping rather than by holding a finger down —
   - Holding was the only way to see a value, and letting go dismissed it, so a reading could never be held still long enough to compare against anything. A tap now pins the tooltip open; tap the same point again to close it, or another point to move it. Tapping outside the chart, scrolling, or opening a tooltip on a different chart also closes it, so only ever one is on screen
   - Most charts had no touch handling at all and were relying on the mouse events a browser invents after a tap. That is why a tooltip would sometimes flash and vanish, or stay stuck on the wrong point: the map, both sankeys, the bureau-share ring, the treemap, and the efficiency ranking are all covered now
