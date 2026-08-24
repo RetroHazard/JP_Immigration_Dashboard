@@ -53,9 +53,10 @@ per-chart filtering and a configurable time range.
 Seven charts, filterable by bureau and/or application type where relevant.
 
 #### **Intake & Processing**
-- **Purpose:** Applications carried over and newly received each month, against the volume the bureaus completed.
+- **Purpose:** Applications carried over and newly received each month, with the volume the bureaus completed set inside them and split by outcome.
 - **Features:**
-  - Stacked bars for carried-over + newly received applications, with completed volume as a line on the same axis
+  - Bullet-style columns: a stacked bar for carried-over + newly received applications, with a narrower stack of granted / denied / other set inside it, so completed volume reads as a proportion of the applications on hand
+  - Approval rate (granted ÷ processed) as a line on a second axis fixed at 0–100%, using the same definition as the Outcomes gauge and the stats cards
   - Filterable by bureau and application type
   - Bureau-to-bureau comparison view
   - Configurable time range (6/12/24/36 months, or all)

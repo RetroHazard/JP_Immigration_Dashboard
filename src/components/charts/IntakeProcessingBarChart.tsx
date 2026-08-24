@@ -81,34 +81,48 @@ const LEGEND = [
   { id: RATE_ID, labelKey: 'metric.approvalRate' as const, shape: 'line' as const },
 ];
 
+/**
+ * One chart row per month in range. Exported so the arithmetic can be tested
+ * on its own — visx sizes itself from a real layout, which jsdom cannot give
+ * it, so a rendered chart proves nothing about these numbers.
+ */
+export const buildIntakeRows = (
+  data: ImmigrationChartData['data'],
+  filters: ImmigrationChartData['filters'],
+  range: ImmigrationChartData['range']
+): Record<string, unknown>[] => {
+  const months = monthsForRange(getAllMonths(data), range);
+  return months.map((month) => {
+    // 'all' bureau = the official nationwide aggregate row
+    const monthData = selectData(data, {
+      month,
+      scope: bureauScopeFromFilter(filters.bureau),
+      type: filters.type,
+    });
+    const sumOf = (status: string) =>
+      monthData.reduce((sum, entry) => (entry.status === status ? sum + entry.value : sum), 0);
+    const row: Record<string, unknown> = { date: new Date(`${month}-01T00:00:00`) };
+    for (const series of SERIES) row[series.id] = sumOf(series.status);
+    // Denominator is the published 300000 row rather than the three outcome
+    // rows re-added, matching the Outcomes gauge and the stats cards. Guard
+    // the divisor, not the result: NaN and Infinity are both `typeof
+    // "number"`, and Line would place either at pixel 0 — the top of the plot.
+    const processed = sumOf(STATUS_CODES.PROCESSED);
+    row[RATE_ID] = processed > 0 ? (Number(row.granted) / processed) * 100 : 0;
+    return row;
+  });
+};
+
 export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { t, formatters } = useLocale();
+  const { bureau, type } = filters;
   const series = useMemo(
     () => LEGEND.map((entry) => ({ ...entry, color: COLORS[entry.id] ?? 'var(--chart-1)', label: t(entry.labelKey) })),
     [t]
   );
-  const chartData = useMemo(() => {
-    const months = monthsForRange(getAllMonths(data), range);
-    return months.map((month) => {
-      // 'all' bureau = the official nationwide aggregate row
-      const monthData = selectData(data, {
-        month,
-        scope: bureauScopeFromFilter(filters.bureau),
-        type: filters.type,
-      });
-      const sumOf = (status: string) =>
-        monthData.reduce((sum, entry) => (entry.status === status ? sum + entry.value : sum), 0);
-      const row: Record<string, unknown> = { date: new Date(`${month}-01T00:00:00`) };
-      for (const series of SERIES) row[series.id] = sumOf(series.status);
-      // Denominator is the published 300000 row rather than the three outcome
-      // rows re-added, matching the Outcomes gauge and the stats cards. Guard
-      // the divisor, not the result: NaN and Infinity are both `typeof
-      // "number"`, and Line would place either at pixel 0 — the top of the plot.
-      const processed = sumOf(STATUS_CODES.PROCESSED);
-      row[RATE_ID] = processed > 0 ? (Number(row.granted) / processed) * 100 : 0;
-      return row;
-    });
-  }, [data, filters.bureau, filters.type, range]);
+  // Keyed on the filter values rather than the object, which is rebuilt on
+  // every parent render — ActiveChart's own memo compares them the same way.
+  const chartData = useMemo(() => buildIntakeRows(data, { bureau, type }, range), [data, bureau, type, range]);
 
   return (
     <div className="chart-card-content">
