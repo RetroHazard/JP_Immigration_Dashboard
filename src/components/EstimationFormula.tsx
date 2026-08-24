@@ -94,13 +94,16 @@ export const escapeNumber = (formatted: string): string =>
 /** Row separator; KaTeX's default `aligned` leading is tight at this size. */
 const ROW = ' \\\\[2pt]\n';
 
-/** ` + x` or ` - |x|`, so a negative term never renders as `+ -20{,}146`. */
-const addend = (value: number, fmt: (v: number) => string): string =>
-  value < 0 ? `- ${fmt(Math.abs(value))}` : `+ ${fmt(value)}`;
-
-/** The same, for a term being subtracted. */
-const subtrahend = (value: number, fmt: (v: number) => string): string =>
-  value < 0 ? `+ ${fmt(Math.abs(value))}` : `- ${fmt(value)}`;
+/**
+ * `\underbrace{sym}_{value}` - the figure rides under its own symbol, so a
+ * term can be read without tracking it across a second, substituted line.
+ *
+ * The sign rides with the value rather than flipping the operator: `E_proc`
+ * goes negative whenever the published months already outrun the average
+ * rate, and `+ \underbrace{E_proc}_{-20{,}146}` reports that honestly, where
+ * turning it into a subtraction would hide it.
+ */
+const under = (id: VariableId, value: string): string => `\\underbrace{${SYMBOLS[id]}}_{${value}}`;
 
 const aligned = (rows: string[]): string => `\\begin{aligned}\n${rows.join(ROW)}\n\\end{aligned}`;
 
@@ -135,13 +138,13 @@ export const buildFormulaSteps = (
   if (branches.carryover === 'reported') {
     queueDefines.push('tPrev', 'pPrev');
     queueRows.push(
-      `${SYMBOLS.cPrev} &= ${SYMBOLS.tPrev} - ${SYMBOLS.pPrev} = ${n(vars.T_prev ?? 0)} - ${n(vars.P_prev ?? 0)} = ${n(vars.C_prev)}`
+      `${SYMBOLS.cPrev} &= ${under('tPrev', n(vars.T_prev ?? 0))} - ${under('pPrev', n(vars.P_prev ?? 0))} = ${n(vars.C_prev)}`
     );
   } else if (branches.carryover === 'simulated') {
     queueDefines.push('cSeed', 'mSim');
     queueUses.push('rNew', 'rProc');
     queueRows.push(
-      `C_k &= \\max\\bigl(0,\\, C_{k-1} + (${SYMBOLS.rNew} - ${SYMBOLS.rProc})\\, d_k\\bigr)`,
+      `C_k &= \\max\\bigl(0,\\, C_{k-1} + (${under('rNew', rate(vars.R_new))} - ${under('rProc', rate(vars.R_proc))})\\, d_k\\bigr)`,
       `${SYMBOLS.cSeed} &= ${n(vars.C_seed ?? 0)}, \\quad ${SYMBOLS.mSim} = ${n(vars.M_sim ?? 0)}`,
       `${SYMBOLS.cPrev} &= C_{${SYMBOLS.mSim}} = ${n(vars.C_prev)}`
     );
@@ -162,14 +165,13 @@ export const buildFormulaSteps = (
     queueDefines.push('aDay');
     if (!queueUses.includes('rNew')) queueUses.push('rNew', 'rProc');
     queueRows.push(
-      `${SYMBOLS.nApp} &= ${SYMBOLS.rNew}\\, ${SYMBOLS.aDay} = ${rate(vars.R_new)} \\cdot ${n(vars.A_day)} = ${n(vars.N_app)}`,
-      `${SYMBOLS.pApp} &= ${SYMBOLS.rProc}\\, ${SYMBOLS.aDay} = ${rate(vars.R_proc)} \\cdot ${n(vars.A_day)} = ${n(vars.P_app)}`
+      `${SYMBOLS.nApp} &= ${under('rNew', rate(vars.R_new))} \\cdot ${under('aDay', n(vars.A_day))} = ${n(vars.N_app)}`,
+      `${SYMBOLS.pApp} &= ${under('rProc', rate(vars.R_proc))} \\cdot ${under('aDay', n(vars.A_day))} = ${n(vars.P_app)}`
     );
   }
   queueDefines.push('nApp', 'pApp', 'qApp');
   queueRows.push(
-    `${SYMBOLS.qApp} &= \\left\\lfloor ${SYMBOLS.cPrev} + ${SYMBOLS.nApp} - ${SYMBOLS.pApp} \\right\\rceil`,
-    `&= \\left\\lfloor ${n(vars.C_prev)} + ${n(vars.N_app)} - ${n(vars.P_app)} \\right\\rceil = ${n(vars.Q_app)}`
+    `${SYMBOLS.qApp} &= \\bigl\\lfloor ${under('cPrev', n(vars.C_prev))} + ${under('nApp', n(vars.N_app))} - ${under('pApp', n(vars.P_app))} \\bigr\\rceil = ${n(vars.Q_app)}`
   );
 
   const queueAtApplication: FormulaStep = {
@@ -188,8 +190,7 @@ export const buildFormulaSteps = (
   if (branches.appMonth === 'reported') {
     sinceUses.push('dMonth', 'aDay');
     sinceRows.push(
-      `${SYMBOLS.cProc} &= ${SYMBOLS.pAfter} + ${SYMBOLS.rProc}\\,(${SYMBOLS.dMonth} - ${SYMBOLS.aDay})`,
-      `&= ${n(vars.P_after)} + ${rate(vars.R_proc)} \\cdot (${n(vars.D_month)} - ${n(vars.A_day)}) = ${n(vars.C_proc)}`
+      `${SYMBOLS.cProc} &= ${under('pAfter', n(vars.P_after))} + ${under('rProc', rate(vars.R_proc))} \\cdot (${under('dMonth', n(vars.D_month))} - ${under('aDay', n(vars.A_day))}) = ${n(vars.C_proc)}`
     );
   } else {
     // Nothing was processed inside the application month, because the dataset
@@ -200,19 +201,17 @@ export const buildFormulaSteps = (
   if (branches.sinceApplication === 'fromApplication') {
     sinceDefines.push('tApp');
     sinceRows.push(
-      `${SYMBOLS.eProc} &= ${SYMBOLS.rProc}\\, ${SYMBOLS.tApp} - ${SYMBOLS.cProc}`,
-      `&= ${rate(vars.R_proc)} \\cdot ${n(vars.T_app)} - ${n(vars.C_proc)} = ${n(vars.E_proc)}`
+      `${SYMBOLS.eProc} &= ${under('rProc', rate(vars.R_proc))} \\cdot ${under('tApp', n(vars.T_app))} - ${under('cProc', n(vars.C_proc))} = ${n(vars.E_proc)}`
     );
   } else {
     sinceDefines.push('tData');
     sinceRows.push(
-      `${SYMBOLS.eProc} &= ${SYMBOLS.rProc}\\, ${SYMBOLS.tData} = ${rate(vars.R_proc)} \\cdot ${n(vars.T_data)} = ${n(vars.E_proc)}`
+      `${SYMBOLS.eProc} &= ${under('rProc', rate(vars.R_proc))} \\cdot ${under('tData', n(vars.T_data))} = ${n(vars.E_proc)}`
     );
   }
   sinceDefines.push('cProc', 'eProc', 'sProc');
   sinceRows.push(
-    `${SYMBOLS.sProc} &= \\left\\lfloor ${SYMBOLS.cProc} + ${SYMBOLS.eProc} \\right\\rceil`,
-    `&= \\left\\lfloor ${n(vars.C_proc)} ${addend(vars.E_proc, n)} \\right\\rceil = ${n(vars.S_proc)}`
+    `${SYMBOLS.sProc} &= \\bigl\\lfloor ${under('cProc', n(vars.C_proc))} + ${under('eProc', n(vars.E_proc))} \\bigr\\rceil = ${n(vars.S_proc)}`
   );
 
   const processedSince: FormulaStep = {
@@ -230,15 +229,21 @@ export const buildFormulaSteps = (
     defines: ['qPos', 'dRem'],
     uses: ['qApp', 'sProc', 'rProc'],
     math: aligned([
-      `${SYMBOLS.qPos} &= ${SYMBOLS.qApp} - ${SYMBOLS.sProc} = ${n(vars.Q_app)} ${subtrahend(vars.S_proc, n)} = ${n(vars.Q_pos)}`,
+      `${SYMBOLS.qPos} &= ${under('qApp', n(vars.Q_app))} - ${under('sProc', n(vars.S_proc))} = ${n(vars.Q_pos)}`,
       `${SYMBOLS.dRem} &= \\frac{${SYMBOLS.qPos}}{${SYMBOLS.rProc}} = \\frac{${n(vars.Q_pos)}}{${rate(vars.R_proc)}} = ${rate(vars.D_rem)}\\ \\text{d}`,
     ]),
   };
 
   // ── 5. Completion offset & spread ──────────────────────────────────────
   // Whole days are rounded away from zero, so a past-due estimate floors.
+  //
+  // Fixed-size delimiters, not `\left`/`\right`: asked to stretch around an
+  // underbraced term, KaTeX 0.16.28 emits a `\rceil` path with a doubled
+  // moveto (`MM319 602 ...`), which the browser rejects as invalid SVG. Sizing
+  // the bracket to the symbols also reads better - the brace underneath is an
+  // annotation, not part of the expression it encloses.
   const [openWhole, closeWhole] =
-    vars.D_rem >= 0 ? ['\\left\\lceil', '\\right\\rceil'] : ['\\left\\lfloor', '\\right\\rfloor'];
+    vars.D_rem >= 0 ? ['\\bigl\\lceil', '\\bigr\\rceil'] : ['\\bigl\\lfloor', '\\bigr\\rfloor'];
 
   const completion: FormulaStep = {
     step: 5,
@@ -246,7 +251,7 @@ export const buildFormulaSteps = (
     defines: ['dEst', 'sigmaR', 'rBar', 'uDays'],
     uses: ['dRem'],
     math: aligned([
-      `${SYMBOLS.dEst} &= ${openWhole} ${SYMBOLS.dRem} ${closeWhole} = ${n(vars.D_est)}\\ \\text{d}`,
+      `${SYMBOLS.dEst} &= ${openWhole} ${under('dRem', rate(vars.D_rem))} ${closeWhole} = ${n(vars.D_est)}\\ \\text{d}`,
       `${SYMBOLS.uDays} &= \\left\\lfloor \\lvert ${SYMBOLS.dRem} \\rvert \\cdot \\frac{${SYMBOLS.sigmaR}}{${SYMBOLS.rBar}} \\right\\rceil`,
       `&= \\left\\lfloor ${rate(Math.abs(vars.D_rem))} \\cdot \\frac{${rate(vars.R_sd)}}{${rate(vars.R_bar)}} \\right\\rceil = ${n(vars.U_days)}\\ \\text{d}`,
     ]),
