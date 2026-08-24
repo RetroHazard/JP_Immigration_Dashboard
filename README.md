@@ -184,8 +184,8 @@ or show a single half-yearly snapshot, picked with the same range control.
 ---
 
 ### :clipboard: Data Table & Export
-- Collapsible monthly data table for the current chart selection — also serves as an accessible text alternative to the SVG charts
-- One-click CSV export
+- Collapsible data table under every Application Processing chart, shaped to match that chart — months by application type under Application Types, bureaus by share under Bureau Share, prefectures under the Regional Map — so it genuinely is an accessible text alternative to the SVG above it
+- One-click CSV export, one file per chart, with English column headers whatever the interface language
 
 ---
 

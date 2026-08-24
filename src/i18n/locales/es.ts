@@ -95,8 +95,9 @@ export const es: Dictionary = {
   'table.view': 'Ver tabla de datos',
   'table.hide': 'Ocultar tabla de datos',
   'table.downloadCsv': 'Descargar CSV',
-  'table.caption': 'Estadísticas mensuales de solicitudes de {bureau}',
   'table.month': 'Mes',
+  'table.prefecture': 'Prefectura',
+  'table.shareOfTotal': 'Porcentaje del total',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Estimador de tiempo',

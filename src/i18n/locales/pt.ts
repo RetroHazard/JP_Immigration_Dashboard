@@ -96,8 +96,9 @@ export const pt: Dictionary = {
   'table.view': 'Ver tabela de dados',
   'table.hide': 'Ocultar tabela de dados',
   'table.downloadCsv': 'Transferir CSV',
-  'table.caption': 'Estatísticas mensais de candidaturas para {bureau}',
   'table.month': 'Mês',
+  'table.prefecture': 'Prefeitura',
+  'table.shareOfTotal': 'Quota do total',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Estimador de Tempo de Processamento',

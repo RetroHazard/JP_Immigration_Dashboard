@@ -96,8 +96,9 @@ export const de: Dictionary = {
   'table.view': 'Datentabelle anzeigen',
   'table.hide': 'Datentabelle ausblenden',
   'table.downloadCsv': 'CSV herunterladen',
-  'table.caption': 'Monatliche Antragsstatistik für {bureau}',
   'table.month': 'Monat',
+  'table.prefecture': 'Präfektur',
+  'table.shareOfTotal': 'Anteil am Gesamtwert',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Bearbeitungszeit-Schätzer',

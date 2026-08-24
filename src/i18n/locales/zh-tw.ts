@@ -119,8 +119,9 @@ export const zhTw: Dictionary = {
   'table.view': '顯示資料表',
   'table.hide': '隱藏資料表',
   'table.downloadCsv': '下載 CSV',
-  'table.caption': '{bureau}的每月申請統計',
   'table.month': '月份',
+  'table.prefecture': '都道府縣',
+  'table.shareOfTotal': '佔總量比例',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': '審查期間預估工具',

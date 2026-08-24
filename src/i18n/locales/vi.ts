@@ -96,8 +96,9 @@ export const vi: Dictionary = {
   'table.view': 'Xem bảng dữ liệu',
   'table.hide': 'Ẩn bảng dữ liệu',
   'table.downloadCsv': 'Tải xuống CSV',
-  'table.caption': 'Số liệu thống kê hồ sơ hàng tháng của {bureau}',
   'table.month': 'Tháng',
+  'table.prefecture': 'Tỉnh',
+  'table.shareOfTotal': 'Tỷ trọng',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Công cụ Ước tính Thời gian Xử lý',

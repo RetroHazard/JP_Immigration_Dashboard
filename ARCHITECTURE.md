@@ -218,7 +218,7 @@ graph TD
     SHELL --> STATS["📊 StatsSummary<br/>Summary Stat Cards"]
     SHELL --> RSTATS["📊 ResidentsStatsSummary<br/>Summary Stat Cards"]
     SHELL --> ACTIVE["🔀 ActiveChart<br/>Renders the selected tab"]
-    SHELL --> TABLE["📋 ChartDataTable<br/>Data table + CSV export"]
+    SHELL --> TABLE["📋 ChartDataTable<br/>Per-chart data table + CSV export"]
     SHELL --> ESTIMATOR["⏱️ EstimationCard<br/>Queue Predictor"]
     SHELL --> CHANGELOG["📰 ChangelogModal<br/>Opened from the version link"]
     
@@ -282,7 +282,7 @@ The language switcher is gated behind `LOCALE_SWITCHER_ENABLED` in `src/i18n/con
 #### **DashboardShell** (`src/components/DashboardShell.tsx`)
 
 The single responsive shell that:
-- Renders the header, chart tabs, filter bar, data table, and footer
+- Renders the header, chart tabs, filter bar, data table (passing the active chart's `table` id through to `ChartDataTable`), and footer
 - Owns the URL-first state (`chart`, `bureau`, `type`, `range`, `compare`, `airports` query params via nuqs)
 - Hosts the Processing Time Estimator as a collapsible desktop sidebar or a mobile bottom sheet
 - Coordinates all child components
@@ -340,6 +340,16 @@ Each chart:
 - Receives pre-filtered data as props
 - Manages its own visualization state
 - Is self-contained and reusable
+
+#### **ChartDataTable** (`src/components/ChartDataTable.tsx`)
+
+The collapsible text alternative under each Application Processing chart, and the app's only CSV export.
+
+It holds no domain knowledge. Every chart's registry entry names a `ProcessingTableId`, and the shapes and their selector math live in `src/utils/chartTables.ts` keyed on that id; the component renders whichever `TableModel` comes back. That is what lets the row axis vary — months under Intake and Application Types, bureaus under Bureau Share, Category Mix and Processing Efficiency, application types under Outcomes, prefectures under the Regional Map — without the component knowing the difference.
+
+Each builder reads its numbers from the same helper its chart does (`buildCategoryMixTree` for the treemap, `computeBureauVolumes` for the lollipop, the ring chart's own status pair for the donut), so a table cannot drift from the chart above it. The field was made required on `ProcessingChartDefinition` deliberately: the table was previously a single hardcoded month × status pivot mounted under all seven charts, which described only `intake`, and requiring the declaration is what stops the next chart being added without anyone deciding.
+
+Labels travel as `LabelRef` — a catalogue key, or a language-neutral literal — rather than as resolved text, so the DOM can resolve them through the locale-bound `t` while `src/utils/chartTableCsv.ts` resolves the same refs against English. That is what keeps the export English-only by construction now that rows and cells carry names and not just months, and `csvField` quotes per RFC 4180 so a value containing a separator cannot split a row.
 
 #### **EstimationCard** (`src/components/EstimationCard.tsx`)
 

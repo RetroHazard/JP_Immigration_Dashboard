@@ -34,6 +34,7 @@ import type React from 'react';
 
 import type { StatusGroup } from '../../constants/residenceStatuses';
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
+import type { ProcessingTableId } from '../../utils/chartTables';
 import type { ResidentRecord } from '../../utils/residentsData';
 import type { ResidentRange } from '../../utils/residentsSelectors';
 import type { ChartRange } from '../../utils/selectors';
@@ -106,6 +107,16 @@ export interface ProcessingChartDefinition extends BaseChartDefinition {
   dataset: 'processing';
   component: React.ComponentType<ImmigrationChartData>;
   filters: { bureau: boolean; appType: boolean };
+  /**
+   * Which text alternative this chart's data table renders — a capability
+   * declaration in the same spirit as `filters` and `ranges`. Required, not
+   * optional: the table used to be a single hardcoded month x status pivot
+   * mounted under every chart, and making each chart name its own is what
+   * stops the next one being added without anyone deciding. The shapes and
+   * their selector math live in src/utils/chartTables.ts, keyed on this id, so
+   * a swap-ready alternate component inherits its table for free.
+   */
+  table: ProcessingTableId;
   ranges: ChartRange[];
   defaultRange: ChartRange;
 }
@@ -135,6 +146,7 @@ export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
     icon: BarChart3,
     component: IntakeProcessingBarChart,
     filters: { bureau: true, appType: true },
+    table: 'intakeByMonth',
     compare: true,
     ranges: ['6', '12', '24', '36', 'all'],
     defaultRange: '12',
@@ -145,6 +157,7 @@ export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
     icon: LineChartIcon,
     component: CategorySubmissionsLineChart,
     filters: { bureau: true, appType: false },
+    table: 'typesByMonth',
     compare: true,
     ranges: ['6', '12', '24', '36', 'all'],
     defaultRange: '12',
@@ -155,6 +168,7 @@ export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
     icon: GitFork,
     component: OutcomesSankeyChart,
     filters: { bureau: true, appType: true },
+    table: 'outcomesByType',
     compare: false,
     ranges: ['latest', '6', '12', '24', '36', 'all'],
     defaultRange: '12',
@@ -165,6 +179,7 @@ export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
     icon: PieChart,
     component: BureauDistributionRingChart,
     filters: { bureau: false, appType: true },
+    table: 'shareByBureau',
     compare: false,
     ranges: ['latest', '6', '12', '24', '36', 'all'],
     defaultRange: 'latest',
@@ -175,6 +190,7 @@ export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
     icon: LayoutDashboard,
     component: CategoryMixTreemap,
     filters: { bureau: true, appType: false },
+    table: 'mixByBureau',
     compare: false,
     ranges: ['latest', '6', '12', '24', '36', 'all'],
     defaultRange: 'latest',
@@ -185,6 +201,7 @@ export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
     icon: ChartBarDecreasing,
     component: ProcessingEfficiencyLollipop,
     filters: { bureau: true, appType: true },
+    table: 'efficiencyByBureau',
     compare: false,
     ranges: ['latest', '6', '12', '24', '36', 'all'],
     defaultRange: 'latest',
@@ -195,6 +212,7 @@ export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
     icon: Globe2,
     component: GeographicDistributionChart,
     filters: { bureau: false, appType: false },
+    table: 'prefectures',
     compare: false,
     ranges: [],
     defaultRange: 'latest',

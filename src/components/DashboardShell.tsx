@@ -635,8 +635,17 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
                             </div>
                           )}
                         </div>
-                        {dataset === 'processing' && (
-                          <ChartDataTable data={chartData} filters={effectiveFilters} range={range as ChartRange} />
+                        {/* Narrowed on activeChart, not the `dataset` variable:
+                            that is what lets TypeScript reach `table` on the
+                            processing half of the registry union. */}
+                        {activeChart.dataset === 'processing' && (
+                          <ChartDataTable
+                            table={activeChart.table}
+                            chartKey={activeChart.key}
+                            data={chartData}
+                            filters={effectiveFilters}
+                            range={range as ChartRange}
+                          />
                         )}
                       </>
                     )}

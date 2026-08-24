@@ -12,16 +12,25 @@ import { tintToward, visibleBureauColor } from './bureauColors';
 import type { ChartRange } from './selectors';
 import { breakdownScopeFromFilter, bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from './selectors';
 
-export interface EfficiencyPoint {
+/**
+ * The volume half of an efficiency point: bureau identity plus the raw
+ * received/processed/rate figures, carrying no display text and no theme
+ * colors. Split out so the chart's data table can report exactly the numbers
+ * the lollipop plots without dragging a locale or a theme into a pure module.
+ */
+export interface BureauVolume {
   code: string;
-  label: string;
-  color: string;
-  /** Full-strength parent color for the dashed satellite outline */
-  outline: string;
   isAirport: boolean;
   received: number;
   processed: number;
   rate: number;
+}
+
+export interface EfficiencyPoint extends BureauVolume {
+  label: string;
+  color: string;
+  /** Full-strength parent color for the dashed satellite outline */
+  outline: string;
 }
 
 export interface EfficiencyFilters {
@@ -48,15 +57,11 @@ const colorsFor = (code: string, isAirport: boolean, isDarkMode: boolean): { col
   return { color: tintToward(parent, 0.45), outline: parent };
 };
 
-export function computeEfficiencyPoints(
+export function computeBureauVolumes(
   data: ImmigrationData[],
   filters: EfficiencyFilters,
-  range: ChartRange,
-  isDarkMode: boolean,
-  /** Resolves a bureau code to its display name — supplied by the caller,
-   *  since names come from the locale catalogue and this is not a component. */
-  bureauLabel: (code: string) => string
-): EfficiencyPoint[] {
+  range: ChartRange
+): BureauVolume[] {
   const months = monthsForRange(getAllMonths(data), range);
   const rows = selectData(data, {
     scope: breakdownScopeFromFilter(filters.bureau),
@@ -75,19 +80,31 @@ export function computeEfficiencyPoints(
         (sum, entry) => (entry.status === STATUS_CODES.PROCESSED ? sum + entry.value : sum),
         0
       );
-      const { color, outline } = colorsFor(bureau.value, bureau.isAirport, isDarkMode);
       return {
         code: bureau.value,
-        label: bureauLabel(bureau.value),
-        color,
-        outline,
         isAirport: bureau.isAirport,
         received,
         processed,
         rate: received > 0 ? (processed / received) * 100 : 0,
       };
     })
-    .filter((point) => point.received > 0);
+    .filter((volume) => volume.received > 0);
+}
+
+export function computeEfficiencyPoints(
+  data: ImmigrationData[],
+  filters: EfficiencyFilters,
+  range: ChartRange,
+  isDarkMode: boolean,
+  /** Resolves a bureau code to its display name — supplied by the caller,
+   *  since names come from the locale catalogue and this is not a component. */
+  bureauLabel: (code: string) => string
+): EfficiencyPoint[] {
+  return computeBureauVolumes(data, filters, range).map((volume) => ({
+    ...volume,
+    label: bureauLabel(volume.code),
+    ...colorsFor(volume.code, volume.isAirport, isDarkMode),
+  }));
 }
 
 /** Official nationwide completion rate over the same period, or null when the aggregate row has no intake. */

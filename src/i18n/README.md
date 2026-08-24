@@ -134,8 +134,11 @@ straight off the edge of the chart.
 
 ## What isn't translated, and why
 
-- **CSV exports** keep English column headers regardless of the interface
-  language, so spreadsheets and scripts built against them keep working.
+- **CSV exports** keep English column headers, row labels, and comment header
+  regardless of the interface language, so spreadsheets and scripts built
+  against them keep working. `src/utils/chartTableCsv.ts` pins this by
+  resolving every label through a translator bound to an empty dictionary,
+  which falls through to the English catalogue.
 - **The changelog** (`CHANGELOG.md`, shown in the in-app modal) is editorial
   release-note prose rather than interface text.
 - **Page metadata** (`meta.*`) is emitted once at build time. The dashboard is

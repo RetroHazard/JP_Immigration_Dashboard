@@ -54,6 +54,14 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.5.1**: The data table under each Application Processing chart now describes that chart, instead of the same intake figures appearing beneath all seven —
+  - Under **Application Types** the table had no application-type column at all: its "Received" figure was the six plotted lines added together, and the types themselves appeared nowhere. There is now one column per application type, matching the lines above it
+  - **Bureau Share** and **Processing Efficiency** break down by bureau, as their charts do, rather than collapsing to the single nationwide row. Bureau Share lists each bureau's intake and its share of the total — including the smaller ones the donut folds into its "Other" slice — and Processing Efficiency lists received, processed, and completion rate in the ranking's own order
+  - **Category Mix** is now the treemap's bureau-by-type grid, and **Outcomes** carries the granted/denied/withdrawn split per application type that the sankey draws, alongside its approval rate
+  - The **Regional Map** showed monthly application counts unrelated to anything on screen. It now lists the population, area, and density each prefecture is shaded by
+  - **Intake & Processing** is unchanged — it was the one chart the old table already described
+  - Each chart's CSV now downloads under its own name with its own columns, where every tab used to produce an identical file. Fields are quoted, so a value containing a comma can no longer split a row
+
 - **v1.5.0**: Clicking a chart with a mouse no longer disturbs the tooltip you were reading —
   - On the four line and bar time-series charts, pressing the mouse button hid the tooltip and it stayed hidden until you moved the cursor again. A press had to be treated as the start of a drag-to-highlight, because there was no way yet to tell the two apart. A drag now only begins once the cursor has actually travelled a few pixels, so a click leaves the tooltip exactly where it was and dragging a range still works as before
   - On the Processing Efficiency ranking, clicking a row tore its card away from the cursor and re-anchored it above the row, because clicking a row also focuses it and focusing was meant for keyboard use. Keyboard navigation still opens the card that way; a mouse click now leaves it alone

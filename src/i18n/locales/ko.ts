@@ -112,8 +112,9 @@ export const ko: Dictionary = {
   'table.view': '데이터 표 보기',
   'table.hide': '데이터 표 숨기기',
   'table.downloadCsv': 'CSV 다운로드',
-  'table.caption': '{bureau}의 월별 신청 통계',
   'table.month': '월',
+  'table.prefecture': '도도부현',
+  'table.shareOfTotal': '전체 대비 비중',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': '처리 기간 예상 도구',

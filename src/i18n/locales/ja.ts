@@ -107,8 +107,9 @@ export const ja: Dictionary = {
   'table.view': 'データ表を表示',
   'table.hide': 'データ表を非表示',
   'table.downloadCsv': 'CSV をダウンロード',
-  'table.caption': '{bureau}の月別申請統計',
   'table.month': '月',
+  'table.prefecture': '都道府県',
+  'table.shareOfTotal': '全体に占める割合',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': '審査期間の目安',
