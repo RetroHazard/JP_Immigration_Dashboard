@@ -1,7 +1,7 @@
 "use client";
 
 import { animate, useReducedMotion } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LINE_LOADING_PULSE_EASE } from "./line-loading-timing";
 import {
   computeSeriesPathPoints,
@@ -46,6 +46,29 @@ export function useAnimatedSeriesPath({
   const displayedPointsRef = useRef<SeriesPathPoint[] | null>(null);
   const animatingRef = useRef(false);
 
+  // LOCAL MODIFICATION: the transition reads its inputs through this ref rather
+  // than closing over them. `xScale` / `yScale` change identity on every
+  // y-domain tween frame, and having them in the effect's deps tore the
+  // animation down mid-flight — the body then early-returned on the unchanged
+  // signature, so `onComplete` never ran and `animatedPoints` was stranded
+  // holding pixels from the scale the chart had before the change. Reading them
+  // live is also what recomputing the target every frame was always for: the
+  // path morph and the domain tween compose, so the line follows the axis as it
+  // rescales instead of racing it. (Re-apply after a re-vendor.)
+  const latestRef = useRef({ renderData, xAccessor, xScale, yScale, dataKey });
+  latestRef.current = { renderData, xAccessor, xScale, yScale, dataKey };
+
+  const computeLatestPoints = useCallback(() => {
+    const live = latestRef.current;
+    return computeSeriesPathPoints(
+      live.renderData,
+      live.xAccessor,
+      live.xScale,
+      live.yScale,
+      live.dataKey
+    );
+  }, []);
+
   const xScaleDomain = useMemo(() => {
     const scaleWithDomain = xScale as { domain?: () => [Date, Date] };
     return scaleWithDomain.domain?.() ?? [new Date(0), new Date(0)];
@@ -84,12 +107,12 @@ export function useAnimatedSeriesPath({
       !reducedMotion &&
       chartPhase === "ready" &&
       durationMs > 0 &&
-      renderData.length > 0;
+      latestRef.current.renderData.length > 0;
 
     if (!shouldAnimate) {
       animatingRef.current = false;
       setAnimatedPoints(null);
-      displayedPointsRef.current = targetPoints;
+      displayedPointsRef.current = computeLatestPoints();
       prevTransitionSignatureRef.current = transitionSignature;
       return;
     }
@@ -99,9 +122,9 @@ export function useAnimatedSeriesPath({
     }
     prevTransitionSignatureRef.current = transitionSignature;
 
-    const fromPoints = displayedPointsRef.current ?? targetPoints;
+    const fromPoints = displayedPointsRef.current ?? computeLatestPoints();
     if (fromPoints.length === 0) {
-      displayedPointsRef.current = targetPoints;
+      displayedPointsRef.current = computeLatestPoints();
       return;
     }
 
@@ -112,16 +135,9 @@ export function useAnimatedSeriesPath({
       duration: durationMs / 1000,
       ease: [...LINE_LOADING_PULSE_EASE],
       onUpdate: (progress) => {
-        const currentTarget = computeSeriesPathPoints(
-          renderData,
-          xAccessor,
-          xScale,
-          yScale,
-          dataKey
-        );
         const next = interpolateSeriesPathPoints(
           fromSnapshot,
-          currentTarget,
+          computeLatestPoints(),
           progress
         );
         displayedPointsRef.current = next;
@@ -129,7 +145,7 @@ export function useAnimatedSeriesPath({
       },
       onComplete: () => {
         animatingRef.current = false;
-        displayedPointsRef.current = targetPoints;
+        displayedPointsRef.current = computeLatestPoints();
         setAnimatedPoints(null);
       },
     });
@@ -137,19 +153,23 @@ export function useAnimatedSeriesPath({
     return () => {
       control.stop();
       animatingRef.current = false;
+      // Stopping skips `onComplete`, which is the only other place the snapshot
+      // is released. Without this, an interrupted animation pins the path to
+      // pixels from a scale that has since moved.
+      setAnimatedPoints(null);
     };
+    // LOCAL MODIFICATION: deps match the guard the body already applies — the
+    // signature is what decides whether there is work to do. Listing the scales
+    // and data here re-ran (and so tore down) the animation on every tween
+    // frame; they are read live through `latestRef` instead.
+    // (Re-apply after a re-vendor.)
   }, [
     transitionSignature,
     chartPhase,
     durationMs,
     enabled,
     reducedMotion,
-    renderData,
-    xAccessor,
-    xScale,
-    yScale,
-    dataKey,
-    targetPoints,
+    computeLatestPoints,
   ]);
 
   const activePoints = animatedPoints ?? targetPoints;

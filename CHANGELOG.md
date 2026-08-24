@@ -60,6 +60,11 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.6.0**: Lines on the time-series charts no longer get stranded when the figures behind them change scale —
+  - Picking a bureau or an application type can move the y-axis by orders of magnitude — the nationwide total against one office's caseload. The axis rescaled, the bars followed, but a line could stay drawn against the old scale, usually flattened along the bottom of the plot. Hovering it gave the right number in the right place, which made the line itself look broken rather than stale
+  - The axis rescale is animated, and each of its frames was interrupting the line's own redraw and leaving it holding the previous scale's positions. The two now run together, so a line follows its axis down as it rescales instead of being left behind by it
+  - This affected every chart drawing a line, and had done for some time; it showed up intermittently because it depended on which animation won the race
+
 - **v1.5.0**: Clicking a chart with a mouse no longer disturbs the tooltip you were reading —
   - On the four line and bar time-series charts, pressing the mouse button hid the tooltip and it stayed hidden until you moved the cursor again. A press had to be treated as the start of a drag-to-highlight, because there was no way yet to tell the two apart. A drag now only begins once the cursor has actually travelled a few pixels, so a click leaves the tooltip exactly where it was and dragging a range still works as before
   - On the Processing Efficiency ranking, clicking a row tore its card away from the cursor and re-anchored it above the row, because clicking a row also focuses it and focusing was meant for keyboard use. Keyboard navigation still opens the card that way; a mouse click now leaves it alone
