@@ -230,7 +230,7 @@ JP_Immigration_Dashboard/
 │   │   ├── StatsSummary.tsx           # Summary stat cards (Application Processing)
 │   │   ├── ResidentsStatsSummary.tsx  # Summary stat cards (Resident Population), incl. % of total population
 │   │   ├── EstimationCard.tsx         # Processing Time Estimator (sidebar/sheet)
-│   │   ├── ChartDataTable.tsx         # Collapsible data table + CSV export
+│   │   ├── ChartDataTable.tsx         # Collapsible per-chart data table + CSV export
 │   │   ├── ChangelogModal.tsx         # CHANGELOG.md viewer (shadcn Dialog)
 │   │   │
 │   │   ├── charts/
@@ -288,6 +288,8 @@ JP_Immigration_Dashboard/
 │   │   ├── selectors.ts               # BureauScope-aware data selection/filtering
 │   │   ├── calculateEstimates.ts      # Queue-position / processing-time estimation model
 │   │   ├── categoryMixTree.ts         # Shared hierarchy for the Category Mix charts
+│   │   ├── chartTables.ts             # Per-chart data table models (row axis varies by chart)
+│   │   ├── chartTableCsv.ts           # TableModel → CSV; English-pinned, RFC 4180 quoting
 │   │   ├── bureauColors.ts            # Per-theme bureau color helpers
 │   │   ├── getBureauData.ts           # Bureau option lookups
 │   │   ├── urlApplicationDetails.ts   # Estimator permalink <-> URL params

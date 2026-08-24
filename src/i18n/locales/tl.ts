@@ -96,8 +96,9 @@ export const tl: Dictionary = {
   'table.view': 'Tingnan ang talaan ng datos',
   'table.hide': 'Itago ang talaan ng datos',
   'table.downloadCsv': 'I-download ang CSV',
-  'table.caption': 'Buwanang estadistika ng aplikasyon para sa {bureau}',
   'table.month': 'Buwan',
+  'table.prefecture': 'Prefektura',
+  'table.shareOfTotal': 'Bahagi ng kabuuan',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Tagatantiya ng Oras ng Pagproseso',

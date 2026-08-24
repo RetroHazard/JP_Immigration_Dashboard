@@ -111,8 +111,9 @@ export const template: Dictionary = {
   // 'table.view': 'View data table',
   // 'table.hide': 'Hide data table',
   // 'table.downloadCsv': 'Download CSV',
-  // 'table.caption': 'Monthly application statistics for {bureau}',
   // 'table.month': 'Month',
+  // 'table.prefecture': 'Prefecture',
+  // 'table.shareOfTotal': 'Share of total',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   // 'estimator.title': 'Processing Time Estimator',

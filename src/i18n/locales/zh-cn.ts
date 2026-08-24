@@ -111,8 +111,9 @@ export const zhCn: Dictionary = {
   'table.view': '查看数据表',
   'table.hide': '隐藏数据表',
   'table.downloadCsv': '下载CSV',
-  'table.caption': '{bureau}的月度申请统计',
   'table.month': '月份',
+  'table.prefecture': '都道府县',
+  'table.shareOfTotal': '占总量比例',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': '处理时间预估器',
