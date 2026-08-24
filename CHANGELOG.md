@@ -43,6 +43,12 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Where the model takes a different route because a month has not been published yet, the breakdown shows the route your estimate actually took rather than a general form
   - Figures inside the formulas now use your own language's digit grouping, and the queue position no longer rounds its parts separately from its total, which could leave the subtraction on screen one short of the answer beside it
 
+- **v1.6.0**: **Intake & Processing** now tracks the approval rate over time, alongside what it already showed —
+  - The share of processed applications that were granted is drawn as a second line, on its own axis fixed at 0–100% so a month reads the same however the volume scale moves underneath it. Until now the approval rate only existed as a single figure for a whole period, on the Outcomes tab and in the stats cards; there was no way to see whether it was moving
+  - It uses the same definition as those two — granted out of everything processed — so all three agree for any one bureau and application type
+  - Everything else about the chart is unchanged: stacked bars for carried-over and newly received applications, with completed volume as a line on the same axis. The second axis is a genuinely different unit rather than the two identical volume axes an earlier version of this chart had
+  - The month-by-month breakdown of what processing actually decided — granted, denied, withdrawn — stays in the collapsible data table below the chart, which carries all six figures as text or CSV
+
 - **v1.5.0**: On phones and tablets, chart tooltips are now opened by tapping rather than by holding a finger down —
   - Holding was the only way to see a value, and letting go dismissed it, so a reading could never be held still long enough to compare against anything. A tap now pins the tooltip open; tap the same point again to close it, or another point to move it. Tapping outside the chart, scrolling, or opening a tooltip on a different chart also closes it, so only ever one is on screen
   - Most charts had no touch handling at all and were relying on the mouse events a browser invents after a tap. That is why a tooltip would sometimes flash and vanish, or stay stuck on the wrong point: the map, both sankeys, the bureau-share ring, the treemap, and the efficiency ranking are all covered now

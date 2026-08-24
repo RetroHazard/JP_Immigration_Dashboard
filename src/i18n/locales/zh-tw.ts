@@ -108,6 +108,7 @@ export const zhTw: Dictionary = {
   'metric.granted': '核准',
   'metric.denied': '不核准',
   'metric.other': '其他',
+  'metric.approvalRate': '核准率',
   'metric.completion': '處理完成率',
   'metric.applications': '申請數',
   'metric.population': '人口',
@@ -242,8 +243,10 @@ export const zhTw: Dictionary = {
   // `.label` names the tab and the card heading, `.description` is the card
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': '受理與處理',
-  'charts.intake.description': '每月結轉與受理的申請件數，對照各管理局完成處理的數量。',
-  'charts.intake.aria': '每月待處理與受理申請件數的堆疊長條圖，並以折線呈現已處理數量',
+  'charts.intake.description':
+    '每月結轉與受理的申請件數，對照各管理局完成處理的數量及其中獲准的比例。',
+  'charts.intake.aria':
+    '每月待處理與受理申請件數的堆疊長條圖，並以折線呈現已處理數量，另以0至100%的右側縱軸用折線呈現核准率',
   'charts.types.label': '申請類型',
   'charts.types.description': '按申請類型分類的每月新申請件數——點選圖例項目可切換該系列的顯示。',
   'charts.types.aria': '各申請類型每月新申請件數的折線圖',

@@ -84,6 +84,7 @@ export const es: Dictionary = {
   'metric.granted': 'Concedidas',
   'metric.denied': 'Denegadas',
   'metric.other': 'Otras',
+  'metric.approvalRate': 'Tasa de aprobación',
   'metric.completion': 'Finalización',
   'metric.applications': 'Solicitudes',
   'metric.population': 'Población',
@@ -240,9 +241,9 @@ export const es: Dictionary = {
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Entrada y tramitación',
   'charts.intake.description':
-    'Solicitudes arrastradas y recibidas cada mes, frente al volumen que completaron las oficinas.',
+    'Solicitudes arrastradas y recibidas cada mes, frente al volumen que completaron las oficinas y a la parte de ese volumen que se concedió.',
   'charts.intake.aria':
-    'Barras apiladas de solicitudes pendientes y recibidas por mes, con el volumen tramitado como línea',
+    'Barras apiladas de solicitudes pendientes y recibidas por mes, con el volumen tramitado como línea y la tasa de aprobación como segunda línea en un eje derecho de cero a cien por ciento',
   'charts.types.label': 'Tipos de solicitud',
   'charts.types.description':
     'Nuevas presentaciones mensuales desglosadas por tipo de solicitud — haz clic en una entrada de la leyenda para mostrar u ocultar una serie.',

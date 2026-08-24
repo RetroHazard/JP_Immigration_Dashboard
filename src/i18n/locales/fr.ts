@@ -83,6 +83,7 @@ export const fr: Dictionary = {
   'metric.granted': 'Accordées',
   'metric.denied': 'Refusées',
   'metric.other': 'Autres',
+  'metric.approvalRate': "Taux d'acceptation",
   'metric.completion': 'Achèvement',
   'metric.applications': 'Demandes',
   'metric.population': 'Habitants',
@@ -240,8 +241,10 @@ export const fr: Dictionary = {
   // `.label` names the tab and the card heading, `.description` is the card
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Réception et traitement',
-  'charts.intake.description': 'Demandes reportées et reçues chaque mois, comparées au volume traité par les bureaux.',
-  'charts.intake.aria': 'Barres empilées des demandes en attente et reçues par mois, avec le volume traité en courbe',
+  'charts.intake.description':
+    'Demandes reportées et reçues chaque mois, comparées au volume traité par les bureaux et à la part qui en a été acceptée.',
+  'charts.intake.aria':
+    'Barres empilées des demandes en attente et reçues par mois, avec le volume traité en courbe et le taux d’acceptation en seconde courbe sur un axe de droite allant de zéro à cent pour cent',
   'charts.types.label': 'Types de demandes',
   'charts.types.description':
     'Nouvelles soumissions mensuelles réparties par type de demande — cliquez sur une entrée de légende pour afficher ou masquer une série.',

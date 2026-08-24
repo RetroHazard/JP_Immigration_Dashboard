@@ -96,6 +96,7 @@ export const ja: Dictionary = {
   'metric.granted': '許可',
   'metric.denied': '不許可',
   'metric.other': 'その他',
+  'metric.approvalRate': '許可率',
   'metric.completion': '処理率',
   'metric.applications': '申請数',
   'metric.population': '人口',
@@ -221,8 +222,10 @@ export const ja: Dictionary = {
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   'charts.intake.label': '受理と処理',
-  'charts.intake.description': '月ごとの繰越・受理件数と、各官署が処理した件数の推移です。',
-  'charts.intake.aria': '月別の未処理件数と受理件数を積み上げた棒グラフ。処理件数を折れ線で重ねて表示',
+  'charts.intake.description':
+    '月ごとの繰越・受理件数と、各官署が処理した件数、そのうち許可された割合の推移です。',
+  'charts.intake.aria':
+    '月別の未処理件数と受理件数を積み上げた棒グラフ。処理件数を折れ線で重ね、許可率を0〜100%の右側の軸にもう一本の折れ線で表示',
   'charts.types.label': '申請種別',
   'charts.types.description':
     '月ごとの新規受理件数を申請種別ごとに表示します。凡例をクリックすると系列の表示を切り替えられます。',

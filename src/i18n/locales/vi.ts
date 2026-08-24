@@ -85,6 +85,7 @@ export const vi: Dictionary = {
   'metric.granted': 'Đã chấp thuận',
   'metric.denied': 'Bị từ chối',
   'metric.other': 'Khác',
+  'metric.approvalRate': 'Tỷ lệ chấp thuận',
   'metric.completion': 'Hoàn thành',
   'metric.applications': 'Hồ sơ',
   'metric.population': 'Dân số',
@@ -234,9 +235,9 @@ export const vi: Dictionary = {
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Tiếp nhận & xử lý',
   'charts.intake.description':
-    'Hồ sơ chuyển từ kỳ trước và tiếp nhận mỗi tháng, so với khối lượng mà các cục đã xử lý xong.',
+    'Hồ sơ chuyển từ kỳ trước và tiếp nhận mỗi tháng, so với khối lượng mà các cục đã xử lý xong và tỷ lệ được chấp thuận trong đó.',
   'charts.intake.aria':
-    'Biểu đồ cột chồng thể hiện hồ sơ đang chờ và đã tiếp nhận theo tháng, cùng khối lượng đã xử lý dưới dạng đường',
+    'Biểu đồ cột chồng thể hiện hồ sơ đang chờ và đã tiếp nhận theo tháng, cùng khối lượng đã xử lý dưới dạng đường và tỷ lệ chấp thuận dưới dạng đường thứ hai trên trục bên phải chạy từ 0 đến 100 phần trăm',
   'charts.types.label': 'Loại hồ sơ',
   'charts.types.description':
     'Số hồ sơ mới nộp hàng tháng phân theo loại hồ sơ — nhấp vào một mục chú giải để bật/tắt chuỗi dữ liệu.',
