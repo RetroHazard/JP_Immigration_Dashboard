@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest';
 
 import type { LineConfig } from '../chart-context';
 import { computeComposedYScaleDomainMax } from '../composed-chart';
-import { groupBarKeysByStackId } from '../series-bar-layout';
 import { computeYDomainsByAxis, niceYDomain } from '../y-domain-utils';
 
 const line = (dataKey: string, yAxisId?: string): LineConfig => ({
@@ -64,37 +63,27 @@ describe('computeYDomainsByAxis', () => {
 });
 
 describe('computeComposedYScaleDomainMax', () => {
-  const data = [{ pending: 400, received: 620, granted: 490, denied: 10, other: 13, rate: 95 }];
-  const barKeys = ['pending', 'received', 'granted', 'denied', 'other'];
-  const stacks = groupBarKeysByStackId(barKeys, [
-    'intake',
-    'intake',
-    'outcome',
-    'outcome',
-    'outcome',
-  ]);
+  const data = [{ pending: 400, received: 620, rate: 95 }];
+  const barKeys = ['pending', 'received'];
 
-  it('measures the tallest stack, not the sum of every bar', () => {
-    // intake 1020, outcome 513 — 1533 is a height nothing ever draws.
-    expect(computeComposedYScaleDomainMax(data, [], barKeys, stacks)).toBe(1020);
+  it('measures the stack total, not its tallest segment', () => {
+    expect(computeComposedYScaleDomainMax(data, [], barKeys)).toBe(1020);
   });
 
   // The primary axis must not be stretched by a series measured in percent.
   it('ignores a line on a secondary axis', () => {
     const huge = [{ ...data[0], rate: 999_999 }];
-    expect(computeComposedYScaleDomainMax(huge, [line('rate', 'right')], barKeys, stacks)).toBe(1020);
+    expect(computeComposedYScaleDomainMax(huge, [line('rate', 'right')], barKeys)).toBe(1020);
   });
 
   it('still grows for a line on the primary axis', () => {
-    expect(computeComposedYScaleDomainMax(data, [line('target')], barKeys, stacks)).toBe(1020);
+    expect(computeComposedYScaleDomainMax(data, [line('target')], barKeys)).toBe(1020);
     expect(
-      computeComposedYScaleDomainMax([{ ...data[0], target: 2000 }], [line('target')], barKeys, stacks)
+      computeComposedYScaleDomainMax([{ ...data[0], target: 2000 }], [line('target')], barKeys)
     ).toBe(2000);
   });
 
   it('returns undefined for all-zero data so the caller can fall back', () => {
-    expect(
-      computeComposedYScaleDomainMax([{ pending: 0, granted: 0 }], [], barKeys, stacks)
-    ).toBeUndefined();
+    expect(computeComposedYScaleDomainMax([{ pending: 0, received: 0 }], [], barKeys)).toBeUndefined();
   });
 });

@@ -193,9 +193,9 @@ export const template: Dictionary = {
   // subtitle, `.aria` describes the graphic to a screen reader.
   // 'charts.intake.label': 'Intake & Processing',
   // 'charts.intake.description':
-  //   'Applications carried over and received each month, with the volume the bureaus completed set inside them and split by outcome, against the approval rate.',
+  //   'Applications carried over and received each month, against the volume the bureaus completed and the share of it that was approved.',
   // 'charts.intake.aria':
-  //   'Stacked bars of pending and received applications per month, with a narrower stack of granted, denied and other outcomes set inside them, and the approval rate as a line on a second axis running from zero to one hundred percent',
+  //   'Stacked bars of pending and received applications per month, with processed volume as a line, and the approval rate as a second line on a right-hand axis running from zero to one hundred percent',
   // 'charts.types.label': 'Application Types',
   // 'charts.types.description':
   //   'Monthly new submissions broken down by application type — click a legend entry to toggle a series.',

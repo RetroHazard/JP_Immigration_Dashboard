@@ -188,9 +188,9 @@ export const ko: Dictionary = {
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': '접수 및 처리',
   'charts.intake.description':
-    '매월 이월 및 접수된 신청 건수와, 그 안에 관리국이 처리한 건수를 허가·불허가·기타로 나누어 겹쳐 보여주며 허가율을 함께 표시합니다.',
+    '매월 이월 및 접수된 신청 건수와 관리국이 처리한 건수, 그중 허가된 비율을 함께 보여줍니다.',
   'charts.intake.aria':
-    '월별 미처리 및 접수 건수를 누적 막대로 표시하고, 그 안에 허가·불허가·기타 처리 결과를 좁은 막대로 겹친 뒤 허가율을 0~100%의 두 번째 축에 선으로 나타낸 그래프',
+    '월별 미처리 및 접수 건수를 누적 막대로, 처리 건수를 선으로 표시하고, 허가율을 0~100%의 오른쪽 축에 또 하나의 선으로 나타낸 그래프',
   'charts.types.label': '신청 유형',
   'charts.types.description':
     '월별 신규 접수 건수를 신청 유형별로 나눈 그래프입니다. 범례를 클릭하면 계열을 표시하거나 숨길 수 있습니다.',

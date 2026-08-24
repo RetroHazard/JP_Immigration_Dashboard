@@ -180,9 +180,9 @@ export const pt: Dictionary = {
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Entradas e Processamento',
   'charts.intake.description':
-    'Candidaturas transitadas e recebidas em cada mês, com o volume concluído pelos gabinetes inserido no interior e repartido por resultado, face à taxa de aprovação.',
+    'Candidaturas transitadas e recebidas em cada mês, face ao volume concluído pelos gabinetes e à parte desse volume que foi concedida.',
   'charts.intake.aria':
-    'Barras empilhadas de candidaturas pendentes e recebidas por mês, com uma pilha mais estreita de candidaturas concedidas, recusadas e outras inserida no interior, e a taxa de aprovação como linha num segundo eixo de zero a cem por cento',
+    'Barras empilhadas de candidaturas pendentes e recebidas por mês, com o volume processado representado por uma linha e a taxa de aprovação por uma segunda linha num eixo à direita de zero a cem por cento',
   'charts.types.label': 'Tipos de Candidatura',
   'charts.types.description':
     'Novas submissões mensais discriminadas por tipo de candidatura — clique numa entrada da legenda para ativar ou desativar uma série.',

@@ -179,9 +179,9 @@ export const es: Dictionary = {
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Entrada y tramitación',
   'charts.intake.description':
-    'Solicitudes arrastradas y recibidas cada mes, con el volumen que completaron las oficinas insertado dentro y desglosado por resultado, frente a la tasa de aprobación.',
+    'Solicitudes arrastradas y recibidas cada mes, frente al volumen que completaron las oficinas y a la parte de ese volumen que se concedió.',
   'charts.intake.aria':
-    'Barras apiladas de solicitudes pendientes y recibidas por mes, con una pila más estrecha de solicitudes concedidas, denegadas y otras insertada dentro, y la tasa de aprobación como línea en un segundo eje de cero a cien por ciento',
+    'Barras apiladas de solicitudes pendientes y recibidas por mes, con el volumen tramitado como línea y la tasa de aprobación como segunda línea en un eje derecho de cero a cien por ciento',
   'charts.types.label': 'Tipos de solicitud',
   'charts.types.description':
     'Nuevas presentaciones mensuales desglosadas por tipo de solicitud — haz clic en una entrada de la leyenda para mostrar u ocultar una serie.',

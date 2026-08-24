@@ -178,9 +178,9 @@ export const de: Dictionary = {
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Eingang & Bearbeitung',
   'charts.intake.description':
-    'Monatlich übertragene und eingegangene Anträge, mit dem von den Ämtern abgeschlossenen Volumen darin eingesetzt und nach Ausgang aufgeteilt, im Vergleich zur Genehmigungsquote.',
+    'Monatlich übertragene und eingegangene Anträge im Vergleich zum von den Ämtern abgeschlossenen Volumen und dem davon genehmigten Anteil.',
   'charts.intake.aria':
-    'Gestapelte Balken ausstehender und eingegangener Anträge pro Monat, darin ein schmalerer Stapel aus genehmigten, abgelehnten und sonstigen Ausgängen, sowie die Genehmigungsquote als Linie auf einer zweiten Achse von null bis hundert Prozent',
+    'Gestapelte Balken ausstehender und eingegangener Anträge pro Monat, mit dem bearbeiteten Volumen als Linie und der Genehmigungsquote als zweiter Linie auf einer rechten Achse von null bis hundert Prozent',
   'charts.types.label': 'Antragsarten',
   'charts.types.description':
     'Monatliche Neueinreichungen nach Antragsart aufgeschlüsselt — klicken Sie auf einen Legendeneintrag, um eine Reihe ein- oder auszublenden.',

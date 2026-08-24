@@ -1,7 +1,6 @@
 "use client";
 
 import type { scaleBand, scaleLinear, scaleTime } from "@visx/scale";
-import type { ComposedBarStack } from "./series-bar-layout";
 
 type ScaleLinear<Output, _Input = number> = ReturnType<
   typeof scaleLinear<Output>
@@ -224,14 +223,6 @@ export interface ChartContextValue extends ChartHoverContextValue {
   composedStackOffsets?: Map<number, Map<string, number>>;
   /** Vertical gap in px between stacked `SeriesBar` segments. Default: 0 */
   composedStackGap?: number;
-  /**
-   * LOCAL MODIFICATION: `SeriesBar` dataKeys grouped by `stackId`, each group in
-   * child order. Upstream supports one stack per x, so `composedBarDataKeys`
-   * doubled as the stack; with several stacks a bar needs its own group to work
-   * out where it sits and whether it is the top segment. Omitted when every bar
-   * shares the default stack. (Re-apply after a re-vendor.)
-   */
-  composedBarStacks?: ComposedBarStack[];
 }
 
 /**
@@ -305,7 +296,6 @@ export function ChartProvider({
       composedStacked: value.composedStacked,
       composedStackOffsets: value.composedStackOffsets,
       composedStackGap: value.composedStackGap,
-      composedBarStacks: value.composedBarStacks,
     }),
     [
       value.data,
@@ -351,7 +341,6 @@ export function ChartProvider({
       value.composedStacked,
       value.composedStackOffsets,
       value.composedStackGap,
-      value.composedBarStacks,
     ]
   );
 

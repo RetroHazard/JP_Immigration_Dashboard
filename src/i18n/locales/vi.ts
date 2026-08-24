@@ -177,9 +177,9 @@ export const vi: Dictionary = {
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Tiếp nhận & xử lý',
   'charts.intake.description':
-    'Hồ sơ chuyển từ kỳ trước và tiếp nhận mỗi tháng, với khối lượng các cục đã xử lý xong lồng bên trong và tách theo kết quả, đối chiếu với tỷ lệ chấp thuận.',
+    'Hồ sơ chuyển từ kỳ trước và tiếp nhận mỗi tháng, so với khối lượng mà các cục đã xử lý xong và tỷ lệ được chấp thuận trong đó.',
   'charts.intake.aria':
-    'Biểu đồ cột chồng thể hiện hồ sơ đang chờ và đã tiếp nhận theo tháng, bên trong là cột hẹp hơn tách theo hồ sơ được chấp thuận, bị từ chối và khác, cùng tỷ lệ chấp thuận dạng đường trên trục thứ hai chạy từ 0 đến 100 phần trăm',
+    'Biểu đồ cột chồng thể hiện hồ sơ đang chờ và đã tiếp nhận theo tháng, cùng khối lượng đã xử lý dưới dạng đường và tỷ lệ chấp thuận dưới dạng đường thứ hai trên trục bên phải chạy từ 0 đến 100 phần trăm',
   'charts.types.label': 'Loại hồ sơ',
   'charts.types.description':
     'Số hồ sơ mới nộp hàng tháng phân theo loại hồ sơ — nhấp vào một mục chú giải để bật/tắt chuỗi dữ liệu.',

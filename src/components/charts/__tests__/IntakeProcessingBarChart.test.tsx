@@ -1,8 +1,7 @@
 // The row builder carries all of this chart's arithmetic. It is tested on its
 // own because visx sizes itself from a real layout, which jsdom cannot give it
 // — a rendered chart proves nothing about the numbers (see the note at the top
-// of CategoryMixTreemap.tap.test.tsx). Geometry is covered by the stack tests
-// in bklit/charts/__tests__/series-bar-layout.test.ts.
+// of CategoryMixTreemap.tap.test.tsx).
 //
 // Expected label text is read out of the English catalogue rather than
 // repeated, so rewording a string doesn't break the test — only removing the
@@ -58,17 +57,26 @@ describe('buildIntakeRows', () => {
 
   // A key missing from a row makes SeriesBar skip that column outright, which
   // shows up as a hole in the stack rather than an error.
-  it('gives every row all five bar series plus the rate', () => {
+  it('gives every row all three plotted counts plus the rate', () => {
     for (const row of rowsFor(TWO_MONTHS)) {
-      for (const key of ['pending', 'received', 'granted', 'denied', 'other', 'approvalRate']) {
+      for (const key of ['pending', 'received', 'processed', 'approvalRate']) {
         expect(typeof row[key]).toBe('number');
       }
     }
   });
 
-  it('sums each series from its own status rows', () => {
+  it('sums each series from its own status row', () => {
     const [row] = rowsFor(TWO_MONTHS);
-    expect(row).toMatchObject({ pending: 400, received: 600, granted: 450, denied: 20, other: 30 });
+    expect(row).toMatchObject({ pending: 400, received: 600, processed: 500 });
+  });
+
+  // Granted feeds the rate but is not plotted, so it has no business being a
+  // row property — a stray key would show up as a tooltip row.
+  it('carries no key for a series the chart does not draw', () => {
+    const [row] = rowsFor(TWO_MONTHS);
+    for (const key of ['granted', 'denied', 'other']) {
+      expect(row?.[key]).toBeUndefined();
+    }
   });
 
   it('divides granted by the published processed total', () => {
@@ -103,16 +111,16 @@ describe('buildIntakeRows', () => {
     const data = [
       ...month('2025-05', { pending: 400, received: 600, processed: 500, granted: 450, denied: 20, other: 30 }),
       // A different application type the filter should exclude.
-      { month: '2025-05', bureau: NATIONWIDE, status: STATUS_CODES.GRANTED, type: '30', value: 9999 },
+      { month: '2025-05', bureau: NATIONWIDE, status: STATUS_CODES.PROCESSED, type: '30', value: 9999 },
     ];
-    expect(buildIntakeRows(data, FILTERS, 'all')[0]?.granted).toBe(450);
+    expect(buildIntakeRows(data, FILTERS, 'all')[0]?.processed).toBe(500);
   });
 });
 
 describe('IntakeProcessingBarChart', () => {
   it('labels every series in the legend, including the rate', () => {
     renderWithProviders(<IntakeProcessingBarChart data={TWO_MONTHS} filters={FILTERS} range="all" />);
-    const keys = ['metric.pending', 'metric.received', 'metric.granted', 'metric.denied', 'metric.other', 'metric.approvalRate'] as const;
+    const keys = ['metric.pending', 'metric.received', 'metric.processed', 'metric.approvalRate'] as const;
     for (const key of keys) {
       expect(screen.getByText(en[key])).toBeTruthy();
     }

@@ -37,11 +37,11 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Changed
 
-- **v1.6.0**: **Intake & Processing** now shows what happened to the applications the bureaus finished with, and how the approval rate moves over time —
-  - Each month is a bullet-style column: the wide bar is still everything in the system that month (carried over plus newly received), and the narrower bar set inside it is the volume actually disposed of, split into granted, denied and other. That volume used to be a line, so how large it was next to the backlog was guesswork and its make-up wasn't shown at all — even though the outcome split has been in the published data the whole time, and on the Outcomes tab and in the data table already
-  - The line is now the approval rate, on its own axis fixed at 0–100% so a month reads the same however the bar scale moves. It uses the same definition as the Outcomes gauge and the stats card — granted out of everything processed — so the three agree for any one bureau and application type. This is a second axis that means something: a percentage against a count, rather than the two identical count axes an earlier version of this chart had
-  - Denials and withdrawals are a couple of percent of a bar that is itself a fraction of the column, so the outcome slices run contiguous and are told apart by lightness rather than hue; the backlog behind them is tinted back so the disposal reads as the subject
-  - Hovering a month lists all six figures, and the collapsible data table below the chart carries the same columns for anyone who wants them as text or CSV
+- **v1.6.0**: **Intake & Processing** now tracks the approval rate over time, alongside what it already showed —
+  - The share of processed applications that were granted is drawn as a second line, on its own axis fixed at 0–100% so a month reads the same however the volume scale moves underneath it. Until now the approval rate only existed as a single figure for a whole period, on the Outcomes tab and in the stats cards; there was no way to see whether it was moving
+  - It uses the same definition as those two — granted out of everything processed — so all three agree for any one bureau and application type
+  - Everything else about the chart is unchanged: stacked bars for carried-over and newly received applications, with completed volume as a line on the same axis. The second axis is a genuinely different unit rather than the two identical volume axes an earlier version of this chart had
+  - The month-by-month breakdown of what processing actually decided — granted, denied, withdrawn — stays in the collapsible data table below the chart, which carries all six figures as text or CSV
 
 - **v1.5.0**: On phones and tablets, chart tooltips are now opened by tapping rather than by holding a finger down —
   - Holding was the only way to see a value, and letting go dismissed it, so a reading could never be held still long enough to compare against anything. A tap now pins the tooltip open; tap the same point again to close it, or another point to move it. Tapping outside the chart, scrolling, or opening a tooltip on a different chart also closes it, so only ever one is on screen

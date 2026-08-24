@@ -180,9 +180,9 @@ export const it: Dictionary = {
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Ricezione ed elaborazione',
   'charts.intake.description':
-    'Domande riportate e ricevute ogni mese, con il volume completato dagli uffici inserito al loro interno e suddiviso per esito, a confronto con il tasso di approvazione.',
+    'Domande riportate e ricevute ogni mese, a confronto con il volume completato dagli uffici e con la quota di esso che è stata concessa.',
   'charts.intake.aria':
-    'Barre impilate delle domande in attesa e ricevute per mese, con al loro interno una pila più stretta di domande concesse, respinte e altre, e il tasso di approvazione come linea su un secondo asse da zero a cento per cento',
+    'Barre impilate delle domande in attesa e ricevute per mese, con il volume elaborato rappresentato da una linea e il tasso di approvazione da una seconda linea su un asse destro da zero a cento per cento',
   'charts.types.label': 'Tipi di domanda',
   'charts.types.description':
     'Nuove domande mensili suddivise per tipo — fai clic su una voce della legenda per attivare o disattivare una serie.',

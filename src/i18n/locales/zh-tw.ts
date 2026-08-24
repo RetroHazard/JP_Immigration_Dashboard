@@ -200,9 +200,9 @@ export const zhTw: Dictionary = {
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': '受理與處理',
   'charts.intake.description':
-    '每月結轉與受理的申請件數，內嵌顯示各管理局完成處理的數量並依核准、不核准、其他拆分，並對照核准率。',
+    '每月結轉與受理的申請件數，對照各管理局完成處理的數量及其中獲准的比例。',
   'charts.intake.aria':
-    '每月待處理與受理申請件數的堆疊長條圖，內嵌較窄的長條依核准、不核准、其他拆分已處理數量，並以0至100%的第二縱軸用折線呈現核准率',
+    '每月待處理與受理申請件數的堆疊長條圖，並以折線呈現已處理數量，另以0至100%的右側縱軸用折線呈現核准率',
   'charts.types.label': '申請類型',
   'charts.types.description': '按申請類型分類的每月新申請件數——點選圖例項目可切換該系列的顯示。',
   'charts.types.aria': '各申請類型每月新申請件數的折線圖',

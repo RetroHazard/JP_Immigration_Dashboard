@@ -56,7 +56,6 @@ import {
 } from "./reference-area-config";
 import { ReferenceAreaRegistrationContext } from "./reference-area-registration-context";
 import {
-  type ComposedBarStack,
   computeSeriesBarRevealClipPadding,
   computeSeriesBarWidth,
 } from "./series-bar-layout";
@@ -152,8 +151,6 @@ export interface TimeSeriesChartInnerProps {
   composedStacked?: boolean;
   composedStackOffsets?: Map<number, Map<string, number>>;
   composedStackGap?: number;
-  /** LOCAL MODIFICATION: bar dataKeys grouped by stackId — see chart-context.tsx. */
-  composedBarStacks?: ComposedBarStack[];
   /** When set, drives the y-axis max instead of scanning `lines` (e.g. stacked bar totals). */
   yScaleDomainMax?: number;
   /**
@@ -217,7 +214,6 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
   composedStacked,
   composedStackOffsets,
   composedStackGap,
-  composedBarStacks,
   yScaleDomainMax,
   yAxisDomains,
   chartStatus = DEFAULT_CHART_STATUS,
@@ -594,7 +590,6 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       composedStacked,
       composedStackOffsets,
       composedStackGap,
-      composedBarStacks,
     }),
     [
       visiblePlotData,
@@ -638,7 +633,6 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       composedStacked,
       composedStackOffsets,
       composedStackGap,
-      composedBarStacks,
     ]
   );
 
