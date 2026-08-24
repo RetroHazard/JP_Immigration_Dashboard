@@ -100,6 +100,7 @@ export const zhCn: Dictionary = {
   'metric.granted': '批准',
   'metric.denied': '拒绝',
   'metric.other': '其他',
+  'metric.approvalRate': '批准率',
   'metric.completion': '处理率',
   'metric.applications': '申请数',
   'metric.population': '人口',
@@ -183,8 +184,10 @@ export const zhCn: Dictionary = {
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   'charts.intake.label': '受理与处理',
-  'charts.intake.description': '每月结转和受理的申请件数，与受理局完成处理的件数对比。',
-  'charts.intake.aria': '按月堆叠显示待处理和受理申请数量的柱状图，并以折线叠加显示处理量',
+  'charts.intake.description':
+    '每月结转和受理的申请件数，内嵌显示受理局完成处理的件数并按批准、拒绝、其他拆分，同时对照批准率。',
+  'charts.intake.aria':
+    '按月堆叠显示待处理和受理申请数量的柱状图，内嵌较窄的柱形按批准、拒绝、其他拆分已处理量，并以0至100%的第二纵轴用折线显示批准率',
   'charts.types.label': '申请类型',
   'charts.types.description': '按申请类型划分的每月新受理件数——点击图例条目可切换某一系列的显示。',
   'charts.types.aria': '各申请类型每月新受理件数的折线图',

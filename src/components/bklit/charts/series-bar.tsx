@@ -113,6 +113,14 @@ export interface SeriesBarProps {
    * (Re-apply after a re-vendor.)
    */
   widthRatio?: number;
+  /**
+   * LOCAL MODIFICATION: vertical gap between this stack's segments, overriding
+   * the chart's `stackGap`. A gap that separates two large segments erases a
+   * small one — it is subtracted from each segment's height — so a stack of
+   * thin slices needs its own, usually 0. Read from the first `SeriesBar` of
+   * the stack. (Re-apply after a re-vendor.)
+   */
+  stackGap?: number;
 }
 
 export function SeriesBar({
@@ -122,6 +130,7 @@ export function SeriesBar({
   animate = true,
   fadedOpacity = 0.3,
   widthRatio = 1,
+  stackGap: stackGapProp,
 }: SeriesBarProps) {
   const {
     data,
@@ -161,7 +170,6 @@ export function SeriesBar({
   }, [barKeys, dataKey]);
 
   const gap = composedBarGap ?? 4;
-  const stackGap = composedStackGap ?? 0;
 
   const stacked =
     Boolean(composedStacked) &&
@@ -182,8 +190,11 @@ export function SeriesBar({
   const seriesIndex = stackPosition?.index ?? globalSeriesIndex;
   const n = stackKeys.length;
   const isLastSeries = seriesIndex === n - 1;
-  // The stack owns the width; the prop is only where it was declared.
+  // The stack owns the width and the segment gap; the props are only where
+  // they were declared.
   const effectiveWidthRatio = stackPosition?.stack.widthRatio ?? widthRatio;
+  const stackGap =
+    stackPosition?.stack.stackGap ?? stackGapProp ?? composedStackGap ?? 0;
 
   const barWidth = useMemo(
     () =>

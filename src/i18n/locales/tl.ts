@@ -85,6 +85,7 @@ export const tl: Dictionary = {
   'metric.granted': 'Naaprubahan',
   'metric.denied': 'Tinanggihan',
   'metric.other': 'Iba Pa',
+  'metric.approvalRate': 'Rate ng pag-apruba',
   'metric.completion': 'Pagkumpleto',
   'metric.applications': 'Mga Aplikasyon',
   'metric.population': 'Populasyon',
@@ -177,9 +178,9 @@ export const tl: Dictionary = {
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Pagtanggap at Pagproseso',
   'charts.intake.description':
-    'Mga aplikasyong dinala mula sa nakaraan at natanggap kada buwan, laban sa dami na nakumpleto ng mga tanggapan.',
+    'Mga aplikasyong dinala mula sa nakaraan at natanggap kada buwan, kasama ang dami na nakumpleto ng mga tanggapan na nakapaloob dito at hinati ayon sa resulta, katapat ng rate ng pag-apruba.',
   'charts.intake.aria':
-    'Stacked bars ng nakabinbin at natanggap na aplikasyon kada buwan, may naiprosesong dami bilang linya',
+    'Stacked bars ng nakabinbin at natanggap na aplikasyon kada buwan, may mas makitid na stack ng naaprubahan, tinanggihan at iba pang resulta sa loob nito, at ang rate ng pag-apruba bilang linya sa pangalawang aksis mula zero hanggang isang daang porsyento',
   'charts.types.label': 'Mga Uri ng Aplikasyon',
   'charts.types.description':
     'Buwanang bagong pagsusumite na hinati ayon sa uri ng aplikasyon — i-click ang isang entry sa legend para i-toggle ang isang serye.',

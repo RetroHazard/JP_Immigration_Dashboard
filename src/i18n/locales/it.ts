@@ -86,6 +86,7 @@ export const it: Dictionary = {
   'metric.granted': 'Concesse',
   'metric.denied': 'Respinte',
   'metric.other': 'Altro',
+  'metric.approvalRate': 'Tasso di approvazione',
   'metric.completion': 'Completamento',
   'metric.applications': 'Domande',
   'metric.population': 'Popolazione',
@@ -179,9 +180,9 @@ export const it: Dictionary = {
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Ricezione ed elaborazione',
   'charts.intake.description':
-    'Domande riportate e ricevute ogni mese, a confronto con il volume completato dagli uffici.',
+    'Domande riportate e ricevute ogni mese, con il volume completato dagli uffici inserito al loro interno e suddiviso per esito, a confronto con il tasso di approvazione.',
   'charts.intake.aria':
-    'Barre impilate delle domande in attesa e ricevute per mese, con il volume elaborato rappresentato da una linea',
+    'Barre impilate delle domande in attesa e ricevute per mese, con al loro interno una pila più stretta di domande concesse, respinte e altre, e il tasso di approvazione come linea su un secondo asse da zero a cento per cento',
   'charts.types.label': 'Tipi di domanda',
   'charts.types.description':
     'Nuove domande mensili suddivise per tipo — fai clic su una voce della legenda per attivare o disattivare una serie.',

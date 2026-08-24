@@ -73,11 +73,13 @@ export function normalizeStackId(stackId?: string): string {
   return stackId == null || stackId === "" ? DEFAULT_STACK_ID : stackId;
 }
 
-/** One stack's bars, in child order, and the width every bar in it renders at. */
+/** One stack's bars, in child order, and the geometry shared by all of them. */
 export interface ComposedBarStack {
   keys: string[];
   /** Fraction of the column's bar width. See `applyBarWidthRatio`. */
   widthRatio: number;
+  /** Vertical gap between this stack's segments; falls back to the chart's. */
+  stackGap?: number;
 }
 
 /**
@@ -85,14 +87,15 @@ export interface ComposedBarStack {
  * themselves in first-appearance order. `dataKeys[i]` belongs to `stackIds[i]`
  * and declares `widthRatios[i]`.
  *
- * Width is a property of the stack, not of the bar: segments that disagreed
- * would render as a staircase rather than a stack, so the first bar to open a
- * stack sets the width for all of them.
+ * Width and segment gap are properties of the stack, not of the bar: segments
+ * that disagreed would render as a staircase rather than a stack, so the first
+ * bar to open a stack sets both for all of them.
  */
 export function groupBarKeysByStackId(
   dataKeys: string[],
   stackIds: string[],
-  widthRatios: (number | undefined)[] = []
+  widthRatios: (number | undefined)[] = [],
+  stackGaps: (number | undefined)[] = []
 ): ComposedBarStack[] {
   const groups = new Map<string, ComposedBarStack>();
   for (let i = 0; i < dataKeys.length; i++) {
@@ -105,7 +108,11 @@ export function groupBarKeysByStackId(
     if (bucket) {
       bucket.keys.push(key);
     } else {
-      groups.set(stackId, { keys: [key], widthRatio: widthRatios[i] ?? 1 });
+      groups.set(stackId, {
+        keys: [key],
+        widthRatio: widthRatios[i] ?? 1,
+        stackGap: stackGaps[i],
+      });
     }
   }
   return [...groups.values()];

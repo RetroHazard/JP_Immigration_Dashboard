@@ -85,7 +85,8 @@ function tryAppendSeriesBar(
   lines: LineConfig[],
   barDataKeys: string[],
   barStackIds: string[],
-  barWidthRatios: (number | undefined)[]
+  barWidthRatios: (number | undefined)[],
+  barStackGaps: (number | undefined)[]
 ): boolean {
   const name = getChildComponentName(child);
   if (!(child.type === SeriesBar || name === "SeriesBar")) {
@@ -98,6 +99,7 @@ function tryAppendSeriesBar(
   barDataKeys.push(props.dataKey);
   barStackIds.push(normalizeStackId(props.stackId));
   barWidthRatios.push(props.widthRatio);
+  barStackGaps.push(props.stackGap);
   upsertLineConfig(lines, {
     dataKey: props.dataKey,
     stroke: props.stroke || props.fill || "var(--chart-line-primary)",
@@ -154,13 +156,21 @@ function extractComposedSeries(children: ReactNode): {
   const barDataKeys: string[] = [];
   const barStackIds: string[] = [];
   const barWidthRatios: (number | undefined)[] = [];
+  const barStackGaps: (number | undefined)[] = [];
 
   Children.forEach(children, (child) => {
     if (!isValidElement(child)) {
       return;
     }
     if (
-      tryAppendSeriesBar(child, lines, barDataKeys, barStackIds, barWidthRatios)
+      tryAppendSeriesBar(
+        child,
+        lines,
+        barDataKeys,
+        barStackIds,
+        barWidthRatios,
+        barStackGaps
+      )
     ) {
       return;
     }
@@ -173,7 +183,12 @@ function extractComposedSeries(children: ReactNode): {
   return {
     lines,
     barDataKeys,
-    barStacks: groupBarKeysByStackId(barDataKeys, barStackIds, barWidthRatios),
+    barStacks: groupBarKeysByStackId(
+      barDataKeys,
+      barStackIds,
+      barWidthRatios,
+      barStackGaps
+    ),
   };
 }
 
