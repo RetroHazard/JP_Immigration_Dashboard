@@ -66,6 +66,11 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.6.0**: Lines on the time-series charts no longer get stranded when the figures behind them change scale —
+  - Picking a bureau or an application type can move the y-axis by orders of magnitude — the nationwide total against one office's caseload. The axis rescaled, the bars followed, but a line could stay drawn against the old scale, usually flattened along the bottom of the plot. Hovering it gave the right number in the right place, which made the line itself look broken rather than stale
+  - The axis rescale is animated, and each of its frames was interrupting the line's own redraw and leaving it holding the previous scale's positions. The two now run together, so a line follows its axis down as it rescales instead of being left behind by it
+  - This affected every chart drawing a line, and had done for some time; it showed up intermittently because it depended on which animation won the race
+
 - **v1.5.1**: The data table under each Application Processing chart now describes that chart, instead of the same intake figures appearing beneath all seven —
   - Under **Application Types** the table had no application-type column at all: its "Received" figure was the six plotted lines added together, and the types themselves appeared nowhere. There is now one column per application type, matching the lines above it
   - **Bureau Share** and **Processing Efficiency** break down by bureau, as their charts do, rather than collapsing to the single nationwide row. Bureau Share lists each bureau's intake and its share of the total — including the smaller ones the donut folds into its "Other" slice — and Processing Efficiency lists received, processed, and completion rate in the ranking's own order

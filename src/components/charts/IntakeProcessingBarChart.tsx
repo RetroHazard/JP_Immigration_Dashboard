@@ -34,6 +34,11 @@ import { SeriesLegend } from '../common/SeriesLegend';
 /** Not a status row — derived below, and the only series on the right axis. */
 const RATE_ID = 'approvalRate';
 
+// Hoisted rather than inlined: this is a dependency of both y-domain memos in
+// the chart shell, so a fresh object here re-renders every series on every
+// render of this component.
+const RATE_AXIS_DOMAIN: Record<string, [number, number]> = { right: [0, 100] };
+
 // `id` is the data-row property and the chart's dataKey; `label` is display
 // text only. They used to be the same string, which made the plotted data
 // shape depend on the UI language.
@@ -120,7 +125,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           maxBarSize={30}
           aspectRatio="16 / 8"
           margin={{ right: rateAxisMargin }}
-          yAxisDomains={{ right: [0, 100] }}
+          yAxisDomains={RATE_AXIS_DOMAIN}
           // Monthly points are all on the 1st — the default month+day labels
           // drop the year, which is ambiguous across multi-year ranges.
           formatDateLabel={(date) => formatters.monthYear(date)}
