@@ -6,7 +6,11 @@ import { useMemo } from "react";
 import { chartCssVars, useChart } from "./chart-context";
 import { useChartLegendHover } from "./chart-legend-hover";
 import { transitionWithDelay } from "./motion-utils";
-import { computeSeriesBarWidth } from "./series-bar-layout";
+import {
+  applyBarWidthRatio,
+  computeSeriesBarWidth,
+  findStackPosition,
+} from "./series-bar-layout";
 
 function computeSeriesBarLayout(input: {
   stacked: boolean;
@@ -92,6 +96,23 @@ export interface SeriesBarProps {
   animate?: boolean;
   /** Opacity for non-hovered bars when another point is hovered (matches BarChart). Default: 0.3 */
   fadedOpacity?: number;
+  /**
+   * LOCAL MODIFICATION: which stack this bar joins when the chart is `stacked`.
+   * Bars sharing a `stackId` stack against each other; separate stacks are drawn
+   * over the same x, in child order, so a narrower one (see `widthRatio`) reads
+   * as a bullet inside the wider one. Default: all bars share one stack, which
+   * is upstream's only behaviour. (Re-apply after a re-vendor.)
+   */
+  stackId?: string;
+  /**
+   * LOCAL MODIFICATION: bar width as a fraction of the column's bar width,
+   * still centred on the same x. Used to inset an overlaid stack. Floored so it
+   * stays visible on a narrow column. Read from the first `SeriesBar` of each
+   * `stackId` and applied to the whole stack — segments that rendered at
+   * different widths would read as a staircase, not a stack. Default: 1.
+   * (Re-apply after a re-vendor.)
+   */
+  widthRatio?: number;
 }
 
 export function SeriesBar({
@@ -100,6 +121,7 @@ export function SeriesBar({
   radius = 0,
   animate = true,
   fadedOpacity = 0.3,
+  widthRatio = 1,
 }: SeriesBarProps) {
   const {
     data,
@@ -121,6 +143,7 @@ export function SeriesBar({
     composedStacked,
     composedStackOffsets,
     composedStackGap,
+    composedBarStacks,
     tooltipData,
   } = useChart();
 
@@ -131,12 +154,12 @@ export function SeriesBar({
     return [dataKey];
   }, [composedBarDataKeys, dataKey]);
 
-  const seriesIndex = useMemo(() => {
+  /** Position across every bar in the chart — what the legend hover keys off. */
+  const globalSeriesIndex = useMemo(() => {
     const idx = barKeys.indexOf(dataKey);
     return idx >= 0 ? idx : 0;
   }, [barKeys, dataKey]);
 
-  const n = barKeys.length;
   const gap = composedBarGap ?? 4;
   const stackGap = composedStackGap ?? 0;
 
@@ -146,25 +169,43 @@ export function SeriesBar({
     composedBarDataKeys != null &&
     composedBarDataKeys.length > 0;
 
+  // LOCAL MODIFICATION: stacking maths is per stack, so a bar's offset index
+  // and its "am I the top segment?" flag (which drive the stack gap and the
+  // corner rounding) come from its own group, not from every bar in the chart.
+  // Without `composedBarStacks` this collapses to upstream's single stack.
+  // (Re-apply after a re-vendor.)
+  const stackPosition = useMemo(
+    () => (stacked ? findStackPosition(composedBarStacks, dataKey) : null),
+    [composedBarStacks, dataKey, stacked]
+  );
+  const stackKeys = stackPosition?.stack.keys ?? barKeys;
+  const seriesIndex = stackPosition?.index ?? globalSeriesIndex;
+  const n = stackKeys.length;
   const isLastSeries = seriesIndex === n - 1;
+  // The stack owns the width; the prop is only where it was declared.
+  const effectiveWidthRatio = stackPosition?.stack.widthRatio ?? widthRatio;
 
   const barWidth = useMemo(
     () =>
-      computeSeriesBarWidth({
-        innerWidth,
-        dataLength: data.length,
-        columnWidth,
-        seriesCount: n,
-        composedBarSize,
-        composedMaxBarSize,
-        composedBarGap: gap,
-        stacked,
-      }),
+      applyBarWidthRatio(
+        computeSeriesBarWidth({
+          innerWidth,
+          dataLength: data.length,
+          columnWidth,
+          seriesCount: n,
+          composedBarSize,
+          composedMaxBarSize,
+          composedBarGap: gap,
+          stacked,
+        }),
+        effectiveWidthRatio
+      ),
     [
       columnWidth,
       composedBarSize,
       composedMaxBarSize,
       data.length,
+      effectiveWidthRatio,
       gap,
       innerWidth,
       n,
@@ -178,7 +219,7 @@ export function SeriesBar({
     data.length > 1 ? staggerSpread / 1000 / data.length : 0;
   const { hoveredIndex: legendHoveredIndex } = useChartLegendHover();
   const isLegendDimmed =
-    legendHoveredIndex !== null && legendHoveredIndex !== seriesIndex;
+    legendHoveredIndex !== null && legendHoveredIndex !== globalSeriesIndex;
   const hoveredIndex = tooltipData?.index ?? null;
 
   if (barScale) {

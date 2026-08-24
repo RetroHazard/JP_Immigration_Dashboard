@@ -17,6 +17,13 @@ import type { ChartPhase } from "./chart-phase";
 import { estimateAxisMarginLeft } from "./chart-formatters";
 import { Line, type LineProps } from "./line";
 import { SeriesBar, type SeriesBarProps } from "./series-bar";
+import {
+  type ComposedBarStack,
+  computeComposedStackOffsets,
+  groupBarKeysByStackId,
+  normalizeStackId,
+} from "./series-bar-layout";
+import { DEFAULT_Y_AXIS_ID, normalizeYAxisId } from "./y-axis-scales";
 import { TimeSeriesChartInner } from "./time-series-chart-shell";
 
 export interface ComposedChartProps {
@@ -43,6 +50,12 @@ export interface ComposedChartProps {
   stacked?: boolean;
   /** Gap in px between stacked segments. Default: 0 */
   stackGap?: number;
+  /**
+   * LOCAL MODIFICATION: axes held at a fixed domain, keyed by `yAxisId` — e.g.
+   * `{ right: [0, 100] }` for a percentage axis that should read 0-100%
+   * whatever the data does. (Re-apply after a re-vendor.)
+   */
+  yAxisDomains?: Record<string, [number, number]>;
   onPhaseChange?: (phase: ChartPhase) => void;
   /** LOCAL MODIFICATION: x tick/ticker label format override — see time-series-chart-shell.tsx. */
   formatDateLabel?: (date: Date) => string;
@@ -70,7 +83,9 @@ function upsertLineConfig(lines: LineConfig[], config: LineConfig): void {
 function tryAppendSeriesBar(
   child: ReactElement,
   lines: LineConfig[],
-  barDataKeys: string[]
+  barDataKeys: string[],
+  barStackIds: string[],
+  barWidthRatios: (number | undefined)[]
 ): boolean {
   const name = getChildComponentName(child);
   if (!(child.type === SeriesBar || name === "SeriesBar")) {
@@ -81,6 +96,8 @@ function tryAppendSeriesBar(
     return true;
   }
   barDataKeys.push(props.dataKey);
+  barStackIds.push(normalizeStackId(props.stackId));
+  barWidthRatios.push(props.widthRatio);
   upsertLineConfig(lines, {
     dataKey: props.dataKey,
     stroke: props.stroke || props.fill || "var(--chart-line-primary)",
@@ -123,18 +140,28 @@ function tryAppendArea(child: ReactElement, lines: LineConfig[]): boolean {
   return true;
 }
 
+// NOTE: `Children.forEach` flattens arrays but not Fragments, and a Fragment's
+// type is a symbol that `getChildComponentName` reads as "". A `SeriesBar`
+// wrapped in <>…</> would still render, but register no dataKey, no stack, no
+// domain contribution and no tooltip row — so series must be direct children
+// or a flat array.
 function extractComposedSeries(children: ReactNode): {
   lines: LineConfig[];
   barDataKeys: string[];
+  barStacks: ComposedBarStack[];
 } {
   const lines: LineConfig[] = [];
   const barDataKeys: string[] = [];
+  const barStackIds: string[] = [];
+  const barWidthRatios: (number | undefined)[] = [];
 
   Children.forEach(children, (child) => {
     if (!isValidElement(child)) {
       return;
     }
-    if (tryAppendSeriesBar(child, lines, barDataKeys)) {
+    if (
+      tryAppendSeriesBar(child, lines, barDataKeys, barStackIds, barWidthRatios)
+    ) {
       return;
     }
     if (tryAppendLine(child, lines)) {
@@ -143,27 +170,47 @@ function extractComposedSeries(children: ReactNode): {
     tryAppendArea(child, lines);
   });
 
-  return { lines, barDataKeys };
+  return {
+    lines,
+    barDataKeys,
+    barStacks: groupBarKeysByStackId(barDataKeys, barStackIds, barWidthRatios),
+  };
 }
 
-function computeComposedYScaleDomainMax(
+export function computeComposedYScaleDomainMax(
   data: Record<string, unknown>[],
   lines: LineConfig[],
-  barDataKeys: string[]
+  barDataKeys: string[],
+  barStacks: ComposedBarStack[]
 ): number | undefined {
   const barSet = new Set(barDataKeys);
   let max = 0;
   for (const d of data) {
-    let barSum = 0;
-    for (const k of barDataKeys) {
-      const v = d[k];
-      if (typeof v === "number") {
-        barSum += v;
+    // LOCAL MODIFICATION: the tallest *stack*, not the sum of every bar.
+    // Upstream assumes one stack per x, so summing all bar keys was the same
+    // number; with several stacks that total is a height nothing ever draws
+    // and the axis ends up scaled to it. (Re-apply after a re-vendor.)
+    let barMax = 0;
+    for (const stack of barStacks) {
+      let stackSum = 0;
+      for (const k of stack.keys) {
+        const v = d[k];
+        if (typeof v === "number") {
+          stackSum += v;
+        }
       }
+      barMax = Math.max(barMax, stackSum);
     }
     let rowMaxOther = 0;
     for (const line of lines) {
       if (barSet.has(line.dataKey)) {
+        continue;
+      }
+      // LOCAL MODIFICATION: this is the *primary* axis's max, so a series on a
+      // secondary axis must not raise it. Upstream folds in every line, which
+      // is only harmless while no chart uses a second axis.
+      // (Re-apply after a re-vendor.)
+      if (normalizeYAxisId(line.yAxisId) !== DEFAULT_Y_AXIS_ID) {
         continue;
       }
       const v = d[line.dataKey];
@@ -171,7 +218,7 @@ function computeComposedYScaleDomainMax(
         rowMaxOther = Math.max(rowMaxOther, v);
       }
     }
-    max = Math.max(max, barSum, rowMaxOther);
+    max = Math.max(max, barMax, rowMaxOther);
   }
   return max > 0 ? max : undefined;
 }
@@ -193,6 +240,7 @@ interface ChartInnerProps {
   barGap?: number;
   stacked?: boolean;
   stackGap?: number;
+  yAxisDomains?: Record<string, [number, number]>;
   onPhaseChange?: (phase: ChartPhase) => void;
   formatDateLabel?: (date: Date) => string;
 }
@@ -214,44 +262,29 @@ function ChartInner({
   barGap,
   stacked = false,
   stackGap = 0,
+  yAxisDomains,
   onPhaseChange,
   formatDateLabel,
 }: ChartInnerProps) {
-  const { lines, barDataKeys } = useMemo(
+  const { lines, barDataKeys, barStacks } = useMemo(
     () => extractComposedSeries(children),
     [children]
   );
 
-  const composedStackOffsets = useMemo(() => {
-    if (!(stacked && barDataKeys.length > 0)) {
-      return undefined;
-    }
-    const offsets = new Map<number, Map<string, number>>();
-    for (let i = 0; i < data.length; i++) {
-      const d = data[i];
-      if (!d) {
-        continue;
-      }
-      const pointOffsets = new Map<string, number>();
-      let cumulative = 0;
-      for (const key of barDataKeys) {
-        pointOffsets.set(key, cumulative);
-        const v = d[key];
-        if (typeof v === "number") {
-          cumulative += v;
-        }
-      }
-      offsets.set(i, pointOffsets);
-    }
-    return offsets;
-  }, [data, barDataKeys, stacked]);
+  const composedStackOffsets = useMemo(
+    () =>
+      stacked && barDataKeys.length > 0
+        ? computeComposedStackOffsets(data, barStacks)
+        : undefined,
+    [data, barDataKeys, barStacks, stacked]
+  );
 
   const yScaleDomainMax = useMemo(
     () =>
       stacked && barDataKeys.length > 0
-        ? computeComposedYScaleDomainMax(data, lines, barDataKeys)
+        ? computeComposedYScaleDomainMax(data, lines, barDataKeys, barStacks)
         : undefined,
-    [data, lines, barDataKeys, stacked]
+    [data, lines, barDataKeys, barStacks, stacked]
   );
 
   return (
@@ -260,6 +293,7 @@ function ChartInner({
       animationEasing={animationEasing}
       clipPathId="composed-chart-grow-clip"
       composedBarDataKeys={barDataKeys.length > 0 ? barDataKeys : undefined}
+      composedBarStacks={barStacks.length > 1 ? barStacks : undefined}
       composedBarGap={barGap}
       composedBarSize={barSize}
       composedMaxBarSize={maxBarSize}
@@ -277,6 +311,7 @@ function ChartInner({
       revealSignature={revealSignature}
       width={width}
       xDataKey={xDataKey}
+      yAxisDomains={yAxisDomains}
       yScaleDomainMax={yScaleDomainMax}
     >
       {children}
@@ -300,6 +335,7 @@ export function ComposedChart({
   barGap = 4,
   stacked = false,
   stackGap = 0,
+  yAxisDomains,
   onPhaseChange,
   formatDateLabel,
 }: ComposedChartProps) {
@@ -335,6 +371,7 @@ export function ComposedChart({
             stackGap={stackGap}
             width={width}
             xDataKey={xDataKey}
+            yAxisDomains={yAxisDomains}
           >
             {children}
           </ChartInner>
