@@ -128,6 +128,24 @@ describe('buildFormulaSteps LaTeX', () => {
     }
   );
 
+  // KaTeX draws a stretchy delimiter as an SVG path, and neither `throwOnError`
+  // nor `strict: 'error'` looks at what it emitted. Asked to grow around an
+  // underbraced term, 0.16.28 writes a `\rceil` path with a doubled moveto
+  // (`MM319 602 ...`); the browser rejects it as invalid SVG and logs an error
+  // for every affected formula. Fixed-size delimiters avoid it entirely.
+  it.each(LOCALE_CODES.flatMap((code) => COMBINATIONS.map((b) => [code, label(b), b] as const)))(
+    'emits no malformed SVG path in %s (%s)',
+    (code, _name, branches) => {
+      buildFormulaSteps(BASE, branches, formattersFor(code)).forEach((step) => {
+        const html = katex.renderToString(step.math, { displayMode: true, throwOnError: true, strict: 'error' });
+        const commands = [...html.matchAll(/ d="([^"]*)"/g)].map((m) => m[1]);
+        // Two command letters back to back means one has no coordinates.
+        const malformed = commands.filter((d) => /[A-Za-z]{2}/.test(d));
+        expect(malformed, `step ${step.step}`).toEqual([]);
+      });
+    }
+  );
+
   it('compiles a past-due estimate, which floors rather than ceils', () => {
     const pastDue: ModelVariables = { ...BASE, Q_pos: -420, D_rem: -4.42, D_est: -5, U_days: 1 };
     const steps = buildFormulaSteps(pastDue, COMBINATIONS[0], formattersFor('en'));
@@ -139,16 +157,18 @@ describe('buildFormulaSteps LaTeX', () => {
     ).not.toThrow();
   });
 
-  it('writes a negative term as a subtraction rather than "+ -"', () => {
+  it('keeps a negative value under its own brace instead of flipping the operator', () => {
     // E_proc goes negative whenever the published months already account for
-    // more than the average rate predicted, and S_proc follows it down.
+    // more than the average rate predicted, and S_proc follows it down. The
+    // sign belongs to the variable, so it stays under the brace - turning the
+    // sum into a subtraction would report E_proc as a positive number.
     const negative: ModelVariables = { ...BASE, E_proc: -20146, S_proc: -16430, Q_pos: 32098 };
     const steps = buildFormulaSteps(negative, COMBINATIONS[0], formattersFor('en'));
 
-    expect(steps[2].math).toContain('- 20{,}146');
-    expect(steps[2].math).not.toContain('+ -');
-    expect(steps[3].math).toContain('+ 16{,}430');
-    expect(steps[3].math).not.toContain('- -');
+    expect(steps[2].math).toContain('_{-20{,}146}');
+    expect(steps[2].math).toContain(`+ \\underbrace{${SYMBOLS.eProc}}`);
+    expect(steps[3].math).toContain('_{-16{,}430}');
+    expect(steps[3].math).toContain(`- \\underbrace{${SYMBOLS.sProc}}`);
     steps.forEach((step) =>
       expect(() =>
         katex.renderToString(step.math, { displayMode: true, throwOnError: true, strict: 'error' })
@@ -156,10 +176,24 @@ describe('buildFormulaSteps LaTeX', () => {
     );
   });
 
+  it('tucks each value under its own symbol', () => {
+    // Every step but the first carries at least one braced term; step 1 is
+    // two quotients, which keep the paired symbolic/numeric form because an
+    // underbrace inside a \frac pushes the fraction bar down.
+    COMBINATIONS.forEach((branches) => {
+      const steps = buildFormulaSteps(BASE, branches, PLAIN);
+      steps
+        .slice(1)
+        .forEach((step) =>
+          expect(step.math, `step ${step.step} on ${label(branches)} has no braced value`).toContain('\\underbrace')
+        );
+      expect(steps[0].math).not.toContain('\\underbrace');
+    });
+  });
+
   it('leaves behind none of the notation the old breakdown used', () => {
     COMBINATIONS.forEach((branches) => {
       buildFormulaSteps(BASE, branches, PLAIN).forEach((step) => {
-        expect(step.math).not.toContain('\\underbrace');
         expect(step.math).not.toContain('\\lbrack');
         expect(step.math).not.toContain('\\rbrack');
       });
