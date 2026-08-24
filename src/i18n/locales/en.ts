@@ -149,32 +149,94 @@ export const en = {
   'estimator.disclaimerEmphasis': 'estimate',
 
   // ── Estimator: the "Show the math" breakdown ─────────────────────────────
-  'estimator.formula.step1': 'Queue at application',
-  'estimator.formula.step2': 'Queue position & daily rate',
-  'estimator.formula.step3': 'Remaining days',
+  'estimator.formula.step1': 'Throughput baseline',
+  'estimator.formula.step2': 'Queue at application',
+  'estimator.formula.step3': 'Processed since application',
+  'estimator.formula.step4': 'Queue position & remaining days',
+  'estimator.formula.step5': 'Completion offset & spread',
   'estimator.formula.explainAria': 'Explain the variables in the {title} formula',
-  'estimator.formula.var.dRem.title': 'Remaining Days',
-  'estimator.formula.var.dRem.description': 'Estimated days until processing completes.',
-  'estimator.formula.var.qPos.title': 'Queue Position',
-  'estimator.formula.var.qPos.description': 'Estimated position in the processing queue.',
-  'estimator.formula.var.rDaily.title': 'Daily Rate',
-  'estimator.formula.var.rDaily.description': 'Average applications processed per day.',
-  'estimator.formula.var.cProc.title': 'Confirmed Processed',
-  'estimator.formula.var.cProc.description': 'Confirmed number of applications processed since submission.',
-  'estimator.formula.var.eProc.title': 'Estimated Processed',
-  'estimator.formula.var.eProc.description': 'Estimated number of applications processed since last data point.',
+  // Step 1 — throughput baseline.
   'estimator.formula.var.sigmaP.title': 'Total Processed',
-  'estimator.formula.var.sigmaP.description': 'Sum of processed applications used for calculating averages.',
+  'estimator.formula.var.sigmaP.description':
+    'Applications completed across the sampled window — the last six published months, or fewer where that is all there is.',
+  'estimator.formula.var.sigmaN.title': 'Total Received',
+  'estimator.formula.var.sigmaN.description': 'Applications taken in across the same sampled window.',
   'estimator.formula.var.sigmaD.title': 'Total Days',
-  'estimator.formula.var.sigmaD.description': 'Sum of days used for calculating averages.',
-  'estimator.formula.var.qApp.title': 'Application Queue',
-  'estimator.formula.var.qApp.description': 'Estimated queue position at submission time.',
+  'estimator.formula.var.sigmaD.description': 'Calendar days in the sampled window, added up month by month.',
+  'estimator.formula.var.rProc.title': 'Processing Rate',
+  'estimator.formula.var.rProc.description': 'Applications completed per day, averaged across the sampled window.',
+  'estimator.formula.var.rNew.title': 'Intake Rate',
+  'estimator.formula.var.rNew.description': 'Applications received per day, averaged across the same window.',
+  // Step 2 — the queue on the application date.
+  'estimator.formula.var.tPrev.title': 'Previous Month Total',
+  'estimator.formula.var.tPrev.description':
+    'Total applications on record for the month before yours — carried in plus newly received.',
+  'estimator.formula.var.pPrev.title': 'Previous Month Processed',
+  'estimator.formula.var.pPrev.description': 'Applications completed in the month before yours.',
+  'estimator.formula.var.cSeed.title': 'Simulation Start',
+  'estimator.formula.var.cSeed.description':
+    'The last published carry-over, used as the starting point when the month before yours has no figures of its own.',
+  'estimator.formula.var.mSim.title': 'Months Simulated',
+  'estimator.formula.var.mSim.description':
+    'How many months the carry-over was rolled forward to reach your application month.',
   'estimator.formula.var.cPrev.title': 'Carried Over',
-  'estimator.formula.var.cPrev.description': 'Applications carried forward from the previous month.',
-  'estimator.formula.var.nApp.title': 'New Applications',
-  'estimator.formula.var.nApp.description': 'Estimated applications received prior to submission.',
-  'estimator.formula.var.pApp.title': 'Processed Applications',
-  'estimator.formula.var.pApp.description': 'Estimated applications processed prior to submission.',
+  'estimator.formula.var.cPrev.description':
+    'Applications still waiting when your application month began. Read from the previous month where it is published, otherwise rolled forward one month at a time from the last month that has figures.',
+  'estimator.formula.var.nMonth.title': 'Month Received',
+  'estimator.formula.var.nMonth.description': 'Applications received across the whole of your application month.',
+  'estimator.formula.var.pMonth.title': 'Month Processed',
+  'estimator.formula.var.pMonth.description': 'Applications completed across the whole of your application month.',
+  'estimator.formula.var.dMonth.title': 'Days in Month',
+  'estimator.formula.var.dMonth.description':
+    'Calendar days in your application month, used to spread its monthly totals evenly across the days.',
+  'estimator.formula.var.aDay.title': 'Application Day',
+  'estimator.formula.var.aDay.description':
+    'The day of the month you applied — how far into the month the queue had built up.',
+  'estimator.formula.var.nApp.title': 'Received Before You',
+  'estimator.formula.var.nApp.description':
+    'Applications received earlier in your application month, pro-rated to the day you applied.',
+  'estimator.formula.var.pApp.title': 'Processed Before You',
+  'estimator.formula.var.pApp.description':
+    'Applications completed earlier in your application month, pro-rated the same way.',
+  'estimator.formula.var.qApp.title': 'Application Queue',
+  'estimator.formula.var.qApp.description': 'How many applications were ahead of yours the day you applied.',
+  // Step 3 — progress since the application date.
+  'estimator.formula.var.pAfter.title': 'Later Months Processed',
+  'estimator.formula.var.pAfter.description':
+    'Applications completed in the published months that follow your application month.',
+  'estimator.formula.var.tApp.title': 'Days Since Applying',
+  'estimator.formula.var.tApp.description': 'Calendar days between your application date and today.',
+  'estimator.formula.var.tData.title': 'Days Since Last Data',
+  'estimator.formula.var.tData.description':
+    'Calendar days between the end of the most recently published month and today.',
+  'estimator.formula.var.cProc.title': 'Confirmed Processed',
+  'estimator.formula.var.cProc.description':
+    'Applications completed since you applied that published figures already account for.',
+  'estimator.formula.var.eProc.title': 'Projected Processed',
+  'estimator.formula.var.eProc.description':
+    'Applications assumed completed over the stretch no published figures cover yet. Goes negative when those figures already account for more than the average rate predicts.',
+  'estimator.formula.var.sProc.title': 'Processed Since',
+  'estimator.formula.var.sProc.description':
+    'Everything worked through since you applied — confirmed and projected together, rounded to whole applications.',
+  // Step 4 — position in the queue, and how long it takes to clear.
+  'estimator.formula.var.qPos.title': 'Queue Position',
+  'estimator.formula.var.qPos.description':
+    'How many applications are still ahead of yours. Zero or below means the estimate has already passed.',
+  'estimator.formula.var.dRem.title': 'Remaining Days',
+  'estimator.formula.var.dRem.description': 'Days needed to clear the rest of the queue at the current rate.',
+  // Step 5 — the whole-day offset, and the spread around it.
+  'estimator.formula.var.dEst.title': 'Whole Days',
+  'estimator.formula.var.dEst.description':
+    'The remaining days rounded away from zero — the offset added to today to give the date shown above.',
+  'estimator.formula.var.sigmaR.title': 'Rate Spread',
+  'estimator.formula.var.sigmaR.description':
+    'Standard deviation of the monthly processing rates — how much the pace varies from month to month.',
+  'estimator.formula.var.rBar.title': 'Mean Monthly Rate',
+  'estimator.formula.var.rBar.description':
+    'The monthly processing rates averaged one weight per month, rather than weighted by volume.',
+  'estimator.formula.var.uDays.title': 'Uncertainty',
+  'estimator.formula.var.uDays.description':
+    'The ± band shown beside the result: how far the estimate moves if the pace varies as much as it recently has.',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card

@@ -146,32 +146,95 @@ export const de: Dictionary = {
   'estimator.disclaimerEmphasis': 'Schätzung',
 
   // ── Estimator: the "Show the math" breakdown ─────────────────────────────
-  'estimator.formula.step1': 'Warteschlange bei Antragstellung',
-  'estimator.formula.step2': 'Warteschlangenposition & Tagesrate',
-  'estimator.formula.step3': 'Verbleibende Tage',
-  'estimator.formula.explainAria': 'Variablen in der Formel „{title}“ erklären',
-  'estimator.formula.var.dRem.title': 'Verbleibende Tage',
-  'estimator.formula.var.dRem.description': 'Geschätzte Tage bis zum Abschluss der Bearbeitung.',
-  'estimator.formula.var.qPos.title': 'Warteschlangenposition',
-  'estimator.formula.var.qPos.description': 'Geschätzte Position in der Bearbeitungswarteschlange.',
-  'estimator.formula.var.rDaily.title': 'Tagesrate',
-  'estimator.formula.var.rDaily.description': 'Durchschnittlich pro Tag bearbeitete Anträge.',
-  'estimator.formula.var.cProc.title': 'Bestätigt bearbeitet',
-  'estimator.formula.var.cProc.description': 'Bestätigte Anzahl der seit der Einreichung bearbeiteten Anträge.',
-  'estimator.formula.var.eProc.title': 'Geschätzt bearbeitet',
-  'estimator.formula.var.eProc.description': 'Geschätzte Anzahl der seit dem letzten Datenpunkt bearbeiteten Anträge.',
-  'estimator.formula.var.sigmaP.title': 'Insgesamt bearbeitet',
-  'estimator.formula.var.sigmaP.description': 'Summe der bearbeiteten Anträge zur Berechnung der Durchschnittswerte.',
+  'estimator.formula.step1': 'Durchsatz-Grundlage',
+  'estimator.formula.step2': 'Warteschlange bei Antragstellung',
+  'estimator.formula.step3': 'Bearbeitet seit Antragstellung',
+  'estimator.formula.step4': 'Position und verbleibende Tage',
+  'estimator.formula.step5': 'Ganze Tage und Streuung',
+  'estimator.formula.explainAria': 'Die Variablen der Formel {title} erläutern',
+  // Step 1 — throughput baseline.
+  'estimator.formula.var.sigmaP.title': 'Bearbeitet insgesamt',
+  'estimator.formula.var.sigmaP.description':
+    'Anträge, die im Stichprobenzeitraum abgeschlossen wurden, also in den letzten sechs veröffentlichten Monaten oder weniger, wenn die Daten früher enden.',
+  'estimator.formula.var.sigmaN.title': 'Eingegangen insgesamt',
+  'estimator.formula.var.sigmaN.description': 'Anträge, die im selben Stichprobenzeitraum eingegangen sind.',
   'estimator.formula.var.sigmaD.title': 'Tage insgesamt',
-  'estimator.formula.var.sigmaD.description': 'Summe der Tage zur Berechnung der Durchschnittswerte.',
-  'estimator.formula.var.qApp.title': 'Antragswarteschlange',
-  'estimator.formula.var.qApp.description': 'Geschätzte Warteschlangenposition zum Zeitpunkt der Einreichung.',
+  'estimator.formula.var.sigmaD.description': 'Kalendertage des Stichprobenzeitraums, Monat für Monat aufaddiert.',
+  'estimator.formula.var.rProc.title': 'Bearbeitungsrate',
+  'estimator.formula.var.rProc.description':
+    'Pro Tag abgeschlossene Anträge, gemittelt über den gesamten Stichprobenzeitraum.',
+  'estimator.formula.var.rNew.title': 'Eingangsrate',
+  'estimator.formula.var.rNew.description': 'Pro Tag eingegangene Anträge, gemittelt über denselben Zeitraum.',
+  // Step 2 — the queue on the application date.
+  'estimator.formula.var.tPrev.title': 'Bestand im Vormonat',
+  'estimator.formula.var.tPrev.description':
+    'Alle Anträge, die im Monat vor Ihrem im Bestand waren: der Übertrag zuzüglich der Neueingänge.',
+  'estimator.formula.var.pPrev.title': 'Bearbeitet im Vormonat',
+  'estimator.formula.var.pPrev.description': 'Anträge, die im Monat vor Ihrem abgeschlossen wurden.',
+  'estimator.formula.var.cSeed.title': 'Startwert der Simulation',
+  'estimator.formula.var.cSeed.description':
+    'Der zuletzt veröffentlichte Übertrag, der als Ausgangspunkt dient, wenn für den Monat vor Ihrem keine eigenen Zahlen vorliegen.',
+  'estimator.formula.var.mSim.title': 'Simulierte Monate',
+  'estimator.formula.var.mSim.description':
+    'Über wie viele Monate der Übertrag fortgeschrieben wurde, um Ihren Antragsmonat zu erreichen.',
   'estimator.formula.var.cPrev.title': 'Übertrag',
-  'estimator.formula.var.cPrev.description': 'Aus dem Vormonat übertragene Anträge.',
-  'estimator.formula.var.nApp.title': 'Neue Anträge',
-  'estimator.formula.var.nApp.description': 'Geschätzte, vor der Einreichung eingegangene Anträge.',
-  'estimator.formula.var.pApp.title': 'Bearbeitete Anträge',
-  'estimator.formula.var.pApp.description': 'Geschätzte, vor der Einreichung bearbeitete Anträge.',
+  'estimator.formula.var.cPrev.description':
+    'Anträge, die zu Beginn Ihres Antragsmonats noch warteten. Aus dem Vormonat übernommen, sofern veröffentlicht, sonst Monat für Monat aus dem letzten Monat mit Zahlen fortgeschrieben.',
+  'estimator.formula.var.nMonth.title': 'Eingang im Monat',
+  'estimator.formula.var.nMonth.description': 'Anträge, die im gesamten Antragsmonat eingegangen sind.',
+  'estimator.formula.var.pMonth.title': 'Bearbeitet im Monat',
+  'estimator.formula.var.pMonth.description': 'Anträge, die im gesamten Antragsmonat abgeschlossen wurden.',
+  'estimator.formula.var.dMonth.title': 'Tage im Monat',
+  'estimator.formula.var.dMonth.description':
+    'Kalendertage Ihres Antragsmonats, mit denen die Monatssummen gleichmäßig auf die Tage verteilt werden.',
+  'estimator.formula.var.aDay.title': 'Tag der Antragstellung',
+  'estimator.formula.var.aDay.description':
+    'Der wievielte Tag des Monats Ihr Antragsdatum ist, also wie weit die Schlange im Monat bereits gewachsen war.',
+  'estimator.formula.var.nApp.title': 'Vor Ihnen eingegangen',
+  'estimator.formula.var.nApp.description':
+    'Anträge, die in Ihrem Antragsmonat früher eingegangen sind, anteilig bis zum Tag Ihrer Antragstellung.',
+  'estimator.formula.var.pApp.title': 'Vor Ihnen bearbeitet',
+  'estimator.formula.var.pApp.description':
+    'Anträge, die in Ihrem Antragsmonat früher abgeschlossen wurden, auf dieselbe Weise anteilig berechnet.',
+  'estimator.formula.var.qApp.title': 'Schlange bei Antragstellung',
+  'estimator.formula.var.qApp.description': 'Wie viele Anträge am Tag Ihrer Antragstellung vor Ihrem lagen.',
+  // Step 3 — progress since the application date.
+  'estimator.formula.var.pAfter.title': 'Bearbeitet in Folgemonaten',
+  'estimator.formula.var.pAfter.description':
+    'Anträge, die in den veröffentlichten Monaten nach Ihrem Antragsmonat abgeschlossen wurden.',
+  'estimator.formula.var.tApp.title': 'Tage seit Antragstellung',
+  'estimator.formula.var.tApp.description': 'Kalendertage zwischen Ihrem Antragsdatum und heute.',
+  'estimator.formula.var.tData.title': 'Tage seit den Daten',
+  'estimator.formula.var.tData.description':
+    'Kalendertage zwischen dem Ende des zuletzt veröffentlichten Monats und heute.',
+  'estimator.formula.var.cProc.title': 'Bestätigt bearbeitet',
+  'estimator.formula.var.cProc.description':
+    'Seit Ihrer Antragstellung abgeschlossene Anträge, die von veröffentlichten Zahlen bereits belegt sind.',
+  'estimator.formula.var.eProc.title': 'Geschätzt bearbeitet',
+  'estimator.formula.var.eProc.description':
+    'Anträge, die im noch nicht von Zahlen abgedeckten Zeitraum vermutlich abgeschlossen wurden. Wird negativ, wenn die veröffentlichten Zahlen bereits mehr ausweisen, als die Durchschnittsrate erwarten ließ.',
+  'estimator.formula.var.sProc.title': 'Bearbeitet seither',
+  'estimator.formula.var.sProc.description':
+    'Alles, was seit Ihrer Antragstellung erledigt wurde: Bestätigtes und Geschätztes zusammen, auf ganze Anträge gerundet.',
+  // Step 4 — position in the queue, and how long it takes to clear.
+  'estimator.formula.var.qPos.title': 'Position in der Schlange',
+  'estimator.formula.var.qPos.description':
+    'Wie viele Anträge noch vor Ihrem liegen. Null oder weniger bedeutet, dass die Schätzung bereits überschritten ist.',
+  'estimator.formula.var.dRem.title': 'Verbleibende Tage',
+  'estimator.formula.var.dRem.description': 'Tage, die der Rest der Schlange bei der aktuellen Rate noch braucht.',
+  // Step 5 — the whole-day offset, and the spread around it.
+  'estimator.formula.var.dEst.title': 'Ganze Tage',
+  'estimator.formula.var.dEst.description':
+    'Die verbleibenden Tage von null weg gerundet: der Versatz, der zu heute addiert das oben gezeigte Datum ergibt.',
+  'estimator.formula.var.sigmaR.title': 'Streuung der Rate',
+  'estimator.formula.var.sigmaR.description':
+    'Standardabweichung der monatlichen Bearbeitungsraten, also wie stark das Tempo von Monat zu Monat schwankt.',
+  'estimator.formula.var.rBar.title': 'Mittlere Monatsrate',
+  'estimator.formula.var.rBar.description':
+    'Die monatlichen Bearbeitungsraten mit gleichem Gewicht je Monat gemittelt, nicht nach Volumen gewichtet.',
+  'estimator.formula.var.uDays.title': 'Unsicherheit',
+  'estimator.formula.var.uDays.description':
+    'Die neben dem Ergebnis angezeigte ±-Spanne: wie weit sich die Schätzung verschiebt, wenn das Tempo so stark schwankt wie zuletzt.',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card

@@ -148,32 +148,92 @@ export const it: Dictionary = {
   'estimator.disclaimerEmphasis': 'stima',
 
   // ── Estimator: the "Show the math" breakdown ─────────────────────────────
-  'estimator.formula.step1': 'Coda al momento della domanda',
-  'estimator.formula.step2': 'Posizione in coda e tasso giornaliero',
-  'estimator.formula.step3': 'Giorni rimanenti',
+  'estimator.formula.step1': 'Base di produttività',
+  'estimator.formula.step2': 'Coda al momento della domanda',
+  'estimator.formula.step3': 'Lavorato dopo la domanda',
+  'estimator.formula.step4': 'Posizione in coda e giorni residui',
+  'estimator.formula.step5': 'Giorni interi e margine',
   'estimator.formula.explainAria': 'Spiega le variabili della formula {title}',
-  'estimator.formula.var.dRem.title': 'Giorni rimanenti',
-  'estimator.formula.var.dRem.description': "Giorni stimati fino al completamento dell'elaborazione.",
-  'estimator.formula.var.qPos.title': 'Posizione in coda',
-  'estimator.formula.var.qPos.description': 'Posizione stimata nella coda di elaborazione.',
-  'estimator.formula.var.rDaily.title': 'Tasso giornaliero',
-  'estimator.formula.var.rDaily.description': 'Numero medio di domande elaborate al giorno.',
-  'estimator.formula.var.cProc.title': 'Elaborate confermate',
-  'estimator.formula.var.cProc.description': 'Numero confermato di domande elaborate dalla presentazione.',
-  'estimator.formula.var.eProc.title': 'Elaborate stimate',
-  'estimator.formula.var.eProc.description': "Numero stimato di domande elaborate dall'ultimo dato disponibile.",
-  'estimator.formula.var.sigmaP.title': 'Totale elaborate',
-  'estimator.formula.var.sigmaP.description': 'Somma delle domande elaborate usata per calcolare le medie.',
+  // Step 1 — throughput baseline.
+  'estimator.formula.var.sigmaP.title': 'Totale lavorato',
+  'estimator.formula.var.sigmaP.description':
+    'Domande definite nel periodo campionato, ossia gli ultimi sei mesi pubblicati, o meno se i dati si fermano prima.',
+  'estimator.formula.var.sigmaN.title': 'Totale ricevuto',
+  'estimator.formula.var.sigmaN.description': 'Domande ricevute nello stesso periodo campionato.',
   'estimator.formula.var.sigmaD.title': 'Totale giorni',
-  'estimator.formula.var.sigmaD.description': 'Somma dei giorni usata per calcolare le medie.',
-  'estimator.formula.var.qApp.title': 'Coda delle domande',
-  'estimator.formula.var.qApp.description': 'Posizione stimata in coda al momento della presentazione.',
-  'estimator.formula.var.cPrev.title': 'Riportate',
-  'estimator.formula.var.cPrev.description': 'Domande riportate dal mese precedente.',
-  'estimator.formula.var.nApp.title': 'Nuove domande',
-  'estimator.formula.var.nApp.description': 'Domande stimate ricevute prima della presentazione.',
-  'estimator.formula.var.pApp.title': 'Domande elaborate',
-  'estimator.formula.var.pApp.description': 'Domande stimate elaborate prima della presentazione.',
+  'estimator.formula.var.sigmaD.description': 'Giorni di calendario del periodo campionato, sommati mese per mese.',
+  'estimator.formula.var.rProc.title': 'Ritmo di lavorazione',
+  'estimator.formula.var.rProc.description': "Domande definite al giorno, mediate sull'intero periodo campionato.",
+  'estimator.formula.var.rNew.title': 'Ritmo di arrivo',
+  'estimator.formula.var.rNew.description': 'Domande ricevute al giorno, mediate sullo stesso periodo.',
+  // Step 2 — the queue on the application date.
+  'estimator.formula.var.tPrev.title': 'Totale del mese precedente',
+  'estimator.formula.var.tPrev.description':
+    'Tutte le domande in carico nel mese precedente al suo: il riporto più i nuovi arrivi.',
+  'estimator.formula.var.pPrev.title': 'Lavorato nel mese precedente',
+  'estimator.formula.var.pPrev.description': 'Domande definite nel mese precedente al suo.',
+  'estimator.formula.var.cSeed.title': 'Avvio della simulazione',
+  'estimator.formula.var.cSeed.description':
+    "L'ultimo riporto pubblicato, usato come punto di partenza quando il mese precedente al suo non ha cifre proprie.",
+  'estimator.formula.var.mSim.title': 'Mesi simulati',
+  'estimator.formula.var.mSim.description':
+    'Per quanti mesi il riporto è stato proiettato in avanti fino a raggiungere il suo mese di domanda.',
+  'estimator.formula.var.cPrev.title': 'Riporto',
+  'estimator.formula.var.cPrev.description':
+    "Domande ancora in attesa all'inizio del suo mese di domanda. Presa dal mese precedente quando è pubblicato, altrimenti proiettata mese per mese dall'ultimo mese con cifre.",
+  'estimator.formula.var.nMonth.title': 'Ricevuto nel mese',
+  'estimator.formula.var.nMonth.description': "Domande ricevute nell'arco dell'intero mese della sua domanda.",
+  'estimator.formula.var.pMonth.title': 'Lavorato nel mese',
+  'estimator.formula.var.pMonth.description': "Domande definite nell'arco dell'intero mese della sua domanda.",
+  'estimator.formula.var.dMonth.title': 'Giorni del mese',
+  'estimator.formula.var.dMonth.description':
+    'Giorni di calendario del suo mese di domanda, usati per distribuire uniformemente i totali mensili sui singoli giorni.',
+  'estimator.formula.var.aDay.title': 'Giorno della domanda',
+  'estimator.formula.var.aDay.description':
+    'Il giorno del mese in cui ha presentato, cioè fin dove la coda si era accumulata.',
+  'estimator.formula.var.nApp.title': 'Ricevuto prima di lei',
+  'estimator.formula.var.nApp.description':
+    'Domande ricevute prima nel suo mese di domanda, calcolate in proporzione fino al giorno di presentazione.',
+  'estimator.formula.var.pApp.title': 'Lavorato prima di lei',
+  'estimator.formula.var.pApp.description':
+    'Domande definite prima nel suo mese di domanda, calcolate in proporzione allo stesso modo.',
+  'estimator.formula.var.qApp.title': 'Coda alla domanda',
+  'estimator.formula.var.qApp.description': 'Quante domande precedevano la sua il giorno in cui ha presentato.',
+  // Step 3 — progress since the application date.
+  'estimator.formula.var.pAfter.title': 'Lavorato nei mesi successivi',
+  'estimator.formula.var.pAfter.description': 'Domande definite nei mesi pubblicati successivi al suo mese di domanda.',
+  'estimator.formula.var.tApp.title': 'Giorni dalla domanda',
+  'estimator.formula.var.tApp.description': 'Giorni di calendario tra la data della sua domanda e oggi.',
+  'estimator.formula.var.tData.title': 'Giorni dai dati',
+  'estimator.formula.var.tData.description': "Giorni di calendario tra la fine dell'ultimo mese pubblicato e oggi.",
+  'estimator.formula.var.cProc.title': 'Lavorato confermato',
+  'estimator.formula.var.cProc.description':
+    'Definizioni successive alla sua domanda che le cifre pubblicate già registrano.',
+  'estimator.formula.var.eProc.title': 'Lavorato stimato',
+  'estimator.formula.var.eProc.description':
+    'Domande che si presume siano state definite nel tratto che le cifre pubblicate non coprono ancora. Diventa negativo quando quelle cifre superano già quanto previsto dal ritmo medio.',
+  'estimator.formula.var.sProc.title': 'Lavorato da allora',
+  'estimator.formula.var.sProc.description':
+    'Tutto ciò che è stato smaltito dalla sua domanda in poi: confermato e stimato insieme, arrotondati a domande intere.',
+  // Step 4 — position in the queue, and how long it takes to clear.
+  'estimator.formula.var.qPos.title': 'Posizione in coda',
+  'estimator.formula.var.qPos.description':
+    'Quante domande restano davanti alla sua. Zero o meno significa che la stima è già passata.',
+  'estimator.formula.var.dRem.title': 'Giorni residui',
+  'estimator.formula.var.dRem.description': 'Giorni necessari a smaltire il resto della coda al ritmo attuale.',
+  // Step 5 — the whole-day offset, and the spread around it.
+  'estimator.formula.var.dEst.title': 'Giorni interi',
+  'estimator.formula.var.dEst.description':
+    'I giorni residui arrotondati allontanandosi da zero: lo scarto sommato a oggi per ottenere la data mostrata sopra.',
+  'estimator.formula.var.sigmaR.title': 'Dispersione del ritmo',
+  'estimator.formula.var.sigmaR.description':
+    "Deviazione standard dei ritmi mensili di lavorazione, cioè quanto il passo varia da un mese all'altro.",
+  'estimator.formula.var.rBar.title': 'Ritmo mensile medio',
+  'estimator.formula.var.rBar.description':
+    'La media dei ritmi mensili con peso uguale per ogni mese, non ponderata sul volume.',
+  'estimator.formula.var.uDays.title': 'Incertezza',
+  'estimator.formula.var.uDays.description':
+    'Il margine ± mostrato accanto al risultato: di quanto si sposta la stima se il passo varia quanto ha fatto di recente.',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card

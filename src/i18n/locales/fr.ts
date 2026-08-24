@@ -145,32 +145,96 @@ export const fr: Dictionary = {
   'estimator.disclaimerEmphasis': 'estimation',
 
   // ── Estimator: the "Show the math" breakdown ─────────────────────────────
-  'estimator.formula.step1': "File d'attente au dépôt",
-  'estimator.formula.step2': 'Position dans la file et taux journalier',
-  'estimator.formula.step3': 'Jours restants',
+  'estimator.formula.step1': 'Débit de référence',
+  'estimator.formula.step2': "File d'attente au dépôt",
+  'estimator.formula.step3': 'Traité depuis le dépôt',
+  'estimator.formula.step4': 'Position dans la file et jours restants',
+  'estimator.formula.step5': 'Jours entiers et marge',
   'estimator.formula.explainAria': 'Expliquer les variables de la formule {title}',
-  'estimator.formula.var.dRem.title': 'Jours restants',
-  'estimator.formula.var.dRem.description': 'Nombre de jours estimé avant la fin du traitement.',
-  'estimator.formula.var.qPos.title': 'Position dans la file',
-  'estimator.formula.var.qPos.description': 'Position estimée dans la file de traitement.',
-  'estimator.formula.var.rDaily.title': 'Taux journalier',
-  'estimator.formula.var.rDaily.description': 'Nombre moyen de demandes traitées par jour.',
-  'estimator.formula.var.cProc.title': 'Traitées confirmées',
-  'estimator.formula.var.cProc.description': 'Nombre confirmé de demandes traitées depuis le dépôt.',
-  'estimator.formula.var.eProc.title': 'Traitées estimées',
-  'estimator.formula.var.eProc.description': 'Nombre estimé de demandes traitées depuis le dernier point de données.',
+  // Step 1 — throughput baseline.
   'estimator.formula.var.sigmaP.title': 'Total traité',
-  'estimator.formula.var.sigmaP.description': 'Somme des demandes traitées utilisée pour le calcul des moyennes.',
+  'estimator.formula.var.sigmaP.description':
+    "Demandes traitées sur la période échantillonnée, soit les six derniers mois publiés, ou moins si les données s'arrêtent avant.",
+  'estimator.formula.var.sigmaN.title': 'Total reçu',
+  'estimator.formula.var.sigmaN.description': 'Demandes reçues sur cette même période échantillonnée.',
   'estimator.formula.var.sigmaD.title': 'Total des jours',
-  'estimator.formula.var.sigmaD.description': 'Somme des jours utilisée pour le calcul des moyennes.',
-  'estimator.formula.var.qApp.title': "File d'attente des demandes",
-  'estimator.formula.var.qApp.description': 'Position estimée dans la file au moment du dépôt.',
-  'estimator.formula.var.cPrev.title': 'Reportées',
-  'estimator.formula.var.cPrev.description': 'Demandes reportées du mois précédent.',
-  'estimator.formula.var.nApp.title': 'Nouvelles demandes',
-  'estimator.formula.var.nApp.description': 'Demandes estimées reçues avant le dépôt.',
-  'estimator.formula.var.pApp.title': 'Demandes traitées',
-  'estimator.formula.var.pApp.description': 'Demandes estimées traitées avant le dépôt.',
+  'estimator.formula.var.sigmaD.description':
+    'Jours calendaires de la période échantillonnée, additionnés mois par mois.',
+  'estimator.formula.var.rProc.title': 'Cadence de traitement',
+  'estimator.formula.var.rProc.description':
+    'Demandes traitées par jour, en moyenne sur toute la période échantillonnée.',
+  'estimator.formula.var.rNew.title': 'Cadence de dépôt',
+  'estimator.formula.var.rNew.description': 'Demandes reçues par jour, en moyenne sur cette même période.',
+  // Step 2 — the queue on the application date.
+  'estimator.formula.var.tPrev.title': 'Total du mois précédent',
+  'estimator.formula.var.tPrev.description':
+    'Ensemble des demandes en portefeuille le mois précédant le vôtre : le report plus les nouvelles arrivées.',
+  'estimator.formula.var.pPrev.title': 'Traité le mois précédent',
+  'estimator.formula.var.pPrev.description': 'Demandes traitées durant le mois précédant le vôtre.',
+  'estimator.formula.var.cSeed.title': 'Point de départ de la simulation',
+  'estimator.formula.var.cSeed.description':
+    "Dernier report publié, utilisé comme point de départ lorsque le mois précédant le vôtre n'a pas de chiffres propres.",
+  'estimator.formula.var.mSim.title': 'Mois simulés',
+  'estimator.formula.var.mSim.description':
+    'Nombre de mois sur lesquels le report a été projeté pour atteindre votre mois de dépôt.',
+  'estimator.formula.var.cPrev.title': 'Report',
+  'estimator.formula.var.cPrev.description':
+    "Demandes encore en attente à l'ouverture de votre mois de dépôt. Reprise du mois précédent lorsqu'il est publié, sinon projetée mois après mois depuis le dernier mois chiffré.",
+  'estimator.formula.var.nMonth.title': 'Reçu dans le mois',
+  'estimator.formula.var.nMonth.description': "Demandes reçues sur l'ensemble de votre mois de dépôt.",
+  'estimator.formula.var.pMonth.title': 'Traité dans le mois',
+  'estimator.formula.var.pMonth.description': "Demandes traitées sur l'ensemble de votre mois de dépôt.",
+  'estimator.formula.var.dMonth.title': 'Jours du mois',
+  'estimator.formula.var.dMonth.description':
+    'Jours calendaires de votre mois de dépôt, servant à répartir uniformément les totaux mensuels sur les jours.',
+  'estimator.formula.var.aDay.title': 'Jour du dépôt',
+  'estimator.formula.var.aDay.description':
+    "Le quantième auquel vous avez déposé, c'est-à-dire jusqu'où la file s'était accumulée dans le mois.",
+  'estimator.formula.var.nApp.title': 'Reçu avant vous',
+  'estimator.formula.var.nApp.description':
+    "Demandes reçues plus tôt dans votre mois de dépôt, calculées au prorata jusqu'au jour du dépôt.",
+  'estimator.formula.var.pApp.title': 'Traité avant vous',
+  'estimator.formula.var.pApp.description':
+    'Demandes traitées plus tôt dans votre mois de dépôt, au prorata de la même façon.',
+  'estimator.formula.var.qApp.title': 'File au dépôt',
+  'estimator.formula.var.qApp.description': 'Nombre de demandes qui précédaient la vôtre le jour du dépôt.',
+  // Step 3 — progress since the application date.
+  'estimator.formula.var.pAfter.title': 'Traité les mois suivants',
+  'estimator.formula.var.pAfter.description':
+    'Demandes traitées durant les mois publiés qui suivent votre mois de dépôt.',
+  'estimator.formula.var.tApp.title': 'Jours depuis le dépôt',
+  'estimator.formula.var.tApp.description': "Jours calendaires entre votre date de dépôt et aujourd'hui.",
+  'estimator.formula.var.tData.title': 'Jours depuis les données',
+  'estimator.formula.var.tData.description': "Jours calendaires entre la fin du dernier mois publié et aujourd'hui.",
+  'estimator.formula.var.cProc.title': 'Traité confirmé',
+  'estimator.formula.var.cProc.description':
+    'Demandes traitées depuis votre dépôt que les chiffres publiés couvrent déjà.',
+  'estimator.formula.var.eProc.title': 'Traité projeté',
+  'estimator.formula.var.eProc.description':
+    "Demandes supposées traitées sur l'intervalle que les chiffres publiés ne couvrent pas encore. Devient négatif lorsque ces chiffres dépassent déjà ce que la cadence moyenne prévoyait.",
+  'estimator.formula.var.sProc.title': 'Traité depuis',
+  'estimator.formula.var.sProc.description':
+    "Tout ce qui a été traité depuis votre dépôt : le confirmé et le projeté réunis, arrondis à l'unité.",
+  // Step 4 — position in the queue, and how long it takes to clear.
+  'estimator.formula.var.qPos.title': 'Position dans la file',
+  'estimator.formula.var.qPos.description':
+    "Nombre de demandes encore devant la vôtre. Zéro ou moins signifie que l'estimation est déjà dépassée.",
+  'estimator.formula.var.dRem.title': 'Jours restants',
+  'estimator.formula.var.dRem.description':
+    'Jours nécessaires pour résorber le reste de la file à la cadence actuelle.',
+  // Step 5 — the whole-day offset, and the spread around it.
+  'estimator.formula.var.dEst.title': 'Jours entiers',
+  'estimator.formula.var.dEst.description':
+    "Les jours restants arrondis en s'éloignant de zéro : le décalage ajouté à aujourd'hui pour obtenir la date affichée plus haut.",
+  'estimator.formula.var.sigmaR.title': 'Dispersion de la cadence',
+  'estimator.formula.var.sigmaR.description':
+    "Écart type des cadences mensuelles de traitement, c'est-à-dire l'ampleur des variations d'un mois sur l'autre.",
+  'estimator.formula.var.rBar.title': 'Cadence mensuelle moyenne',
+  'estimator.formula.var.rBar.description':
+    'Moyenne des cadences mensuelles à poids égal par mois, et non pondérée par le volume.',
+  'estimator.formula.var.uDays.title': 'Incertitude',
+  'estimator.formula.var.uDays.description':
+    "La marge ± affichée à côté du résultat : de combien l'estimation bouge si la cadence varie autant qu'elle l'a fait récemment.",
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card
