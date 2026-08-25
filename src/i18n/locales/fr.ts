@@ -210,6 +210,30 @@ export const fr: Dictionary = {
   'chart.legendHide': 'Masquer {series}',
   'chart.allSeriesHidden': 'Toutes les séries sont masquées — cliquez sur une entrée de légende pour en afficher une.',
 
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.act2023.title': 'Révision de la loi sur l’immigration',
+  'policy.act2023.description': 'Ajout de mesures de surveillance en lieu et place de la rétention et d’une protection complémentaire.',
+  'policy.digitalNomad.title': 'Statut pour les nomades numériques',
+  'policy.digitalNomad.description': 'Un statut de six mois pour les télétravailleurs et leur famille.',
+  'policy.sswExpansion.title': 'Élargissement du Travailleur Qualifié',
+  'policy.sswExpansion.description': 'Une décision du conseil des ministres a ajouté quatre secteurs et de nouveaux quotas.',
+  'policy.act2023Effect.title': 'Entrée en vigueur des règles d’éloignement',
+  'policy.act2023Effect.description': 'Les principales dispositions de la révision de 2023 sont entrées en vigueur.',
+  'policy.act2024.title': 'Remplacement du stage technique',
+  'policy.act2024.description': 'À partir de 2027, la nouvelle formation remplace le programme de stage technique.',
+  'policy.feeRevision2025.title': 'Hausse des frais de dossier',
+  'policy.feeRevision2025.description': 'Les renouvellements passent à 6 000 yens et la résidence permanente à 10 000.',
+  'policy.businessManager2025.title': 'Règles de gestion renforcées',
+  'policy.businessManager2025.description': 'Il faut plus de capital, un salarié à temps plein et un plan validé.',
+  'policy.prGuidelines2026.title': 'Révision des lignes directrices sur la résidence permanente',
+  'policy.prGuidelines2026.description': 'L’agence a reformulé l’examen des demandes de résidence permanente.',
+  'policy.residenceCard2026.title': 'La carte de séjour rejoint My Number',
+  'policy.residenceCard2026.description': 'Les cartes combinant séjour et My Number sont entrées en service.',
+  'policy.act2026.title': 'Plafond légal des frais relevé',
+  'policy.act2026.description': 'La révision de 2026 a relevé le plafond légal des frais de séjour.',
+  'policy.feeConsultation2026.title': 'Consultation sur les nouveaux frais',
+  'policy.feeConsultation2026.description': 'Un projet de décret fixant les nouveaux frais a été mis en consultation.',
+
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
   // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
@@ -293,6 +317,8 @@ export const fr: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': 'Affichage de {chart} pour {bureau}',
   'a11y.showingChartWithType': 'Affichage de {chart} pour {bureau}, {type}',
+  'a11y.policyEvents': 'Événements politiques affichés sur ce graphique',
+  'a11y.policyEventDetail': '{period} : {title}. {description}',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': "Statistiques officielles fournies par l'Agence des services de l'immigration du Japon",

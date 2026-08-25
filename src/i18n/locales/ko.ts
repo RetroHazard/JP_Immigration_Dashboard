@@ -216,6 +216,30 @@ export const ko: Dictionary = {
   'chart.legendHide': '{series} 숨기기',
   'chart.allSeriesHidden': '모든 계열이 숨겨져 있습니다. 범례를 클릭하면 표시됩니다.',
 
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.act2023.title': '개정 출입국관리법 공포',
+  'policy.act2023.description': '수용을 대신하는 감리조치와 보완적 보호 대상자 제도를 신설했습니다.',
+  'policy.digitalNomad.title': '디지털 노마드 체류자격 신설',
+  'policy.digitalNomad.description': '해외 기업 원격근무자와 그 가족을 위한 6개월간의 특정활동입니다.',
+  'policy.sswExpansion.title': '특정기능 대상 분야 확대',
+  'policy.sswExpansion.description': '각의 결정으로 4개 분야를 추가하고 5년간 수용 예정 인원을 재설정했습니다.',
+  'policy.act2023Effect.title': '송환·감리조치 규정 시행',
+  'policy.act2023Effect.description': '2023년 개정 출입국관리법의 주요 규정이 시행되었습니다.',
+  'policy.act2024.title': '기능실습을 대체하는 육성취로',
+  'policy.act2024.description': '기능실습제도는 2027년부터 육성취로제도로 이행합니다.',
+  'policy.feeRevision2025.title': '체류 절차 수수료 인상',
+  'policy.feeRevision2025.description': '체류기간 갱신은 6,000엔, 영주허가는 10,000엔으로 올랐습니다.',
+  'policy.businessManager2025.title': '경영·관리 기준 강화',
+  'policy.businessManager2025.description': '자본금 증액, 상근 직원 고용, 사업계획 전문가 확인이 필요해졌습니다.',
+  'policy.prGuidelines2026.title': '영주허가 가이드라인 개정',
+  'policy.prGuidelines2026.description': '출입국재류관리청이 영주허가 심사 기준을 다시 제시했습니다.',
+  'policy.residenceCard2026.title': '특정체류카드 운용 개시',
+  'policy.residenceCard2026.description': '체류카드와 마이넘버카드의 일체화가 시작되었습니다.',
+  'policy.act2026.title': '수수료 상한액 인상',
+  'policy.act2026.description': '2026년 개정법이 체류허가 수수료의 법정 상한을 올렸습니다.',
+  'policy.feeConsultation2026.title': '새 수수료 정령안 공표',
+  'policy.feeConsultation2026.description': '새로운 수수료를 정하는 정령안의 의견 공모가 시작되었습니다.',
+
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
   // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
@@ -299,6 +323,8 @@ export const ko: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': '{bureau}의 {chart} 표시 중',
   'a11y.showingChartWithType': '{bureau}, {type}의 {chart} 표시 중',
+  'a11y.policyEvents': '이 차트에 표시된 정책 이벤트',
+  'a11y.policyEventDetail': '{period}: {title}. {description}',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': '일본 출입국재류관리청 제공 공식 통계',

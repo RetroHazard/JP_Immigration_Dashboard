@@ -222,6 +222,33 @@ export const template: Dictionary = {
   // 'chart.legendHide': 'Hide {series}',
   // 'chart.allSeriesHidden': 'All series hidden — click a legend entry to show one.',
 
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  // Pinned to the month whose intake the change actually moved, which is the
+  // commencement date far more often than the announcement. Sources live
+  // beside the dates in src/constants/policyEvents.ts.
+  // 'policy.act2023.title': 'Immigration Act revision enacted',
+  // 'policy.act2023.description': 'Added supervision in place of detention and a complementary protection status.',
+  // 'policy.digitalNomad.title': 'Digital nomad status created',
+  // 'policy.digitalNomad.description': 'A six-month Designated Activities status for remote workers and their families.',
+  // 'policy.sswExpansion.title': 'Specified Skilled Worker expanded',
+  // 'policy.sswExpansion.description': 'A cabinet decision added four industries and reset five-year intake targets.',
+  // 'policy.act2023Effect.title': 'Deportation rules take effect',
+  // 'policy.act2023Effect.description': 'The main provisions of the 2023 revision came into force.',
+  // 'policy.act2024.title': 'Technical intern training replaced',
+  // 'policy.act2024.description': 'Employment for Skill Development supersedes the training programme from 2027.',
+  // 'policy.feeRevision2025.title': 'Application fees raised',
+  // 'policy.feeRevision2025.description': 'Extensions rose to 6,000 yen and permanent residence to 10,000 yen.',
+  // 'policy.businessManager2025.title': 'Business Manager rules tightened',
+  // 'policy.businessManager2025.description': 'Higher capital, a full-time employee and a vetted business plan required.',
+  // 'policy.prGuidelines2026.title': 'Permanent residence guidelines revised',
+  // 'policy.prGuidelines2026.description': 'The agency restated how permanent residence applications are assessed.',
+  // 'policy.residenceCard2026.title': 'Residence card meets My Number',
+  // 'policy.residenceCard2026.description': 'Combined residence and My Number cards entered service.',
+  // 'policy.act2026.title': 'Fee ceiling raised by law',
+  // 'policy.act2026.description': 'The 2026 revision lifted the statutory cap on residence permit fees.',
+  // 'policy.feeConsultation2026.title': 'New fee schedule consulted on',
+  // 'policy.feeConsultation2026.description': 'A draft cabinet order setting the new fees opened for public comment.',
+
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
   // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
@@ -309,6 +336,8 @@ export const template: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   // 'a11y.showingChart': 'Showing {chart} for {bureau}',
   // 'a11y.showingChartWithType': 'Showing {chart} for {bureau}, {type}',
+  // 'a11y.policyEvents': 'Policy events shown on this chart',
+  // 'a11y.policyEventDetail': '{period}: {title}. {description}',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   // 'footer.attribution': 'Official statistics provided by the Immigration Services Agency of Japan',

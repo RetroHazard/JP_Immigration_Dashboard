@@ -211,6 +211,30 @@ export const vi: Dictionary = {
   'chart.legendHide': 'Ẩn {series}',
   'chart.allSeriesHidden': 'Tất cả chuỗi dữ liệu đang bị ẩn — nhấp vào một mục chú giải để hiện.',
 
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.act2023.title': 'Sửa đổi luật nhập cư',
+  'policy.act2023.description': 'Bổ sung biện pháp giám sát thay cho tạm giữ và quy chế bảo vệ bổ sung.',
+  'policy.digitalNomad.title': 'Lập tư cách cho người du mục số',
+  'policy.digitalNomad.description': 'Tư cách sáu tháng cho người làm việc từ xa và gia đình họ.',
+  'policy.sswExpansion.title': 'Mở rộng Kỹ năng đặc định',
+  'policy.sswExpansion.description': 'Nội các bổ sung bốn ngành và đặt lại chỉ tiêu tiếp nhận năm năm.',
+  'policy.act2023Effect.title': 'Quy định trục xuất có hiệu lực',
+  'policy.act2023Effect.description': 'Các quy định chính của lần sửa đổi năm 2023 đã có hiệu lực.',
+  'policy.act2024.title': 'Thay thế thực tập kỹ năng',
+  'policy.act2024.description': 'Từ năm 2027, chương trình đào tạo mới thay cho thực tập kỹ năng.',
+  'policy.feeRevision2025.title': 'Tăng lệ phí hồ sơ',
+  'policy.feeRevision2025.description': 'Gia hạn tăng lên 6.000 yên và vĩnh trú lên 10.000 yên.',
+  'policy.businessManager2025.title': 'Siết chặt quy định Kinh doanh quản lý',
+  'policy.businessManager2025.description': 'Cần vốn lớn hơn, một nhân viên toàn thời gian và kế hoạch được thẩm định.',
+  'policy.prGuidelines2026.title': 'Sửa đổi hướng dẫn vĩnh trú',
+  'policy.prGuidelines2026.description': 'Cơ quan trình bày lại cách xét duyệt hồ sơ xin vĩnh trú.',
+  'policy.residenceCard2026.title': 'Thẻ cư trú tích hợp My Number',
+  'policy.residenceCard2026.description': 'Thẻ cư trú tích hợp My Number đã được đưa vào sử dụng.',
+  'policy.act2026.title': 'Nâng trần lệ phí theo luật',
+  'policy.act2026.description': 'Lần sửa đổi năm 2026 đã nâng trần pháp định của lệ phí cư trú.',
+  'policy.feeConsultation2026.title': 'Lấy ý kiến về biểu lệ phí mới',
+  'policy.feeConsultation2026.description': 'Dự thảo nghị định quy định lệ phí mới được đưa ra lấy ý kiến.',
+
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
   // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
@@ -294,6 +318,8 @@ export const vi: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': 'Đang hiển thị {chart} cho {bureau}',
   'a11y.showingChartWithType': 'Đang hiển thị {chart} cho {bureau}, {type}',
+  'a11y.policyEvents': 'Các sự kiện chính sách hiển thị trên biểu đồ này',
+  'a11y.policyEventDetail': '{period}: {title}. {description}',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': 'Số liệu thống kê chính thức do Cục Quản lý Xuất nhập cảnh và Lưu trú Nhật Bản cung cấp',

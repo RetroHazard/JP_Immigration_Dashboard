@@ -213,6 +213,30 @@ export const es: Dictionary = {
   'chart.legendHide': 'Ocultar {series}',
   'chart.allSeriesHidden': 'Todas las series están ocultas — haz clic en una entrada de la leyenda para mostrar una.',
 
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.act2023.title': 'Reforma de la ley de inmigración',
+  'policy.act2023.description': 'Añadió medidas de supervisión en lugar de internamiento y protección complementaria.',
+  'policy.digitalNomad.title': 'Estatus para nómadas digitales',
+  'policy.digitalNomad.description': 'Un estatus de seis meses para teletrabajadores y sus familias.',
+  'policy.sswExpansion.title': 'Ampliación de Trabajador Cualificado',
+  'policy.sswExpansion.description': 'Un acuerdo del Consejo de Ministros añadió cuatro sectores y fijó nuevas cuotas.',
+  'policy.act2023Effect.title': 'Entran en vigor las normas de expulsión',
+  'policy.act2023Effect.description': 'Las disposiciones principales de la reforma de 2023 entraron en vigor.',
+  'policy.act2024.title': 'Sustitución de las prácticas técnicas',
+  'policy.act2024.description': 'Desde 2027, la formación laboral sustituye al programa de prácticas técnicas.',
+  'policy.feeRevision2025.title': 'Subida de las tasas de solicitud',
+  'policy.feeRevision2025.description': 'Las prórrogas suben a 6.000 yenes y la residencia permanente a 10.000.',
+  'policy.businessManager2025.title': 'Reglas de gestión más estrictas',
+  'policy.businessManager2025.description': 'Se exige más capital, un empleado a jornada completa y un plan validado.',
+  'policy.prGuidelines2026.title': 'Revisión de las guías de residencia permanente',
+  'policy.prGuidelines2026.description': 'La agencia reformuló cómo se evalúan las solicitudes de residencia permanente.',
+  'policy.residenceCard2026.title': 'La tarjeta de residencia se une a My Number',
+  'policy.residenceCard2026.description': 'Entraron en servicio las tarjetas combinadas de residencia y My Number.',
+  'policy.act2026.title': 'Tope legal de tasas elevado',
+  'policy.act2026.description': 'La reforma de 2026 elevó el tope legal de las tasas de residencia.',
+  'policy.feeConsultation2026.title': 'Consulta sobre las nuevas tasas',
+  'policy.feeConsultation2026.description': 'Un proyecto de decreto con las nuevas tasas se sometió a consulta pública.',
+
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
   // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
@@ -296,6 +320,8 @@ export const es: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': 'Mostrando {chart} de {bureau}',
   'a11y.showingChartWithType': 'Mostrando {chart} de {bureau}, {type}',
+  'a11y.policyEvents': 'Eventos normativos mostrados en este gráfico',
+  'a11y.policyEventDetail': '{period}: {title}. {description}',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': 'Estadísticas oficiales proporcionadas por la Agencia de Servicios de Inmigración de Japón',

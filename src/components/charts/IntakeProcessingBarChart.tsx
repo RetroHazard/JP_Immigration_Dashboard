@@ -3,19 +3,28 @@
 // applications in the system each month (carried over + newly received)
 // with the completed volume as a line on the SAME axis - the old dual
 // synced y-axes were always one scale pretending to be two.
+//
+// Policy event markers annotate the months a rule changed - a fee revision, a
+// new residence status, a law taking effect - so a step in the intake has a
+// visible cause rather than looking like noise. The list itself lives in
+// src/constants/policyEvents.ts.
 'use client';
 
 import { useMemo } from 'react';
 
+import { Banknote, Landmark, Scale, Split } from 'lucide-react';
 import type React from 'react';
 import { curveMonotoneX } from '@visx/curve';
 
+import { POLICY_EVENTS, type PolicyEventCategory } from '../../constants/policyEvents';
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useLocale } from '../../i18n/LocaleContext';
+import { periodToDate } from '../../utils/residentPeriod';
 import { bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import { ComposedChart } from '../bklit/charts/composed-chart';
 import { Grid } from '../bklit/charts/grid';
 import { Line } from '../bklit/charts/line';
+import { type ChartMarker, ChartMarkers, MarkerTooltipContent, useActiveMarkers } from '../bklit/charts/markers';
 import { SeriesBar } from '../bklit/charts/series-bar';
 import { ChartTooltip } from '../bklit/charts/tooltip';
 import { XAxis } from '../bklit/charts/x-axis';
@@ -32,25 +41,65 @@ const SERIES = [
   { id: 'processed', labelKey: 'metric.processed', status: STATUS_CODES.PROCESSED, color: 'var(--chart-3)', shape: 'line' },
 ] as const;
 
+/** The icon is the only thing separating one kind of event from another, so
+ *  the four stay visually distinct rather than four shades of "document". */
+const CATEGORY_ICON: Record<PolicyEventCategory, React.ReactNode> = {
+  legislation: <Scale className="size-3.5" aria-hidden="true" />,
+  fees: <Banknote className="size-3.5" aria-hidden="true" />,
+  operations: <Landmark className="size-3.5" aria-hidden="true" />,
+  reporting: <Split className="size-3.5" aria-hidden="true" />,
+};
+
+/** Marker details shown inside the shared crosshair tooltip. */
+const TooltipMarkers: React.FC<{ markers: ChartMarker[] }> = ({ markers }) => {
+  const active = useActiveMarkers(markers);
+  return active.length > 0 ? <MarkerTooltipContent markers={active} /> : null;
+};
+
 export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { t, formatters } = useLocale();
   const series = useMemo(() => SERIES.map((entry) => ({ ...entry, label: t(entry.labelKey) })), [t]);
-  const chartData = useMemo(() => {
-    const months = monthsForRange(getAllMonths(data), range);
-    return months.map((month) => {
-      // 'all' bureau = the official nationwide aggregate row
-      const monthData = selectData(data, {
-        month,
-        scope: bureauScopeFromFilter(filters.bureau),
-        type: filters.type,
-      });
-      const sumOf = (status: string) =>
-        monthData.reduce((sum, entry) => (entry.status === status ? sum + entry.value : sum), 0);
-      const row: Record<string, unknown> = { date: new Date(`${month}-01T00:00:00`) };
-      for (const series of SERIES) row[series.id] = sumOf(series.status);
-      return row;
-    });
-  }, [data, filters, range]);
+  const months = useMemo(() => monthsForRange(getAllMonths(data), range), [data, range]);
+  const chartData = useMemo(
+    () =>
+      months.map((month) => {
+        // 'all' bureau = the official nationwide aggregate row
+        const monthData = selectData(data, {
+          month,
+          scope: bureauScopeFromFilter(filters.bureau),
+          type: filters.type,
+        });
+        const sumOf = (status: string) =>
+          monthData.reduce((sum, entry) => (entry.status === status ? sum + entry.value : sum), 0);
+        const row: Record<string, unknown> = { date: new Date(`${month}-01T00:00:00`) };
+        for (const series of SERIES) row[series.id] = sumOf(series.status);
+        return row;
+      }),
+    [data, filters, months]
+  );
+
+  // Markers are positioned by `xScale(date)` with no clamping or clipping, so
+  // an event outside the window would land on the axis gutter or past the
+  // right edge. Filtering to the plotted months is what keeps them on the plot.
+  const events = useMemo(() => {
+    const plotted = new Set(months);
+    return POLICY_EVENTS.filter((event) => plotted.has(event.period));
+  }, [months]);
+
+  const markers: ChartMarker[] = useMemo(
+    () =>
+      events.map((event) => ({
+        date: periodToDate(event.period),
+        icon: CATEGORY_ICON[event.category],
+        title: t(event.titleKey),
+        description: t(event.descriptionKey),
+        href: event.href,
+        // `_self` would navigate the dashboard away; `_blank` routes through
+        // window.open(..., 'noopener,noreferrer').
+        target: '_blank' as const,
+      })),
+    [events, t]
+  );
 
   return (
     <div className="chart-card-content">
@@ -76,6 +125,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           <SeriesBar dataKey="received" fill="var(--chart-2)" radius={3} />
           <Line dataKey="processed" stroke="var(--chart-3)" curve={curveMonotoneX} strokeWidth={2.25} fadeEdges={false} />
           <XAxis />
+          <ChartMarkers items={markers} size={24} />
           {/* Rows are named explicitly: the tooltip would otherwise show the
               raw series ids now that those are no longer display text.
               Only the line gets a dot — a stacked bar's dot is placed at its
@@ -90,9 +140,31 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
                 value: Number(point[entry.id] ?? 0),
               }))
             }
-          />
+          >
+            <TooltipMarkers markers={markers} />
+          </ChartTooltip>
         </ComposedChart>
       </div>
+      {/* The marker circles are SVG, reachable by pointer only. This is the
+          keyboard and screen reader path to the same events, and the one
+          place their text isn't truncated to fit a tooltip. */}
+      {events.length > 0 && (
+        <nav className="sr-only" aria-label={t('a11y.policyEvents')}>
+          <ul>
+            {events.map((event) => (
+              <li key={event.titleKey}>
+                <a href={event.href} target="_blank" rel="noopener noreferrer">
+                  {t('a11y.policyEventDetail', {
+                    period: formatters.monthYear(periodToDate(event.period)),
+                    title: t(event.titleKey),
+                    description: t(event.descriptionKey),
+                  })}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
     </div>
   );
 };

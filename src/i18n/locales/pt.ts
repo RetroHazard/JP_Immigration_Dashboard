@@ -215,6 +215,30 @@ export const pt: Dictionary = {
   'chart.legendHide': 'Ocultar {series}',
   'chart.allSeriesHidden': 'Todas as séries ocultas — clique numa entrada da legenda para mostrar uma.',
 
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.act2023.title': 'Revisão da lei de imigração',
+  'policy.act2023.description': 'Criou medidas de supervisão em vez de detenção e proteção complementar.',
+  'policy.digitalNomad.title': 'Estatuto para nómadas digitais',
+  'policy.digitalNomad.description': 'Um estatuto de seis meses para teletrabalhadores e as suas famílias.',
+  'policy.sswExpansion.title': 'Alargamento do Trabalhador Qualificado',
+  'policy.sswExpansion.description': 'Uma decisão do conselho de ministros juntou quatro setores e novas metas.',
+  'policy.act2023Effect.title': 'Regras de afastamento em vigor',
+  'policy.act2023Effect.description': 'As disposições principais da revisão de 2023 entraram em vigor.',
+  'policy.act2024.title': 'Substituição do estágio técnico',
+  'policy.act2024.description': 'A partir de 2027, a nova formação substitui o programa de estágio técnico.',
+  'policy.feeRevision2025.title': 'Aumento das taxas de pedido',
+  'policy.feeRevision2025.description': 'As prorrogações passam a 6.000 ienes e a residência permanente a 10.000.',
+  'policy.businessManager2025.title': 'Regras de gestão mais exigentes',
+  'policy.businessManager2025.description': 'Exige-se mais capital, um trabalhador a tempo inteiro e um plano validado.',
+  'policy.prGuidelines2026.title': 'Revisão das orientações de residência permanente',
+  'policy.prGuidelines2026.description': 'A agência reformulou a avaliação dos pedidos de residência permanente.',
+  'policy.residenceCard2026.title': 'Cartão de residência com My Number',
+  'policy.residenceCard2026.description': 'Entraram em serviço os cartões combinados de residência e My Number.',
+  'policy.act2026.title': 'Limite legal das taxas aumentado',
+  'policy.act2026.description': 'A revisão de 2026 aumentou o limite legal das taxas de residência.',
+  'policy.feeConsultation2026.title': 'Consulta sobre a nova tabela de taxas',
+  'policy.feeConsultation2026.description': 'Um projeto de decreto com as novas taxas foi a consulta pública.',
+
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
   // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
@@ -298,6 +322,8 @@ export const pt: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': 'A mostrar {chart} para {bureau}',
   'a11y.showingChartWithType': 'A mostrar {chart} para {bureau}, {type}',
+  'a11y.policyEvents': 'Eventos de política mostrados neste gráfico',
+  'a11y.policyEventDetail': '{period}: {title}. {description}',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': 'Estatísticas oficiais fornecidas pela Agência de Serviços de Imigração do Japão',

@@ -206,6 +206,30 @@ export const ja: Dictionary = {
   'chart.legendHide': '{series}を非表示',
   'chart.allSeriesHidden': 'すべての系列が非表示です。凡例をクリックすると表示されます。',
 
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.act2023.title': '改正入管法が公布',
+  'policy.act2023.description': '収容に代わる監理措置と補完的保護対象者の制度を創設しました。',
+  'policy.digitalNomad.title': 'デジタルノマド制度の創設',
+  'policy.digitalNomad.description': '海外企業のリモートワーカーとその家族向けの6か月間の特定活動です。',
+  'policy.sswExpansion.title': '特定技能の対象分野を追加',
+  'policy.sswExpansion.description': '閣議決定により4分野を追加し、5年間の受入れ見込数を再設定しました。',
+  'policy.act2023Effect.title': '送還・監理措置の規定が施行',
+  'policy.act2023Effect.description': '令和5年改正入管法の主要な規定が施行されました。',
+  'policy.act2024.title': '技能実習に代わる育成就労',
+  'policy.act2024.description': '技能実習制度は2027年から育成就労制度に移行します。',
+  'policy.feeRevision2025.title': '在留手続の手数料を改定',
+  'policy.feeRevision2025.description': '在留期間更新は6,000円、永住許可は10,000円に引き上げられました。',
+  'policy.businessManager2025.title': '経営・管理の基準を厳格化',
+  'policy.businessManager2025.description': '資本金の増額、常勤職員の雇用、事業計画の専門家確認が必要になりました。',
+  'policy.prGuidelines2026.title': '永住許可ガイドラインを改訂',
+  'policy.prGuidelines2026.description': '出入国在留管理庁が永住許可の審査の考え方を改めて示しました。',
+  'policy.residenceCard2026.title': '特定在留カードの運用開始',
+  'policy.residenceCard2026.description': '在留カードとマイナンバーカードの一体化が始まりました。',
+  'policy.act2026.title': '手数料の上限額を引上げ',
+  'policy.act2026.description': '令和8年改正入管法が在留許可手数料の上限額を引き上げました。',
+  'policy.feeConsultation2026.title': '新手数料の政令案を公表',
+  'policy.feeConsultation2026.description': '新しい手数料を定める政令案の意見公募が始まりました。',
+
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the
   // Sankey's `appType.*.compact` forms.
@@ -293,6 +317,8 @@ export const ja: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': '{bureau}の{chart}を表示中',
   'a11y.showingChartWithType': '{bureau}・{type}の{chart}を表示中',
+  'a11y.policyEvents': 'このグラフに表示されている政策イベント',
+  'a11y.policyEventDetail': '{period}：{title}。{description}',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': '統計データ提供：出入国在留管理庁',
