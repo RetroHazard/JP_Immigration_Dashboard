@@ -119,6 +119,10 @@ npm run build
 Both transforms fall back to a deterministic fixture when their raw payload is absent, so
 nothing below is required to run the dashboard — it is only needed to see real figures.
 
+Each fixture spans the same period as the table it stands in for — processing from 2020-11, residents from
+2012-12 — so anything keyed to a date, the policy event markers included, appears locally and in CI exactly
+where it appears in production.
+
 1. Register for an application ID at [e-Stat](https://www.e-stat.go.jp/) and export it:
 
    ```bash
@@ -250,7 +254,8 @@ JP_Immigration_Dashboard/
 │   │   │   ├── ResidenceStatusSunburst.tsx       # Bklit SunburstChart; live status-mix view
 │   │   │   ├── ResidenceStatusMixChart.tsx       # Alternate treemap view (same hierarchy, unregistered)
 │   │   │   ├── OriginChoroplethChart.tsx         # Bklit choropleth; resident count by country, log scale
-│   │   │   └── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
+│   │   │   ├── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
+│   │   │   └── __tests__/                       # Chart tests (markers, tap behaviour, efficiency rows)
 │   │   │
 │   │   ├── common/
 │   │   │   ├── ChartComponents.tsx    # Chart registry: label, icon, filters, ranges per chart
@@ -260,6 +265,7 @@ JP_Immigration_Dashboard/
 │   │   │   ├── IconTooltip.tsx        # Wrapper over the shadcn/Radix Tooltip
 │   │   │   ├── LoadingSpinner.tsx
 │   │   │   ├── PeriodSelector.tsx     # Range picker (Application Processing + "range"-mode resident charts)
+│   │   │   ├── PolicyEventList.tsx   # Policy-event markers hook + the collapsible list of sourced events
 │   │   │   ├── SnapshotPeriodSelector.tsx  # Single half-year picker for "snapshot"-mode resident charts
 │   │   │   ├── SeriesLegend.tsx
 │   │   │   └── StatCard.tsx
@@ -310,7 +316,8 @@ JP_Immigration_Dashboard/
 │   │   ├── statusCodes.ts
 │   │   ├── nationalities.ts           # Nationality/region identity table (ISO 3166-1, M49 continent codes)
 │   │   ├── residenceStatuses.ts       # Residence-status identity table + corrected parent hierarchy
-│   │   └── japanPopulation.ts         # Japan's total population by year (denominator for % of total)
+│   │   ├── japanPopulation.ts         # Japan's total population by year (denominator for % of total)
+│   │   └── policyEvents.ts            # Dated policy changes per dataset, each with its government source
 │   │
 │   ├── contexts/
 │   │   └── ThemeContext.tsx           # Thin adapter over next-themes

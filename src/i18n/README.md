@@ -37,7 +37,7 @@ means writing one file. You do not need to touch a component.
 
 3. **Check it.** `npx vitest run src/i18n` runs the catalogue tests described
    below, and `npx tsc --noEmit` catches any key that isn't real. The test run
-   prints your coverage, e.g. `ko: 120/325 keys (36.9%) — 205 missing`.
+   prints your coverage, e.g. `ko: 120/515 keys (23.3%) — 395 missing, in progress`.
 
 You can translate as much or as little as you like — a partial file is safe to
 ship. Anything you leave out falls back to English rather than rendering blank.
@@ -58,8 +58,8 @@ quietly rotting as the app grows.
 
 Completeness is measured per language, not key-for-key. Plural families are the
 exception: English defines `period.months_one` and `period.months_other`, but
-Japanese has a single plural category, so it owes only `_other` — 325 keys
-rather than 330. You are never asked for a form your language doesn't use.
+Japanese has a single plural category, so it owes only `_other` — 515 keys
+rather than 521. You are never asked for a form your language doesn't use.
 
 ### After adding or removing an English key
 
@@ -199,13 +199,13 @@ text children, and a `no-restricted-syntax` rule catches string literals in
 
 ## Current state
 
-330 keys, covering the whole interface, in twelve languages all marked
+521 keys, covering the whole interface, in twelve languages all marked
 `complete`. English, French, German, Italian, Portuguese, Spanish, and
-Tagalog (`fil-PH`) all inflect for plural count, so they cover the full 330
+Tagalog (`fil-PH`) all inflect for plural count, so they cover the full 521
 — Tagalog's CLDR `one` rule matches a count of 0 as well as 1, unlike the
 others' "exactly 1." Japanese, Korean, Chinese (`zh-CN` and `zh-TW`), and
 Vietnamese have a single CLDR plural category and owe only the `_other`
-member of each pair, 325 keys.
+member of each pair, 515 keys.
 **The language switcher is on** (`LOCALE_SWITCHER_ENABLED` in `config.ts`),
 which also turns on browser-language detection — the two are one flag precisely
 because auto-detecting a language is only safe while the visitor can switch

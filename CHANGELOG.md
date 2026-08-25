@@ -6,11 +6,11 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
-- **v1.6.0**: Both headline charts now mark the months immigration policy changed —
-  - **Intake & Processing** gains markers for law revisions, border measures, fee changes, and operational shifts, from the pandemic closure through to the residence card's merge with My Number. **Population Growth** keeps its three and gains four more, including the 2022 reopening
+- **v1.6.0**: Both headline charts now carry a fuller account of the months immigration policy changed —
+  - **Intake & Processing** gains markers for law revisions, border measures, fee changes, and operational shifts — the worldwide suspension of new entry in December 2020, the reopenings that followed, April 2025's fee revision, and the tightening of Business Manager. **Population Growth** keeps its three and gains four more, including the 2022 reopening and the reporting change that explains where its series begins
   - A collapsible list under each chart names every event in view and links it to the government page that establishes its date, so a policy month can be checked rather than taken on trust — the circles alone can say what kind of change happened, not which one. The markers themselves are annotation and are not clickable
   - Markers sit on the period a change took effect rather than the one it was announced, because that is when the figures move — a fee rise shows up as a rush to file just before it bites
-  - A month carrying two events stays a single circle with a count, and the tooltip reads out both. Previously it sprayed its icons across its neighbours
+  - A month carrying two events stays a single circle with a count, and the tooltip reads out both
   - A marker only appears while its period is in view, so widening the range uncovers more of them
 
 - **v1.4.4**: The header now links to the project's source repository, next to the theme toggle on desktop and under About in the mobile settings drawer
