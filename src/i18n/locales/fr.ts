@@ -104,6 +104,8 @@ export const fr: Dictionary = {
   'estimator.selectBureau': 'Sélectionner un bureau',
   'estimator.selectType': 'Sélectionner un type',
   'estimator.applicationDate': 'Date de la demande',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': 'Modifier les détails de votre demande',
   'estimator.empty':
     'Sélectionnez votre bureau, le type de demande et la date de la demande pour estimer quand votre demande sera traitée.',
   'estimator.estimatedCompletion': 'Achèvement estimé',

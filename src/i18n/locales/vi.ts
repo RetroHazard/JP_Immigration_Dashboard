@@ -105,6 +105,8 @@ export const vi: Dictionary = {
   'estimator.selectBureau': 'Chọn cục quản lý',
   'estimator.selectType': 'Chọn loại hồ sơ',
   'estimator.applicationDate': 'Ngày nộp hồ sơ',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': 'Chỉnh sửa thông tin hồ sơ của bạn',
   'estimator.empty': 'Chọn cục quản lý, loại hồ sơ và ngày nộp hồ sơ để ước tính thời điểm hồ sơ của bạn được xử lý.',
   'estimator.estimatedCompletion': 'Thời điểm hoàn thành dự kiến',
   'estimator.queuePosition': 'Vị trí trong hàng đợi',

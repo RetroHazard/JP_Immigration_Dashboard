@@ -120,6 +120,8 @@ export const zhCn: Dictionary = {
   'estimator.selectBureau': '选择受理局',
   'estimator.selectType': '选择申请类型',
   'estimator.applicationDate': '申请日期',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': '修改申请信息',
   'estimator.empty': '请选择受理局、申请类型和申请日期，以预估您的申请何时会处理完成。',
   'estimator.estimatedCompletion': '预计完成时间',
   'estimator.queuePosition': '排队位置',

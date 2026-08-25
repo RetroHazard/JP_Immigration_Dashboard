@@ -105,6 +105,8 @@ export const de: Dictionary = {
   'estimator.selectBureau': 'Amt auswählen',
   'estimator.selectType': 'Art auswählen',
   'estimator.applicationDate': 'Antragsdatum',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': 'Angaben zum Antrag bearbeiten',
   'estimator.empty':
     'Wählen Sie Ihr Amt, Ihre Antragsart und Ihr Antragsdatum aus, um zu schätzen, wann Ihr Antrag bearbeitet wird.',
   'estimator.estimatedCompletion': 'Voraussichtlicher Abschluss',

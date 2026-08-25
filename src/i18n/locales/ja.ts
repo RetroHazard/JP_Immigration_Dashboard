@@ -116,6 +116,8 @@ export const ja: Dictionary = {
   'estimator.selectBureau': '管理局を選択',
   'estimator.selectType': '申請種別を選択',
   'estimator.applicationDate': '申請日',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': '申請内容を編集する',
   'estimator.empty': '出入国在留管理局、申請種別、申請日を選択すると、審査が完了する時期の目安が表示されます。',
   'estimator.estimatedCompletion': '完了予定時期',
   'estimator.queuePosition': '待ち順位',
