@@ -1,5 +1,5 @@
 # Japan Immigration Statistics Dashboard
-[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -169,6 +169,7 @@ or show a single half-yearly snapshot, picked with the same range control.
   - Predictive modeling with a step-by-step calculation breakdown rendered in LaTeX (KaTeX)
     - Five dependency-ordered steps: throughput baseline, queue at application, processed since application, queue position and remaining days, completion offset and spread
     - Every derived value shows its own working, and shows the branch the estimate actually took where the model has more than one
+    - Opening the breakdown folds the inputs away behind a one-line summary of the bureau, type and date it describes; the summary is the way back to them
     - Inline tooltip reference w/ variable explanations
   - One-click reset
   - Shareable permalink for a filled-out estimate (bureau, application type, and date)
@@ -215,7 +216,7 @@ or show a single half-yearly snapshot, picked with the same range control.
 - `React 19` – UI library
 - `TypeScript` (strict) – Type-safe JavaScript
 - `Tailwind CSS v4` – Utility-first styling with a CSS-variable design-token system ("Civic Glass")
-- `shadcn/ui` (vendored) – Radix-based UI primitives (tabs, dialog, sheet, select, tooltip)
+- `shadcn/ui` (vendored) – Radix-based UI primitives (tabs, dialog, sheet, select, popover, collapsible, tooltip)
 - `Bklit UI` (vendored, MIT) – visx-based chart components (line, composed, pie, sunburst, radar, sankey, gauge, choropleth)
 - `visx` – Used internally by the vendored Bklit charts (not by the two hand-rolled custom charts, Category Mix Treemap and Processing Efficiency, which use no charting library / `d3-scale` respectively)
 - `Anime.js v4` – App-level motion layer (entrances, count-ups, chart transitions) with a single reduced-motion chokepoint (`src/lib/motion.ts`); the vendored Bklit charts animate internally via `motion` (motion/react) instead, with their own independent reduced-motion handling
@@ -324,7 +325,7 @@ Country and continent names are not translated by hand: `src/constants/nationali
 - **Centralized Filtering:** Shared `selectData` selector (`src/utils/selectors.ts`), explicit about bureau scope (nationwide, a single bureau, or a per-bureau breakdown) instead of overloading a single "all" value
 - **Performance Optimization:**
   - Memoized calculations to prevent unnecessary re-renders
-  - Lazy loading of KaTeX library for mathematical formulas
+  - KaTeX ships inside the deferred dashboard chunk rather than the initial payload
   - Pre-calculated prefecture color scales for map rendering
 - **Status Code Constants:** Type-safe constants for all data categorization
 
@@ -358,7 +359,7 @@ Country and continent names are not translated by hand: `src/constants/nationali
 
 ### Performance Optimizations
 - **React Memoization:** `useMemo` and `useCallback` for expensive calculations
-- **Lazy Loading:** Dynamic imports for heavy dependencies (KaTeX ~100KB)
+- **Lazy Loading:** The dashboard itself is a dynamic import (`src/app/[[...slug]]/client.tsx`), so heavy dependencies it pulls in — KaTeX at ~74KB gzipped among them — stay out of the initial payload
 - **Single-Pass Filtering:** Centralized filtering eliminates duplicate operations across all 13 chart components in both datasets
 - **Pre-computed Data:** Color scales and static configurations calculated once at mount
 

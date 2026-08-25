@@ -240,6 +240,18 @@ If your changes affect the dashboard's features, behavior, or setup:
 1. Update relevant sections in `README.md`
 2. Add an entry to `CHANGELOG.md` under the current month
 
+### Bump the version
+
+A changelog entry names a version, so the version has to move with it. Both
+places, or the two disagree:
+
+1. `version` in `package.json` — what `react-build-info` stamps into the footer
+2. The version badge on line 2 of `README.md`
+
+Semver as usual: a new feature or a visible change to one takes the minor, a
+bug fix on its own takes the patch. Everything shipping together shares a
+single version, however many commits it took.
+
 ### Update CHANGELOG.md
 
 When adding a feature or fixing a bug:

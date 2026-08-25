@@ -344,7 +344,7 @@ Each chart:
 #### **EstimationCard** (`src/components/EstimationCard.tsx`)
 
 Interactive queue position estimator:
-- Accepts user input (bureau, application type, submission date)
+- Accepts user input (bureau, application type, submission date). Opening the breakdown folds those inputs away behind a one-line summary of the selection, using `src/components/ui/collapsible.tsx` — the app's only use of Radix `Collapsible`
 - Calls `calculateEstimatedDate` (`src/utils/calculateEstimates.ts`)
 - Displays a "Show the math" breakdown with KaTeX formulas (`EstimationFormula`, in step cards from `FormulaTooltip`). `buildFormulaSteps` is a pure function of the model variables and the branch record `calculateEstimatedDate` returns, so the dependency ordering between steps is unit-tested rather than assumed
 - Generates shareable permalinks (`src/utils/urlApplicationDetails.ts`)
@@ -592,32 +592,49 @@ For processing time prediction:
 ```mermaid
 graph TD
     INPUT["📝 User Input<br/>Bureau + Type<br/>+ Submission Date"]
-    
-    HIST["📊 Historical Data<br/>Last 6 months<br/>processing rates"]
-    
-    RATE["⚙️ Calculate Rate<br/>Avg daily processing<br/>for this bureau/type"]
-    
-    QUEUE["🔢 Estimate Queue<br/>Position at<br/>submission date"]
-    
-    PROJECT["📈 Project Timeline<br/>Through current<br/>month's rate"]
-    
-    OUTPUT["📅 Output<br/>Estimated completion<br/>date + confidence"]
-    
-    LATEX["🔬 Render Formula<br/>KaTeX math<br/>notation"]
-    
-    INPUT --> HIST
-    HIST --> RATE
-    RATE --> QUEUE
-    QUEUE --> PROJECT
-    PROJECT --> OUTPUT
+
+    S1["1️⃣ Throughput baseline<br/>R_proc, R_new over<br/>the last 6 months"]
+
+    S2["2️⃣ Queue at application<br/>C_prev, N_app, P_app<br/>→ Q_app"]
+
+    S3["3️⃣ Processed since<br/>C_proc, E_proc<br/>→ S_proc"]
+
+    S4["4️⃣ Queue position<br/>Q_pos = Q_app − S_proc<br/>D_rem = Q_pos / R_proc"]
+
+    S5["5️⃣ Offset and spread<br/>D_est = ⌈D_rem⌉<br/>± band from rate variance"]
+
+    BRANCH{"🔀 ModelBranches<br/>carryover · appMonth<br/>· sinceApplication"}
+
+    OUTPUT["📅 Output<br/>ModelVariables +<br/>ModelBranches"]
+
+    LATEX["🔬 buildFormulaSteps<br/>pure → 5 KaTeX steps,<br/>only the branch that ran"]
+
+    INPUT --> S1
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
+    S5 --> OUTPUT
+    BRANCH -.-> S2
+    BRANCH -.-> S3
     OUTPUT --> LATEX
-    
+
     style INPUT fill:#4CAF50,color:#fff
+    style BRANCH fill:#9C27B0,color:#fff
     style OUTPUT fill:#2196F3,color:#fff
     style LATEX fill:#FF9800,color:#fff
 ```
 
-**Code Location:** `src/utils/calculateEstimates.ts` → `calculateEstimatedDate()`
+Steps run in dependency order — no symbol appears in a formula before the step
+that defines it, which `EstimationFormula.test.ts` asserts rather than assumes.
+The dashed edges are the two steps whose arithmetic changes shape depending on
+whether the dataset actually covers the application month; the breakdown renders
+only the path that ran.
+
+**Code Location:** `src/utils/calculateEstimates.ts` → `calculateEstimatedDate()`,
+returning the exported `ModelVariables` and `ModelBranches`;
+`src/components/EstimationFormula.tsx` → `buildFormulaSteps()` turns those into
+the five rendered steps.
 
 ## Performance Optimizations
 
@@ -634,10 +651,10 @@ graph TD
     PERF --> BUILD["🔨 Production Build<br/>Minified & tree-shaken"]
     
     MEMO --> EXAMPLE1["Prevent re-filtering<br/>on every render"]
-    LAZY --> EXAMPLE2["KaTeX ~100KB<br/>deferred with the app chunk"]
+    LAZY --> EXAMPLE2["Dashboard chunk<br/>carries KaTeX ~74KB gz<br/>with it"]
     SINGLE --> EXAMPLE3["useSelectedData<br/>memoized per chart"]
     PRECOMP --> EXAMPLE4["Color scales<br/>calculated once"]
-    BUILD --> EXAMPLE5["JS ~150KB gzipped<br/>Fast delivery"]
+    BUILD --> EXAMPLE5["First load ~220KB gz<br/>Fast delivery"]
     
     style PERF fill:#4CAF50,color:#fff
     style MEMO fill:#2196F3,color:#fff
@@ -993,6 +1010,29 @@ describe('calculateEstimatedDate month-boundary sensitivity', () => {
   });
 });
 ```
+
+### Generated-Output Tests
+
+Neither a pure util nor a rendered component: `buildFormulaSteps` emits LaTeX, so
+the test drives it over every branch combination and compiles the result.
+
+```typescript
+// src/components/__tests__/EstimationFormula.test.ts
+it.each(LOCALE_CODES.flatMap((code) => COMBINATIONS.map((b) => [code, label(b), b])))(
+  'compiles under KaTeX in %s (%s)',
+  (code, _name, branches) => {
+    buildFormulaSteps(BASE, branches, formattersFor(code)).forEach((step) => {
+      expect(() =>
+        katex.renderToString(step.math, { displayMode: true, throwOnError: true, strict: 'error' })
+      ).not.toThrow();
+    });
+  }
+);
+```
+
+`strict: 'error'` is the point: a separator KaTeX cannot typeset — fr-FR groups
+with U+202F — degrades to a console warning and a zero-width box otherwise. A
+companion assertion walks the emitted SVG, because KaTeX inspects neither.
 
 ### Integration Tests for Components
 

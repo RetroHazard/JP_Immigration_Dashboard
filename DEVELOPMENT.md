@@ -230,6 +230,7 @@ JP_Immigration_Dashboard/
 │   │   ├── StatsSummary.tsx           # Summary stat cards (Application Processing)
 │   │   ├── ResidentsStatsSummary.tsx  # Summary stat cards (Resident Population), incl. % of total population
 │   │   ├── EstimationCard.tsx         # Processing Time Estimator (sidebar/sheet)
+│   │   ├── EstimationFormula.tsx      # The estimator's five-step KaTeX breakdown
 │   │   ├── ChartDataTable.tsx         # Collapsible data table + CSV export
 │   │   ├── ChangelogModal.tsx         # CHANGELOG.md viewer (shadcn Dialog)
 │   │   │
@@ -265,14 +266,19 @@ JP_Immigration_Dashboard/
 │   │   │   └── StatCard.tsx
 │   │   │
 │   │   ├── ui/                        # shadcn/Radix primitives (vendored)
-│   │   │   └── badge, button, card, dialog, label, popover, select,
-│   │   │       separator, sheet, skeleton, tabs, toggle(-group), tooltip
+│   │   │   └── badge, button, card, collapsible, dialog, label, popover,
+│   │   │       select, separator, sheet, skeleton, tabs, toggle(-group),
+│   │   │       tooltip
 │   │   │
 │   │   ├── bklit/                     # Vendored Bklit UI chart library (visx-based)
 │   │   │   ├── charts/                # Line/Bar/Pie/Sankey/Sunburst/Choropleth/Radar/Gauge primitives
 │   │   │   └── components/
 │   │   │
 │   │   └── __tests__/
+│   │       ├── ChangelogModal.test.tsx
+│   │       ├── EstimationFormula.test.ts
+│   │       ├── LanguageSwitcher.test.tsx
+│   │       ├── LanguageSwitcherGate.test.tsx
 │   │       ├── components.smoke.test.tsx
 │   │       └── residents.smoke.test.tsx
 │   │
@@ -349,7 +355,6 @@ JP_Immigration_Dashboard/
 │   ├── datastore/processingData.json  # Raw e-Stat 0003449073 (build input; stripped from export output)
 │   ├── datastore/residentsData.json   # Raw e-Stat 0004019020 (build input; stripped from export output)
 │   ├── datastore/.estat-baseline.json # SURVEY_DATE the watcher last published, per dataset
-
 │   ├── static/japan.topo.json         # TopoJSON for the regional map
 │   ├── static/world.topo.json         # TopoJSON for the world origins map
 │   ├── CHANGELOG.md                   # Synced from the repo root at build time
@@ -414,7 +419,7 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
 
 ### UI Utilities
 
-- **radix-ui** (`^1.6.7`) — Unstyled accessible primitives underlying the shadcn/ui components (Dialog, Popover, Select, Sheet, Tabs, Toggle, Tooltip, ...)
+- **radix-ui** (`^1.6.7`) — Unstyled accessible primitives underlying the shadcn/ui components (Collapsible, Dialog, Popover, Select, Sheet, Tabs, Toggle, Tooltip, ...)
 - **lucide-react** — Icon library
 - **next-themes** — Dark/light mode, adapted by `src/contexts/ThemeContext.tsx`
 - **nuqs** — Type-safe URL query state (active chart, filters, time range, compare)

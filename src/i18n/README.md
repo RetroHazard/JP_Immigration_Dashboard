@@ -37,7 +37,7 @@ means writing one file. You do not need to touch a component.
 
 3. **Check it.** `npx vitest run src/i18n` runs the catalogue tests described
    below, and `npx tsc --noEmit` catches any key that isn't real. The test run
-   prints your coverage, e.g. `ko: 120/325 keys (36.9%) — 205 missing`.
+   prints your coverage, e.g. `ko: 120/510 keys (23.5%) — 390 missing`.
 
 You can translate as much or as little as you like — a partial file is safe to
 ship. Anything you leave out falls back to English rather than rendering blank.
@@ -58,8 +58,8 @@ quietly rotting as the app grows.
 
 Completeness is measured per language, not key-for-key. Plural families are the
 exception: English defines `period.months_one` and `period.months_other`, but
-Japanese has a single plural category, so it owes only `_other` — 325 keys
-rather than 330. You are never asked for a form your language doesn't use.
+Japanese has a single plural category, so it owes only `_other` — 510 keys
+rather than 516. You are never asked for a form your language doesn't use.
 
 ### After adding or removing an English key
 
@@ -155,7 +155,7 @@ straight off the edge of the chart.
 | `locales/_template.ts` | Generated starting point for a new language. Not a locale, and not registered. |
 | `locales/index.ts` | The registry. One entry per language, carrying its `status`; everything else reads from here. |
 | `translate.ts` | Lookup, `{placeholder}` interpolation, plural selection. No React — unit tested directly. |
-| `formatters.ts` | Locale-bound number, percent, and date formatting. |
+| `formatters.ts` | Locale-bound number, decimal, percent, and date formatting. |
 | `LocaleContext.tsx` | `useLocale()` → `{ t, tPlural, formatters, locale, setLocale, availableLocales }`. |
 | `useDomainLabels.ts` | Joins identity-only constants (bureau codes, application types, prefectures, the chart registry) to their catalogue text. |
 | `T.tsx` | For the few sentences that wrap a link or emphasis mid-clause. |
@@ -189,6 +189,7 @@ t('filters.reset');                                  // plain
 t('table.caption', { bureau: bureauLabel(code) });   // interpolated
 tPlural('period.months', 6);                         // plural, count injected
 formatters.number(12345);                            // 12,345 / 12,345
+formatters.decimal(112.706, 2);                      // 112.71 / 112,71
 formatters.percent(75);                              // 75.0%
 formatters.mediumDate(date);                         // Sep 22, 2026 / 2026年9月22日
 ```
@@ -199,13 +200,18 @@ text children, and a `no-restricted-syntax` rule catches string literals in
 
 ## Current state
 
-330 keys, covering the whole interface, in twelve languages all marked
+516 keys, covering the whole interface, in twelve languages all marked
 `complete`. English, French, German, Italian, Portuguese, Spanish, and
-Tagalog (`fil-PH`) all inflect for plural count, so they cover the full 330
+Tagalog (`fil-PH`) all inflect for plural count, so they cover the full 516
 — Tagalog's CLDR `one` rule matches a count of 0 as well as 1, unlike the
 others' "exactly 1." Japanese, Korean, Chinese (`zh-CN` and `zh-TW`), and
 Vietnamese have a single CLDR plural category and owe only the `_other`
-member of each pair, 325 keys.
+member of each pair, 510 keys.
+
+Those two numbers go stale the moment a key is added, and nothing enforces
+them — the catalogue tests check keys, never counts. `npx vitest run src/i18n`
+prints the real figure per locale; trust that over this paragraph.
+
 **The language switcher is on** (`LOCALE_SWITCHER_ENABLED` in `config.ts`),
 which also turns on browser-language detection — the two are one flag precisely
 because auto-detecting a language is only safe while the visitor can switch

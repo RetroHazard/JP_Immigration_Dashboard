@@ -40,8 +40,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 - **v1.6.0**: The estimator's "Show the math" breakdown now shows how every figure in it is reached, not just the last three steps —
   - Five steps instead of three, ordered so that no symbol is used before the step that defines it. The daily processing rate used to be introduced in step 2 and then relied on by step 1
   - Each derived value now shows its own working — the carry-over, the pro-rated figures for your application month, the processed-since totals, and the ± spread beside the result, none of which had a formula before
-  - Where the model takes a different route because a month has not been published yet, the breakdown shows the route your estimate actually took rather than a general form
-  - Figures inside the formulas now use your own language's digit grouping, and the queue position no longer rounds its parts separately from its total, which could leave the subtraction on screen one short of the answer beside it
+  - The model takes a different route in three places, depending on whether the month before yours is published, whether your own application month is, and how far past the data your application sits. The breakdown shows the route your estimate actually took rather than a general form
+  - Figures inside the formulas now use your own language's digit grouping and decimal mark, rather than always the English ones
   - Opening the breakdown folds the bureau, type and date inputs away, leaving a single row naming the three you picked — tap it to bring them back. The derivation is long enough that on a phone it otherwise started below the fold
 
 - **v1.5.0**: On phones and tablets, chart tooltips are now opened by tapping rather than by holding a finger down —
@@ -60,6 +60,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Both now cost a fixed amount of header/drawer space no matter how many locales are registered, so adding a language no longer reshuffles the layout around it
 
 ### Fixed
+
+- **v1.6.0**: The queue position shown in the estimator's breakdown now matches the subtraction printed above it. The two applications-processed figures were each rounded on their own before being subtracted, while the total they were taken from rounded them together, so the arithmetic on screen could land one short of the answer beside it.
 
 - **v1.5.0**: Clicking a chart with a mouse no longer disturbs the tooltip you were reading —
   - On the four line and bar time-series charts, pressing the mouse button hid the tooltip and it stayed hidden until you moved the cursor again. A press had to be treated as the start of a drag-to-highlight, because there was no way yet to tell the two apart. A drag now only begins once the cursor has actually travelled a few pixels, so a click leaves the tooltip exactly where it was and dragging a range still works as before
