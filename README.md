@@ -304,6 +304,11 @@ They share no dimension, which is why they are separate views rather than combin
         - Osaka Regional Immigration Bureau (大阪出入国在留管理局管内) is inclusive of Osaka, Kobe, and Kansai Airport.
           - Kobe's Branch is responsible for the Hyogo area.
           - The statistics provided for Kobe and Kansai Airport are removed from the Osaka Regional Bureau, so that each can be represented uniquely.
+        
+        - Fukuoka Regional Immigration Bureau (福岡出入国在留管理局管内) is inclusive of Fukuoka, and Naha.
+          - Naha's Branch is responsible for the Okinawa area.
+          - The statistics provided for Naha are removed from the Fukuoka Regional Bureau, so that each can be represented uniquely.
+####
 
 ### Residents Data Corrections:
 
@@ -314,11 +319,6 @@ The Resident Population table needs three corrections of its own, all applied on
 - **Rollups and zeros.** Every 総数/合計 row is the sum of its own children and is recomputed client-side instead of shipped; e-Stat emits a row per (status, nationality) pair whether or not anyone holds it, and about 60% are zero. Dropping both takes ~191,000 rows to ~42,000. `verifyResidentTotals` then re-adds the kept leaves on **both** axes and compares them against e-Stat's own published totals — a mismatch means the classification has drifted and would produce a chart that looks fine and is quietly wrong, so it fails the build.
 
 Country and continent names are not translated by hand: `src/constants/nationalities.ts` carries ISO 3166-1 codes (and UN M49 codes for the six continents), and `Intl.DisplayNames` resolves them per locale. Only the five rows with no such identity — 朝鮮, 韓国・朝鮮, セルビア・モンテネグロ, ユーゴスラヴィア, 無国籍 — have catalogue entries.
-        
-        - Fukuoka Regional Immigration Bureau (福岡出入国在留管理局管内) is inclusive of Fukuoka, and Naha.
-          - Naha's Branch is responsible for the Okinawa area.
-          - The statistics provided for Naha are removed from the Fukuoka Regional Bureau, so that each can be represented uniquely.
-####
 
 ### Runtime Processing:
 - **Type Safety:** Full TypeScript implementation in strict mode
