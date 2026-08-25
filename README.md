@@ -59,7 +59,7 @@ Seven charts, filterable by bureau and/or application type where relevant.
   - Filterable by bureau and application type
   - Bureau-to-bureau comparison view
   - Configurable time range (6/12/24/36 months, or all)
-  - Policy event markers for law revisions, fee changes, and operational shifts, each linking to the Immigration Services Agency page that establishes its date
+  - Policy event markers for law revisions, border measures, fee changes, and operational shifts, with a collapsible list of the events in view linking to the government page that establishes each date
 
 #### **Application Types**
 - **Purpose:** Monthly new submissions broken down by application type.
@@ -116,7 +116,7 @@ or show a single half-yearly snapshot, picked with the same range control.
 - **Purpose:** How the total resident population has grown over time, and who's driving it.
 - **Features:**
   - Stacked bars of total residents per half-year since 2012, toggleable between purpose-of-stay and world-region breakdowns
-  - Event markers for policy changes and the COVID-19 dip
+  - Event markers for policy changes and the COVID-19 dip, with the same collapsible list of sourced events as Intake & Processing
   - Filterable by region and nationality
 
 #### **Origins Over Time**

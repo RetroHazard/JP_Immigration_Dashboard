@@ -13,6 +13,13 @@ export interface ChartMarkersProps {
   showLines?: boolean;
   /** Whether to animate markers on entrance. Default: true */
   animate?: boolean;
+  /**
+   * LOCAL MODIFICATION: forwarded to `MarkerGroup.fan`. Set false to keep a
+   * multi-marker date as one badged circle instead of a fan-out arc, on a dense
+   * axis where the arc would reach through its neighbours. Default true.
+   * (Re-apply after a re-vendor.)
+   */
+  fan?: boolean;
 }
 
 // Tooltip content for markers
@@ -88,6 +95,8 @@ export function ChartMarkers({
   size = 28,
   showLines = true,
   animate = true,
+  // LOCAL MODIFICATION: see `fan` in ChartMarkersProps. (Re-apply after a re-vendor.)
+  fan = true,
 }: ChartMarkersProps) {
   const {
     xScale,
@@ -169,6 +178,7 @@ export function ChartMarkers({
               animate={animate}
               animationDelay={markerDelay}
               containerRef={containerRef}
+              fan={fan}
               isActive={isActive}
               key={dateKey}
               lineHeight={innerHeight}

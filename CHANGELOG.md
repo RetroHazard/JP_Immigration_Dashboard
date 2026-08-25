@@ -6,12 +6,12 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
-- **v1.6.0**: Intake & Processing now marks the months immigration policy changed, the way Population Growth already did —
-  - Law revisions, new residence statuses, fee changes, and operational shifts each get a marker above the plot, with a dashed line down to the month they landed
-  - Each marker links to the Immigration Services Agency page that establishes its date, so a policy month can be checked rather than taken on trust
-  - Markers sit on the month a change took effect rather than the month it was announced, because that is the month the intake moves — a fee rise shows up as a rush to file just before it bites
-  - A marker only appears while its month is in view, so widening the range past the default twelve months uncovers more of them
-  - The same events are listed for screen readers and keyboard users, where the text is not truncated to fit a tooltip
+- **v1.6.0**: Both headline charts now mark the months immigration policy changed —
+  - **Intake & Processing** gains markers for law revisions, border measures, fee changes, and operational shifts, from the pandemic closure through to the residence card's merge with My Number. **Population Growth** keeps its three and gains four more, including the 2022 reopening
+  - Each marker links to the government page that establishes its date, so a policy month can be checked rather than taken on trust, and a collapsible list under the chart names every event in view with its source — the circles alone can say what kind of change happened, not which one
+  - Markers sit on the period a change took effect rather than the one it was announced, because that is when the figures move — a fee rise shows up as a rush to file just before it bites
+  - A month carrying two events stays a single circle with a count, and the tooltip reads out both. Previously it sprayed its icons across its neighbours
+  - A marker only appears while its period is in view, so widening the range uncovers more of them
 
 - **v1.4.4**: The header now links to the project's source repository, next to the theme toggle on desktop and under About in the mobile settings drawer
 

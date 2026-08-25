@@ -94,6 +94,17 @@ export interface MarkerGroupProps {
    * parent layers to spotlight the active cluster.
    */
   isMuted?: boolean;
+  /**
+   * LOCAL MODIFICATION: allow the fan to be turned off entirely, so a group of
+   * several markers stays a single circle with its count badge. On a dense
+   * monthly axis the 50px fan arc reaches straight through the neighbouring
+   * markers, and the icons it throws carry no label to say where they lead.
+   * Callers that suppress it need somewhere else to read the group — the
+   * crosshair tooltip lists every marker on the date regardless.
+   * Default `true`, so an un-patched caller behaves exactly as before.
+   * (Re-apply after a re-vendor.)
+   */
+  fan?: boolean;
 }
 
 // Entrance + fanned + muted variants. `fanned` shrinks and dims the
@@ -143,11 +154,13 @@ export function MarkerGroup({
   borderWidth = 1.5,
   maxFanned,
   isMuted = false,
+  // LOCAL MODIFICATION: see `fan` in MarkerGroupProps. (Re-apply after a re-vendor.)
+  fan = true,
 }: MarkerGroupProps) {
   const [isHovered, setIsHovered] = useState(false);
   // LOCAL MODIFICATION: tap-to-open on touch. (Re-apply after a re-vendor.)
   const coarsePointer = useCoarsePointer();
-  const shouldFan = (isHovered || forceOpen) && markers.length > 1;
+  const shouldFan = fan && (isHovered || forceOpen) && markers.length > 1;
   const hasMultiple = markers.length > 1;
   const fannedMarkers =
     maxFanned === undefined ? markers : markers.slice(0, maxFanned);
