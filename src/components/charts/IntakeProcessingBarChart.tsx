@@ -18,15 +18,13 @@
 
 import { useMemo } from 'react';
 
-import { Banknote, Landmark, Scale, Split } from 'lucide-react';
 import type React from 'react';
 import { curveMonotoneX } from '@visx/curve';
 
-import { POLICY_EVENTS, type PolicyEventCategory } from '../../constants/policyEvents';
+import { POLICY_EVENTS } from '../../constants/policyEvents';
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useLocale } from '../../i18n/LocaleContext';
 import type { DictionaryKey } from '../../i18n/types';
-import { periodToDate } from '../../utils/residentPeriod';
 import { bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import { measureLabelWidth } from '../bklit/charts/chart-formatters';
 import { ComposedChart } from '../bklit/charts/composed-chart';
@@ -38,6 +36,7 @@ import { ChartTooltip } from '../bklit/charts/tooltip';
 import { XAxis } from '../bklit/charts/x-axis';
 import { YAxis } from '../bklit/charts/y-axis';
 import type { ImmigrationChartData } from '../common/ChartComponents';
+import { PolicyEventList, usePolicyMarkers } from '../common/PolicyEventList';
 import { SeriesLegend } from '../common/SeriesLegend';
 
 /** Not a status row — derived below, and the only series on the right axis. */
@@ -101,15 +100,6 @@ export const buildIntakeRows = (
   });
 };
 
-/** The icon is the only thing separating one kind of event from another, so
- *  the four stay visually distinct rather than four shades of "document". */
-const CATEGORY_ICON: Record<PolicyEventCategory, React.ReactNode> = {
-  legislation: <Scale className="size-3.5" aria-hidden="true" />,
-  fees: <Banknote className="size-3.5" aria-hidden="true" />,
-  operations: <Landmark className="size-3.5" aria-hidden="true" />,
-  reporting: <Split className="size-3.5" aria-hidden="true" />,
-};
-
 /** Marker details shown inside the shared crosshair tooltip. */
 const TooltipMarkers: React.FC<{ markers: ChartMarker[] }> = ({ markers }) => {
   const active = useActiveMarkers(markers);
@@ -135,28 +125,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
     [formatters]
   );
 
-  // Markers are positioned by `xScale(date)` with no clamping or clipping, so
-  // an event outside the window would land on the axis gutter or past the
-  // right edge. Filtering to the plotted months is what keeps them on the plot.
-  const events = useMemo(() => {
-    const plotted = new Set(months);
-    return POLICY_EVENTS.filter((event) => plotted.has(event.period));
-  }, [months]);
-
-  const markers: ChartMarker[] = useMemo(
-    () =>
-      events.map((event) => ({
-        date: periodToDate(event.period),
-        icon: CATEGORY_ICON[event.category],
-        title: t(event.titleKey),
-        description: t(event.descriptionKey),
-        href: event.href,
-        // `_self` would navigate the dashboard away; `_blank` routes through
-        // window.open(..., 'noopener,noreferrer').
-        target: '_blank' as const,
-      })),
-    [events, t]
-  );
+  const { visible: events, markers } = usePolicyMarkers(POLICY_EVENTS, months);
 
   return (
     <div className="chart-card-content">
@@ -198,7 +167,10 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
             fadeEdges={false}
           />
           <XAxis />
-          <ChartMarkers items={markers} size={24} />
+          {/* `fan={false}`: the 50px fan arc reaches straight through the
+              neighbouring markers on a monthly axis. A shared month stays one
+              badged circle, and the tooltip below lists both events. */}
+          <ChartMarkers items={markers} size={months.length > 48 ? 18 : 24} fan={false} />
           {/* Rows are named explicitly: the tooltip would otherwise show the
               raw series ids now that those are no longer display text. They
               stay in child order because the dot layer looks a line's colour
@@ -223,26 +195,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           </ChartTooltip>
         </ComposedChart>
       </div>
-      {/* The marker circles are SVG, reachable by pointer only. This is the
-          keyboard and screen reader path to the same events, and the one
-          place their text isn't truncated to fit a tooltip. */}
-      {events.length > 0 && (
-        <nav className="sr-only" aria-label={t('a11y.policyEvents')}>
-          <ul>
-            {events.map((event) => (
-              <li key={event.titleKey}>
-                <a href={event.href} target="_blank" rel="noopener noreferrer">
-                  {t('a11y.policyEventDetail', {
-                    period: formatters.monthYear(periodToDate(event.period)),
-                    title: t(event.titleKey),
-                    description: t(event.descriptionKey),
-                  })}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )}
+      <PolicyEventList events={events} />
     </div>
   );
 };

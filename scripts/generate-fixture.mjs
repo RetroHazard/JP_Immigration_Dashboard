@@ -40,8 +40,11 @@ const TYPE_SCALE = { 10: 2, 20: 10, 30: 5, 40: 2, 50: 1, 60: 4 };
 let seed = 20260726;
 const rand = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
 
+// 2020-11 onward, the span the real table covers. Starting later would leave
+// the pandemic months — the largest thing that ever moved this series, and what
+// several policy markers annotate — absent from local dev and from CI.
 const MONTHS = [];
-for (let y = 2022, m = 11; !(y === 2025 && m === 11); m === 12 ? (y++, (m = 1)) : m++) {
+for (let y = 2020, m = 11; !(y === 2025 && m === 11); m === 12 ? (y++, (m = 1)) : m++) {
   MONTHS.push({ y, m });
 }
 

@@ -295,6 +295,24 @@ export const template: Dictionary = {
   // Pinned to the month whose intake the change actually moved, which is the
   // commencement date far more often than the announcement. Sources live
   // beside the dates in src/constants/policyEvents.ts.
+  // 'policy.eventsShow': 'Show policy events',
+  // 'policy.eventsHide': 'Hide policy events',
+  // 'policy.ssw2019.title': 'Specified Skilled Worker created',
+  // 'policy.ssw2019.description': 'A status for shortage industries; the Immigration Services Agency opened the same day.',
+  // 'policy.covidClosure.title': 'Pandemic entry restrictions',
+  // 'policy.covidClosure.description': 'Landing denial widened to most of the world as COVID-19 spread.',
+  // 'policy.covidSuspension.title': 'New entry suspended worldwide',
+  // 'policy.covidSuspension.description': 'From late December no foreign national could enter newly, whatever visa they held.',
+  // 'policy.covidOmicron.title': 'Reopening reversed for Omicron',
+  // 'policy.covidOmicron.description': 'Entry resumed on 8 November and was shut again three weeks later.',
+  // 'policy.covidResume.title': 'Students and workers admitted again',
+  // 'policy.covidResume.description': 'New entry reopened for study, work and business, under a daily arrivals cap.',
+  // 'policy.covidVisaFree.title': 'Visa-free travel restored',
+  // 'policy.covidVisaFree.description': 'Visa exemptions returned and the daily arrivals cap was abolished.',
+  // 'policy.covidCoe.title': 'Certificate validity extended',
+  // 'policy.covidCoe.description': 'Certificates of Eligibility stranded by the closure stayed valid well beyond three months.',
+  // 'policy.covidEnd.title': 'Border measures ended',
+  // 'policy.covidEnd.description': 'Testing and vaccination checks stopped, and COVID-19 moved to Class 5.',
   // 'policy.act2023.title': 'Immigration Act revision enacted',
   // 'policy.act2023.description': 'Added supervision in place of detention and a complementary protection status.',
   // 'policy.digitalNomad.title': 'Digital nomad status created',
@@ -309,14 +327,10 @@ export const template: Dictionary = {
   // 'policy.feeRevision2025.description': 'Extensions rose to 6,000 yen and permanent residence to 10,000 yen.',
   // 'policy.businessManager2025.title': 'Business Manager rules tightened',
   // 'policy.businessManager2025.description': 'Higher capital, a full-time employee and a vetted business plan required.',
-  // 'policy.prGuidelines2026.title': 'Permanent residence guidelines revised',
-  // 'policy.prGuidelines2026.description': 'The agency restated how permanent residence applications are assessed.',
   // 'policy.residenceCard2026.title': 'Residence card meets My Number',
   // 'policy.residenceCard2026.description': 'Combined residence and My Number cards entered service.',
   // 'policy.act2026.title': 'Fee ceiling raised by law',
   // 'policy.act2026.description': 'The 2026 revision lifted the statutory cap on residence permit fees.',
-  // 'policy.feeConsultation2026.title': 'New fee schedule consulted on',
-  // 'policy.feeConsultation2026.description': 'A draft cabinet order setting the new fees opened for public comment.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
@@ -406,7 +420,6 @@ export const template: Dictionary = {
   // 'a11y.showingChart': 'Showing {chart} for {bureau}',
   // 'a11y.showingChartWithType': 'Showing {chart} for {bureau}, {type}',
   // 'a11y.policyEvents': 'Policy events shown on this chart',
-  // 'a11y.policyEventDetail': '{period}: {title}. {description}',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   // 'footer.attribution': 'Official statistics provided by the Immigration Services Agency of Japan',
@@ -640,6 +653,18 @@ export const template: Dictionary = {
   // 'residents.flowsTooltipValueLabel': 'Residents',
   // 'residents.flowsTooltipFlowLabel': 'Flow',
   // 'residents.sunburstHint': '{trail} — {count} residents ({percent} of total)',
+  // 'residents.markerResidenceCard.title': 'Residence card system began',
+  // 'residents.markerResidenceCard.description':
+  //   'Residence cards replaced alien registration; this table starts with the first count taken under them.',
+  // 'residents.markerReopening.title': 'Borders reopened',
+  // 'residents.markerReopening.description':
+  //   'Visa-free travel returned in October 2022 and the population resumed growing.',
+  // 'residents.markerTraining.title': 'Technical intern training replaced',
+  // 'residents.markerTraining.description':
+  //   'The 2024 revision creates Employment for Skill Development and tightens permanent residence.',
+  // 'residents.markerBusinessManager.title': 'Business Manager rules tightened',
+  // 'residents.markerBusinessManager.description':
+  //   'Higher capital, a full-time employee and a vetted business plan required from October 2025.',
   // 'residents.markerSsw.title': 'Specified Skilled Worker launched',
   // 'residents.markerSsw.description': 'The April 2019 visa opened over a dozen industries to skilled foreign workers.',
   // 'residents.markerCovid.title': 'COVID-19 border closure',
