@@ -9,21 +9,30 @@
 // scale twice. Its components (granted / denied / other) are deliberately
 // not plotted - they are two-percent slivers of a bar that is itself a
 // fraction of the column. The data table below the chart carries them.
+//
+// Policy event markers annotate the months a rule changed - a fee revision, a
+// new residence status, a law taking effect - so a step in the intake has a
+// visible cause rather than looking like noise. The list itself lives in
+// src/constants/policyEvents.ts.
 'use client';
 
 import { useMemo } from 'react';
 
+import { Banknote, Landmark, Scale, Split } from 'lucide-react';
 import type React from 'react';
 import { curveMonotoneX } from '@visx/curve';
 
+import { POLICY_EVENTS, type PolicyEventCategory } from '../../constants/policyEvents';
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useLocale } from '../../i18n/LocaleContext';
 import type { DictionaryKey } from '../../i18n/types';
+import { periodToDate } from '../../utils/residentPeriod';
 import { bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from '../../utils/selectors';
 import { measureLabelWidth } from '../bklit/charts/chart-formatters';
 import { ComposedChart } from '../bklit/charts/composed-chart';
 import { Grid } from '../bklit/charts/grid';
 import { Line } from '../bklit/charts/line';
+import { type ChartMarker, ChartMarkers, MarkerTooltipContent, useActiveMarkers } from '../bklit/charts/markers';
 import { SeriesBar } from '../bklit/charts/series-bar';
 import { ChartTooltip } from '../bklit/charts/tooltip';
 import { XAxis } from '../bklit/charts/x-axis';
@@ -92,10 +101,26 @@ export const buildIntakeRows = (
   });
 };
 
+/** The icon is the only thing separating one kind of event from another, so
+ *  the four stay visually distinct rather than four shades of "document". */
+const CATEGORY_ICON: Record<PolicyEventCategory, React.ReactNode> = {
+  legislation: <Scale className="size-3.5" aria-hidden="true" />,
+  fees: <Banknote className="size-3.5" aria-hidden="true" />,
+  operations: <Landmark className="size-3.5" aria-hidden="true" />,
+  reporting: <Split className="size-3.5" aria-hidden="true" />,
+};
+
+/** Marker details shown inside the shared crosshair tooltip. */
+const TooltipMarkers: React.FC<{ markers: ChartMarker[] }> = ({ markers }) => {
+  const active = useActiveMarkers(markers);
+  return active.length > 0 ? <MarkerTooltipContent markers={active} /> : null;
+};
+
 export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
   const { t, formatters } = useLocale();
   const { bureau, type } = filters;
   const series = useMemo(() => SERIES.map((entry) => ({ ...entry, label: t(entry.labelKey) })), [t]);
+  const months = useMemo(() => monthsForRange(getAllMonths(data), range), [data, range]);
   // Keyed on the filter values rather than the object, which is rebuilt on
   // every parent render — ActiveChart's own memo compares them the same way.
   const chartData = useMemo(() => buildIntakeRows(data, { bureau, type }, range), [data, bureau, type, range]);
@@ -108,6 +133,29 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
   const rateAxisMargin = useMemo(
     () => Math.max(40, Math.ceil(measureLabelWidth(formatters.percent(100, 0))) + 16),
     [formatters]
+  );
+
+  // Markers are positioned by `xScale(date)` with no clamping or clipping, so
+  // an event outside the window would land on the axis gutter or past the
+  // right edge. Filtering to the plotted months is what keeps them on the plot.
+  const events = useMemo(() => {
+    const plotted = new Set(months);
+    return POLICY_EVENTS.filter((event) => plotted.has(event.period));
+  }, [months]);
+
+  const markers: ChartMarker[] = useMemo(
+    () =>
+      events.map((event) => ({
+        date: periodToDate(event.period),
+        icon: CATEGORY_ICON[event.category],
+        title: t(event.titleKey),
+        description: t(event.descriptionKey),
+        href: event.href,
+        // `_self` would navigate the dashboard away; `_blank` routes through
+        // window.open(..., 'noopener,noreferrer').
+        target: '_blank' as const,
+      })),
+    [events, t]
   );
 
   return (
@@ -150,6 +198,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
             fadeEdges={false}
           />
           <XAxis />
+          <ChartMarkers items={markers} size={24} />
           {/* Rows are named explicitly: the tooltip would otherwise show the
               raw series ids now that those are no longer display text. They
               stay in child order because the dot layer looks a line's colour
@@ -169,9 +218,31 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
                     : Number(point[entry.id] ?? 0),
               }))
             }
-          />
+          >
+            <TooltipMarkers markers={markers} />
+          </ChartTooltip>
         </ComposedChart>
       </div>
+      {/* The marker circles are SVG, reachable by pointer only. This is the
+          keyboard and screen reader path to the same events, and the one
+          place their text isn't truncated to fit a tooltip. */}
+      {events.length > 0 && (
+        <nav className="sr-only" aria-label={t('a11y.policyEvents')}>
+          <ul>
+            {events.map((event) => (
+              <li key={event.titleKey}>
+                <a href={event.href} target="_blank" rel="noopener noreferrer">
+                  {t('a11y.policyEventDetail', {
+                    period: formatters.monthYear(periodToDate(event.period)),
+                    title: t(event.titleKey),
+                    description: t(event.descriptionKey),
+                  })}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
     </div>
   );
 };

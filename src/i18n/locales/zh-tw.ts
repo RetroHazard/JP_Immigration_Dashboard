@@ -274,6 +274,30 @@ export const zhTw: Dictionary = {
   'chart.legendHide': '隱藏{series}',
   'chart.allSeriesHidden': '所有系列皆已隱藏——點選圖例項目以顯示。',
 
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.act2023.title': '修訂入管法公布',
+  'policy.act2023.description': '新設替代收容的監理措施與補充保護對象制度。',
+  'policy.digitalNomad.title': '新設數位遊牧居留資格',
+  'policy.digitalNomad.description': '提供海外企業遠距工作者及其家屬的六個月特定活動。',
+  'policy.sswExpansion.title': '特定技能領域擴大',
+  'policy.sswExpansion.description': '內閣決議新增四個領域並重新設定五年接收人數。',
+  'policy.act2023Effect.title': '遣返與監理規定生效',
+  'policy.act2023Effect.description': '2023年修訂入管法的主要規定開始施行。',
+  'policy.act2024.title': '育成就勞取代技能實習',
+  'policy.act2024.description': '技能實習制度將於2027年轉為育成就勞制度。',
+  'policy.feeRevision2025.title': '在留手續費調漲',
+  'policy.feeRevision2025.description': '在留期間更新調至6,000日圓，永住許可調至10,000日圓。',
+  'policy.businessManager2025.title': '經營管理標準收緊',
+  'policy.businessManager2025.description': '須提高資本額、僱用全職員工並由專家確認事業計畫。',
+  'policy.prGuidelines2026.title': '永住許可指南修訂',
+  'policy.prGuidelines2026.description': '出入國在留管理廳重新說明永住許可的審查標準。',
+  'policy.residenceCard2026.title': '特定在留卡開始啟用',
+  'policy.residenceCard2026.description': '在留卡與個人編號卡完成一體化。',
+  'policy.act2026.title': '法定手續費上限提高',
+  'policy.act2026.description': '2026年修訂法提高了在留許可手續費的法定上限。',
+  'policy.feeConsultation2026.title': '公布新手續費政令草案',
+  'policy.feeConsultation2026.description': '訂定新手續費的政令草案開始公開徵求意見。',
+
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
   // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
@@ -359,6 +383,8 @@ export const zhTw: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': '正在顯示{bureau}的{chart}',
   'a11y.showingChartWithType': '正在顯示{bureau}、{type}的{chart}',
+  'a11y.policyEvents': '本圖表中顯示的政策事件',
+  'a11y.policyEventDetail': '{period}：{title}。{description}',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': '官方統計資料由日本出入國在留管理廳提供',

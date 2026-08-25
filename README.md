@@ -60,6 +60,7 @@ Seven charts, filterable by bureau and/or application type where relevant.
   - Filterable by bureau and application type
   - Bureau-to-bureau comparison view
   - Configurable time range (6/12/24/36 months, or all)
+  - Policy event markers for law revisions, fee changes, and operational shifts, each linking to the Immigration Services Agency page that establishes its date
 
 #### **Application Types**
 - **Purpose:** Monthly new submissions broken down by application type.

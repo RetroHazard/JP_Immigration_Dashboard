@@ -6,6 +6,13 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
+- **v1.6.0**: Intake & Processing now marks the months immigration policy changed, the way Population Growth already did —
+  - Law revisions, new residence statuses, fee changes, and operational shifts each get a marker above the plot, with a dashed line down to the month they landed
+  - Each marker links to the Immigration Services Agency page that establishes its date, so a policy month can be checked rather than taken on trust
+  - Markers sit on the month a change took effect rather than the month it was announced, because that is the month the intake moves — a fee rise shows up as a rush to file just before it bites
+  - A marker only appears while its month is in view, so widening the range past the default twelve months uncovers more of them
+  - The same events are listed for screen readers and keyboard users, where the text is not truncated to fit a tooltip
+
 - **v1.4.4**: The header now links to the project's source repository, next to the theme toggle on desktop and under About in the mobile settings drawer
 
 - **v1.4.0**: Three more views join the Resident Population dataset, alongside a filtering overhaul —

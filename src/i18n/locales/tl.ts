@@ -280,6 +280,30 @@ export const tl: Dictionary = {
   'chart.legendHide': 'Itago ang {series}',
   'chart.allSeriesHidden': 'Nakatago ang lahat ng serye — i-click ang isang entry sa legend para magpakita ng isa.',
 
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.act2023.title': 'Nirebisa ang batas sa imigrasyon',
+  'policy.act2023.description': 'Nagdagdag ng pagsubaybay kapalit ng detensyon at karagdagang proteksyon.',
+  'policy.digitalNomad.title': 'Bagong status para sa digital nomad',
+  'policy.digitalNomad.description': 'Anim na buwang status para sa mga remote worker at kanilang pamilya.',
+  'policy.sswExpansion.title': 'Pinalawak ang Specified Skilled Worker',
+  'policy.sswExpansion.description': 'Nagdagdag ng apat na industriya ang gabinete at nagtakda ng bagong target.',
+  'policy.act2023Effect.title': 'Ipinatupad ang panuntunan sa deportasyon',
+  'policy.act2023Effect.description': 'Naging epektibo ang pangunahing probisyon ng rebisyon noong 2023.',
+  'policy.act2024.title': 'Pinalitan ang technical intern training',
+  'policy.act2024.description': 'Mula 2027, papalitan ng bagong programa ang technical intern training.',
+  'policy.feeRevision2025.title': 'Itinaas ang bayad sa aplikasyon',
+  'policy.feeRevision2025.description': 'Umakyat sa 6,000 yen ang extension at 10,000 yen ang permanenteng paninirahan.',
+  'policy.businessManager2025.title': 'Hinigpitan ang panuntunan sa Business Manager',
+  'policy.businessManager2025.description': 'Kailangan ng mas malaking kapital, full-time na empleyado at beripikadong plano.',
+  'policy.prGuidelines2026.title': 'Nirebisa ang gabay sa permanenteng paninirahan',
+  'policy.prGuidelines2026.description': 'Muling nilinaw ng ahensiya kung paano sinusuri ang mga aplikasyon.',
+  'policy.residenceCard2026.title': 'Pinagsama ang residence card at My Number',
+  'policy.residenceCard2026.description': 'Nagsimula na ang pinagsamang residence at My Number card.',
+  'policy.act2026.title': 'Itinaas ang legal na limitasyon ng bayad',
+  'policy.act2026.description': 'Itinaas ng rebisyon noong 2026 ang legal na limitasyon ng mga bayarin.',
+  'policy.feeConsultation2026.title': 'Kinonsulta ang bagong talaan ng bayad',
+  'policy.feeConsultation2026.description': 'Ipinasa sa konsultasyon ang draft na kautusan para sa bagong bayarin.',
+
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
   // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
@@ -363,6 +387,8 @@ export const tl: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': 'Ipinapakita ang {chart} para sa {bureau}',
   'a11y.showingChartWithType': 'Ipinapakita ang {chart} para sa {bureau}, {type}',
+  'a11y.policyEvents': 'Mga pangyayaring pampatakaran na ipinapakita sa tsart na ito',
+  'a11y.policyEventDetail': '{period}: {title}. {description}',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': 'Opisyal na estadistika mula sa Immigration Services Agency ng Japan',

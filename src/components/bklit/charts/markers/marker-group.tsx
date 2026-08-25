@@ -209,6 +209,35 @@ export function MarkerGroup({
         onMouseMove: handleMouseMove,
       };
 
+  /**
+   * LOCAL MODIFICATION: activate a lone marker's own onClick/href from its base
+   * circle. `MarkerCircleHTML` — the only circle that carries an action — is
+   * rendered exclusively for fanned markers, and a group of one never fans, so
+   * without this a single marker shows the tooltip's clickable ↗ while nothing
+   * can activate it. Groups of two or more keep the fan: the action belongs to
+   * an individual marker there, not to the stack.
+   * (Re-apply after a re-vendor.)
+   */
+  const soleMarker = markers.length === 1 ? markers[0] : undefined;
+  const soleAction =
+    soleMarker && (soleMarker.onClick || soleMarker.href) ? soleMarker : undefined;
+
+  const handleActivate = (e: React.MouseEvent) => {
+    if (!soleAction) {
+      return;
+    }
+    e.stopPropagation();
+    if (soleAction.onClick) {
+      soleAction.onClick();
+    } else if (soleAction.href) {
+      if (soleAction.target === "_blank") {
+        window.open(soleAction.href, "_blank", "noopener,noreferrer");
+      } else {
+        window.location.href = soleAction.href;
+      }
+    }
+  };
+
   const portalX = x + marginLeft;
   const portalY = y + marginTop;
 
@@ -248,6 +277,7 @@ export function MarkerGroup({
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Chart marker interaction */}
         <g
           {...hitProps}
+          {...(soleAction ? { onClick: handleActivate } : {})}
           style={{ cursor: "pointer" }}
         >
           <motion.g

@@ -278,6 +278,30 @@ export const de: Dictionary = {
   'chart.legendHide': '{series} ausblenden',
   'chart.allSeriesHidden': 'Alle Reihen ausgeblendet — klicken Sie auf einen Legendeneintrag, um eine anzuzeigen.',
 
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.act2023.title': 'Novelle des Einwanderungsgesetzes',
+  'policy.act2023.description': 'Aufsichtsmaßnahmen statt Haft und ein ergänzender Schutzstatus kamen hinzu.',
+  'policy.digitalNomad.title': 'Status für digitale Nomaden',
+  'policy.digitalNomad.description': 'Ein sechsmonatiger Status für Fernarbeitende und ihre Familien.',
+  'policy.sswExpansion.title': 'Fachkräftestatus erweitert',
+  'policy.sswExpansion.description': 'Ein Kabinettsbeschluss ergänzte vier Branchen und setzte die Aufnahmeziele neu.',
+  'policy.act2023Effect.title': 'Abschieberegeln treten in Kraft',
+  'policy.act2023Effect.description': 'Die Kernbestimmungen der Novelle von 2023 wurden wirksam.',
+  'policy.act2024.title': 'Ausbildungsprogramm ersetzt',
+  'policy.act2024.description': 'Ab 2027 löst die neue Fachkräfteausbildung das Praktikantenprogramm ab.',
+  'policy.feeRevision2025.title': 'Antragsgebühren erhöht',
+  'policy.feeRevision2025.description': 'Verlängerungen kosten nun 6.000 Yen, die Niederlassung 10.000 Yen.',
+  'policy.businessManager2025.title': 'Regeln für Geschäftsführung verschärft',
+  'policy.businessManager2025.description': 'Mehr Kapital, eine Vollzeitkraft und ein geprüfter Geschäftsplan sind nötig.',
+  'policy.prGuidelines2026.title': 'Leitlinien zur Niederlassung überarbeitet',
+  'policy.prGuidelines2026.description': 'Die Behörde legte die Prüfung von Niederlassungsanträgen neu dar.',
+  'policy.residenceCard2026.title': 'Aufenthaltskarte trifft My Number',
+  'policy.residenceCard2026.description': 'Kombinierte Aufenthalts- und My-Number-Karten sind im Einsatz.',
+  'policy.act2026.title': 'Gebührenobergrenze gesetzlich angehoben',
+  'policy.act2026.description': 'Die Novelle von 2026 hob die gesetzliche Obergrenze für Gebühren an.',
+  'policy.feeConsultation2026.title': 'Neue Gebührenordnung zur Anhörung',
+  'policy.feeConsultation2026.description': 'Ein Verordnungsentwurf zu den neuen Gebühren ging in die Anhörung.',
+
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
   // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
@@ -361,6 +385,8 @@ export const de: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': '{chart} für {bureau} wird angezeigt',
   'a11y.showingChartWithType': '{chart} für {bureau}, {type} wird angezeigt',
+  'a11y.policyEvents': 'In diesem Diagramm gezeigte politische Ereignisse',
+  'a11y.policyEventDetail': '{period}: {title}. {description}',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': 'Offizielle Statistiken bereitgestellt von der Einwanderungsbehörde Japans',

@@ -278,6 +278,30 @@ export const it: Dictionary = {
   'chart.legendHide': 'Nascondi {series}',
   'chart.allSeriesHidden': 'Tutte le serie sono nascoste — fai clic su una voce della legenda per mostrarne una.',
 
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.act2023.title': 'Riforma della legge sull’immigrazione',
+  'policy.act2023.description': 'Introdotte misure di sorveglianza al posto del trattenimento e la protezione complementare.',
+  'policy.digitalNomad.title': 'Status per nomadi digitali',
+  'policy.digitalNomad.description': 'Uno status di sei mesi per lavoratori da remoto e le loro famiglie.',
+  'policy.sswExpansion.title': 'Ampliato il Lavoratore Qualificato',
+  'policy.sswExpansion.description': 'Una delibera del consiglio dei ministri ha aggiunto quattro settori e nuove quote.',
+  'policy.act2023Effect.title': 'In vigore le norme sui rimpatri',
+  'policy.act2023Effect.description': 'Le disposizioni principali della riforma del 2023 sono entrate in vigore.',
+  'policy.act2024.title': 'Sostituito il tirocinio tecnico',
+  'policy.act2024.description': 'Dal 2027 la nuova formazione sostituisce il programma di tirocinio tecnico.',
+  'policy.feeRevision2025.title': 'Aumento delle tasse di domanda',
+  'policy.feeRevision2025.description': 'I rinnovi salgono a 6.000 yen e il soggiorno permanente a 10.000.',
+  'policy.businessManager2025.title': 'Regole più severe per i gestori',
+  'policy.businessManager2025.description': 'Servono più capitale, un dipendente a tempo pieno e un piano verificato.',
+  'policy.prGuidelines2026.title': 'Riviste le linee guida sul soggiorno permanente',
+  'policy.prGuidelines2026.description': 'L’agenzia ha ridefinito la valutazione delle domande di soggiorno permanente.',
+  'policy.residenceCard2026.title': 'La carta di soggiorno incontra My Number',
+  'policy.residenceCard2026.description': 'Sono entrate in servizio le carte combinate di soggiorno e My Number.',
+  'policy.act2026.title': 'Alzato il tetto legale delle tasse',
+  'policy.act2026.description': 'La riforma del 2026 ha alzato il tetto legale delle tasse di soggiorno.',
+  'policy.feeConsultation2026.title': 'Consultazione sulle nuove tasse',
+  'policy.feeConsultation2026.description': 'Una bozza di decreto con le nuove tasse è andata in consultazione.',
+
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
   // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
@@ -361,6 +385,8 @@ export const it: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': 'Visualizzazione di {chart} per {bureau}',
   'a11y.showingChartWithType': 'Visualizzazione di {chart} per {bureau}, {type}',
+  'a11y.policyEvents': 'Eventi normativi mostrati in questo grafico',
+  'a11y.policyEventDetail': '{period}: {title}. {description}',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': "Statistiche ufficiali fornite dall'Agenzia per i Servizi dell'Immigrazione del Giappone",
