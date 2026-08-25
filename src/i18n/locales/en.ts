@@ -110,6 +110,10 @@ export const en = {
   'estimator.selectBureau': 'Select Bureau',
   'estimator.selectType': 'Select Type',
   'estimator.applicationDate': 'Application Date',
+  // Stands in for the inputs while the "Show the math" breakdown is open;
+  // the summary carries no prose of its own, only the three chosen values.
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': 'Edit your application details',
   'estimator.empty':
     'Select your bureau, application type, and application date to estimate when your application will be processed.',
   'estimator.estimatedCompletion': 'Estimated completion',

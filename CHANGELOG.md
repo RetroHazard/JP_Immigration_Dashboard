@@ -42,6 +42,7 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Each derived value now shows its own working — the carry-over, the pro-rated figures for your application month, the processed-since totals, and the ± spread beside the result, none of which had a formula before
   - Where the model takes a different route because a month has not been published yet, the breakdown shows the route your estimate actually took rather than a general form
   - Figures inside the formulas now use your own language's digit grouping, and the queue position no longer rounds its parts separately from its total, which could leave the subtraction on screen one short of the answer beside it
+  - Opening the breakdown folds the bureau, type and date inputs away, leaving a single row naming the three you picked — tap it to bring them back. The derivation is long enough that on a phone it otherwise started below the fold
 
 - **v1.6.0**: **Intake & Processing** now tracks the approval rate over time, alongside what it already showed —
   - The share of processed applications that were granted is drawn as a second line, on its own axis fixed at 0–100% so a month reads the same however the volume scale moves underneath it. Until now the approval rate only existed as a single figure for a whole period, on the Outcomes tab and in the stats cards; there was no way to see whether it was moving

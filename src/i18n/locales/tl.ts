@@ -107,6 +107,8 @@ export const tl: Dictionary = {
   'estimator.selectBureau': 'Pumili ng Tanggapan',
   'estimator.selectType': 'Pumili ng Uri',
   'estimator.applicationDate': 'Petsa ng Aplikasyon',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': 'Baguhin ang mga detalye ng iyong aplikasyon',
   'estimator.empty':
     'Piliin ang iyong tanggapan, uri ng aplikasyon, at petsa ng aplikasyon upang matantiya kung kailan maiproseso ang iyong aplikasyon.',
   'estimator.estimatedCompletion': 'Tinatayang pagkumpleto',

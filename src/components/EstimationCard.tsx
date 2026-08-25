@@ -1,8 +1,12 @@
 // src/components/EstimationCard.tsx
 // The Processing Time Estimator, promoted to a first-class, always-visible
 // panel. State is controlled by the shell so the desktop sidebar and the
-// mobile sheet share one set of inputs, and "Show the math" is a disclosure
-// that no longer hides the inputs.
+// mobile sheet share one set of inputs.
+//
+// Opening "Show the math" folds the entry area away: five steps of derivation
+// outrun the 360px rail on their own, and a reader studying one is not editing
+// the form. A summary row takes its place, naming the bureau, type and date the
+// derivation belongs to and doubling as the way back to the inputs.
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -16,6 +20,7 @@ import {
   ChevronsRight,
   Link as LinkIcon,
   OctagonAlert,
+  Pencil,
   RotateCcw,
   X,
 } from 'lucide-react';
@@ -32,6 +37,7 @@ import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { ESTIMATOR_PARAM_NAMES } from '../utils/urlApplicationDetails';
 import { FilterInput } from './common/FilterInput';
 import { IconTooltip } from './common/IconTooltip';
+import { Collapsible, CollapsibleContent } from './ui/collapsible';
 import { EstimationFormula } from './EstimationFormula';
 
 interface EstimationCardProps {
@@ -129,6 +135,14 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
     };
   }, [estimatedDate]);
 
+  // The disclosure only renders alongside an estimate, but `showMath` outlives
+  // one - Reset empties the details, and so can a permalink. Left stale, it
+  // would hold the entry area closed with nothing on screen to reopen it.
+  const mathOpen = showMath && estimatedDate !== null;
+  useEffect(() => {
+    if (!estimatedDate) setShowMath(false);
+  }, [estimatedDate]);
+
   const resultKey = estimatedDate ? estimatedDate.estimatedDate.getTime() : null;
   useEffect(() => {
     if (resultKey === null || prefersReducedMotion() || !resultRef.current) return;
@@ -167,6 +181,19 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
   }, [data]);
 
   const vars = estimatedDate?.details.modelVariables;
+
+  // Stands in for the inputs while they are folded away. Application types take
+  // their one-word `compact` name rather than the full label, which does not fit
+  // beside a bureau and a date in the rail.
+  const selectionSummary = useMemo(
+    () =>
+      t('estimator.selectionSummary', {
+        bureau: nonAirportBureaus.find((option) => option.value === details.bureau)?.label ?? details.bureau,
+        type: applicationOptions.find((option) => option.value === details.type)?.compact ?? details.type,
+        date: details.applicationDate ? formatters.mediumDate(new Date(details.applicationDate)) : '',
+      }),
+    [t, details, nonAirportBureaus, applicationOptions, formatters]
+  );
 
   // Under ten days the spread reads in days, above that in weeks; both are
   // plural families, so a locale with more than two forms gets them right.
@@ -232,40 +259,65 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
         </div>
       </div>
       <div className="card-content-padded flex-1">
-        <p className="text-xs text-muted-foreground">{t('estimator.description')}</p>
+        {/* Both halves live under one wrapper: they are mutually exclusive, and
+            as direct children of `card-content`'s space-y-4 the collapsed one
+            would still collect a gap around its zero height. Each animates, so
+            the panel does not grow before it shrinks on the way in. */}
+        <div>
+          <Collapsible open={mathOpen}>
+            <CollapsibleContent>
+              <button
+                onClick={() => setShowMath(false)}
+                aria-label={t('estimator.editDetails')}
+                className="flex w-full items-center justify-between gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-left text-xs text-secondary-foreground transition-colors hover:bg-muted"
+              >
+                <span className="truncate">{selectionSummary}</span>
+                <Pencil className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+              </button>
+            </CollapsibleContent>
+          </Collapsible>
 
-        <FilterInput
-          type="select"
-          label={t('filters.bureau')}
-          labelVariant="eyebrow"
-          options={nonAirportBureaus}
-          value={details.bureau}
-          includeDefaultOption
-          defaultOptionLabel={t('estimator.selectBureau')}
-          onChange={(value) => onDetailsChange({ ...details, bureau: value })}
-        />
+          <Collapsible open={!mathOpen}>
+            <CollapsibleContent>
+              <div className="space-y-4">
+                <p className="text-xs text-muted-foreground">{t('estimator.description')}</p>
 
-        <FilterInput
-          type="select"
-          label={t('filters.appType')}
-          labelVariant="eyebrow"
-          options={applicationOptions}
-          value={details.type}
-          includeDefaultOption
-          defaultOptionLabel={t('estimator.selectType')}
-          filterFn={(option) => option.value !== 'all'}
-          onChange={(value) => onDetailsChange({ ...details, type: value })}
-        />
+                <FilterInput
+                  type="select"
+                  label={t('filters.bureau')}
+                  labelVariant="eyebrow"
+                  options={nonAirportBureaus}
+                  value={details.bureau}
+                  includeDefaultOption
+                  defaultOptionLabel={t('estimator.selectBureau')}
+                  onChange={(value) => onDetailsChange({ ...details, bureau: value })}
+                />
 
-        <FilterInput
-          type="date"
-          label={t('estimator.applicationDate')}
-          labelVariant="eyebrow"
-          value={details.applicationDate}
-          min={dateRange.min}
-          max={dateRange.max}
-          onChange={(value) => onDetailsChange({ ...details, applicationDate: value })}
-        />
+                <FilterInput
+                  type="select"
+                  label={t('filters.appType')}
+                  labelVariant="eyebrow"
+                  options={applicationOptions}
+                  value={details.type}
+                  includeDefaultOption
+                  defaultOptionLabel={t('estimator.selectType')}
+                  filterFn={(option) => option.value !== 'all'}
+                  onChange={(value) => onDetailsChange({ ...details, type: value })}
+                />
+
+                <FilterInput
+                  type="date"
+                  label={t('estimator.applicationDate')}
+                  labelVariant="eyebrow"
+                  value={details.applicationDate}
+                  min={dateRange.min}
+                  max={dateRange.max}
+                  onChange={(value) => onDetailsChange({ ...details, applicationDate: value })}
+                />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
 
         {!estimatedDate && (
           <p className="mt-3 rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
@@ -332,20 +384,20 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
             </div>
 
             <button
-              onClick={() => setShowMath(!showMath)}
-              aria-expanded={showMath}
+              onClick={() => setShowMath(!mathOpen)}
+              aria-expanded={mathOpen}
               className="flex w-full items-center justify-between gap-2 border-t border-dashed border-border pt-3 text-xs hover:opacity-80"
             >
               <span className="text-secondary-foreground">{t('estimator.howCalculated')}</span>
               <span className="flex items-center gap-0.5 text-muted-foreground">
-                {t(showMath ? 'estimator.hideMath' : 'estimator.showMath')}
+                {t(mathOpen ? 'estimator.hideMath' : 'estimator.showMath')}
                 <ChevronRight
-                  className={`size-3.5 transition-transform motion-reduce:transition-none ${showMath ? 'rotate-90' : ''}`}
+                  className={`size-3.5 transition-transform motion-reduce:transition-none ${mathOpen ? 'rotate-90' : ''}`}
                 />
               </span>
             </button>
 
-            {showMath && vars && <EstimationFormula vars={vars} branches={estimatedDate.details.branches} />}
+            {mathOpen && vars && <EstimationFormula vars={vars} branches={estimatedDate.details.branches} />}
 
             <p className="text-xxs italic text-muted-foreground sm:text-xs">
               {/* The emphasised word sits mid-sentence, so the sentence stays

@@ -123,6 +123,8 @@ export const ko: Dictionary = {
   'estimator.selectBureau': '관리국 선택',
   'estimator.selectType': '유형 선택',
   'estimator.applicationDate': '신청일',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': '신청 내용 수정',
   'estimator.empty': '관리국, 신청 유형, 신청일을 선택하면 신청이 처리되는 시점을 예상할 수 있습니다.',
   'estimator.estimatedCompletion': '예상 완료 시점',
   'estimator.queuePosition': '대기 순위',

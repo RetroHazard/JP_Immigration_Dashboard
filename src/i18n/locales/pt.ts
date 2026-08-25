@@ -108,6 +108,8 @@ export const pt: Dictionary = {
   'estimator.selectBureau': 'Selecionar Gabinete',
   'estimator.selectType': 'Selecionar Tipo',
   'estimator.applicationDate': 'Data da Candidatura',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': 'Editar os dados do seu pedido',
   'estimator.empty':
     'Selecione o seu gabinete, o tipo de candidatura e a data da candidatura para estimar quando a sua candidatura será processada.',
   'estimator.estimatedCompletion': 'Conclusão estimada',

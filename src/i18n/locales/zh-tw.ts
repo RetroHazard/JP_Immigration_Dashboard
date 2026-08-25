@@ -130,6 +130,8 @@ export const zhTw: Dictionary = {
   'estimator.selectBureau': '選擇管理局',
   'estimator.selectType': '選擇申請類型',
   'estimator.applicationDate': '申請日期',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': '修改申請資訊',
   'estimator.empty': '請選擇管理局、申請類型與申請日期，以預估您的申請何時會處理完成。',
   'estimator.estimatedCompletion': '預估完成時間',
   'estimator.queuePosition': '排隊位置',
