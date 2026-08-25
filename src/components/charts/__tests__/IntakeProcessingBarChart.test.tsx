@@ -10,8 +10,7 @@
 // Policy markers are positioned by `xScale(date)` with no clamping and sit
 // outside the reveal clip, so an event outside the plotted window would draw
 // over the axis gutter or past the right edge. The window filter is therefore
-// the behaviour worth pinning down, along with the rule that decides which
-// markers may carry a link.
+// the behaviour worth pinning down, along with markers staying free of links.
 //
 // The chart's SVG never renders here: ParentSize measures 0x0 under jsdom and
 // the shell bails out below 10x10, so there are no marker circles to query.
@@ -21,7 +20,7 @@
 import { describe, expect, it } from 'vitest';
 import { fireEvent } from '@testing-library/react';
 
-import { POLICY_EVENTS, RESIDENT_EVENTS } from '../../../constants/policyEvents';
+import { POLICY_EVENTS, type PolicyEvent, RESIDENT_EVENTS } from '../../../constants/policyEvents';
 import { STATUS_CODES } from '../../../constants/statusCodes';
 import type { ImmigrationData } from '../../../hooks/useImmigrationData';
 import { en } from '../../../i18n/locales/en';
@@ -155,6 +154,12 @@ const MONTHS = Array.from({ length: 5 * 12 }, (_, index) => {
   return `${year}-${String((index % 12) + 1).padStart(2, '0')}`;
 });
 
+/** Every June and December the residents table publishes, 2012-12 onward. */
+const RESIDENT_PERIODS = Array.from({ length: 14 }, (_, index) => 2012 + index).flatMap((year) => [
+  `${year}-06`,
+  `${year}-12`,
+]);
+
 const rows = (months: string[]): ImmigrationData[] =>
   months.flatMap((month) => [
     { month, bureau: '100000', type: '20', status: '102000', value: 500 },
@@ -209,8 +214,8 @@ describe('policy event list', () => {
 });
 
 /** Exercises the hook directly: the marker objects never reach the DOM here. */
-const MarkerProbe: React.FC<{ periods: string[] }> = ({ periods }) => {
-  const { markers } = usePolicyMarkers(POLICY_EVENTS, periods);
+const MarkerProbe: React.FC<{ events: readonly PolicyEvent[]; periods: string[] }> = ({ events, periods }) => {
+  const { markers } = usePolicyMarkers(events, periods);
   return (
     <ul>
       {markers.map((marker) => (
@@ -221,17 +226,20 @@ const MarkerProbe: React.FC<{ periods: string[] }> = ({ periods }) => {
 };
 
 describe('marker links', () => {
-  it('links a marker that is alone on its month', () => {
-    renderWithProviders(<MarkerProbe periods={MONTHS} />);
-    // April 2025 carries only the fee revision.
-    expect(screen.getByTestId(en['policy.feeRevision2025.title']).getAttribute('data-href')).toMatch(/^https:\/\//);
-  });
+  // Markers are annotation, not navigation. Making only the unshared ones
+  // clickable meant two identical circles behaved differently with nothing to
+  // say which was which, so none of them link now — and because the tooltip
+  // derives its clickable arrow from `onClick || href`, keeping href off is
+  // also what stops that arrow coming back.
+  it.each([
+    ['processing', POLICY_EVENTS, MONTHS],
+    ['residents', RESIDENT_EVENTS, RESIDENT_PERIODS],
+  ])('leaves every %s marker unlinked', (_name, events, periods) => {
+    renderWithProviders(<MarkerProbe events={events} periods={periods} />);
 
-  it('leaves a shared month unlinked, so the tooltip shows no arrow it cannot follow', () => {
-    renderWithProviders(<MarkerProbe periods={MONTHS} />);
-    // October 2022 carries both the reopening and the certificate extension.
-    expect(screen.getByTestId(en['policy.covidVisaFree.title']).getAttribute('data-href')).toBe('');
-    expect(screen.getByTestId(en['policy.covidCoe.title']).getAttribute('data-href')).toBe('');
+    const rendered = document.querySelectorAll('li[data-testid]');
+    expect(rendered.length).toBeGreaterThan(0);
+    for (const node of rendered) expect(node.getAttribute('data-href')).toBe('');
   });
 });
 
