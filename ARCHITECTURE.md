@@ -1004,6 +1004,27 @@ test('StatCard renders title, formatted value, and MoM delta', () => {
 });
 ```
 
+### Chart Logic Is Tested Through Hooks, Not Rendered SVG
+
+visx sizes itself from real measurements, and jsdom reports none — a chart
+rendered in a test lays out at zero and its geometry proves nothing. So chart
+behaviour is tested one layer down:
+
+- **Pure geometry and domain helpers directly** — `series-bar-layout.ts`,
+  `y-domain-utils.ts`, `computeComposedYScaleDomainMax`. Cheap, and they are
+  where the arithmetic actually lives.
+- **Hooks through `renderHook`** — `use-chart-interaction.test.tsx` (tap-to-pin)
+  and `use-animated-series-path.test.tsx` (the path/domain animation race).
+  The latter mocks `motion` outright: it caches reduced-motion at import, and
+  its frame loop doesn't tick usefully in jsdom, so driving `onUpdate` by hand
+  is the only way to express "a frame ran, then the scale moved."
+- **Row builders as exported functions** — e.g. `buildIntakeRows` in
+  `IntakeProcessingBarChart.tsx`, exported purely so the numbers can be
+  asserted without a chart.
+
+What is left for a rendered test is what jsdom *can* answer: that the legend
+names every series, and that the graphic carries its `aria-label`.
+
 ### No E2E Tests Currently
 
 **Reason:** Difficult to test in CI without real data, and most logic is unit-testable.
