@@ -36,11 +36,14 @@ export const CATEGORY_ICON: Record<PolicyEventCategory, React.ReactNode> = {
  * clamping and renders outside the reveal clip, so an event beyond the window
  * would draw over the axis gutter or past the right edge.
  *
- * A marker only carries its `href` when it is alone on its period. One circle
- * cannot lead to two sources, and `MarkerTooltipContent` shows its clickable ↗
- * for anything with an href — so handing an href to a shared circle would
- * advertise a link that cannot be followed. Those events keep their links in
- * the list below.
+ * Markers are never links. A circle shared by two events cannot lead to two
+ * sources, and making the lone ones clickable bought an inconsistency nobody
+ * could see until they clicked: two identical circles, one of which did
+ * something. Sources belong in the list below, where they are labelled.
+ *
+ * Leaving `href` off is also what keeps the tooltip honest — the clickable ↗ in
+ * `MarkerTooltipContent` is derived from `onClick || href`, so it stops
+ * appearing on its own rather than needing to be suppressed.
  */
 export const usePolicyMarkers = (
   events: readonly PolicyEvent[],
@@ -53,22 +56,16 @@ export const usePolicyMarkers = (
     return events.filter((event) => periods.has(event.period));
   }, [events, plotted]);
 
-  const markers = useMemo(() => {
-    const perPeriod = new Map<string, number>();
-    for (const event of visible) perPeriod.set(event.period, (perPeriod.get(event.period) ?? 0) + 1);
-
-    return visible.map((event) => ({
-      date: periodToDate(event.period),
-      icon: CATEGORY_ICON[event.category],
-      title: t(event.titleKey),
-      description: t(event.descriptionKey),
-      ...(perPeriod.get(event.period) === 1
-        ? // `_self` would navigate the dashboard away; `_blank` routes through
-          // window.open(..., 'noopener,noreferrer').
-          { href: event.href, target: '_blank' as const }
-        : {}),
-    }));
-  }, [visible, t]);
+  const markers = useMemo(
+    () =>
+      visible.map((event) => ({
+        date: periodToDate(event.period),
+        icon: CATEGORY_ICON[event.category],
+        title: t(event.titleKey),
+        description: t(event.descriptionKey),
+      })),
+    [visible, t]
+  );
 
   return { visible, markers };
 };
