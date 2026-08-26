@@ -8,6 +8,13 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      # ...except the docs that live inside it. src/i18n/README.md is the
+      # contributor guide to the catalogue, not site content, and `src/**`
+      # was quietly deploying on it. Patterns are evaluated in order and the
+      # last match wins, so this has to follow the rule it narrows. Root
+      # CHANGELOG.md is unaffected — it is listed below and does deploy,
+      # because sync-changelog.js copies it into the built site.
+      - '!src/**/*.md'
       - 'public/**'
       # Also covers scripts/datasets.mjs, so registering a dataset redeploys.
       - 'scripts/**'

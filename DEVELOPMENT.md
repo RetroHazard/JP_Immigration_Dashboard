@@ -250,14 +250,16 @@ JP_Immigration_Dashboard/
 │   │   │   ├── ResidenceStatusSunburst.tsx       # Bklit SunburstChart; live status-mix view
 │   │   │   ├── ResidenceStatusMixChart.tsx       # Alternate treemap view (same hierarchy, unregistered)
 │   │   │   ├── OriginChoroplethChart.tsx         # Bklit choropleth; resident count by country, log scale
-│   │   │   └── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
+│   │   │   ├── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
+│   │   │   └── sunburstHint.ts                   # Pointer-aware hint text for the two sunburst views
 │   │   │
 │   │   ├── common/
-│   │   │   ├── ChartComponents.tsx    # Chart registry: label, icon, filters, ranges per chart
+│   │   │   ├── ChartComponents.tsx    # Chart registry: key, icon, filters, ranges, data table per chart
 │   │   │   ├── ErrorBoundary.tsx
 │   │   │   ├── FilterInput.tsx
 │   │   │   ├── FormulaTooltip.tsx     # KaTeX formula popover for the estimator
 │   │   │   ├── IconTooltip.tsx        # Wrapper over the shadcn/Radix Tooltip
+│   │   │   ├── LanguageSwitcher.tsx   # Locale picker, gated by LOCALE_SWITCHER_ENABLED
 │   │   │   ├── LoadingSpinner.tsx
 │   │   │   ├── PeriodSelector.tsx     # Range picker (Application Processing + "range"-mode resident charts)
 │   │   │   ├── SnapshotPeriodSelector.tsx  # Single half-year picker for "snapshot"-mode resident charts
@@ -278,16 +280,22 @@ JP_Immigration_Dashboard/
 │   │
 │   ├── hooks/
 │   │   ├── useImmigrationData.ts      # Fetches + unpacks public/data/dashboard.json
-│   │   └── useResidentsData.ts        # Fetches + unpacks public/data/residents.json
+│   │   ├── useResidentsData.ts        # Fetches + unpacks public/data/residents.json
+│   │   ├── useCoarsePointer.ts        # Touch detection; hover handlers are not attached on a coarse pointer
+│   │   └── useTapPin.ts               # Per-chart half of tap-to-pin tooltips
 │   │
 │   ├── utils/
 │   │   ├── dashboardData.ts           # Pack/unpack format shared with scripts/transform-data.mts
 │   │   ├── dataTransform.ts           # e-Stat payload → ImmigrationData[] flattening
+│   │   ├── estatPayload.ts            # Guards against a truncated e-Stat response (100k-row cap)
 │   │   ├── correctBureauAggregates.ts # Subtracts branch offices out of aggregate bureaus
 │   │   ├── loadLocalData.ts           # Runtime fetch of public/data/dashboard.json
+│   │   ├── loadResidentsData.ts       # Runtime fetch of public/data/residents.json
 │   │   ├── selectors.ts               # BureauScope-aware data selection/filtering
+│   │   ├── excludeAirportData.ts      # Airport toggle: drops branch rows AND subtracts them from the nationwide aggregate
 │   │   ├── calculateEstimates.ts      # Queue-position / processing-time estimation model
 │   │   ├── categoryMixTree.ts         # Shared hierarchy for the Category Mix charts
+│   │   ├── processingEfficiency.ts    # Per-bureau received/processed/completion; shared by the efficiency views and their table
 │   │   ├── chartTables.ts             # Per-chart data table models (row axis varies by chart)
 │   │   ├── chartTableCsv.ts           # TableModel → CSV; English-pinned, RFC 4180 quoting
 │   │   ├── bureauColors.ts            # Per-theme bureau color helpers
@@ -343,7 +351,8 @@ JP_Immigration_Dashboard/
 │   │
 │   └── lib/
 │       ├── utils.ts                   # cn() class-merge helper (shadcn convention)
-│       └── motion.ts                  # Anime.js scope helper + reduced-motion gate
+│       ├── motion.ts                  # Anime.js scope helper + reduced-motion gate
+│       └── tooltip-pin.ts             # One pinned tooltip per page; outside-tap / scroll / Escape dismissal
 │
 ├── public/
 │   ├── data/dashboard.json            # Build-time-transformed processing data the client fetches
@@ -470,13 +479,21 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
        icon: SomeLucideIcon,
        component: NewChart,
        filters: { bureau: true, appType: true },
+       table: 'intakeByMonth',
        compare: false,
        ranges: ['6', '12', '24', '36', 'all'],
        defaultRange: '12',
      },
    ];
    ```
-   A resident chart follows the same shape but with `dataset: 'residents'`, a `component: React.ComponentType<ResidentChartData>`, `filters: { region, nationality, group }` instead of `{ bureau, appType }`, and a `timeControl` of `'range'` (sums over the picked window, like processing charts) or `'snapshot'` (draws one half-yearly period via `SnapshotPeriodSelector` instead of a window — use this when summing across periods wouldn't make sense, e.g. a cross-tabulation). It goes in `RESIDENT_CHARTS` instead.
+   `table` names the data table that stands in as this chart's text alternative — the
+   field is required, so a new chart can't ship without someone deciding what its table
+   shows. Reuse an existing `ProcessingTableId` where the shape fits; a genuinely new
+   shape means a new builder in `src/utils/chartTables.ts`, a new member of the
+   `ProcessingTableId` union, and possibly new column labels in all twelve catalogues
+   (see [Localization](#i18n)).
+
+   A resident chart follows the same shape but with `dataset: 'residents'`, a `component: React.ComponentType<ResidentChartData>`, `filters: { region, nationality, group }` instead of `{ bureau, appType }`, and a `timeControl` of `'range'` (sums over the picked window, like processing charts) or `'snapshot'` (draws one half-yearly period via `SnapshotPeriodSelector` instead of a window — use this when summing across periods wouldn't make sense, e.g. a cross-tabulation). It carries no `table` — the residents dataset has no data table at all — and goes in `RESIDENT_CHARTS` instead.
 
 4. **Test in dev server:**
    ```bash
@@ -484,9 +501,10 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
    # Visit http://localhost:3000 and verify
    ```
 
-5. **Run linting and tests:**
+5. **Run linting, typecheck, and tests:**
    ```bash
    npm run lint
+   npm run typecheck
    npm test
    ```
 
@@ -513,9 +531,13 @@ Both transforms run from `scripts/transform-data.mts`, and both files are fetche
 
 To modify calculations:
 1. Edit the relevant module from the table above, or the chart component itself
-2. Add unit tests in `src/utils/__tests__/`
-3. Test with `npm test`
-4. Verify in dev server with `npm run dev`
+2. Change the matching table builder in `src/utils/chartTables.ts` in the same edit — the
+   builders read the same selectors and helpers the charts do (`selectData`,
+   `buildCategoryMixTree`, `computeBureauVolumes`), which is what keeps a chart and the
+   table under it in agreement. Change one without the other and they disagree silently
+3. Add unit tests in `src/utils/__tests__/`
+4. Test with `npm test`
+5. Verify in dev server with `npm run dev`
 
 ### Adding a dataset
 

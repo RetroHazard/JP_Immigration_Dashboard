@@ -2,7 +2,10 @@
 // Locale-bound number and date formatting. Everything the UI formats goes
 // through here so a locale switch reaches the axis ticks and tooltips as well
 // as the prose — previously every call site hardcoded 'en-US' or relied on the
-// browser locale, which disagreed with the rest of the page.
+// browser locale, which disagreed with the rest of the page. The one
+// deliberate exception is the CSV export, which writes bare unformatted
+// numbers on purpose so a spreadsheet still parses the column
+// (utils/chartTableCsv.ts).
 export interface Formatters {
   /** Grouped integer, e.g. "12,345". */
   number: (value: number) => string;

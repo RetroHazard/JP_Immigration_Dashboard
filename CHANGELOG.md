@@ -13,6 +13,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - A month carrying two events stays a single circle with a count, and the tooltip reads out both. Previously it sprayed its icons across its neighbours
   - A marker only appears while its period is in view, so widening the range uncovers more of them
 
+- **v1.5.1**: The Regional Map has a data table of its own — all 47 prefectures with their servicing bureau, population, area and density, downloadable as CSV. It's the reference geography the map is shaded from, and the only chart whose table shows figures the picture itself can't be read for
+
 - **v1.4.4**: The header now links to the project's source repository, next to the theme toggle on desktop and under About in the mobile settings drawer
 
 - **v1.4.0**: Three more views join the Resident Population dataset, alongside a filtering overhaul —
@@ -83,8 +85,9 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Under **Application Types** the table had no application-type column at all: its "Received" figure was the six plotted lines added together, and the types themselves appeared nowhere. There is now one column per application type, matching the lines above it
   - **Bureau Share** and **Processing Efficiency** break down by bureau, as their charts do, rather than collapsing to the single nationwide row. Bureau Share lists each bureau's intake and its share of the total — including the smaller ones the donut folds into its "Other" slice — and Processing Efficiency lists received, processed, and completion rate in the ranking's own order
   - **Category Mix** is now the treemap's bureau-by-type grid, and **Outcomes** carries the granted/denied/withdrawn split per application type that the sankey draws, alongside its approval rate
-  - The **Regional Map** showed monthly application counts unrelated to anything on screen. It now lists the population, area, and density each prefecture is shaded by
+  - The **Regional Map** showed monthly application counts unrelated to anything on screen. It now lists each prefecture's servicing bureau alongside the population, area and density the shading comes from
   - **Intake & Processing** is unchanged — it was the one chart the old table already described
+  - Read with a screen reader, each table now announces itself by the chart it belongs to — "Showing Bureau Share for Nationwide" — where all seven used to read "Monthly application statistics for …" regardless of what was above them
   - Each chart's CSV now downloads under its own name with its own columns, where every tab used to produce an identical file. Fields are quoted, so a value containing a comma can no longer split a row
 
 - **v1.5.0**: Clicking a chart with a mouse no longer disturbs the tooltip you were reading —

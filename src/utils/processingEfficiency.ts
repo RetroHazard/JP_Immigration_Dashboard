@@ -1,9 +1,16 @@
 // src/utils/processingEfficiency.ts
-// Shared derivation for the Processing Efficiency views (the registered
-// quadrant scatter and the swap-ready lollipop): one point per bureau with
+// Shared derivation for the Processing Efficiency views (the registered ranked
+// lollipop and the swap-ready quadrant scatter), in two layers.
+//
+// `computeBureauVolumes` is the arithmetic alone: one row per bureau with
 // received/processed volume and completion rate over the selected period,
-// colored with the bureau flag palette (matching the Regional Map; airport
-// branch offices render as tints of their parent region).
+// carrying no display text and no theme colors, so the chart's data table
+// (utils/chartTables.ts) can report exactly the numbers the chart plots without
+// dragging a locale or a theme into a pure module.
+//
+// `computeEfficiencyPoints` layers a caller-supplied label and the bureau flag
+// palette on top (matching the Regional Map; airport branch offices render as
+// tints of their parent region).
 
 import { bureauOptions } from '../constants/bureauOptions';
 import { STATUS_CODES } from '../constants/statusCodes';

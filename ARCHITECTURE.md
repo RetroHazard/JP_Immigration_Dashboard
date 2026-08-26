@@ -77,12 +77,22 @@ graph LR
     FILTER["🔍 selectData<br/>Filter by Selection"]
     CALC["⚙️ Chart Calculations<br/>Aggregate & Normalize"]
     VIZ["📈 Visualization<br/>Bklit UI (visx)"]
+    TABLE["📋 chartTables<br/>Per-chart TableModel"]
+    DOM["📄 ChartDataTable<br/>Text alternative"]
+    CSV["⬇️ chartTableCsv<br/>CSV export (English-pinned)"]
     
     DATA --> HOOK
     HOOK --> FILTER
     FILTER --> CALC
     CALC --> VIZ
+    FILTER --> TABLE
+    TABLE --> DOM
+    TABLE --> CSV
 ```
+
+The lower branch is not a second pipeline: each table builder reads the same selectors
+and helpers its chart does, which is what keeps the two in agreement. The CSV is the
+app's only data egress.
 
 ## Data Flow
 
@@ -166,6 +176,9 @@ graph TD
     MIX -.->|Render| VIZ5["Custom squarified treemap (no charting lib)"]
     EFFICIENCY -.->|Render| VIZ6["Custom ranked lollipop (CSS grid rows, no charting lib)"]
     MAP -.->|Render| VIZ7["Bklit Choropleth (visx)"]
+    
+    RAW --> TABLES["chartTables.buildProcessingTable<br/>one builder per chart, same selectors"]
+    TABLES -.->|Render| VIZ8["ChartDataTable + CSV export"]
 ```
 
 Each chart calls `selectData` independently with its own bureau/type/range selection — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). The one global exception is the airport toggle: when airport offices are excluded, `DashboardShell` runs the array through `excludeAirportData` before it reaches any chart, stat, or table — the airport rows are dropped and their volumes subtracted from the nationwide aggregate row, so totals reflect only the visible bureaus (the estimator keeps the full dataset). `visx` is used inside the vendored Bklit chart library only; the two custom charts (Category Mix Treemap, Processing Efficiency) don't depend on it.
@@ -255,7 +268,7 @@ graph TD
 
 Every user-visible string resolves through a per-language catalogue; `src/i18n/README.md` is the reference. Two things are worth knowing before working elsewhere in the tree:
 
-- **Domain constants carry no display text.** `bureauOptions`, `applicationOptions`, `japanPrefectures`, and `CHART_COMPONENTS` hold codes, geometry, and capability flags only. Names come from the catalogue, joined back by the hooks in `useDomainLabels.ts`. Consequently a bureau's name can only be resolved inside a component — utilities that need one take a resolver argument (`computeEfficiencyPoints`).
+- **Domain constants carry no display text.** `bureauOptions`, `applicationOptions`, `japanPrefectures`, and `CHART_COMPONENTS` hold codes, geometry, and capability flags only. Names come from the catalogue, joined back by the hooks in `useDomainLabels.ts`. Consequently a bureau's name can only be resolved inside a component, and utilities handle that one of two ways. Most take a **resolver argument** — `computeEfficiencyPoints` is handed a `(code) => name` function by its caller. The table builders in `chartTables.ts` take none: they emit `LabelRef` values (a catalogue key plus params, or a language-neutral literal) and leave resolution to whoever consumes the model — the locale-bound `t` in the DOM, or `englishOnly` in `chartTableCsv.ts`. That second pattern is what makes the English-only CSV export true by construction rather than by discipline, and it is why `computeEfficiencyPoints` is now a thin wrapper over the resolver-free `computeBureauVolumes`: the table needs the arithmetic without the names.
 - **A growing set of vendored Bklit files are locally modified.** `charts/chart-formatters.ts` and `charts/chart-stat-flow.tsx` had their `Intl` locale hardcoded to `en-US` (and, in one case, left to the browser); `charts/y-axis.tsx` built tick labels with an English `${n / 1000}k` suffix. Those three now read module state that `LocaleProvider` sets during render. `charts/sankey/sankey-tooltip.tsx` hardcoded its two row labels, and takes `valueLabel` / `linkLabel` props instead. Two further changes came out of actually rendering Japanese: `chart-stat-flow.tsx` also passes `locales` to `NumberFlow`, which otherwise reverted to the browser locale once the animation library loaded, and `y-axis.tsx` marks tick labels `whitespace-nowrap`, because `100万` breaks across two lines in a fixed-width axis margin. That fixed width turned out to be the deeper bug: once five more locales shipped in v1.2.5, German/Portuguese/Spanish/Italian's own compact-number forms ("1,2 Mio.", "800 mil") were wider than the English-sized margin `whitespace-nowrap` was overflowing *into* — and a `.card-content` CSS rule was silently re-clipping that overflow besides (`overflow-x: visible` and `overflow-y: auto` can't coexist on one element per the CSS overflow spec; the browser coerces the visible axis back to `auto`). `chart-formatters.ts` now exports `estimateAxisMarginLeft()` / `measureLabelWidth()`, real `canvas.measureText` calls against the current locale's rendered output, and `line-chart.tsx`, `bar-chart.tsx`, `area-chart.tsx`, and `composed-chart.tsx` all consult it when resolving their margin instead of the vendored flat 40px; `bar-y-axis.tsx`'s category-label width is measured the same way. Chart components route through a new `chart-card-content` utility (in `src/index.css`, not vendored) rather than the shared `card-content` class, so they never inherit the coupling bug in the first place. `chart-formatters.ts`'s `compactFmt` also now guards against an ICU quirk (observed on de-DE and it-IT in an older bundled Chromium) where compact notation silently fails to abbreviate at all in the low hundred-thousands — detected by comparing against genuinely-unabbreviated standard notation, so locales whose compact notation works correctly are untouched. `charts/tooltip/chart-tooltip.tsx` carries two changes of its own: a `titleFormat` prop, because the vendored weekday+month+day title has no year and a meaningless weekday on the half-yearly and monthly charts, and a `dotKeys` allowlist that narrows the hover-dot layer to named series. The second exists because `ComposedChart` registers a zero-width line per `SeriesBar` so bars appear in the tooltip, and the dot layer places those at the raw axis value rather than the stacked segment top — every segment above the bottom one lands in the wrong place. Population Growth turns dots off outright (`showDots={false}`, all bars); Intake & Processing passes `dotKeys={['processed', 'approvalRate']}` to keep dots on its two real lines. Three more changes came out of giving Intake & Processing an approval-rate axis, all of them limitations rather than localization. `charts/time-series-chart-shell.tsx` and `charts/y-domain-utils.ts` carry most of it: `yScaleDomainMax` — the stacked-bar total — was gated behind "every series is on the default axis", so adding a second axis silently dropped it and rescaled the primary axis to the tallest single segment, overflowing the plot; it is keyed on the axis id now. They also accept `yAxisDomains`, axes pinned to a fixed domain and used verbatim rather than nice()'d and padded, which is what holds the approval-rate axis at 0–100% whatever the rate does, and a projection is no longer allowed to widen a pinned axis. `charts/composed-chart.tsx` threads that prop through and no longer lets a series on a secondary axis raise the primary axis maximum — harmless while a percentage is the only such series, but wrong for one measured in raw units. `charts/use-animated-series-path.ts` carries a fix rather than a feature: its transition effect only did work when the *transition signature* changed — x-domain, width and the raw y values — but listed the scales and data in its dependency array. A y-domain tween hands every series a new y-scale on each of its frames, so the effect re-ran, its cleanup stopped the animation, and the body then early-returned on the unchanged signature. `onComplete` is the only place the animated snapshot is released, and stopping skips it, so the path stayed pinned to pixels from the domain the chart had *before* the change — visible as a line collapsed onto the baseline after a filter change, while its tooltip dot (recomputed live at hover time) sat correctly. The volatile inputs are read through a ref now, the deps match the guard the body applies, and the cleanup releases the snapshot too. Reading the scale live is also what recomputing the target every frame was always for: the path morph and the domain tween compose, so a line follows its axis as it rescales. `scripts/vendor-bklit.mjs` would overwrite every file listed here — re-apply after a re-vendor. Each file says so at the point of change.
 - **A second set of vendored changes makes tooltips tappable.** These are listed as a table rather than folded into the paragraph above, because they follow one rule applied in many places instead of a different fix per file. The rule: on a coarse pointer (`(hover: none) and (pointer: coarse)`, read via `src/hooks/useCoarsePointer.ts`) hover handlers are **not attached at all**, and the tooltip is driven from `onClick`. Leaving them off rather than guarding them is what stops the compatibility mouse events a browser fires ~300ms after `touchend` from re-opening or clearing a tooltip a tap has just pinned. `src/lib/tooltip-pin.ts` enforces one pinned tooltip per page and owns outside-tap / scroll / Escape dismissal; `src/hooks/useTapPin.ts` is the per-chart half, and its `activationProps()` helper is the one-line swap at each call site. All three are app-owned and survive a re-vendor; the files below do not.
 
@@ -351,6 +364,19 @@ Each builder reads its numbers from the same helper its chart does (`buildCatego
 
 Labels travel as `LabelRef` — a catalogue key, or a language-neutral literal — rather than as resolved text, so the DOM can resolve them through the locale-bound `t` while `src/utils/chartTableCsv.ts` resolves the same refs against English. That is what keeps the export English-only by construction now that rows and cells carry names and not just months, and `csvField` quotes per RFC 4180 so a value containing a separator cannot split a row.
 
+The export contract changed with it, and downstream consumers feel it. Where every tab
+once downloaded `immigration-stats_<bureau>_<type>_<range>.csv` with the same six status
+columns, each builder now names its own stem carrying only the inputs that actually
+applied — `immigration-stats_types_<bureau>_<range>` (the Application Types chart ignores
+the type filter), `immigration-stats_share_<type>_<range>` (Bureau Share forces bureau to
+`all`), and a bare `immigration-stats_prefectures` for the Regional Map, where no filter
+or range applies at all. The file opens with **two** `#` comment lines rather than one:
+the same caption the `<caption>` renders, then a language-neutral echo of the selection
+(`chart=share; bureau=all; type=all; range=12`). Percent columns take a ` (%)` suffix on
+the header and write a bare `86.3` — no sign, no locale grouping — so the column stays
+numeric to a spreadsheet; columns that render a unit on screen (`map.areaValue`) write
+the bare number too. A script globbing the old filename needs updating.
+
 #### **EstimationCard** (`src/components/EstimationCard.tsx`)
 
 Interactive queue position estimator:
@@ -406,6 +432,9 @@ graph TD
     DATA -->|passed as props, airport toggle pre-applied| CHARTS["7 Processing Chart Components"]
     FILTERS -->|passed as props| CHARTS
     CHARTS -->|each independently calls| FILTERED["🔄 selectData / useSelectedData<br/>Memoized per chart, on its own selection key"]
+    DATA -->|same props, plus the registry's table id| TABLE["📋 ChartDataTable"]
+    FILTERS -->|passed as props| TABLE
+    TABLE -->|builds while open| FILTERED
 
     RDATA -->|passed as props, unfiltered| RCHARTS["6 Resident Chart Components"]
     RFILTERS -->|passed as props| RCHARTS
@@ -521,6 +550,7 @@ graph LR
     UNPACK -->|props, unfiltered| MIX["CategoryMixTreemap"]
     UNPACK -->|props, unfiltered| EFFICIENCY["ProcessingEfficiencyLollipop"]
     UNPACK -->|props, unfiltered| MAP["GeographicDistributionChart"]
+    UNPACK -->|props, unfiltered| TABLE["ChartDataTable → chartTables → CSV"]
 
     RUNPACK -->|props, unfiltered| GROWTH["PopulationGrowthChart"]
     RUNPACK -->|props, unfiltered| ORIGINS["NationalityTrendChart"]
@@ -577,7 +607,7 @@ The residents cube needs a different correction, for the same class of reason �
 
 ### 4. Filtering & Memoization
 
-This runs independently **inside each of the 13 chart components across both datasets** — there is no single shared cache distributed to all of them. Processing charts memoize through `selectData`/`useSelectedData` (`src/utils/selectors.ts`); residents charts memoize the same way through `useSelectedResidents` (`src/utils/residentsSelectors.ts`):
+This runs independently **inside each of the 13 chart components across both datasets**, and inside `ChartDataTable` alongside them — there is no single shared cache distributed to all of them. The table memoizes on its own key and only builds while its disclosure is open, so a collapsed table costs nothing. Processing charts memoize through `selectData`/`useSelectedData` (`src/utils/selectors.ts`); residents charts memoize the same way through `useSelectedResidents` (`src/utils/residentsSelectors.ts`):
 
 ```mermaid
 stateDiagram-v2
@@ -862,7 +892,7 @@ components/
 │   └── components.smoke.test.tsx     # Cross-component smoke tests
 ```
 
-(Chart-specific aggregation currently lives inline in each chart component rather than in a colocated hook; utils/hooks are extracted once logic is actually shared.)
+(Chart-specific aggregation currently lives inline in each chart component rather than in a colocated hook; utils/hooks are extracted once logic is actually shared. `src/utils/chartTables.ts` is that rule firing: once each chart's data table had to report the same numbers the chart plots, the aggregation became genuinely shared, and `computeBureauVolumes` was split out of `computeEfficiencyPoints` for the same reason.)
 
 ### Principle: Shared Code in Utils/Hooks
 
@@ -1004,15 +1034,26 @@ describe('calculateEstimatedDate month-boundary sensitivity', () => {
 });
 ```
 
+This is where most of the coverage lives, because most of the logic is pure — the estimator model, the aggregate-bureau correction, the airport exclusion, both cubes' selectors, the residents transform, the per-bureau efficiency derivation, and the seven per-chart table builders. The builders are asserted against the same helpers their charts read, so a table that drifted from the chart above it fails here rather than on screen. Two shared hierarchies, `categoryMixTree.ts` and `residenceStatusTree.ts`, have no suite of their own and are covered only through their consumers.
+
+### Contract Tests for the CSV Export
+
+`src/utils/__tests__/chartTableCsv.test.ts` is the one suite that asserts on bytes rather than behaviour, because the CSV is the only thing the app hands to another program. It pins the two properties a consumer depends on: the file stays English whatever the interface language, and fields are quoted per RFC 4180 so a value carrying a separator can't split a row. Both are invisible on screen and would otherwise only surface in someone else's spreadsheet.
+
 ### Integration Tests for Components
+
+Two rules make a component test work here. `useLocale()` throws outside its provider, so tests render through `renderWithProviders` (`src/test-utils.tsx`) rather than RTL's bare `render`; and assertions read their expected text out of the English catalogue rather than repeating it, so rewording a string doesn't quietly break a test — only removing the key does.
 
 ```typescript
 // Test component behavior (src/components/__tests__/components.smoke.test.tsx)
-test('StatCard renders title, formatted value, and MoM delta', () => {
-  render(<StatCard title="Total Applications" value={12345} delta={{ percent: 3.2, direction: 'neutral' }} {...rest} />);
-  expect(screen.getByText('Total Applications')).toBeTruthy();
+it('renders title, formatted value, and MoM delta', () => {
+  renderWithProviders(<StatCard title={en['stats.totalApplications']} value={12345} {...rest} />);
+  expect(screen.getByText(en['stats.totalApplications'])).toBeTruthy();
+  expect(screen.getByText('12,345')).toBeTruthy();
 });
 ```
+
+Passing `{ locale: 'ja' }` as the second argument asserts against a different catalogue, which is what proves a locale switch actually reaches the DOM.
 
 ### No E2E Tests Currently
 
@@ -1086,6 +1127,11 @@ npm install parent-package@latest          # Update parent if needed
 - **Branch Office** — Sub-bureau reporting separately (e.g., Yokohama under Shinagawa)
 - **e-Stat** — Official Japanese statistics API
 - **SURVEY_DATE** — Date of data collection in e-Stat
+- **Cube** — One dataset's fact table. The processing cube is bureau × application type × status by month; the residents cube is nationality × residence status by half-year. They share no dimension, which is why they share no code path
+- **TableModel** — What a data table is, independent of how it renders: a row-header key, a column spec, rows, a caption, and a filename stem (`src/utils/chartTables.ts`)
+- **TableBuilder** — A pure `(data, filters, range) → TableModel` function. One per chart, reading the same helpers that chart reads
+- **ProcessingTableId** — The name a chart's registry entry gives its builder. Required on every processing chart, so none can be added without deciding what its table shows
+- **LabelRef** — Display text named by identity rather than by value: a catalogue key plus params, or a language-neutral literal. Resolved through `t` for the DOM and against English for the CSV, which is what keeps the export English-only by construction
 
 ---
 
