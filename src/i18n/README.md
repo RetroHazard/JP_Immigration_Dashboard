@@ -37,7 +37,7 @@ means writing one file. You do not need to touch a component.
 
 3. **Check it.** `npx vitest run src/i18n` runs the catalogue tests described
    below, and `npx tsc --noEmit` catches any key that isn't real. The test run
-   prints your coverage, e.g. `ko: 120/325 keys (36.9%) — 205 missing`.
+   prints your coverage, e.g. `ko: 120/471 keys (25.5%) — 351 missing, in progress`.
 
 You can translate as much or as little as you like — a partial file is safe to
 ship. Anything you leave out falls back to English rather than rendering blank.
@@ -58,8 +58,8 @@ quietly rotting as the app grows.
 
 Completeness is measured per language, not key-for-key. Plural families are the
 exception: English defines `period.months_one` and `period.months_other`, but
-Japanese has a single plural category, so it owes only `_other` — 325 keys
-rather than 330. You are never asked for a form your language doesn't use.
+Japanese has a single plural category, so it owes only `_other` — 471 keys
+rather than 477. You are never asked for a form your language doesn't use.
 
 ### After adding or removing an English key
 
@@ -71,6 +71,17 @@ npm run i18n:template
 
 A test compares the committed template against the English catalogue, so
 forgetting this fails CI rather than going unnoticed.
+
+Removing a key also means deleting it from all twelve locale files — CI rejects a
+key English doesn't define — and grepping for stragglers, **including this file**:
+catalogue keys quoted in documentation are checked by nothing.
+
+The counts quoted under [Current state](#current-state) are worth re-running while
+you're here; nothing enforces them:
+
+```
+grep -c "^  '" src/i18n/locales/en.ts
+```
 
 ## Rules a catalogue file must follow
 
@@ -114,7 +125,7 @@ because the interface asks for the same name in places with very different room:
 
 | Key | Where it renders | Budget |
 | --- | --- | --- |
-| `bureau.101210` | filter options, map hover card, table caption, screen-reader text | room to spare |
+| `bureau.101210` | filter options, map hover card, data-table row labels and cells, the chart announcement (which is also the table's caption), CSV exports | room to spare |
 | `bureau.101210.compact` | efficiency-chart label column, ring-chart legend, treemap tile | ~92px, truncates |
 | `bureau.101210.short` | nothing today; an IATA-style code — leave it Latin | 3 characters |
 | `appType.20` | filter options, estimator, tooltips | room to spare |
@@ -189,7 +200,7 @@ mostly-English dashboard with no way back.
 const { t, tPlural, formatters } = useLocale();
 
 t('filters.reset');                                  // plain
-t('table.caption', { bureau: bureauLabel(code) });   // interpolated
+t('a11y.showingChart', { chart, bureau });           // interpolated
 tPlural('period.months', 6);                         // plural, count injected
 formatters.number(12345);                            // 12,345 / 12,345
 formatters.percent(75);                              // 75.0%
@@ -202,13 +213,13 @@ text children, and a `no-restricted-syntax` rule catches string literals in
 
 ## Current state
 
-330 keys, covering the whole interface, in twelve languages all marked
+477 keys, covering the whole interface, in twelve languages all marked
 `complete`. English, French, German, Italian, Portuguese, Spanish, and
-Tagalog (`fil-PH`) all inflect for plural count, so they cover the full 330
+Tagalog (`fil-PH`) all inflect for plural count, so they cover the full 477
 — Tagalog's CLDR `one` rule matches a count of 0 as well as 1, unlike the
 others' "exactly 1." Japanese, Korean, Chinese (`zh-CN` and `zh-TW`), and
 Vietnamese have a single CLDR plural category and owe only the `_other`
-member of each pair, 325 keys.
+member of each pair, 471 keys.
 **The language switcher is on** (`LOCALE_SWITCHER_ENABLED` in `config.ts`),
 which also turns on browser-language detection — the two are one flag precisely
 because auto-detecting a language is only safe while the visitor can switch

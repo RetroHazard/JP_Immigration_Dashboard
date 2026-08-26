@@ -1,12 +1,13 @@
 // src/components/common/ChartComponents.tsx
-// Chart registry: one stable key, icon, filter capability, and allowed time
-// ranges per chart. The shell renders tabs, the card header, and the period
-// selector from this metadata joined to the catalogue via useChartRegistry();
-// charts only plot.
+// Chart registry: one stable key, icon, filter capability, allowed time
+// ranges, and — on the processing half — the data table that stands in as the
+// chart's text alternative. The shell renders tabs, the card header, the
+// period selector, and that table from this metadata joined to the catalogue
+// via useChartRegistry(); charts only plot.
 //
 // Two registries, one per dataset. The two cubes share no dimension — the
-// processing table is bureau x application type x status by month, the
-// residents table is nationality x residence status by half-year — so they
+// processing cube is bureau x application type x status by month, the
+// residents one is nationality x residence status by half-year — so they
 // carry different filters, different ranges, and different props. A
 // discriminated union on `dataset` is what lets the shell narrow to the right
 // pairing instead of every chart accepting both shapes.

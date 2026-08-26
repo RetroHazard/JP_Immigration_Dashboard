@@ -253,7 +253,7 @@ JP_Immigration_Dashboard/
 │   │   │   └── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
 │   │   │
 │   │   ├── common/
-│   │   │   ├── ChartComponents.tsx    # Chart registry: label, icon, filters, ranges per chart
+│   │   │   ├── ChartComponents.tsx    # Chart registry: key, icon, filters, ranges, data table per chart
 │   │   │   ├── ErrorBoundary.tsx
 │   │   │   ├── FilterInput.tsx
 │   │   │   ├── FormulaTooltip.tsx     # KaTeX formula popover for the estimator
@@ -470,13 +470,21 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
        icon: SomeLucideIcon,
        component: NewChart,
        filters: { bureau: true, appType: true },
+       table: 'intakeByMonth',
        compare: false,
        ranges: ['6', '12', '24', '36', 'all'],
        defaultRange: '12',
      },
    ];
    ```
-   A resident chart follows the same shape but with `dataset: 'residents'`, a `component: React.ComponentType<ResidentChartData>`, `filters: { region, nationality, group }` instead of `{ bureau, appType }`, and a `timeControl` of `'range'` (sums over the picked window, like processing charts) or `'snapshot'` (draws one half-yearly period via `SnapshotPeriodSelector` instead of a window — use this when summing across periods wouldn't make sense, e.g. a cross-tabulation). It goes in `RESIDENT_CHARTS` instead.
+   `table` names the data table that stands in as this chart's text alternative — the
+   field is required, so a new chart can't ship without someone deciding what its table
+   shows. Reuse an existing `ProcessingTableId` where the shape fits; a genuinely new
+   shape means a new builder in `src/utils/chartTables.ts`, a new member of the
+   `ProcessingTableId` union, and possibly new column labels in all twelve catalogues
+   (see [Localization](#i18n)).
+
+   A resident chart follows the same shape but with `dataset: 'residents'`, a `component: React.ComponentType<ResidentChartData>`, `filters: { region, nationality, group }` instead of `{ bureau, appType }`, and a `timeControl` of `'range'` (sums over the picked window, like processing charts) or `'snapshot'` (draws one half-yearly period via `SnapshotPeriodSelector` instead of a window — use this when summing across periods wouldn't make sense, e.g. a cross-tabulation). It carries no `table` — the residents dataset has no data table at all — and goes in `RESIDENT_CHARTS` instead.
 
 4. **Test in dev server:**
    ```bash
@@ -484,9 +492,10 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
    # Visit http://localhost:3000 and verify
    ```
 
-5. **Run linting and tests:**
+5. **Run linting, typecheck, and tests:**
    ```bash
    npm run lint
+   npm run typecheck
    npm test
    ```
 
@@ -513,9 +522,13 @@ Both transforms run from `scripts/transform-data.mts`, and both files are fetche
 
 To modify calculations:
 1. Edit the relevant module from the table above, or the chart component itself
-2. Add unit tests in `src/utils/__tests__/`
-3. Test with `npm test`
-4. Verify in dev server with `npm run dev`
+2. Change the matching table builder in `src/utils/chartTables.ts` in the same edit — the
+   builders read the same selectors and helpers the charts do (`selectData`,
+   `buildCategoryMixTree`, `computeBureauVolumes`), which is what keeps a chart and the
+   table under it in agreement. Change one without the other and they disagree silently
+3. Add unit tests in `src/utils/__tests__/`
+4. Test with `npm test`
+5. Verify in dev server with `npm run dev`
 
 ### Adding a dataset
 

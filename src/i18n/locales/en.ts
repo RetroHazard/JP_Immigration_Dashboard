@@ -80,7 +80,10 @@ export const en = {
   'stats.momDelta': '{delta} MoM',
 
   // ── Shared vocabulary ────────────────────────────────────────────────────
-  // Metric names reused across the table, chart legends, and hover cards.
+  // Metric names reused across the data tables, chart legends, and hover cards
+  // — and written verbatim as CSV column headers, in English whatever the
+  // interface language (utils/chartTableCsv.ts), so rewording one changes the
+  // header of an export someone may be parsing.
   'metric.carriedOver': 'Carried over',
   'metric.pending': 'Pending (carried over)',
   'metric.received': 'Received',
@@ -96,6 +99,10 @@ export const en = {
   'common.noDataForFilters': 'No data for this combination of filters.',
 
   // ── Data table ───────────────────────────────────────────────────────────
+  // The table's own chrome and its row headers — one per row axis, since each
+  // chart's table has its own shape (utils/chartTables.ts). Column headers and
+  // row labels come from the shared sections instead: metric.*, appType.*,
+  // bureau.*, prefecture.*, map.*, filters.*.
   'table.view': 'View data table',
   'table.hide': 'Hide data table',
   'table.downloadCsv': 'Download CSV',
@@ -295,7 +302,12 @@ export const en = {
   'errors.reload': 'Reload Page',
   'errors.changelogUnavailable': 'Unable to load the changelog.',
 
-  // ── Screen-reader only ───────────────────────────────────────────────────
+  // ── Chart announcement ───────────────────────────────────────────────────
+  // Three jobs, not one: the live region reads this on a view change, the data
+  // table uses it as its (sr-only) caption, and it is the first line of every
+  // CSV export — where it is pinned to English like the rest of the file
+  // (utils/chartTableCsv.ts). So it is not screen-reader-only any more: this
+  // sentence ships inside files people open in a spreadsheet.
   'a11y.showingChart': 'Showing {chart} for {bureau}',
   'a11y.showingChartWithType': 'Showing {chart} for {bureau}, {type}',
 

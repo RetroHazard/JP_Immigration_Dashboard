@@ -127,7 +127,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
   const dataset: Dataset = requestedDataset === 'residents' && !residentsAvailable ? 'processing' : requestedDataset;
   const charts = useChartRegistry(dataset);
   // Global airport toggle: when off, the airport branch offices drop out of
-  // every chart, stat, and table (the estimator keeps the full dataset).
+  // every chart, stat, and cube-backed table (the estimator keeps the full
+  // dataset; the Regional Map's table is reference geography, not intake, so
+  // the toggle does not reach it).
   const [includeAirports, setIncludeAirports] = useQueryState('airports', parseAsBoolean.withDefault(true));
 
   const activeIndex = Math.max(
@@ -146,8 +148,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
     ? (rangeParam as ChartRange | ResidentRange)
     : activeChart.defaultRange;
 
-  // Filters the active chart doesn't support are neutralized so the chart,
-  // stat badges, and estimator always agree on what a filter value means.
+  // Filters the active chart doesn't support are neutralized so the chart, its
+  // data table, the stat badges, and the estimator always agree on what a
+  // filter value means. The table's caption and its CSV filename are built from
+  // these same neutralized values (utils/chartTables.ts), so a filter a chart
+  // ignores can never turn up in the name of a downloaded file.
   // An airport bureau selection is likewise neutralized while airports are
   // excluded (hand-edited URLs can still produce that combination).
   const processingFilterConfig =
@@ -192,10 +197,12 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
   // Options for the snapshot picker: every published half-year, newest first.
   const residentPeriodsNewestFirst = useMemo(() => getAllPeriods(residentsData).reverse(), [residentsData]);
 
-  // What the charts, stats, and data table see; the airport branch offices
-  // are removed as rows AND subtracted from the nationwide aggregate, so
-  // totals reflect only the visible bureaus (parents already exclude their
-  // branches via the build-time deaggregation).
+  // What the charts, stats, and the cube-backed data tables see; the airport
+  // branch offices are removed as rows AND subtracted from the nationwide
+  // aggregate, so totals reflect only the visible bureaus (parents already
+  // exclude their branches via the build-time deaggregation). The Regional
+  // Map's table is the one exception — reference geography rather than a slice
+  // of the cube, so this never reaches it.
   const chartData = useMemo(() => (includeAirports ? data : excludeAirportData(data)), [data, includeAirports]);
 
   // Data coverage, shown beside the period selector (moved out of the

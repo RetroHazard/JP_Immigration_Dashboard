@@ -1,5 +1,5 @@
 # Japan Immigration Statistics Dashboard
-[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
+[![Version](https://img.shields.io/badge/version-1.5.1-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -103,6 +103,7 @@ Seven charts, filterable by bureau and/or application type where relevant.
   - Interactive choropleth of Japan at the prefectural level, shaded by population density (Statistics Bureau of Japan estimates)
   - Bureau and airport office markers with location-specific tooltips
   - Built-in zoom and pan
+  - A data table listing all 47 prefectures with their servicing bureau, population, area and density — the reference geography the map is shaded from, exportable as CSV
 
 #### Resident Population
 Six charts answering a different question from the rest of the dashboard: not how fast applications are
@@ -184,8 +185,9 @@ or show a single half-yearly snapshot, picked with the same range control.
 ---
 
 ### :clipboard: Data Table & Export
-- Collapsible data table under every Application Processing chart, shaped to match that chart — months by application type under Application Types, bureaus by share under Bureau Share, prefectures under the Regional Map — so it genuinely is an accessible text alternative to the SVG above it
-- One-click CSV export, one file per chart, with English column headers whatever the interface language
+- Collapsible data table under every Application Processing chart, shaped to match that chart rather than to a single fixed template. Rows are months under Intake & Processing and Application Types, application types under Outcomes, bureaus under Bureau Share, Category Mix and Processing Efficiency, and prefectures under the Regional Map — so it genuinely is an accessible text alternative to the SVG above it
+- Where a chart has to summarise, the table doesn't: Bureau Share lists every bureau, including the smaller ones the donut folds into its "Other" slice
+- One-click CSV export, one file per chart — its own filename, encoding the filters in effect, and its own columns. Column headers and row labels stay English whatever the interface language, so a spreadsheet or script built against an export keeps parsing; two leading `#` comment lines record what the file is and the selection that produced it, and fields are quoted so a value containing a comma can't split a row
 
 ---
 
