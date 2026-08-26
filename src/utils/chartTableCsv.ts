@@ -49,8 +49,18 @@ const csvHeader = (column: TableColumn): string =>
 export const serializeTableCsv = (model: TableModel): string => {
   const lines = [
     // The same caption the sr-only <caption> renders, so the two can't disagree.
-    `# ${resolveLabel(model.caption, englishOnly)}`,
-    `# ${model.csvSelection}`,
+    //
+    // Escaped like every other line, and it is the one that most needs it:
+    // `a11y.showingChartWithType` is "Showing {chart} for {bureau}, {type}", so
+    // with a type selected this line reliably carries a separator. A `#` opener
+    // is a comment to a human and a data row to a spreadsheet, which split it
+    // into two cells. The whole line is quoted, `#` included — quoting only the
+    // caption would leave the `#` outside the opening quote, which is not a
+    // field any parser recognises.
+    csvField(`# ${resolveLabel(model.caption, englishOnly)}`),
+    // Semicolon-separated by construction, so it needs no quoting today; run it
+    // through the same escaper rather than relying on that staying true.
+    csvField(`# ${model.csvSelection}`),
     [englishOnly(model.rowHeaderKey), ...model.columns.map(csvHeader)].map(csvField).join(','),
     ...model.rows.map((row) =>
       [

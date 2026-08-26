@@ -50,6 +50,23 @@ interface EstimationCardProps {
   onClose?: () => void;
 }
 
+/**
+ * The date input's `YYYY-MM-DD` value, read in the viewer's own zone.
+ *
+ * `new Date('2025-06-15')` is a date-only ISO string, which the spec parses as
+ * UTC midnight; formatting that locally renders the day *before* anywhere west
+ * of UTC. The summary row exists to say which date is in the field, so it is
+ * the one place that must not disagree with it. Same fix as `periodToDate` in
+ * utils/residentPeriod.ts: build from components, never parse the string.
+ *
+ * Exported so the zone behaviour can be asserted directly — a rendered card
+ * proves nothing here, and a UTC test runner cannot tell the two parses apart.
+ */
+export const localDateFromInput = (value: string): Date => {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
 const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails }) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -190,7 +207,7 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
       t('estimator.selectionSummary', {
         bureau: nonAirportBureaus.find((option) => option.value === details.bureau)?.label ?? details.bureau,
         type: applicationOptions.find((option) => option.value === details.type)?.compact ?? details.type,
-        date: details.applicationDate ? formatters.mediumDate(new Date(details.applicationDate)) : '',
+        date: details.applicationDate ? formatters.mediumDate(localDateFromInput(details.applicationDate)) : '',
       }),
     [t, details, nonAirportBureaus, applicationOptions, formatters]
   );
