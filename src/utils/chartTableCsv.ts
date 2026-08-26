@@ -18,8 +18,7 @@
 //     a live corruption — but nothing about a catalogue string guarantees
 //     that, and a parameterized label like `chart.share.otherSlice` is one
 //     edit away from carrying a separator.
-import { translate } from '../i18n/translate';
-import type { Dictionary, TranslateFn } from '../i18n/types';
+import { englishOnly } from '../i18n/translate';
 import type { TableColumn, TableModel, TableValue } from './chartTables';
 import { resolveLabel } from './chartTables';
 
@@ -27,10 +26,11 @@ import { resolveLabel } from './chartTables';
 export const csvField = (value: string): string =>
   /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 
-const NO_OVERRIDES: Dictionary = {};
-
-/** Resolves catalogue keys against English, whatever the active locale is. */
-export const englishOnly: TranslateFn = (key, params) => translate(NO_OVERRIDES, key, params);
+// The English pin now lives in i18n/translate.ts: the filename that
+// chartTables.ts assembles needs the same resolver, and importing it back from
+// here would be a cycle. Re-exported so this module still presents the whole
+// export contract — contents and all — in one place.
+export { englishOnly };
 
 /**
  * Percent cells are written as a bare `86.3` — no sign, no locale digit

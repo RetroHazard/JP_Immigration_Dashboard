@@ -46,6 +46,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Changed
 
+- **v1.6.2**: A downloaded CSV is now named for what it contains — `immigration-stats_intake_fukuoka_ext_12.csv` where it used to read `immigration-stats_intake_101720_20_12.csv`. The bureau and application type were written as the statistics bureau's own code numbers, which say nothing to whoever opens the file or sorts a folder of them; they now carry the bureau's name and the type's short form, in lowercase. The contents are unchanged, and the name stays English like the file itself, whatever language the dashboard is in
+
 - **v1.5.3**: **Intake & Processing** now tracks the approval rate over time, alongside what it already showed —
   - The share of processed applications that were granted is drawn as a second line, on its own axis fixed at 0–100% so a month reads the same however the volume scale moves underneath it. Until now the approval rate only existed as a single figure for a whole period, on the Outcomes tab and in the stats cards; there was no way to see whether it was moving
   - It uses the same definition as those two — granted out of everything processed — so all three agree for any one bureau and application type

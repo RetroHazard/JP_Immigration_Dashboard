@@ -376,7 +376,14 @@ columns, each builder now names its own stem carrying only the inputs that actua
 applied — `immigration-stats_types_<bureau>_<range>` (the Application Types chart ignores
 the type filter), `immigration-stats_share_<type>_<range>` (Bureau Share forces bureau to
 `all`), and a bare `immigration-stats_prefectures` for the Regional Map, where no filter
-or range applies at all. The file opens with **two** `#` comment lines rather than one:
+or range applies at all. Those slots hold names rather than e-Stat codes —
+`immigration-stats_intake_fukuoka_ext_12.csv`, not `..._101720_20_12.csv`, which named the
+file after identifiers a reader has no way to place. The bureau takes its full English name
+and the type its `EXT`/`PR` abbreviation, both resolved through the same `englishOnly`
+pin as the contents (`src/i18n/translate.ts`) so a filename cannot localize away from the
+file it names, then lowercased and reduced to `[a-z0-9_-]` by `fileSafe` — which is what
+keeps a two-word bureau ("Narita Airport") off disk as `narita-airport`. The file opens
+with **two** `#` comment lines rather than one:
 the same caption the `<caption>` renders, then a language-neutral echo of the selection
 (`chart=share; bureau=all; type=all; range=12`). Percent columns take a ` (%)` suffix on
 the header and write a bare `86.3` — no sign, no locale grouping — so the column stays

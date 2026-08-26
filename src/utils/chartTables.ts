@@ -20,6 +20,7 @@ import { bureauOptions } from '../constants/bureauOptions';
 import { japanPrefectures } from '../constants/japanPrefectures';
 import { STATUS_CODES } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
+import { englishOnly } from '../i18n/translate';
 import type { DictionaryKey, TranslateFn } from '../i18n/types';
 import { buildCategoryMixTree } from './categoryMixTree';
 import { computeBureauVolumes } from './processingEfficiency';
@@ -81,7 +82,10 @@ export interface TableModel {
   rows: TableRow[];
   /** One source for the sr-only `<caption>` and the CSV's leading `#` line. */
   caption: LabelRef;
-  /** Download filename stem. Codes only, never display text. */
+  /**
+   * Download filename stem. English names rather than e-Stat codes, and
+   * already reduced to lowercase `[a-z0-9_-]` — see `bureauName` / `typeName`.
+   */
   csvStem: string;
   /** Second `#` line: a language-neutral echo of what produced this table. */
   csvSelection: string;
@@ -108,6 +112,30 @@ const BUREAU_CODES = bureauOptions.filter((bureau) => bureau.value !== 'all').ma
 const chartRef = (chartKey: string): LabelRef => ({ key: `charts.${chartKey}.label` as DictionaryKey });
 const bureauRef = (code: string): LabelRef => ({ key: `bureau.${code}` as DictionaryKey });
 const typeRef = (code: string): LabelRef => ({ key: `appType.${code}` as DictionaryKey });
+
+/**
+ * The filename carries names, not codes: `101720` and `20` are e-Stat's
+ * identifiers and mean nothing to whoever opens the download. The bureau takes
+ * its full English name and the application type its abbreviation — the same
+ * `EXT`/`PR` forms the interface shows — which keeps a stem readable at a
+ * glance without running to the width of "Permission-for-Activities".
+ *
+ * Resolved through `englishOnly` rather than the active locale, matching the
+ * file's contents: an export is pinned to English so a spreadsheet or script
+ * built against it keeps parsing, and a localized name on an English file
+ * would be the one part that moved.
+ *
+ * Lowercased along with the rest of the stem — the prefix, chart key and range
+ * are already lowercase, so folding the two resolved names is what makes the
+ * whole filename one case rather than `..._Narita-Airport_PR_all`.
+ */
+const fileSafe = (label: string): string =>
+  label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+const bureauName = (code: string): string => fileSafe(englishOnly(`bureau.${code}` as DictionaryKey));
+const typeName = (code: string): string => fileSafe(englishOnly(`appType.${code}.short` as DictionaryKey));
 
 /**
  * "Showing Bureau Share for Nationwide, Permanent Residence" — the same
@@ -176,7 +204,7 @@ const intakeByMonth: TableBuilder = (input) => {
       };
     }),
     caption: caption(input),
-    csvStem: `immigration-stats_intake_${filters.bureau}_${filters.type}_${range}`,
+    csvStem: `immigration-stats_intake_${bureauName(filters.bureau)}_${typeName(filters.type)}_${range}`,
     csvSelection: selection(input),
   };
 };
@@ -213,7 +241,7 @@ const typesByMonth: TableBuilder = (input) => {
       };
     }),
     caption: caption(input),
-    csvStem: `immigration-stats_types_${filters.bureau}_${range}`,
+    csvStem: `immigration-stats_types_${bureauName(filters.bureau)}_${range}`,
     csvSelection: selection(input),
   };
 };
@@ -268,7 +296,7 @@ const outcomesByType: TableBuilder = (input) => {
         : []),
     ],
     caption: caption(input),
-    csvStem: `immigration-stats_outcomes_${filters.bureau}_${filters.type}_${range}`,
+    csvStem: `immigration-stats_outcomes_${bureauName(filters.bureau)}_${typeName(filters.type)}_${range}`,
     csvSelection: selection(input),
   };
 };
@@ -318,7 +346,7 @@ const shareByBureau: TableBuilder = (input) => {
       values: [bureau.carriedOver, bureau.received, bureau.total, rate(bureau.total, total)],
     })),
     caption: caption(input),
-    csvStem: `immigration-stats_share_${filters.type}_${range}`,
+    csvStem: `immigration-stats_share_${typeName(filters.type)}_${range}`,
     csvSelection: selection(input),
   };
 };
@@ -363,7 +391,7 @@ const mixByBureau: TableBuilder = (input) => {
       values: [...TYPE_CODES.map((code) => bureau.cells.get(code) ?? 0), bureau.total],
     })),
     caption: caption(input),
-    csvStem: `immigration-stats_mix_${filters.bureau}_${range}`,
+    csvStem: `immigration-stats_mix_${bureauName(filters.bureau)}_${range}`,
     csvSelection: selection(input),
   };
 };
@@ -414,7 +442,7 @@ const efficiencyByBureau: TableBuilder = (input) => {
         : []),
     ],
     caption: caption(input),
-    csvStem: `immigration-stats_efficiency_${filters.bureau}_${filters.type}_${range}`,
+    csvStem: `immigration-stats_efficiency_${bureauName(filters.bureau)}_${typeName(filters.type)}_${range}`,
     csvSelection: selection(input),
   };
 };

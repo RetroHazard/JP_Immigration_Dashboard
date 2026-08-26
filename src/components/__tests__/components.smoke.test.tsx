@@ -196,7 +196,9 @@ describe('ChartDataTable', () => {
     fireEvent.click(screen.getByText(en['table.downloadCsv']));
 
     expect(createObjectURL).toHaveBeenCalledTimes(1);
-    expect(downloads).toEqual(['immigration-stats_types_all_all.csv']);
+    // `nationwide`, not the `all` filter value or a bureau code — the name is
+    // for whoever opens the file. See `bureauName` in utils/chartTables.ts.
+    expect(downloads).toEqual(['immigration-stats_types_nationwide_all.csv']);
 
     click.mockRestore();
     vi.unstubAllGlobals();

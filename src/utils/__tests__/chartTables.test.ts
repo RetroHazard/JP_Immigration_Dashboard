@@ -6,6 +6,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { PROCESSING_CHARTS } from '../../components/common/ChartComponents';
+import { applicationOptions } from '../../constants/applicationOptions';
+import { bureauOptions } from '../../constants/bureauOptions';
 import { japanPrefectures } from '../../constants/japanPrefectures';
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
 import { en } from '../../i18n/locales/en';
@@ -276,8 +278,39 @@ describe('every builder', () => {
     expect(keys.filter((key) => en[key] === undefined)).toEqual([]);
   });
 
-  it.each(ids)('%s produces a filename stem safe to put on disk', (id) => {
-    expect(buildProcessingTable(id, input()).csvStem).toMatch(/^[A-Za-z0-9_-]+$/);
+  it.each(ids)('%s produces a lowercase filename stem safe to put on disk', (id) => {
+    expect(buildProcessingTable(id, input()).csvStem).toMatch(/^[a-z0-9_-]+$/);
+  });
+
+  // e-Stat's `101720` and `20` are identifiers, not something a reader can
+  // place. The stem carries the bureau's name and the type's abbreviation.
+  it('names the file by bureau and application type rather than by their codes', () => {
+    const model = buildProcessingTable('intakeByMonth', input({ filters: { bureau: '101720', type: '20' } }));
+
+    expect(model.csvStem).toBe('immigration-stats_intake_fukuoka_ext_all');
+    expect(model.csvStem).not.toContain('101720');
+    expect(model.csvStem).not.toContain('_20_');
+  });
+
+  // The one bureau shape that could put a space on disk.
+  it('keeps a two-word bureau name filename-safe', () => {
+    const model = buildProcessingTable('intakeByMonth', input({ filters: { bureau: '101190', type: '60' } }));
+
+    expect(model.csvStem).toBe('immigration-stats_intake_narita-airport_pr_all');
+  });
+
+  // Every bureau and type the filters can hold, not just the ones spelled out
+  // above: a name that lost its last character to the sanitizer, or resolved to
+  // a bare `bureau.101720` because a key went missing, would land here.
+  it('resolves every bureau and type to a real name', () => {
+    for (const { value: bureau } of bureauOptions) {
+      const stem = buildProcessingTable('intakeByMonth', input({ filters: { bureau, type: 'all' } })).csvStem;
+      expect(stem).toContain(en[`bureau.${bureau}` as DictionaryKey].toLowerCase().replace(/ /g, '-'));
+    }
+    for (const { value: type } of applicationOptions) {
+      const stem = buildProcessingTable('intakeByMonth', input({ filters: { bureau: 'all', type } })).csvStem;
+      expect(stem).toContain(en[`appType.${type}.short` as DictionaryKey].toLowerCase());
+    }
   });
 
   it('is reachable — every processing chart names one, and every id has a builder', () => {
