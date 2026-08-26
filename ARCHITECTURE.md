@@ -1034,15 +1034,26 @@ describe('calculateEstimatedDate month-boundary sensitivity', () => {
 });
 ```
 
+This is where most of the coverage lives, because most of the logic is pure — the estimator model, the aggregate-bureau correction, the airport exclusion, both cubes' selectors, the residents transform, the per-bureau efficiency derivation, and the seven per-chart table builders. The builders are asserted against the same helpers their charts read, so a table that drifted from the chart above it fails here rather than on screen. Two shared hierarchies, `categoryMixTree.ts` and `residenceStatusTree.ts`, have no suite of their own and are covered only through their consumers.
+
+### Contract Tests for the CSV Export
+
+`src/utils/__tests__/chartTableCsv.test.ts` is the one suite that asserts on bytes rather than behaviour, because the CSV is the only thing the app hands to another program. It pins the two properties a consumer depends on: the file stays English whatever the interface language, and fields are quoted per RFC 4180 so a value carrying a separator can't split a row. Both are invisible on screen and would otherwise only surface in someone else's spreadsheet.
+
 ### Integration Tests for Components
+
+Two rules make a component test work here. `useLocale()` throws outside its provider, so tests render through `renderWithProviders` (`src/test-utils.tsx`) rather than RTL's bare `render`; and assertions read their expected text out of the English catalogue rather than repeating it, so rewording a string doesn't quietly break a test — only removing the key does.
 
 ```typescript
 // Test component behavior (src/components/__tests__/components.smoke.test.tsx)
-test('StatCard renders title, formatted value, and MoM delta', () => {
-  render(<StatCard title="Total Applications" value={12345} delta={{ percent: 3.2, direction: 'neutral' }} {...rest} />);
-  expect(screen.getByText('Total Applications')).toBeTruthy();
+it('renders title, formatted value, and MoM delta', () => {
+  renderWithProviders(<StatCard title={en['stats.totalApplications']} value={12345} {...rest} />);
+  expect(screen.getByText(en['stats.totalApplications'])).toBeTruthy();
+  expect(screen.getByText('12,345')).toBeTruthy();
 });
 ```
+
+Passing `{ locale: 'ja' }` as the second argument asserts against a different catalogue, which is what proves a locale switch actually reaches the DOM.
 
 ### No E2E Tests Currently
 
@@ -1116,6 +1127,11 @@ npm install parent-package@latest          # Update parent if needed
 - **Branch Office** — Sub-bureau reporting separately (e.g., Yokohama under Shinagawa)
 - **e-Stat** — Official Japanese statistics API
 - **SURVEY_DATE** — Date of data collection in e-Stat
+- **Cube** — One dataset's fact table. The processing cube is bureau × application type × status by month; the residents cube is nationality × residence status by half-year. They share no dimension, which is why they share no code path
+- **TableModel** — What a data table is, independent of how it renders: a row-header key, a column spec, rows, a caption, and a filename stem (`src/utils/chartTables.ts`)
+- **TableBuilder** — A pure `(data, filters, range) → TableModel` function. One per chart, reading the same helpers that chart reads
+- **ProcessingTableId** — The name a chart's registry entry gives its builder. Required on every processing chart, so none can be added without deciding what its table shows
+- **LabelRef** — Display text named by identity rather than by value: a catalogue key plus params, or a language-neutral literal. Resolved through `t` for the DOM and against English for the CSV, which is what keeps the export English-only by construction
 
 ---
 
