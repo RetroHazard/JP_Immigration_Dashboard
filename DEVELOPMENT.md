@@ -119,6 +119,10 @@ npm run build
 Both transforms fall back to a deterministic fixture when their raw payload is absent, so
 nothing below is required to run the dashboard — it is only needed to see real figures.
 
+Each fixture spans the same period as the table it stands in for — processing from 2020-11, residents from
+2012-12 — so anything keyed to a date, the policy event markers included, appears locally and in CI exactly
+where it appears in production.
+
 1. Register for an application ID at [e-Stat](https://www.e-stat.go.jp/) and export it:
 
    ```bash
@@ -213,6 +217,7 @@ JP_Immigration_Dashboard/
 ├── src/
 │   ├── App.tsx                        # Data-loading gate: spinner/error/DashboardShell
 │   ├── index.css                      # Tailwind v4 entry + Civic Glass @theme tokens
+│   ├── test-utils.tsx                 # renderWithProviders(); bare RTL render throws without LocaleProvider
 │   │
 │   ├── app/
 │   │   ├── layout.tsx                 # Root layout: fonts, metadata, GoogleAnalytics
@@ -252,7 +257,8 @@ JP_Immigration_Dashboard/
 │   │   │   ├── ResidenceStatusMixChart.tsx       # Alternate treemap view (same hierarchy, unregistered)
 │   │   │   ├── OriginChoroplethChart.tsx         # Bklit choropleth; resident count by country, log scale
 │   │   │   ├── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
-│   │   │   └── sunburstHint.ts                   # Pointer-aware hint text for the two sunburst views
+│   │   │   ├── sunburstHint.ts                   # Pointer-aware hint text for the two sunburst views
+│   │   │   └── __tests__/                        # Chart tests (markers, tap behaviour, efficiency rows)
 │   │   │
 │   │   ├── common/
 │   │   │   ├── ChartComponents.tsx    # Chart registry: key, icon, filters, ranges, data table per chart
@@ -260,9 +266,10 @@ JP_Immigration_Dashboard/
 │   │   │   ├── FilterInput.tsx
 │   │   │   ├── FormulaTooltip.tsx     # KaTeX formula popover for the estimator
 │   │   │   ├── IconTooltip.tsx        # Wrapper over the shadcn/Radix Tooltip
-│   │   │   ├── LanguageSwitcher.tsx   # Locale picker, gated by LOCALE_SWITCHER_ENABLED
+│   │   │   ├── LanguageSwitcher.tsx   # Locale picker; renders nothing while LOCALE_SWITCHER_ENABLED is false
 │   │   │   ├── LoadingSpinner.tsx
 │   │   │   ├── PeriodSelector.tsx     # Range picker (Application Processing + "range"-mode resident charts)
+│   │   │   ├── PolicyEventList.tsx   # Policy-event markers hook + the collapsible list of sourced events
 │   │   │   ├── SnapshotPeriodSelector.tsx  # Single half-year picker for "snapshot"-mode resident charts
 │   │   │   ├── SeriesLegend.tsx
 │   │   │   └── StatCard.tsx
@@ -288,7 +295,7 @@ JP_Immigration_Dashboard/
 │   │   ├── useImmigrationData.ts      # Fetches + unpacks public/data/dashboard.json
 │   │   ├── useResidentsData.ts        # Fetches + unpacks public/data/residents.json
 │   │   ├── useCoarsePointer.ts        # Touch detection; hover handlers are not attached on a coarse pointer
-│   │   └── useTapPin.ts               # Per-chart half of tap-to-pin tooltips
+│   │   └── useTapPin.ts               # Per-chart half of tap-to-pin; which datapoint holds the pin
 │   │
 │   ├── utils/
 │   │   ├── dashboardData.ts           # Pack/unpack format shared with scripts/transform-data.mts
@@ -310,6 +317,7 @@ JP_Immigration_Dashboard/
 │   │   ├── renderChangelog.tsx        # Minimal inline-markdown renderer for the changelog modal
 │   │   ├── logger.ts                  # Dev-only console logger
 │   │   ├── residentsData.ts           # Pack/unpack format for residents.json
+│   │   ├── loadResidentsData.ts       # Runtime fetch of public/data/residents.json
 │   │   ├── residentsTransform.ts      # e-Stat payload → ResidentRecord[] flattening + verifyResidentTotals
 │   │   ├── residentsSelectors.ts      # useSelectedResidents; residents-cube analogue of selectors.ts
 │   │   ├── residentsGrowth.ts         # Growth-chart series builders (status-group/region), indexSeries()
@@ -326,7 +334,8 @@ JP_Immigration_Dashboard/
 │   │   ├── statusCodes.ts
 │   │   ├── nationalities.ts           # Nationality/region identity table (ISO 3166-1, M49 continent codes)
 │   │   ├── residenceStatuses.ts       # Residence-status identity table + corrected parent hierarchy
-│   │   └── japanPopulation.ts         # Japan's total population by year (denominator for % of total)
+│   │   ├── japanPopulation.ts         # Japan's total population by year (denominator for % of total)
+│   │   └── policyEvents.ts            # Dated policy changes per dataset, each with its government source
 │   │
 │   ├── contexts/
 │   │   └── ThemeContext.tsx           # Thin adapter over next-themes
@@ -388,6 +397,7 @@ JP_Immigration_Dashboard/
 │   ├── generate-fixture.mjs       # Deterministic processing fixture for local/CI builds
 │   ├── generateResidentsFixture.mts # Deterministic residents fixture (imports the real code lists)
 │   ├── generate-locale-template.mts # Emits the locale template from src/i18n
+│   ├── localeTemplate.ts          # The transform behind it, importable so tests can assert it is current
 │   ├── strip-raw-data.mjs         # Removes datastore/ from the exported build output
 │   ├── sync-changelog.js          # Copies CHANGELOG.md into public/
 │   ├── vendor-bklit.mjs           # Pulls Bklit UI registry items into the repo
@@ -405,6 +415,9 @@ JP_Immigration_Dashboard/
 ```
 
 Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/index.css` — there is no `tailwind.config.ts`.
+
+Tests aren't listed above beyond the folders that hold them: they live in a `__tests__/` directory beside the code
+they cover, in `src/` and in `scripts/` alike, so the tree names the folder rather than its contents.
 
 ## Key Technologies
 

@@ -151,14 +151,14 @@ Follow the existing project structure:
 src/
 ├── app/              # Next.js app routes (static export entry points)
 ├── components/       # React components
-│   ├── common/       # Reusable components (StatCard, FilterInput, ...)
-│   ├── charts/       # Chart components (one per chart tab)
+│   ├── common/       # Reusable components (StatCard, FilterInput, PolicyEventList, ...)
+│   ├── charts/       # Chart components (one per chart tab) (+ __tests__/)
 │   ├── ui/           # shadcn/Radix primitives (vendored)
 │   ├── bklit/        # Vendored Bklit UI chart library (visx-based)
 │   └── __tests__/    # Component tests
 ├── hooks/            # Custom React hooks
 ├── utils/            # Utility functions and data selectors (+ __tests__/)
-├── constants/        # Constants (bureaus, application types, status codes, ...)
+├── constants/        # Constants (bureaus, application types, status codes, policy events, ...)
 ├── contexts/         # React context providers (theme)
 ├── i18n/             # Locale catalogues, translation runtime, and formatters
 └── lib/              # Small shared helpers (class-merge, motion)

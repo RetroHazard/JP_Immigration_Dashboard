@@ -118,7 +118,7 @@ or show a single half-yearly snapshot, picked with the same range control.
 - **Purpose:** How the total resident population has grown over time, and who's driving it.
 - **Features:**
   - Stacked bars of total residents per half-year since 2012, toggleable between purpose-of-stay and world-region breakdowns
-  - Event markers for policy changes and the COVID-19 dip, with the same collapsible list of sourced events as Intake & Processing
+  - Event markers for policy changes, the COVID-19 dip and the 2022 reopening, and the reporting changes that explain a step in the series rather than a real one — with the same collapsible list of sourced events as Intake & Processing
   - Filterable by region and nationality
 
 #### **Origins Over Time**
@@ -278,7 +278,7 @@ Two independent e-Stat tables, published by the Japan Immigration Services Agenc
 | Measures | applications received and processed | people resident, at a point in time |
 | Dimensions | bureau × application type × status | nationality/region × residence status |
 | Cadence | monthly | half-yearly (半期), each June and December |
-| Coverage | rolling | 2012-12 onward |
+| Coverage | 2020-11 onward | 2012-12 onward |
 
 They share no dimension, which is why they are separate views rather than combined ones: nothing in the residents table can be broken down by bureau, and nothing in the processing table can be broken down by nationality.
 
