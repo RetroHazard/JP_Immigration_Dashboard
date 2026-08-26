@@ -217,6 +217,7 @@ JP_Immigration_Dashboard/
 ├── src/
 │   ├── App.tsx                        # Data-loading gate: spinner/error/DashboardShell
 │   ├── index.css                      # Tailwind v4 entry + Civic Glass @theme tokens
+│   ├── test-utils.tsx                 # renderWithProviders(); bare RTL render throws without LocaleProvider
 │   │
 │   ├── app/
 │   │   ├── layout.tsx                 # Root layout: fonts, metadata, GoogleAnalytics
@@ -263,6 +264,7 @@ JP_Immigration_Dashboard/
 │   │   │   ├── FilterInput.tsx
 │   │   │   ├── FormulaTooltip.tsx     # KaTeX formula popover for the estimator
 │   │   │   ├── IconTooltip.tsx        # Wrapper over the shadcn/Radix Tooltip
+│   │   │   ├── LanguageSwitcher.tsx   # Locale picker; renders nothing while LOCALE_SWITCHER_ENABLED is false
 │   │   │   ├── LoadingSpinner.tsx
 │   │   │   ├── PeriodSelector.tsx     # Range picker (Application Processing + "range"-mode resident charts)
 │   │   │   ├── PolicyEventList.tsx   # Policy-event markers hook + the collapsible list of sourced events
@@ -278,28 +280,32 @@ JP_Immigration_Dashboard/
 │   │   │   ├── charts/                # Line/Bar/Pie/Sankey/Sunburst/Choropleth/Radar/Gauge primitives
 │   │   │   └── components/
 │   │   │
-│   │   └── __tests__/
-│   │       ├── components.smoke.test.tsx
-│   │       └── residents.smoke.test.tsx
+│   │   └── __tests__/                 # Shell, modal, switcher, and both smoke suites
 │   │
 │   ├── hooks/
 │   │   ├── useImmigrationData.ts      # Fetches + unpacks public/data/dashboard.json
-│   │   └── useResidentsData.ts        # Fetches + unpacks public/data/residents.json
+│   │   ├── useResidentsData.ts        # Fetches + unpacks public/data/residents.json
+│   │   ├── useCoarsePointer.ts        # The one place the app asks "is this a touch device?"
+│   │   └── useTapPin.ts               # Per-chart half of tap-to-pin; which datapoint holds the pin
 │   │
 │   ├── utils/
 │   │   ├── dashboardData.ts           # Pack/unpack format shared with scripts/transform-data.mts
 │   │   ├── dataTransform.ts           # e-Stat payload → ImmigrationData[] flattening
+│   │   ├── estatPayload.ts            # Is this raw e-Stat payload the whole table?
 │   │   ├── correctBureauAggregates.ts # Subtracts branch offices out of aggregate bureaus
 │   │   ├── loadLocalData.ts           # Runtime fetch of public/data/dashboard.json
 │   │   ├── selectors.ts               # BureauScope-aware data selection/filtering
+│   │   ├── excludeAirportData.ts      # The global airport toggle's data transform
 │   │   ├── calculateEstimates.ts      # Queue-position / processing-time estimation model
 │   │   ├── categoryMixTree.ts         # Shared hierarchy for the Category Mix charts
+│   │   ├── processingEfficiency.ts    # Shared derivation for the Processing Efficiency views
 │   │   ├── bureauColors.ts            # Per-theme bureau color helpers
 │   │   ├── getBureauData.ts           # Bureau option lookups
 │   │   ├── urlApplicationDetails.ts   # Estimator permalink <-> URL params
 │   │   ├── renderChangelog.tsx        # Minimal inline-markdown renderer for the changelog modal
 │   │   ├── logger.ts                  # Dev-only console logger
 │   │   ├── residentsData.ts           # Pack/unpack format for residents.json
+│   │   ├── loadResidentsData.ts       # Runtime fetch of public/data/residents.json
 │   │   ├── residentsTransform.ts      # e-Stat payload → ResidentRecord[] flattening + verifyResidentTotals
 │   │   ├── residentsSelectors.ts      # useSelectedResidents; residents-cube analogue of selectors.ts
 │   │   ├── residentsGrowth.ts         # Growth-chart series builders (status-group/region), indexSeries()
@@ -348,7 +354,8 @@ JP_Immigration_Dashboard/
 │   │
 │   └── lib/
 │       ├── utils.ts                   # cn() class-merge helper (shadcn convention)
-│       └── motion.ts                  # Anime.js scope helper + reduced-motion gate
+│       ├── motion.ts                  # Anime.js scope helper + reduced-motion gate
+│       └── tooltip-pin.ts             # One pinned tooltip per page, and every way it gets dismissed
 │
 ├── public/
 │   ├── data/dashboard.json            # Build-time-transformed processing data the client fetches
@@ -379,6 +386,7 @@ JP_Immigration_Dashboard/
 │   ├── generate-fixture.mjs       # Deterministic processing fixture for local/CI builds
 │   ├── generateResidentsFixture.mts # Deterministic residents fixture (imports the real code lists)
 │   ├── generate-locale-template.mts # Emits the locale template from src/i18n
+│   ├── localeTemplate.ts          # The transform behind it, importable so tests can assert it is current
 │   ├── strip-raw-data.mjs         # Removes datastore/ from the exported build output
 │   ├── sync-changelog.js          # Copies CHANGELOG.md into public/
 │   ├── vendor-bklit.mjs           # Pulls Bklit UI registry items into the repo
@@ -396,6 +404,9 @@ JP_Immigration_Dashboard/
 ```
 
 Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/index.css` — there is no `tailwind.config.ts`.
+
+Tests aren't listed above beyond the folders that hold them: they live in a `__tests__/` directory beside the code
+they cover, in `src/` and in `scripts/` alike, so the tree names the folder rather than its contents.
 
 ## Key Technologies
 
