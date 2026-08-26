@@ -214,13 +214,28 @@ export function MarkerGroup({
     });
   };
 
-  const hitProps = coarsePointer
-    ? { onClick: handleTap }
-    : {
-        onMouseEnter: handleMouseEnter,
-        onMouseLeave: handleMouseLeave,
-        onMouseMove: handleMouseMove,
-      };
+  /**
+   * LOCAL MODIFICATION: a group that cannot fan does not intercept the pointer.
+   * Interception exists only to hold the crosshair still while a fan is open,
+   * so with `fan={false}` it buys nothing and costs the reader the month: the
+   * marker sits directly over the column it annotates, and swallowing the move
+   * left a dead spot there. Attaching nothing lets the event bubble to the
+   * chart's own handlers — these markers render inside the very `<g>` that
+   * carries them — so hovering a marker resolves the same tooltip as hovering
+   * its bar, through the same code path, and a tap pins it the same way.
+   * The shapes stay: at y = -8 nothing else is under the cursor, so
+   * `pointer-events: none` would drop the event entirely rather than pass it
+   * down. (Re-apply after a re-vendor.)
+   */
+  const hitProps = !fan
+    ? {}
+    : coarsePointer
+      ? { onClick: handleTap }
+      : {
+          onMouseEnter: handleMouseEnter,
+          onMouseLeave: handleMouseLeave,
+          onMouseMove: handleMouseMove,
+        };
 
   const portalX = x + marginLeft;
   const portalY = y + marginTop;
@@ -261,7 +276,9 @@ export function MarkerGroup({
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Chart marker interaction */}
         <g
           {...hitProps}
-          style={{ cursor: "pointer" }}
+          // LOCAL MODIFICATION: only a fanning marker is its own target; the
+          // rest inherit the plot's crosshair. (Re-apply after a re-vendor.)
+          style={fan ? { cursor: "pointer" } : undefined}
         >
           <motion.g
             animate={currentVariant}
@@ -468,8 +485,15 @@ function MarkerCircle({
         stroke={borderColor ?? chartCssVars.markerBorder}
         strokeWidth={borderWidth}
       />
+      {/* LOCAL MODIFICATION: the icon is not a pointer target. `localPoint`
+          mis-resolves an event whose target is HTML inside a foreignObject,
+          reporting an x near the axis origin, so a hover over the icon read
+          the wrong period entirely. Letting it fall through to the `circle`
+          below keeps every part of the marker resolving the same month.
+          (Re-apply after a re-vendor.) */}
       <foreignObject
         height={size - inset * 2}
+        pointerEvents="none"
         width={size - inset * 2}
         x={-size / 2 + inset}
         y={-size / 2 + inset}
