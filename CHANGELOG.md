@@ -11,7 +11,6 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - A collapsible list under each chart names every event in view and links it to the government page that establishes its date, so a policy month can be checked rather than taken on trust — the circles alone can say what kind of change happened, not which one. The markers themselves are annotation and are not clickable
   - Markers sit on the period a change took effect rather than the one it was announced, because that is when the figures move — a fee rise shows up as a rush to file just before it bites
   - A month carrying two events stays a single circle with a count, and the tooltip reads out both
-  - Hovering a marker reads its month exactly as hovering the bar under it does — the marker sits over the column it annotates, so it no longer swallows the pointer and leaves a dead spot there
   - A marker only appears while its period is in view, so widening the range uncovers more of them
 
 - **v1.5.1**: The Regional Map has a data table of its own — all 47 prefectures with their servicing bureau, population, area and density, downloadable as CSV. It's the reference geography the map is shaded from, and the only chart whose table shows figures the picture itself can't be read for
@@ -76,6 +75,11 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Both now cost a fixed amount of header/drawer space no matter how many locales are registered, so adding a language no longer reshuffles the layout around it
 
 ### Fixed
+
+- **v1.6.1**: Hovering a policy marker now reads the month underneath it, exactly as hovering the bar does —
+  - The marker sits directly over the column it annotates, and pointing at it made the tooltip disappear rather than describe that month, leaving a dead spot on the one place a reader is most likely to aim
+  - Pointing at the marker's icon read the wrong month entirely — the first period on the chart rather than its own
+  - On a touchscreen, tapping a marker now pins its month the same way tapping its bar does
 
 - **v1.5.4**: Lines on the time-series charts no longer get stranded when the figures behind them change scale —
   - Picking a bureau or an application type can move the y-axis by orders of magnitude — the nationwide total against one office's caseload. The axis rescaled, the bars followed, but a line could stay drawn against the old scale, usually flattened along the bottom of the plot. Hovering it gave the right number in the right place, which made the line itself look broken rather than stale
