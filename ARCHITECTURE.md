@@ -77,12 +77,22 @@ graph LR
     FILTER["🔍 selectData<br/>Filter by Selection"]
     CALC["⚙️ Chart Calculations<br/>Aggregate & Normalize"]
     VIZ["📈 Visualization<br/>Bklit UI (visx)"]
+    TABLE["📋 chartTables<br/>Per-chart TableModel"]
+    DOM["📄 ChartDataTable<br/>Text alternative"]
+    CSV["⬇️ chartTableCsv<br/>CSV export (English-pinned)"]
     
     DATA --> HOOK
     HOOK --> FILTER
     FILTER --> CALC
     CALC --> VIZ
+    FILTER --> TABLE
+    TABLE --> DOM
+    TABLE --> CSV
 ```
+
+The lower branch is not a second pipeline: each table builder reads the same selectors
+and helpers its chart does, which is what keeps the two in agreement. The CSV is the
+app's only data egress.
 
 ## Data Flow
 
@@ -166,6 +176,9 @@ graph TD
     MIX -.->|Render| VIZ5["Custom squarified treemap (no charting lib)"]
     EFFICIENCY -.->|Render| VIZ6["Custom ranked lollipop (CSS grid rows, no charting lib)"]
     MAP -.->|Render| VIZ7["Bklit Choropleth (visx)"]
+    
+    RAW --> TABLES["chartTables.buildProcessingTable<br/>one builder per chart, same selectors"]
+    TABLES -.->|Render| VIZ8["ChartDataTable + CSV export"]
 ```
 
 Each chart calls `selectData` independently with its own bureau/type/range selection — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). The one global exception is the airport toggle: when airport offices are excluded, `DashboardShell` runs the array through `excludeAirportData` before it reaches any chart, stat, or table — the airport rows are dropped and their volumes subtracted from the nationwide aggregate row, so totals reflect only the visible bureaus (the estimator keeps the full dataset). `visx` is used inside the vendored Bklit chart library only; the two custom charts (Category Mix Treemap, Processing Efficiency) don't depend on it.
@@ -419,6 +432,9 @@ graph TD
     DATA -->|passed as props, airport toggle pre-applied| CHARTS["7 Processing Chart Components"]
     FILTERS -->|passed as props| CHARTS
     CHARTS -->|each independently calls| FILTERED["🔄 selectData / useSelectedData<br/>Memoized per chart, on its own selection key"]
+    DATA -->|same props, plus the registry's table id| TABLE["📋 ChartDataTable"]
+    FILTERS -->|passed as props| TABLE
+    TABLE -->|builds while open| FILTERED
 
     RDATA -->|passed as props, unfiltered| RCHARTS["6 Resident Chart Components"]
     RFILTERS -->|passed as props| RCHARTS
@@ -534,6 +550,7 @@ graph LR
     UNPACK -->|props, unfiltered| MIX["CategoryMixTreemap"]
     UNPACK -->|props, unfiltered| EFFICIENCY["ProcessingEfficiencyLollipop"]
     UNPACK -->|props, unfiltered| MAP["GeographicDistributionChart"]
+    UNPACK -->|props, unfiltered| TABLE["ChartDataTable → chartTables → CSV"]
 
     RUNPACK -->|props, unfiltered| GROWTH["PopulationGrowthChart"]
     RUNPACK -->|props, unfiltered| ORIGINS["NationalityTrendChart"]

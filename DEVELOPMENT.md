@@ -250,7 +250,8 @@ JP_Immigration_Dashboard/
 │   │   │   ├── ResidenceStatusSunburst.tsx       # Bklit SunburstChart; live status-mix view
 │   │   │   ├── ResidenceStatusMixChart.tsx       # Alternate treemap view (same hierarchy, unregistered)
 │   │   │   ├── OriginChoroplethChart.tsx         # Bklit choropleth; resident count by country, log scale
-│   │   │   └── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
+│   │   │   ├── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
+│   │   │   └── sunburstHint.ts                   # Pointer-aware hint text for the two sunburst views
 │   │   │
 │   │   ├── common/
 │   │   │   ├── ChartComponents.tsx    # Chart registry: key, icon, filters, ranges, data table per chart
@@ -258,6 +259,7 @@ JP_Immigration_Dashboard/
 │   │   │   ├── FilterInput.tsx
 │   │   │   ├── FormulaTooltip.tsx     # KaTeX formula popover for the estimator
 │   │   │   ├── IconTooltip.tsx        # Wrapper over the shadcn/Radix Tooltip
+│   │   │   ├── LanguageSwitcher.tsx   # Locale picker, gated by LOCALE_SWITCHER_ENABLED
 │   │   │   ├── LoadingSpinner.tsx
 │   │   │   ├── PeriodSelector.tsx     # Range picker (Application Processing + "range"-mode resident charts)
 │   │   │   ├── SnapshotPeriodSelector.tsx  # Single half-year picker for "snapshot"-mode resident charts
@@ -278,16 +280,22 @@ JP_Immigration_Dashboard/
 │   │
 │   ├── hooks/
 │   │   ├── useImmigrationData.ts      # Fetches + unpacks public/data/dashboard.json
-│   │   └── useResidentsData.ts        # Fetches + unpacks public/data/residents.json
+│   │   ├── useResidentsData.ts        # Fetches + unpacks public/data/residents.json
+│   │   ├── useCoarsePointer.ts        # Touch detection; hover handlers are not attached on a coarse pointer
+│   │   └── useTapPin.ts               # Per-chart half of tap-to-pin tooltips
 │   │
 │   ├── utils/
 │   │   ├── dashboardData.ts           # Pack/unpack format shared with scripts/transform-data.mts
 │   │   ├── dataTransform.ts           # e-Stat payload → ImmigrationData[] flattening
+│   │   ├── estatPayload.ts            # Guards against a truncated e-Stat response (100k-row cap)
 │   │   ├── correctBureauAggregates.ts # Subtracts branch offices out of aggregate bureaus
 │   │   ├── loadLocalData.ts           # Runtime fetch of public/data/dashboard.json
+│   │   ├── loadResidentsData.ts       # Runtime fetch of public/data/residents.json
 │   │   ├── selectors.ts               # BureauScope-aware data selection/filtering
+│   │   ├── excludeAirportData.ts      # Airport toggle: drops branch rows AND subtracts them from the nationwide aggregate
 │   │   ├── calculateEstimates.ts      # Queue-position / processing-time estimation model
 │   │   ├── categoryMixTree.ts         # Shared hierarchy for the Category Mix charts
+│   │   ├── processingEfficiency.ts    # Per-bureau received/processed/completion; shared by the efficiency views and their table
 │   │   ├── chartTables.ts             # Per-chart data table models (row axis varies by chart)
 │   │   ├── chartTableCsv.ts           # TableModel → CSV; English-pinned, RFC 4180 quoting
 │   │   ├── bureauColors.ts            # Per-theme bureau color helpers
@@ -343,7 +351,8 @@ JP_Immigration_Dashboard/
 │   │
 │   └── lib/
 │       ├── utils.ts                   # cn() class-merge helper (shadcn convention)
-│       └── motion.ts                  # Anime.js scope helper + reduced-motion gate
+│       ├── motion.ts                  # Anime.js scope helper + reduced-motion gate
+│       └── tooltip-pin.ts             # One pinned tooltip per page; outside-tap / scroll / Escape dismissal
 │
 ├── public/
 │   ├── data/dashboard.json            # Build-time-transformed processing data the client fetches
