@@ -385,6 +385,8 @@ export const it: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': 'Registro delle modifiche',
   'changelog.loading': 'Caricamento...',
+  'changelog.expandAll': 'Espandi tutto',
+  'changelog.collapseAll': 'Comprimi tutto',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   'errors.dataTitle': 'Errore nel caricamento dei dati',

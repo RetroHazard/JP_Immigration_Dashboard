@@ -385,6 +385,8 @@ export const de: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': 'Änderungsprotokoll',
   'changelog.loading': 'Wird geladen …',
+  'changelog.expandAll': 'Alle ausklappen',
+  'changelog.collapseAll': 'Alle einklappen',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   'errors.dataTitle': 'Fehler beim Laden der Daten',

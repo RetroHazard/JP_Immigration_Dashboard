@@ -366,6 +366,8 @@ export const ja: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': '更新履歴',
   'changelog.loading': '読み込み中…',
+  'changelog.expandAll': 'すべて展開',
+  'changelog.collapseAll': 'すべて折りたたむ',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   'errors.dataTitle': 'データの読み込みエラー',
