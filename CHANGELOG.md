@@ -46,18 +46,18 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Changed
 
-- **v1.6.0**: The estimator's "Show the math" breakdown now shows how every figure in it is reached, not just the last three steps —
+- **v1.5.3**: **Intake & Processing** now tracks the approval rate over time, alongside what it already showed —
+  - The share of processed applications that were granted is drawn as a second line, on its own axis fixed at 0–100% so a month reads the same however the volume scale moves underneath it. Until now the approval rate only existed as a single figure for a whole period, on the Outcomes tab and in the stats cards; there was no way to see whether it was moving
+  - It uses the same definition as those two — granted out of everything processed — so all three agree for any one bureau and application type
+  - Everything else about the chart is unchanged: stacked bars for carried-over and newly received applications, with completed volume as a line on the same axis. The second axis is a genuinely different unit rather than the two identical volume axes an earlier version of this chart had
+  - The month-by-month breakdown of what processing actually decided — granted, denied, other — stays in the collapsible data table below the chart, which carries all six figures as text or CSV
+
+- **v1.5.2**: The estimator's "Show the math" breakdown now shows how every figure in it is reached, not just the last three steps —
   - Five steps instead of three, ordered so that no symbol is used before the step that defines it. The daily processing rate used to be introduced in step 2 and then relied on by step 1
   - Each derived value now shows its own working — the carry-over, the pro-rated figures for your application month, the processed-since totals, and the ± spread beside the result, none of which had a formula before
   - The model takes a different route in three places, depending on whether the month before yours is published, whether your own application month is, and how far past the data your application sits. The breakdown shows the route your estimate actually took rather than a general form
   - Figures inside the formulas now use your own language's digit grouping and decimal mark, rather than always the English ones
   - Opening the breakdown folds the bureau, type and date inputs away, leaving a single row naming the three you picked — tap it to bring them back. The derivation is long enough that on a phone it otherwise started below the fold
-
-- **v1.6.0**: **Intake & Processing** now tracks the approval rate over time, alongside what it already showed —
-  - The share of processed applications that were granted is drawn as a second line, on its own axis fixed at 0–100% so a month reads the same however the volume scale moves underneath it. Until now the approval rate only existed as a single figure for a whole period, on the Outcomes tab and in the stats cards; there was no way to see whether it was moving
-  - It uses the same definition as those two — granted out of everything processed — so all three agree for any one bureau and application type
-  - Everything else about the chart is unchanged: stacked bars for carried-over and newly received applications, with completed volume as a line on the same axis. The second axis is a genuinely different unit rather than the two identical volume axes an earlier version of this chart had
-  - The month-by-month breakdown of what processing actually decided — granted, denied, withdrawn — stays in the collapsible data table below the chart, which carries all six figures as text or CSV
 
 - **v1.5.0**: On phones and tablets, chart tooltips are now opened by tapping rather than by holding a finger down —
   - Holding was the only way to see a value, and letting go dismissed it, so a reading could never be held still long enough to compare against anything. A tap now pins the tooltip open; tap the same point again to close it, or another point to move it. Tapping outside the chart, scrolling, or opening a tooltip on a different chart also closes it, so only ever one is on screen
@@ -76,12 +76,12 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
-- **v1.6.0**: Lines on the time-series charts no longer get stranded when the figures behind them change scale —
+- **v1.5.4**: Lines on the time-series charts no longer get stranded when the figures behind them change scale —
   - Picking a bureau or an application type can move the y-axis by orders of magnitude — the nationwide total against one office's caseload. The axis rescaled, the bars followed, but a line could stay drawn against the old scale, usually flattened along the bottom of the plot. Hovering it gave the right number in the right place, which made the line itself look broken rather than stale
   - The axis rescale is animated, and each of its frames was interrupting the line's own redraw and leaving it holding the previous scale's positions. The two now run together, so a line follows its axis down as it rescales instead of being left behind by it
   - This affected every chart drawing a line, and had done for some time; it showed up intermittently because it depended on which animation won the race
 
-- **v1.6.0**: The queue position shown in the estimator's breakdown now matches the subtraction printed above it. The two applications-processed figures were each rounded on their own before being subtracted, while the total they were taken from rounded them together, so the arithmetic on screen could land one short of the answer beside it.
+- **v1.5.2**: The queue position shown in the estimator's breakdown now matches the subtraction printed above it. The two applications-processed figures were each rounded on their own before being subtracted, while the total they were taken from rounded them together, so the arithmetic on screen could land one short of the answer beside it.
 
 - **v1.5.1**: The data table under each Application Processing chart now describes that chart, instead of the same intake figures appearing beneath all seven —
   - Under **Application Types** the table had no application-type column at all: its "Received" figure was the six plotted lines added together, and the types themselves appeared nowhere. There is now one column per application type, matching the lines above it
