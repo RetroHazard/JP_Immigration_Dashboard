@@ -235,7 +235,7 @@ JP_Immigration_Dashboard/
 │   │   ├── ChangelogModal.tsx         # CHANGELOG.md viewer (shadcn Dialog)
 │   │   │
 │   │   ├── charts/
-│   │   │   ├── IntakeProcessingBarChart.tsx      # Bklit ComposedChart (bar + line)
+│   │   │   ├── IntakeProcessingBarChart.tsx      # Bklit ComposedChart (stacked bars + two lines, dual axis)
 │   │   │   ├── CategorySubmissionsLineChart.tsx  # Bklit LineChart
 │   │   │   ├── OutcomesSankeyChart.tsx           # Bklit Sankey + Gauge
 │   │   │   ├── BureauDistributionRingChart.tsx   # Bklit PieChart (donut)
