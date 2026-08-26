@@ -219,6 +219,7 @@ or show a single half-yearly snapshot, picked with the same range control.
 - `shadcn/ui` (vendored) – Radix-based UI primitives (tabs, dialog, sheet, select, popover, collapsible, tooltip)
 - `Bklit UI` (vendored, MIT) – visx-based chart components (line, composed, pie, sunburst, radar, sankey, gauge, choropleth)
 - `visx` – Used internally by the vendored Bklit charts (not by the two hand-rolled custom charts, Category Mix Treemap and Processing Efficiency, which use no charting library / `d3-scale` respectively)
+- `@base-ui/react` – Not an app-level choice: it arrives with the vendored Bklit kit, reached by one component (`bklit/charts/legend/legend-progress.tsx`) that nothing renders, so it tree-shakes out of the build entirely. The app's own primitives are Radix, above
 - `Anime.js v4` – App-level motion layer (entrances, count-ups, chart transitions) with a single reduced-motion chokepoint (`src/lib/motion.ts`); the vendored Bklit charts animate internally via `motion` (motion/react) instead, with their own independent reduced-motion handling
 - `@number-flow/react` – Animated number counters inside the Bklit charts' gauge/ring/pie centers (StatCard uses its own Anime.js-based `useCountUp` instead)
 - `nuqs` – URL state (chart tab, filters, time range, compare mode are all shareable links)

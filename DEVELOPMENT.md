@@ -420,6 +420,7 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
 ### UI Utilities
 
 - **radix-ui** (`^1.6.7`) — Unstyled accessible primitives underlying the shadcn/ui components (Collapsible, Dialog, Popover, Select, Sheet, Tabs, Toggle, Tooltip, ...)
+- **@base-ui/react** (`^1.6.0`) — A second primitive library, carried by the vendored Bklit kit rather than chosen here. Its only importer is `bklit/charts/legend/legend-progress.tsx`, which no chart composes, so nothing from it reaches the bundle. Radix is the choice for app UI
 - **lucide-react** — Icon library
 - **next-themes** — Dark/light mode, adapted by `src/contexts/ThemeContext.tsx`
 - **nuqs** — Type-safe URL query state (active chart, filters, time range, compare)
