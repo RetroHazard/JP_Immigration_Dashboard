@@ -279,6 +279,18 @@ Also bump the version in `package.json` and the version badge at the top of
 `README.md` together — they are checked by nobody and drift the moment one
 moves without the other.
 
+### Bump the version
+
+A changelog entry names a version, so the version has to move with it. Both
+places, or the two disagree:
+
+1. `version` in `package.json` — what `react-build-info` stamps into the footer
+2. The version badge on line 2 of `README.md`
+
+Semver as usual: a new feature or a visible change to one takes the minor, a
+bug fix on its own takes the patch. Everything shipping together shares a
+single version, however many commits it took.
+
 ### Update CHANGELOG.md
 
 When adding a feature or fixing a bug:

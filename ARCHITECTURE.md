@@ -286,7 +286,7 @@ Every user-visible string resolves through a per-language catalogue; `src/i18n/R
   | `charts/{pie-chart,pie-context,pie-slice}.tsx` | `tapMode` supplied by the chart owner, so slices and the app-side legend share one pin |
   | `charts/markers/marker-group.tsx` | The marker fan opens on tap. Separately, a `fan` prop (added here and forwarded by `charts/markers/chart-markers.tsx`) turns the fan-out off entirely, which the policy markers on Intake & Processing and Population Growth both pass: the 50px fan arc reached straight through the neighbouring markers on a monthly axis, and the icons it threw carried no label to say where they led. A period holding several events stays one badged circle instead, and the crosshair tooltip reads them out. Those markers carry no `onClick` or `href` at all — they are annotation, not navigation, and the collapsible list under each chart is where every source lives |
 
-  Deliberately **not** converted, because nothing outside `src/components/bklit/` imports them: `use-scatter-chart-interaction.ts`, `scatter-chart-shell.tsx`, `bar-chart.tsx` (the bar charts are `ComposedChart` + `SeriesBar`), `radar-area.tsx`, `legend/legend-item.tsx`, `ring.tsx`. Each would be a permanent re-vendor cost for no user-visible gain. Also still open: `src/components/ui/tooltip.tsx` (Radix) never opens on touch at all — `src/components/common/FormulaTooltip.tsx` shows the Popover pattern that fixes it.
+  Deliberately **not** converted, because nothing outside `src/components/bklit/` imports them: `use-scatter-chart-interaction.ts`, `scatter-chart-shell.tsx`, `bar-chart.tsx` (the bar charts are `ComposedChart` + `SeriesBar`), `radar-area.tsx`, `legend/legend-item.tsx`, `ring.tsx`. Each would be a permanent re-vendor cost for no user-visible gain. `legend/legend-progress.tsx` sits beside `legend-item.tsx` but is a different case, not a skipped one: it has no interaction to convert at all. It is also the tree's only importer of `@base-ui/react`, and nothing composes `<LegendProgress>`, so neither the component nor that dependency reaches the bundle. Also still open: `src/components/ui/tooltip.tsx` (Radix) never opens on touch at all — `src/components/common/FormulaTooltip.tsx` shows the Popover pattern that fixes it.
 
 - **Domain names come in three widths.** `bureau.*` and `appType.*` each carry `.label`, `.compact`, and `.short`, resolved together by `useDomainLabels.ts`. The width-constrained surfaces — the efficiency chart's 92px label column, the ring-chart legend, the treemap tile, and the Sankey's narrow layout — read `.compact`; everything with room reads `.label`. English says the same thing at every width, so this is invisible there; Japanese needs it, because 東京出入国在留管理局横浜支局 and 東京出入国在留管理局成田空港支局 truncate identically.
 
@@ -380,7 +380,7 @@ the bare number too. A script globbing the old filename needs updating.
 #### **EstimationCard** (`src/components/EstimationCard.tsx`)
 
 Interactive queue position estimator:
-- Accepts user input (bureau, application type, submission date)
+- Accepts user input (bureau, application type, submission date). Opening the breakdown folds those inputs away behind a one-line summary of the selection, using `src/components/ui/collapsible.tsx` — the app's only use of Radix `Collapsible`
 - Calls `calculateEstimatedDate` (`src/utils/calculateEstimates.ts`)
 - Displays a "Show the math" breakdown with KaTeX formulas (`EstimationFormula`, in step cards from `FormulaTooltip`). `buildFormulaSteps` is a pure function of the model variables and the branch record `calculateEstimatedDate` returns, so the dependency ordering between steps is unit-tested rather than assumed
 - Generates shareable permalinks (`src/utils/urlApplicationDetails.ts`)
@@ -632,32 +632,49 @@ For processing time prediction:
 ```mermaid
 graph TD
     INPUT["📝 User Input<br/>Bureau + Type<br/>+ Submission Date"]
-    
-    HIST["📊 Historical Data<br/>Last 6 months<br/>processing rates"]
-    
-    RATE["⚙️ Calculate Rate<br/>Avg daily processing<br/>for this bureau/type"]
-    
-    QUEUE["🔢 Estimate Queue<br/>Position at<br/>submission date"]
-    
-    PROJECT["📈 Project Timeline<br/>Through current<br/>month's rate"]
-    
-    OUTPUT["📅 Output<br/>Estimated completion<br/>date + confidence"]
-    
-    LATEX["🔬 Render Formula<br/>KaTeX math<br/>notation"]
-    
-    INPUT --> HIST
-    HIST --> RATE
-    RATE --> QUEUE
-    QUEUE --> PROJECT
-    PROJECT --> OUTPUT
+
+    S1["1️⃣ Throughput baseline<br/>R_proc, R_new over<br/>the last 6 months"]
+
+    S2["2️⃣ Queue at application<br/>C_prev, N_app, P_app<br/>→ Q_app"]
+
+    S3["3️⃣ Processed since<br/>C_proc, E_proc<br/>→ S_proc"]
+
+    S4["4️⃣ Queue position<br/>Q_pos = Q_app − S_proc<br/>D_rem = Q_pos / R_proc"]
+
+    S5["5️⃣ Offset and spread<br/>D_est = ⌈D_rem⌉<br/>± band from rate variance"]
+
+    BRANCH{"🔀 ModelBranches<br/>carryover · appMonth<br/>· sinceApplication"}
+
+    OUTPUT["📅 Output<br/>ModelVariables +<br/>ModelBranches"]
+
+    LATEX["🔬 buildFormulaSteps<br/>pure → 5 KaTeX steps,<br/>only the branch that ran"]
+
+    INPUT --> S1
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
+    S5 --> OUTPUT
+    BRANCH -.-> S2
+    BRANCH -.-> S3
     OUTPUT --> LATEX
-    
+
     style INPUT fill:#4CAF50,color:#fff
+    style BRANCH fill:#9C27B0,color:#fff
     style OUTPUT fill:#2196F3,color:#fff
     style LATEX fill:#FF9800,color:#fff
 ```
 
-**Code Location:** `src/utils/calculateEstimates.ts` → `calculateEstimatedDate()`
+Steps run in dependency order — no symbol appears in a formula before the step
+that defines it, which `EstimationFormula.test.ts` asserts rather than assumes.
+The dashed edges are the two steps whose arithmetic changes shape depending on
+whether the dataset actually covers the application month; the breakdown renders
+only the path that ran.
+
+**Code Location:** `src/utils/calculateEstimates.ts` → `calculateEstimatedDate()`,
+returning the exported `ModelVariables` and `ModelBranches`;
+`src/components/EstimationFormula.tsx` → `buildFormulaSteps()` turns those into
+the five rendered steps.
 
 ## Performance Optimizations
 
@@ -674,10 +691,10 @@ graph TD
     PERF --> BUILD["🔨 Production Build<br/>Minified & tree-shaken"]
     
     MEMO --> EXAMPLE1["Prevent re-filtering<br/>on every render"]
-    LAZY --> EXAMPLE2["KaTeX ~100KB<br/>deferred with the app chunk"]
+    LAZY --> EXAMPLE2["Dashboard chunk<br/>carries KaTeX ~74KB gz<br/>with it"]
     SINGLE --> EXAMPLE3["useSelectedData<br/>memoized per chart"]
     PRECOMP --> EXAMPLE4["Color scales<br/>calculated once"]
-    BUILD --> EXAMPLE5["JS ~150KB gzipped<br/>Fast delivery"]
+    BUILD --> EXAMPLE5["First load ~220KB gz<br/>Fast delivery"]
     
     style PERF fill:#4CAF50,color:#fff
     style MEMO fill:#2196F3,color:#fff
@@ -1035,6 +1052,29 @@ describe('calculateEstimatedDate month-boundary sensitivity', () => {
 ```
 
 This is where most of the coverage lives, because most of the logic is pure — the estimator model, the aggregate-bureau correction, the airport exclusion, both cubes' selectors, the residents transform, the per-bureau efficiency derivation, and the seven per-chart table builders. The builders are asserted against the same helpers their charts read, so a table that drifted from the chart above it fails here rather than on screen. Two shared hierarchies, `categoryMixTree.ts` and `residenceStatusTree.ts`, have no suite of their own and are covered only through their consumers.
+
+### Generated-Output Tests
+
+Neither a pure util nor a rendered component: `buildFormulaSteps` emits LaTeX, so
+the test drives it over every branch combination and compiles the result.
+
+```typescript
+// src/components/__tests__/EstimationFormula.test.ts
+it.each(LOCALE_CODES.flatMap((code) => COMBINATIONS.map((b) => [code, label(b), b])))(
+  'compiles under KaTeX in %s (%s)',
+  (code, _name, branches) => {
+    buildFormulaSteps(BASE, branches, formattersFor(code)).forEach((step) => {
+      expect(() =>
+        katex.renderToString(step.math, { displayMode: true, throwOnError: true, strict: 'error' })
+      ).not.toThrow();
+    });
+  }
+);
+```
+
+`strict: 'error'` is the point: a separator KaTeX cannot typeset — fr-FR groups
+with U+202F — degrades to a console warning and a zero-width box otherwise. A
+companion assertion walks the emitted SVG, because KaTeX inspects neither.
 
 ### Contract Tests for the CSV Export
 

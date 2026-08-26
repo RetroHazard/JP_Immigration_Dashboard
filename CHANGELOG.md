@@ -49,8 +49,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 - **v1.6.0**: The estimator's "Show the math" breakdown now shows how every figure in it is reached, not just the last three steps —
   - Five steps instead of three, ordered so that no symbol is used before the step that defines it. The daily processing rate used to be introduced in step 2 and then relied on by step 1
   - Each derived value now shows its own working — the carry-over, the pro-rated figures for your application month, the processed-since totals, and the ± spread beside the result, none of which had a formula before
-  - Where the model takes a different route because a month has not been published yet, the breakdown shows the route your estimate actually took rather than a general form
-  - Figures inside the formulas now use your own language's digit grouping, and the queue position no longer rounds its parts separately from its total, which could leave the subtraction on screen one short of the answer beside it
+  - The model takes a different route in three places, depending on whether the month before yours is published, whether your own application month is, and how far past the data your application sits. The breakdown shows the route your estimate actually took rather than a general form
+  - Figures inside the formulas now use your own language's digit grouping and decimal mark, rather than always the English ones
   - Opening the breakdown folds the bureau, type and date inputs away, leaving a single row naming the three you picked — tap it to bring them back. The derivation is long enough that on a phone it otherwise started below the fold
 
 - **v1.6.0**: **Intake & Processing** now tracks the approval rate over time, alongside what it already showed —
@@ -80,6 +80,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - Picking a bureau or an application type can move the y-axis by orders of magnitude — the nationwide total against one office's caseload. The axis rescaled, the bars followed, but a line could stay drawn against the old scale, usually flattened along the bottom of the plot. Hovering it gave the right number in the right place, which made the line itself look broken rather than stale
   - The axis rescale is animated, and each of its frames was interrupting the line's own redraw and leaving it holding the previous scale's positions. The two now run together, so a line follows its axis down as it rescales instead of being left behind by it
   - This affected every chart drawing a line, and had done for some time; it showed up intermittently because it depended on which animation won the race
+
+- **v1.6.0**: The queue position shown in the estimator's breakdown now matches the subtraction printed above it. The two applications-processed figures were each rounded on their own before being subtracted, while the total they were taken from rounded them together, so the arithmetic on screen could land one short of the answer beside it.
 
 - **v1.5.1**: The data table under each Application Processing chart now describes that chart, instead of the same intake figures appearing beneath all seven —
   - Under **Application Types** the table had no application-type column at all: its "Received" figure was the six plotted lines added together, and the types themselves appeared nowhere. There is now one column per application type, matching the lines above it
