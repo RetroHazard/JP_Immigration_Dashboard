@@ -79,6 +79,26 @@ describe('serializeTableCsv', () => {
   });
 });
 
+describe('unit headers', () => {
+  it('carries a count column\'s unit in the header, cells staying bare numbers', () => {
+    // The prefecture table shows "2,200 km²" on screen; the export moves the
+    // unit to the header the way percent columns move their `%`.
+    const csv = serializeTableCsv(
+      buildProcessingTable('prefectures', {
+        data: [],
+        filters: { bureau: 'all', type: 'all' },
+        range: 'all',
+        chartKey: 'map',
+      })
+    );
+    const [, , header, firstRow] = csv.split('\n');
+    expect(header).toContain(`${en['metric.area']} (km²)`);
+    expect(header).toContain(`${en['metric.density']} (/km²)`);
+    // Hokkaido's row: bare numbers, no unit text in any cell.
+    expect(firstRow).not.toContain('km²');
+  });
+});
+
 describe('a real table', () => {
   const data: ImmigrationData[] = [
     { month: '2025-06', bureau: '100000', type: '20', status: '103000', value: 500 },

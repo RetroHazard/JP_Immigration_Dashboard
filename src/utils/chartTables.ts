@@ -63,6 +63,13 @@ export interface TableColumn {
    * bare number so a spreadsheet still sees a number.
    */
   unitKey?: DictionaryKey;
+  /**
+   * The unit's bare form for the CSV header — `km²` becomes `Area (km²)`,
+   * mirroring how a percent column takes ` (%)`. Declared beside `unitKey`
+   * because the two describe the same unit: a column with one and not the
+   * other shows a unit on screen the export then drops, or vice versa.
+   */
+  csvUnit?: string;
 }
 
 export type TableValue = number | LabelRef;
@@ -463,8 +470,8 @@ const prefectures: TableBuilder = () => ({
   columns: [
     { id: 'bureau', labelKey: 'map.serviceBureau', format: 'label' },
     { id: 'population', labelKey: 'metric.population', format: 'count' },
-    { id: 'area', labelKey: 'metric.area', format: 'count', unitKey: 'map.areaValue' },
-    { id: 'density', labelKey: 'metric.density', format: 'count', unitKey: 'map.densityValue' },
+    { id: 'area', labelKey: 'metric.area', format: 'count', unitKey: 'map.areaValue', csvUnit: 'km²' },
+    { id: 'density', labelKey: 'metric.density', format: 'count', unitKey: 'map.densityValue', csvUnit: '/km²' },
   ],
   rows: japanPrefectures.map((prefecture) => ({
     id: String(prefecture.id),

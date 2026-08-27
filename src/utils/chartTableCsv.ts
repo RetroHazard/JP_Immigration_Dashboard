@@ -35,16 +35,20 @@ export { englishOnly };
 /**
  * Percent cells are written as a bare `86.3` — no sign, no locale digit
  * grouping — so the column stays numeric to a spreadsheet. The unit moves to
- * the header instead, driven off `column.format` rather than a catalogue key
- * so it can never drift from how the cell is written.
+ * the header instead: ` (%)` off `column.format`, and any other unit off the
+ * column's own `csvUnit` (declared beside `unitKey`, so the header can't show
+ * a different unit than the screen does) — `Area (km²)` over a bare `2200`.
  */
 const csvValue = (value: TableValue, column: TableColumn): string => {
   if (typeof value === 'number') return column.format === 'percent' ? value.toFixed(1) : String(value);
   return resolveLabel(value, englishOnly);
 };
 
-const csvHeader = (column: TableColumn): string =>
-  column.format === 'percent' ? `${englishOnly(column.labelKey)} (%)` : englishOnly(column.labelKey);
+const csvHeader = (column: TableColumn): string => {
+  const label = englishOnly(column.labelKey);
+  if (column.format === 'percent') return `${label} (%)`;
+  return column.csvUnit ? `${label} (${column.csvUnit})` : label;
+};
 
 export const serializeTableCsv = (model: TableModel): string => {
   const lines = [
