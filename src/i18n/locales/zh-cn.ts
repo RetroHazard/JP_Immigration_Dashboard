@@ -370,6 +370,8 @@ export const zhCn: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': '更新日志',
   'changelog.loading': '加载中…',
+  'changelog.expandAll': '全部展开',
+  'changelog.collapseAll': '全部收起',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   'errors.dataTitle': '数据加载错误',

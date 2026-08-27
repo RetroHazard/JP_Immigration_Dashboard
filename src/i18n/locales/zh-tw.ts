@@ -383,6 +383,8 @@ export const zhTw: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': '更新日誌',
   'changelog.loading': '載入中…',
+  'changelog.expandAll': '全部展開',
+  'changelog.collapseAll': '全部收合',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   'errors.dataTitle': '資料載入錯誤',

@@ -379,6 +379,8 @@ export const vi: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': 'Nhật ký thay đổi',
   'changelog.loading': 'Đang tải...',
+  'changelog.expandAll': 'Mở rộng tất cả',
+  'changelog.collapseAll': 'Thu gọn tất cả',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   'errors.dataTitle': 'Lỗi tải dữ liệu',
