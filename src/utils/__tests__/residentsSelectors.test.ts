@@ -49,7 +49,12 @@ describe('period helpers', () => {
 
   it('formats a period as a month and year in the reader’s locale', () => {
     expect(periodToDate('2025-12').getMonth()).toBe(11);
-    const en = { monthYear: (date: Date) => date.toISOString().slice(0, 7) } as never;
+    // Read with local getters, matching how periodToDate builds the date —
+    // toISOString() re-read it in UTC, which shifted the local midnight to the
+    // previous day anywhere east of UTC and failed this test under JST.
+    const en = {
+      monthYear: (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
+    } as never;
     expect(formatPeriod('2025-12', en)).toBe('2025-12');
     expect(formatPeriod(null, en)).toBe('');
   });
