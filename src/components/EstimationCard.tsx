@@ -270,7 +270,10 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
             <CollapsibleContent>
               <button
                 onClick={() => setShowMath(false)}
-                aria-label={t('estimator.editDetails')}
+                // The visible summary leads the name (WCAG 2.5.3): voice
+                // control matches what's on screen, and a screen reader hears
+                // which selection the derivation belongs to before the action.
+                aria-label={`${selectionSummary} — ${t('estimator.editDetails')}`}
                 className="flex w-full items-center justify-between gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-left text-xs text-secondary-foreground transition-colors hover:bg-muted"
               >
                 <span className="truncate">{selectionSummary}</span>
