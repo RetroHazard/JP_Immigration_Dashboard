@@ -118,12 +118,13 @@ export const buildFormulaSteps = (
 ): FormulaStep[] => {
   const { n, rate } = fmt;
 
-  // A value that can be fractional prints with two decimals wherever it
-  // appears; a whole one stays a grouped integer. Rounding each operand of a
-  // ⌊·⌉ row before display made the visible arithmetic land one off the
-  // printed result — the same defect the model itself was cured of when the
-  // two processed-since terms started rounding together (see the v1.5.2 fix).
-  const exact = (value: number): string => (Number.isInteger(value) ? n(value) : rate(value));
+  // Application counts print whole — the display is small, and decimals made
+  // large queue figures read even longer. The model's fractional intermediates
+  // are rounded for display only, so a ⌊·⌉ row's visible operands can read one
+  // off the printed result; the notation already says the *sum* is what gets
+  // rounded, and compactness wins (deliberate call — see the review branch).
+  // Rates keep their two decimals: `rate()` is what makes a per-day figure
+  // legible at all.
 
   // ── 1. Throughput baseline ─────────────────────────────────────────────
   const throughput: FormulaStep = {
@@ -153,7 +154,7 @@ export const buildFormulaSteps = (
     queueRows.push(
       `C_k &= \\max\\bigl(0,\\, C_{k-1} + (${under('rNew', rate(vars.R_new))} - ${under('rProc', rate(vars.R_proc))})\\, d_k\\bigr)`,
       `${SYMBOLS.cSeed} &= ${n(vars.C_seed ?? 0)}, \\quad ${SYMBOLS.mSim} = ${n(vars.M_sim ?? 0)}`,
-      `${SYMBOLS.cPrev} &= C_{${SYMBOLS.mSim}} = ${exact(vars.C_prev)}`
+      `${SYMBOLS.cPrev} &= C_{${SYMBOLS.mSim}} = ${n(vars.C_prev)}`
     );
   } else {
     // The application month is the earliest the dataset covers: nothing to
@@ -165,20 +166,20 @@ export const buildFormulaSteps = (
   if (branches.appMonth === 'reported') {
     queueDefines.push('nMonth', 'pMonth', 'dMonth', 'aDay');
     queueRows.push(
-      `${SYMBOLS.nApp} &= \\tfrac{${SYMBOLS.nMonth}}{${SYMBOLS.dMonth}}\\, ${SYMBOLS.aDay} = \\tfrac{${n(vars.N_month ?? 0)}}{${n(vars.D_month)}} \\cdot ${n(vars.A_day)} = ${exact(vars.N_app)}`,
-      `${SYMBOLS.pApp} &= \\tfrac{${SYMBOLS.pMonth}}{${SYMBOLS.dMonth}}\\, ${SYMBOLS.aDay} = \\tfrac{${n(vars.P_month ?? 0)}}{${n(vars.D_month)}} \\cdot ${n(vars.A_day)} = ${exact(vars.P_app)}`
+      `${SYMBOLS.nApp} &= \\tfrac{${SYMBOLS.nMonth}}{${SYMBOLS.dMonth}}\\, ${SYMBOLS.aDay} = \\tfrac{${n(vars.N_month ?? 0)}}{${n(vars.D_month)}} \\cdot ${n(vars.A_day)} = ${n(vars.N_app)}`,
+      `${SYMBOLS.pApp} &= \\tfrac{${SYMBOLS.pMonth}}{${SYMBOLS.dMonth}}\\, ${SYMBOLS.aDay} = \\tfrac{${n(vars.P_month ?? 0)}}{${n(vars.D_month)}} \\cdot ${n(vars.A_day)} = ${n(vars.P_app)}`
     );
   } else {
     queueDefines.push('aDay');
     if (!queueUses.includes('rNew')) queueUses.push('rNew', 'rProc');
     queueRows.push(
-      `${SYMBOLS.nApp} &= ${under('rNew', rate(vars.R_new))} \\cdot ${under('aDay', n(vars.A_day))} = ${exact(vars.N_app)}`,
-      `${SYMBOLS.pApp} &= ${under('rProc', rate(vars.R_proc))} \\cdot ${under('aDay', n(vars.A_day))} = ${exact(vars.P_app)}`
+      `${SYMBOLS.nApp} &= ${under('rNew', rate(vars.R_new))} \\cdot ${under('aDay', n(vars.A_day))} = ${n(vars.N_app)}`,
+      `${SYMBOLS.pApp} &= ${under('rProc', rate(vars.R_proc))} \\cdot ${under('aDay', n(vars.A_day))} = ${n(vars.P_app)}`
     );
   }
   queueDefines.push('nApp', 'pApp', 'qApp');
   queueRows.push(
-    `${SYMBOLS.qApp} &= \\bigl\\lfloor ${under('cPrev', exact(vars.C_prev))} + ${under('nApp', exact(vars.N_app))} - ${under('pApp', exact(vars.P_app))} \\bigr\\rceil = ${n(vars.Q_app)}`
+    `${SYMBOLS.qApp} &= \\bigl\\lfloor ${under('cPrev', n(vars.C_prev))} + ${under('nApp', n(vars.N_app))} - ${under('pApp', n(vars.P_app))} \\bigr\\rceil = ${n(vars.Q_app)}`
   );
 
   const queueAtApplication: FormulaStep = {
@@ -197,28 +198,28 @@ export const buildFormulaSteps = (
   if (branches.appMonth === 'reported') {
     sinceUses.push('dMonth', 'aDay');
     sinceRows.push(
-      `${SYMBOLS.cProc} &= ${under('pAfter', n(vars.P_after))} + ${under('rProc', rate(vars.R_proc))} \\cdot (${under('dMonth', n(vars.D_month))} - ${under('aDay', n(vars.A_day))}) = ${exact(vars.C_proc)}`
+      `${SYMBOLS.cProc} &= ${under('pAfter', n(vars.P_after))} + ${under('rProc', rate(vars.R_proc))} \\cdot (${under('dMonth', n(vars.D_month))} - ${under('aDay', n(vars.A_day))}) = ${n(vars.C_proc)}`
     );
   } else {
     // Nothing was processed inside the application month, because the dataset
     // does not reach it - C_proc is the later months alone.
-    sinceRows.push(`${SYMBOLS.cProc} &= ${SYMBOLS.pAfter} = ${exact(vars.C_proc)}`);
+    sinceRows.push(`${SYMBOLS.cProc} &= ${SYMBOLS.pAfter} = ${n(vars.C_proc)}`);
   }
 
   if (branches.sinceApplication === 'fromApplication') {
     sinceDefines.push('tApp');
     sinceRows.push(
-      `${SYMBOLS.eProc} &= ${under('rProc', rate(vars.R_proc))} \\cdot ${under('tApp', n(vars.T_app))} - ${under('cProc', exact(vars.C_proc))} = ${exact(vars.E_proc)}`
+      `${SYMBOLS.eProc} &= ${under('rProc', rate(vars.R_proc))} \\cdot ${under('tApp', n(vars.T_app))} - ${under('cProc', n(vars.C_proc))} = ${n(vars.E_proc)}`
     );
   } else {
     sinceDefines.push('tData');
     sinceRows.push(
-      `${SYMBOLS.eProc} &= ${under('rProc', rate(vars.R_proc))} \\cdot ${under('tData', n(vars.T_data))} = ${exact(vars.E_proc)}`
+      `${SYMBOLS.eProc} &= ${under('rProc', rate(vars.R_proc))} \\cdot ${under('tData', n(vars.T_data))} = ${n(vars.E_proc)}`
     );
   }
   sinceDefines.push('cProc', 'eProc', 'sProc');
   sinceRows.push(
-    `${SYMBOLS.sProc} &= \\bigl\\lfloor ${under('cProc', exact(vars.C_proc))} + ${under('eProc', exact(vars.E_proc))} \\bigr\\rceil = ${n(vars.S_proc)}`
+    `${SYMBOLS.sProc} &= \\bigl\\lfloor ${under('cProc', n(vars.C_proc))} + ${under('eProc', n(vars.E_proc))} \\bigr\\rceil = ${n(vars.S_proc)}`
   );
 
   const processedSince: FormulaStep = {

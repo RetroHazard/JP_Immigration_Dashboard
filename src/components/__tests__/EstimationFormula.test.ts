@@ -191,22 +191,26 @@ describe('buildFormulaSteps LaTeX', () => {
     });
   });
 
-  it('prints operands the rounded rows can be checked against', () => {
-    // The ⌊·⌉ rows round the *sum*; a fractional operand rounded for display
-    // made the visible arithmetic land one off the printed result
-    // (⌊3,716 + 562⌉ = 4,277). Fractional operands keep their decimals.
+  it('prints application counts whole and rates with their decimals', () => {
+    // Counts round for display — the panel is narrow, and decimals made large
+    // queue figures read even longer. A ⌊·⌉ row's visible operands can
+    // therefore read one off the printed result (the notation says the *sum*
+    // is rounded); that trade is deliberate. Rates stay two-decimal.
     const steps = buildFormulaSteps(BASE, COMBINATIONS[0], PLAIN);
 
-    // Step 3: S_proc = ⌊C_proc + E_proc⌉, checkable as printed.
-    expect(steps[2].math).toContain(`${SYMBOLS.cProc}}_{3715.53}`);
-    expect(steps[2].math).toContain(`${SYMBOLS.eProc}}_{561.71}`);
-    expect(Math.round(3715.53 + 561.71)).toBe(BASE.S_proc);
+    // Step 3: C_proc = 3715.53 and E_proc = 561.71 in the model, whole on
+    // screen — under their own definitions and as the S_proc row's operands.
+    expect(steps[2].math).toContain(`${SYMBOLS.cProc}}_{3716}`);
+    expect(steps[2].math).toContain(`${SYMBOLS.eProc}}_{562}`);
+    expect(steps[2].math).not.toContain('3715.53');
+    expect(steps[2].math).not.toContain('561.71');
 
-    // Step 2: Q_app = ⌊C_prev + N_app − P_app⌉ — the fractional term keeps its
-    // decimals, whole ones stay grouped integers.
-    expect(steps[1].math).toContain(`${SYMBOLS.pApp}}_{632.26}`);
-    expect(steps[1].math).toContain(`${SYMBOLS.nApp}}_{1400}`);
-    expect(Math.round(14900 + 1400 - 632.26)).toBe(BASE.Q_app);
+    // Step 2: P_app = 632.26 in the model, whole in the Q_app row.
+    expect(steps[1].math).toContain(`${SYMBOLS.pApp}}_{632}`);
+
+    // Rates keep their decimals: they are per-day figures, whole ones lie.
+    expect(steps[0].math).toContain('95.03'); // R_proc = 17200 / 181
+    expect(steps[3].math).toContain('119.87'); // D_rem, which step 5 rounds
   });
 
   it('leaves behind none of the notation the old breakdown used', () => {
