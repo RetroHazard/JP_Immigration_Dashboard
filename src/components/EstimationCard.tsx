@@ -190,7 +190,9 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
       t('estimator.selectionSummary', {
         bureau: nonAirportBureaus.find((option) => option.value === details.bureau)?.label ?? details.bureau,
         type: applicationOptions.find((option) => option.value === details.type)?.compact ?? details.type,
-        date: details.applicationDate ? formatters.mediumDate(new Date(details.applicationDate)) : '',
+        // Parsed as local time: a bare `YYYY-MM-DD` is UTC midnight to `new
+        // Date`, which a viewer west of UTC then sees as the previous day.
+        date: details.applicationDate ? formatters.mediumDate(new Date(`${details.applicationDate}T00:00:00`)) : '',
       }),
     [t, details, nonAirportBureaus, applicationOptions, formatters]
   );
