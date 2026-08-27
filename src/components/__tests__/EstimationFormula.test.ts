@@ -191,6 +191,24 @@ describe('buildFormulaSteps LaTeX', () => {
     });
   });
 
+  it('prints operands the rounded rows can be checked against', () => {
+    // The ⌊·⌉ rows round the *sum*; a fractional operand rounded for display
+    // made the visible arithmetic land one off the printed result
+    // (⌊3,716 + 562⌉ = 4,277). Fractional operands keep their decimals.
+    const steps = buildFormulaSteps(BASE, COMBINATIONS[0], PLAIN);
+
+    // Step 3: S_proc = ⌊C_proc + E_proc⌉, checkable as printed.
+    expect(steps[2].math).toContain(`${SYMBOLS.cProc}}_{3715.53}`);
+    expect(steps[2].math).toContain(`${SYMBOLS.eProc}}_{561.71}`);
+    expect(Math.round(3715.53 + 561.71)).toBe(BASE.S_proc);
+
+    // Step 2: Q_app = ⌊C_prev + N_app − P_app⌉ — the fractional term keeps its
+    // decimals, whole ones stay grouped integers.
+    expect(steps[1].math).toContain(`${SYMBOLS.pApp}}_{632.26}`);
+    expect(steps[1].math).toContain(`${SYMBOLS.nApp}}_{1400}`);
+    expect(Math.round(14900 + 1400 - 632.26)).toBe(BASE.Q_app);
+  });
+
   it('leaves behind none of the notation the old breakdown used', () => {
     COMBINATIONS.forEach((branches) => {
       buildFormulaSteps(BASE, branches, PLAIN).forEach((step) => {
