@@ -67,7 +67,7 @@ import {
   buildYScalesFromDomains,
   DEFAULT_Y_AXIS_ID,
   getPrimaryYScale,
-  groupLinesByYAxisId,
+  normalizeYAxisId,
 } from "./y-axis-scales";
 import { computeYDomainsByAxis } from "./y-domain-utils";
 
@@ -372,9 +372,14 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
     }
     const merged: Record<string, [number, number]> = { ...base };
     // LOCAL MODIFICATION: a pinned axis stays pinned — widening it to fit a
-    // projection would undo what the caller asked for.
-    // (Re-apply after a re-vendor.)
-    const isPinned = (axisId: string) => yAxisDomains?.[axisId] != null;
+    // projection would undo what the caller asked for. Keys are compared
+    // normalized: computeYDomainsByAxis normalizes the pin's key, so a raw
+    // lookup here would let the projection widen a domain the caller pinned
+    // under a non-canonical id. (Re-apply after a re-vendor.)
+    const pinnedIds = new Set(
+      Object.keys(yAxisDomains ?? {}).map((key) => normalizeYAxisId(key))
+    );
+    const isPinned = (axisId: string) => pinnedIds.has(normalizeYAxisId(axisId));
     for (const axisId of Object.keys(base)) {
       if (isPinned(axisId)) {
         continue;
