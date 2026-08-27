@@ -9,7 +9,7 @@
 // every event a labelled link, untruncated text, and a keyboard path.
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 
 import { Banknote, ChevronDown, ChevronUp, ExternalLink, Landmark, Scale, Split } from 'lucide-react';
 import type React from 'react';
@@ -78,6 +78,8 @@ export const usePolicyMarkers = (
 export const PolicyEventList: React.FC<{ events: readonly PolicyEvent[] }> = ({ events }) => {
   const { t, formatters } = useLocale();
   const [open, setOpen] = useState(false);
+  // Ties aria-controls to the list so aria-expanded points at something real.
+  const listId = useId();
 
   if (events.length === 0) return null;
 
@@ -86,13 +88,18 @@ export const PolicyEventList: React.FC<{ events: readonly PolicyEvent[] }> = ({ 
       <button
         onClick={() => setOpen(!open)}
         aria-expanded={open}
+        aria-controls={listId}
         className="flex items-center gap-1 text-xs text-primary hover:opacity-80"
       >
-        {open ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+        {open ? (
+          <ChevronUp className="size-3.5" aria-hidden="true" />
+        ) : (
+          <ChevronDown className="size-3.5" aria-hidden="true" />
+        )}
         {t(open ? 'policy.eventsHide' : 'policy.eventsShow')}
       </button>
       {open && (
-        <ul className="mt-2 space-y-2" aria-label={t('a11y.policyEvents')}>
+        <ul id={listId} className="mt-2 space-y-2" aria-label={t('a11y.policyEvents')}>
           {events.map((event) => (
             <li key={event.titleKey} className="flex items-start gap-2 text-xs">
               <span
