@@ -176,7 +176,12 @@ describe('ChartDataTable', () => {
     const downloads: string[] = [];
     const createObjectURL = vi.fn(() => 'blob:test');
     const revokeObjectURL = vi.fn();
-    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL, revokeObjectURL }));
+    // A distinct subclass, not Object.assign(URL, …): assigning onto the real
+    // constructor mutates the global itself, and unstubAllGlobals would then
+    // "restore" the already-mutated object, leaking the two mocks forever.
+    const StubURL = class extends URL {};
+    Object.assign(StubURL, { createObjectURL, revokeObjectURL });
+    vi.stubGlobal('URL', StubURL);
     const click = vi
       .spyOn(HTMLAnchorElement.prototype, 'click')
       .mockImplementation(function (this: HTMLAnchorElement) {
