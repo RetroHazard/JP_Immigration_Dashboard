@@ -28,13 +28,15 @@ describe('computeYDomainsByAxis', () => {
     expect(seen.sort()).toEqual(['left', 'right']);
   });
 
-  it('normalizes an omitted, empty or numeric axis id onto the left axis', () => {
+  it('normalizes an omitted or empty axis id onto the left axis — a numeric id stays its own', () => {
     const domains = computeYDomainsByAxis({
       lines: [line('a'), line('b', ''), line('c', '0')],
       resolveDomain: (keys) => [0, keys.length],
     });
     // 'a' and 'b' land on left; '0' is its own id, so left carries two keys.
+    // (No Recharts-style default-axis coercion for numeric ids here.)
     expect(domains.left).toEqual(niceYDomain([0, 2]));
+    expect(domains['0']).toEqual(niceYDomain([0, 1]));
   });
 
   it('hands a pinned domain through verbatim — no nice(), no padding', () => {
