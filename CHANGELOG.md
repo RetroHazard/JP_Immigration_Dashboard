@@ -6,8 +6,6 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Added
 
-- **v1.7.0**: Each month in this changelog is now a section you can fold away. The newest release is open when the dialog appears and the months behind it are listed as headers, so what shipped last is readable without scrolling past it, and the history is a list you can pick from rather than one continuous page. Expand all opens every month at once when you want to read or search the whole thing
-
 - **v1.6.0**: Both headline charts now carry a fuller account of the months immigration policy changed —
   - **Intake & Processing** gains markers for law revisions, border measures, fee changes, and operational shifts — the worldwide suspension of new entry in December 2020, the reopenings that followed, April 2025's fee revision, and the tightening of Business Manager. **Population Growth** keeps its three and gains four more, including the 2022 reopening and the reporting change that explains where its series begins
   - A collapsible list under each chart names every event in view and links it to the government page that establishes its date, so a policy month can be checked rather than taken on trust — the circles alone can say what kind of change happened, not which one. The markers themselves are annotation and are not clickable
@@ -18,6 +16,8 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 - **v1.5.1**: The Regional Map has a data table of its own — all 47 prefectures with their servicing bureau, population, area and density, downloadable as CSV. It's the reference geography the map is shaded from, and the only chart whose table shows figures the picture itself can't be read for
 
 ### Changed
+
+- **v1.6.3**: Each month in this changelog is now a section you can fold away. The newest release is open when the dialog appears and the months behind it are listed as headers, so what shipped last is readable without scrolling past it, and the history is a list you can pick from rather than one continuous page. Expand all opens every month at once when you want to read or search the whole thing
 
 - **v1.6.2**: A downloaded CSV is now named for what it contains — `immigration-stats_intake_fukuoka_ext_12.csv` where it used to read `immigration-stats_intake_101720_20_12.csv`. The bureau and application type were written as the statistics bureau's own code numbers, which say nothing to whoever opens the file or sorts a folder of them; they now carry the bureau's name and the type's short form, in lowercase. The contents are unchanged, and the name stays English like the file itself, whatever language the dashboard is in
 
