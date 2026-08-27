@@ -267,4 +267,17 @@ describe('event data', () => {
     // on any other month would silently never render.
     for (const event of RESIDENT_EVENTS) expect(event.period).toMatch(/-(06|12)$/);
   });
+
+  it('never puts more events on one period than the tooltip can list', () => {
+    // With fan={false} on both charts the crosshair tooltip is the only
+    // in-chart reading of a shared month, and it lists two markers
+    // (MAX_TOOLTIP_MARKERS in bklit/charts/markers/chart-markers.tsx) before
+    // truncating to a non-interactive '+N more…' with nothing behind it. A
+    // third event on one period needs that limit raised in the same change.
+    for (const events of [POLICY_EVENTS, RESIDENT_EVENTS]) {
+      const byPeriod = new Map<string, number>();
+      for (const event of events) byPeriod.set(event.period, (byPeriod.get(event.period) ?? 0) + 1);
+      for (const [period, count] of byPeriod) expect(count, `${count} events share ${period}`).toBeLessThanOrEqual(2);
+    }
+  });
 });
