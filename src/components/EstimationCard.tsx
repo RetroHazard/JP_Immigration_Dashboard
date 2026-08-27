@@ -176,7 +176,10 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
   const dateRange = useMemo(() => {
     if (!data || data.length === 0) return { min: '', max: '' };
     const dates = [...new Set(data.map((entry) => entry.month))].sort();
-    const currentDate = new Date().toISOString().slice(0, 10);
+    // Today on Japan's calendar (UTC+9, no DST), matching the estimator's own
+    // JST-pinned clock — plain toISOString() would be UTC's today, a day
+    // behind Japan every evening.
+    const currentDate = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
     return { min: `${dates[0]}-01`, max: currentDate };
   }, [data]);
 

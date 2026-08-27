@@ -158,7 +158,26 @@ export const calculateEstimatedDate = (
     return Math.ceil((utcEnd - utcStart) / (1000 * 60 * 60 * 24));
   };
 
-  const formatMonth = (date: Date) => `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+  // --------------------------------------------
+  // Calendar, pinned to JST
+  // --------------------------------------------
+  // Applications are filed, processed and published on Japan's calendar, so
+  // the model computes on that calendar for every viewer. Date-only strings
+  // are taken apart numerically — `new Date('YYYY-MM-DD')` reads them as UTC
+  // and then hands back local-time fields, which shifted a viewer west of UTC
+  // onto the previous day — months step as integer indexes, and "today" is
+  // today's date in Asia/Tokyo. JST is fixed UTC+9 with no DST, so the offset
+  // is a constant.
+  const monthIndexOf = (monthStr: string) => {
+    const [year, month] = monthStr.split('-').map(Number);
+    return year * 12 + (month - 1);
+  };
+  const monthFromIndex = (index: number) => `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, '0')}`;
+  const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
+  const nowShifted = new Date(Date.now() + JST_OFFSET_MS);
+  // Local midnight carrying JST's calendar date, so the local-time day
+  // arithmetic below reads the same date in every timezone.
+  const todayJst = new Date(nowShifted.getUTCFullYear(), nowShifted.getUTCMonth(), nowShifted.getUTCDate());
 
   // --------------------------------------------
   // Core Rate Calculations
@@ -175,14 +194,12 @@ export const calculateEstimatedDate = (
   // --------------------------------------------
   // Application Date Analysis
   // --------------------------------------------
-  const appDate = new Date(applicationDate);
-  const appDay = appDate.getDate();
-  const applicationMonth = formatMonth(appDate);
+  const [appYear, appMonthNumber, appDay] = applicationDate.split('-').map(Number);
+  const appDate = new Date(appYear, appMonthNumber - 1, appDay);
+  const applicationMonth = applicationDate.slice(0, 7);
 
   // Previous month calculation
-  const prevMonthDate = new Date(appDate);
-  prevMonthDate.setMonth(appDate.getMonth() - 1);
-  const prevMonth = formatMonth(prevMonthDate);
+  const prevMonth = monthFromIndex(monthIndexOf(applicationMonth) - 1);
 
   // --------------------------------------------
   // Available Data Detection & Quality Assessment
@@ -191,12 +208,9 @@ export const calculateEstimatedDate = (
   const hasActualPrevMonth = months.includes(prevMonth);
 
   // Calculate how far we're estimating beyond available data
-  const lastAvailableDate = new Date(lastAvailableMonth + '-01');
-  const appMonthDate = new Date(applicationMonth + '-01');
   const monthsBeyondData = hasActualAppMonth
     ? 0
-    : Math.max(0, (appMonthDate.getFullYear() - lastAvailableDate.getFullYear()) * 12
-        + (appMonthDate.getMonth() - lastAvailableDate.getMonth()));
+    : Math.max(0, monthIndexOf(applicationMonth) - monthIndexOf(lastAvailableMonth));
 
   // Determine data quality based on application date context
   // - 'high': Application date has actual data (within our dataset)
@@ -225,12 +239,10 @@ export const calculateEstimatedDate = (
   // Queue Position Calculations
   // --------------------------------------------
   // Current queue state calculations
-  const lastAvailableDateEnd = new Date(
-    Date.UTC(parseInt(lastAvailableMonth.split('-')[0]), parseInt(lastAvailableMonth.split('-')[1]) - 1, 1)
-  );
-  lastAvailableDateEnd.setMonth(lastAvailableDateEnd.getMonth() + 1);
-  lastAvailableDateEnd.setDate(0);
-  const predictionDays = getDaysBetweenDates(lastAvailableDateEnd, new Date());
+  const [lastYear, lastMonthNumber] = lastAvailableMonth.split('-').map(Number);
+  // Day 0 of the following month: the last day of the last published month.
+  const lastAvailableDateEnd = new Date(lastYear, lastMonthNumber, 0);
+  const predictionDays = getDaysBetweenDates(lastAvailableDateEnd, todayJst);
 
   // Processed applications estimation
   const daysInApplicationMonth = getDaysInMonth(applicationMonth);
@@ -244,7 +256,7 @@ export const calculateEstimatedDate = (
   // --------------------------------------------
   // Predictive Calculations
   // --------------------------------------------
-  const daysSinceApplication = getDaysBetweenDates(appDate, new Date());
+  const daysSinceApplication = getDaysBetweenDates(appDate, todayJst);
   const isBeyondPublishedData = applicationDate > lastAvailableMonth;
   const estimatedProcessed = isBeyondPublishedData
     ? dailyProcessed * daysSinceApplication - confirmedProcessed
@@ -280,18 +292,17 @@ export const calculateEstimatedDate = (
         getMonthData(lastAvailableMonth, STATUS_CODES.TOTAL_APPLICATIONS) - getMonthData(lastAvailableMonth, STATUS_CODES.PROCESSED);
       carrySeed = simulatedCarriedOver;
 
-      // Calculate the exact number of full months between the last available month and application month
-      const lastAvailableDate = new Date(lastAvailableMonth + '-01');
-      const appMonthDate = new Date(applicationMonth + '-01');
-
-      const currentMonthDate = new Date(lastAvailableDate);
-      currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); // Start from next month
+      // Roll each full month between the last available month and the
+      // application month, as integer month indexes — calendar arithmetic,
+      // nothing for a viewer's timezone to move.
+      const appMonthIndex = monthIndexOf(applicationMonth);
+      let currentMonthIndex = monthIndexOf(lastAvailableMonth) + 1; // Start from next month
 
       // Infinite loop protection: maximum 5 years of simulation
       const MAX_MONTHS_TO_SIMULATE = 60;
       let monthsSimulated = 0;
 
-      while (currentMonthDate < appMonthDate) {
+      while (currentMonthIndex < appMonthIndex) {
         monthsSimulated++;
 
         // Safety check to prevent infinite loops
@@ -308,12 +319,12 @@ export const calculateEstimatedDate = (
           return null;
         }
 
-        const daysInMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0).getDate();
+        const daysInMonth = getDaysInMonth(monthFromIndex(currentMonthIndex));
 
         const netChange = (dailyNew - dailyProcessed) * daysInMonth;
         simulatedCarriedOver = Math.max(0, simulatedCarriedOver + netChange);
 
-        currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
+        currentMonthIndex++;
       }
 
       carryMonthsSimulated = monthsSimulated;
@@ -341,7 +352,9 @@ export const calculateEstimatedDate = (
   // --------------------------------------------
   if (processingRate <= 0) return null;
 
-  const estimatedDate = new Date();
+  // Anchored to JST's today (already local midnight), so the completion date
+  // reads the same for every viewer.
+  const estimatedDate = new Date(todayJst);
   const queueAtApplication = Math.round(carriedOver + receivedByAppDate - processedByAppDate);
   const queuePosition = queueAtApplication - totalProcessedSinceApp;
   const daysRemaining = queuePosition / dailyProcessed;
@@ -424,7 +437,8 @@ export const calculateEstimatedDate = (
   };
 
   return {
-    estimatedDate: queuePosition <= 0 ? estimatedDate : new Date(estimatedDate.setHours(0, 0, 0, 0)),
+    // Already midnight either way: the JST anchor above carries no time of day.
+    estimatedDate,
     details: calculationDetails,
   };
 };

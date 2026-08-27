@@ -94,6 +94,60 @@ describe('calculateEstimatedDate month-boundary sensitivity', () => {
   });
 });
 
+describe('calculateEstimatedDate timezone pinning', () => {
+  const ORIGINAL_TZ = process.env.TZ;
+  afterEach(() => {
+    if (ORIGINAL_TZ === undefined) delete process.env.TZ;
+    else process.env.TZ = ORIGINAL_TZ;
+    vi.useRealTimers();
+  });
+
+  it('computes the same estimate whatever the viewer timezone', () => {
+    // The model runs on Japan's calendar (UTC+9); the viewer's timezone must
+    // not move a figure. Before the JST pin, a viewer west of UTC had a
+    // 1st-of-month application attributed to the previous month (A_day = 31)
+    // and the carry-over simulation rolled one month too far, with the wrong
+    // month lengths.
+    const run = () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2025-09-20T12:00:00Z'));
+      const result = calculateEstimatedDate(buildMonthlyData(MONTHS.slice(0, 6), NEW_PER_MONTH, PROCESSED_PER_MONTH), {
+        bureau: BUREAU,
+        type: TYPE,
+        applicationDate: '2025-09-01',
+      });
+      vi.useRealTimers();
+      if (!result) throw new Error('expected an estimate');
+      return result;
+    };
+
+    // Both sides of UTC, and both sides of the date line relative to Japan.
+    const results = ['UTC', 'Asia/Tokyo', 'America/Los_Angeles', 'Pacific/Kiritimati'].map((tz) => {
+      process.env.TZ = tz;
+      return run();
+    });
+
+    const [reference, ...rest] = results;
+    expect(reference.details.modelVariables.A_day).toBe(1);
+    expect(reference.details.modelVariables.D_month).toBe(30); // September
+    expect(reference.details.modelVariables.M_sim).toBe(2); // July and August
+    for (const other of rest) {
+      expect(other.details.modelVariables).toEqual(reference.details.modelVariables);
+      // The completion date is a calendar date; epoch millis legitimately
+      // differ per zone (local midnight), the date on it must not.
+      expect([
+        other.estimatedDate.getFullYear(),
+        other.estimatedDate.getMonth(),
+        other.estimatedDate.getDate(),
+      ]).toEqual([
+        reference.estimatedDate.getFullYear(),
+        reference.estimatedDate.getMonth(),
+        reference.estimatedDate.getDate(),
+      ]);
+    }
+  });
+});
+
 /**
  * The "Show the math" breakdown claims a specific arithmetic relationship for
  * every variable it renders. These pin those claims to the code, so a change
