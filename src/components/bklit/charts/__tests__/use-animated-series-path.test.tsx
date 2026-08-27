@@ -19,7 +19,11 @@ import { scaleLinear, scaleTime } from '@visx/scale';
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { computeSeriesPathPoints, seriesPathFromPoints } from '../series-path-utils';
+import {
+  computeSeriesPathPoints,
+  interpolateSeriesPathPoints,
+  seriesPathFromPoints,
+} from '../series-path-utils';
 import { useAnimatedSeriesPath } from '../use-animated-series-path';
 
 interface FakeAnimation {
@@ -122,6 +126,28 @@ describe('useAnimatedSeriesPath', () => {
     expect(motionState.animations).toHaveLength(0);
     rerender({ renderData: AFTER, yScale: big });
     expect(motionState.animations).toHaveLength(1);
+  });
+
+  // The morph itself, observed mid-flight. Asserting only at progress 1 (or
+  // after onComplete) proves nothing about the transition — the interpolator
+  // returns the target verbatim there, so a hook that snapped straight to the
+  // new path would pass every end-state test. This is also what pins the
+  // from-snapshot: the resync effect used to overwrite it with the new target
+  // in the same commit, interpolating the new path onto itself.
+  it('morphs through the frames rather than snapping to the target', () => {
+    const big = scaleTo(1000);
+    const { result, rerender } = setup({ renderData: BEFORE, yScale: big });
+    rerender({ renderData: AFTER, yScale: big });
+    const animation = running();
+
+    act(() => animation.onUpdate(0.4));
+
+    const from = computeSeriesPathPoints(BEFORE, xAccessor, xScale, big, 'value');
+    const to = computeSeriesPathPoints(AFTER, xAccessor, xScale, big, 'value');
+    const blended = seriesPathFromPoints(interpolateSeriesPathPoints(from, to, 0.4), curveLinear);
+    expect(result.current.pathD).toBe(blended);
+    expect(result.current.pathD).not.toBe(expectedPath(BEFORE, big));
+    expect(result.current.pathD).not.toBe(expectedPath(AFTER, big));
   });
 
   // The regression, stated directly: a y-domain tween must not tear down the
