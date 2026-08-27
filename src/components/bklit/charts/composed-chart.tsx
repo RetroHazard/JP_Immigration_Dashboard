@@ -158,6 +158,9 @@ function extractComposedSeries(children: ReactNode): {
   return { lines, barDataKeys };
 }
 
+// LOCAL MODIFICATION: exported (upstream keeps it private) so
+// __tests__/y-domain-axes.test.ts can pin the secondary-axis guard below.
+// (Re-apply after a re-vendor.)
 export function computeComposedYScaleDomainMax(
   data: Record<string, unknown>[],
   lines: LineConfig[],
