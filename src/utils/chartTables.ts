@@ -187,27 +187,35 @@ const STATUS_COLUMNS: { id: string; labelKey: DictionaryKey; status: string }[] 
 ];
 
 /**
- * The one table that was already right, kept byte-identical: a month x status
- * pivot, and a superset of the three series the bar chart plots. It is also the
- * closest thing the app offers to a raw dump, so it stays six columns wide
- * rather than being narrowed to what the chart draws.
+ * The table that was already right, extended once: a month x status pivot — a
+ * superset of the volume series the bar chart plots, and the closest thing the
+ * app offers to a raw dump, so it keeps all six status columns rather than
+ * being narrowed to what the chart draws. The trailing percent column is the
+ * chart's approval-rate line (granted out of processed, per month), added when
+ * that line was — the one series a status pivot alone couldn't carry.
  */
 const intakeByMonth: TableBuilder = (input) => {
   const { data, filters, range } = input;
   const months = monthsForRange(getAllMonths(data), range);
   return {
     rowHeaderKey: 'table.month',
-    columns: STATUS_COLUMNS.map(({ id, labelKey }) => ({ id, labelKey, format: 'count' })),
+    columns: [
+      ...STATUS_COLUMNS.map(({ id, labelKey }) => ({ id, labelKey, format: 'count' as const })),
+      // The chart's own legend label for the line this column mirrors.
+      { id: 'approvalRate', labelKey: 'metric.approvalRate', format: 'percent' },
+    ],
     rows: months.map((month) => {
       const monthRows = selectData(data, {
         month,
         scope: bureauScopeFromFilter(filters.bureau),
         type: filters.type,
       });
+      const counts = STATUS_COLUMNS.map((column) => sumWhere(monthRows, (entry) => entry.status === column.status));
+      const [, , processed, granted] = counts;
       return {
         id: month,
         label: month,
-        values: STATUS_COLUMNS.map((column) => sumWhere(monthRows, (entry) => entry.status === column.status)),
+        values: [...counts, rate(granted, processed)],
       };
     }),
     caption: caption(input),
