@@ -14,9 +14,12 @@
    order (blue, orange, aqua, yellow, magenta); sequential scale is a single
    blue ramp. Dark mode is a first-class selection, not an inversion. */
 :root {
-  --background: #f6f7f9;
+  /* A step below pure white on both surfaces, so true-white artwork — the
+     header's hinomaru field — reads against them rather than dissolving.
+     Cards keep the same one-step lift over the ground as before. */
+  --background: #eef0f4;
   --foreground: #191a1f;
-  --card: #ffffff;
+  --card: #f8f9fc;
   --card-foreground: #191a1f;
   --popover: #ffffff;
   --popover-foreground: #191a1f;
