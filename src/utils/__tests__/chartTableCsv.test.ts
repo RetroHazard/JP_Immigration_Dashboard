@@ -17,7 +17,7 @@ const model: TableModel = {
   columns: [
     { id: 'note', labelKey: 'metric.other', format: 'label' },
     { id: 'received', labelKey: 'metric.received', format: 'count' },
-    { id: 'completion', labelKey: 'metric.completion', format: 'percent' },
+    { id: 'efficiency', labelKey: 'metric.efficiency', format: 'percent' },
   ],
   rows: [
     { id: 'a', label: 'Osaka, Kansai', values: ['plain', 1234, 86.25] },
@@ -62,7 +62,7 @@ describe('serializeTableCsv', () => {
 
   it('marks the unit on a percent header and writes the cell as a bare number', () => {
     expect(lines[2]).toBe(
-      `${en['filters.bureau']},${en['metric.other']},${en['metric.received']},${en['metric.completion']} (%)`
+      `${en['filters.bureau']},${en['metric.other']},${en['metric.received']},${en['metric.efficiency']} (%)`
     );
     expect(lines[3]).toBe('"Osaka, Kansai",plain,1234,86.3');
   });

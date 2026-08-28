@@ -84,7 +84,7 @@ export const es: Dictionary = {
   'metric.denied': 'Denegadas',
   'metric.other': 'Otras',
   'metric.approvalRate': 'Tasa de aprobación',
-  'metric.completion': 'Finalización',
+  'metric.efficiency': 'Eficiencia',
   'metric.applications': 'Solicitudes',
   'metric.population': 'Población',
   'metric.area': 'Superficie',

@@ -86,7 +86,7 @@ export const vi: Dictionary = {
   'metric.denied': 'Bị từ chối',
   'metric.other': 'Khác',
   'metric.approvalRate': 'Tỷ lệ chấp thuận',
-  'metric.completion': 'Hoàn thành',
+  'metric.efficiency': 'Hiệu suất',
   'metric.applications': 'Hồ sơ',
   'metric.population': 'Dân số',
   'metric.area': 'Diện tích',

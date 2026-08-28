@@ -434,7 +434,7 @@ const efficiencyByBureau: TableBuilder = (input) => {
     columns: [
       { id: 'received', labelKey: 'metric.received', format: 'count' },
       { id: 'processed', labelKey: 'metric.processed', format: 'count' },
-      { id: 'completion', labelKey: 'metric.completion', format: 'percent' },
+      { id: 'efficiency', labelKey: 'metric.efficiency', format: 'percent' },
     ],
     rows: [
       ...ranked.map((volume) => ({

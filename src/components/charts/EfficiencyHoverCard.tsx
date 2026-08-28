@@ -44,7 +44,7 @@ export const EfficiencyHoverCard: React.FC<EfficiencyHoverCardProps> = ({ point,
       <span className="text-right text-popover-foreground">{formatters.number(point.received)}</span>
       <span>{t('metric.processed')}</span>
       <span className="text-right text-popover-foreground">{formatters.number(point.processed)}</span>
-      <span>{t('metric.completion')}</span>
+      <span>{t('metric.efficiency')}</span>
       <span className="text-right text-popover-foreground">{formatters.percent(point.rate)}</span>
     </div>
   </div>,

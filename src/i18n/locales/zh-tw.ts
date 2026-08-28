@@ -109,7 +109,7 @@ export const zhTw: Dictionary = {
   'metric.denied': '不核准',
   'metric.other': '其他',
   'metric.approvalRate': '核准率',
-  'metric.completion': '處理完成率',
+  'metric.efficiency': '效率',
   'metric.applications': '申請數',
   'metric.population': '人口',
   'metric.area': '面積',

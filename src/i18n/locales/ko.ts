@@ -102,7 +102,7 @@ export const ko: Dictionary = {
   'metric.denied': '불허가',
   'metric.other': '기타',
   'metric.approvalRate': '허가율',
-  'metric.completion': '처리율',
+  'metric.efficiency': '효율',
   'metric.applications': '신청 건수',
   'metric.population': '인구',
   'metric.area': '면적',

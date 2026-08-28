@@ -101,7 +101,7 @@ export const zhCn: Dictionary = {
   'metric.denied': '拒绝',
   'metric.other': '其他',
   'metric.approvalRate': '批准率',
-  'metric.completion': '处理率',
+  'metric.efficiency': '效率',
   'metric.applications': '申请数',
   'metric.population': '人口',
   'metric.area': '面积',

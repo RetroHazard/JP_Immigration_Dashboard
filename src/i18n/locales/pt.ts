@@ -87,7 +87,7 @@ export const pt: Dictionary = {
   'metric.denied': 'Recusadas',
   'metric.other': 'Outras',
   'metric.approvalRate': 'Taxa de aprovação',
-  'metric.completion': 'Conclusão',
+  'metric.efficiency': 'Eficiência',
   'metric.applications': 'Candidaturas',
   'metric.population': 'População',
   'metric.area': 'Área',

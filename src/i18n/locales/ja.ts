@@ -97,7 +97,7 @@ export const ja: Dictionary = {
   'metric.denied': '不許可',
   'metric.other': 'その他',
   'metric.approvalRate': '許可率',
-  'metric.completion': '処理率',
+  'metric.efficiency': '効率',
   'metric.applications': '申請数',
   'metric.population': '人口',
   'metric.area': '面積',

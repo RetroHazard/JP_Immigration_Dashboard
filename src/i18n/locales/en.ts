@@ -92,7 +92,7 @@ export const en = {
   'metric.denied': 'Denied',
   'metric.other': 'Other',
   'metric.approvalRate': 'Approval rate',
-  'metric.completion': 'Completion',
+  'metric.efficiency': 'Efficiency',
   'metric.applications': 'Applications',
   'metric.population': 'Population',
   'metric.area': 'Area',

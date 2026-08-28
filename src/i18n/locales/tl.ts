@@ -86,7 +86,7 @@ export const tl: Dictionary = {
   'metric.denied': 'Tinanggihan',
   'metric.other': 'Iba Pa',
   'metric.approvalRate': 'Rate ng pag-apruba',
-  'metric.completion': 'Pagkumpleto',
+  'metric.efficiency': 'Kahusayan',
   'metric.applications': 'Mga Aplikasyon',
   'metric.population': 'Populasyon',
   'metric.area': 'Lawak',
