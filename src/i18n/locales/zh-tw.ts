@@ -34,7 +34,7 @@ import type { Dictionary } from '../types';
 export const zhTw: Dictionary = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': '日本入國管理統計',
-  'app.subtitle': '出入國管理局處理數據，來自 e-Stat，隨每次發布更新',
+  'app.subtitle': '申請處理數據與在留外國人統計，來自 e-Stat',
   'app.skipToContent': '跳至主要內容',
   'app.loadingData': '正在整理入國管理統計資料…',
   'app.loadingDashboard': '儀表板載入中…',
@@ -46,7 +46,7 @@ export const zhTw: Dictionary = {
   // keep one source of truth, and to be ready for per-locale routes.
   'meta.title': '日本入國管理統計儀表板',
   'meta.description':
-    '簽證審查期間、各出入國管理局的工作量，以及針對您個人申請的排隊模型預估——根據出入國在留管理廳的官方統計資料建置，並隨 e-Stat 發布新資料（通常為每月）更新。',
+    '簽證審查期間、各出入國管理局的工作量、在留外國人數的變化趨勢，以及針對您個人申請的排隊模型預估——根據出入國在留管理廳的官方統計資料建置，並隨 e-Stat 發布新資料更新。',
   'meta.keywords': '日本簽證審查期間, 出入國管理局統計, 簽證申請追蹤, 出入國在留管理廳, e-Stat',
 
   // ── Header and settings drawer ───────────────────────────────────────────
@@ -179,7 +179,8 @@ export const zhTw: Dictionary = {
   'estimator.formula.explainAria': '說明{title}公式中的各個變數',
   // Step 1 — throughput baseline.
   'estimator.formula.var.sigmaP.title': '處理總量',
-  'estimator.formula.var.sigmaP.description': '抽樣區間內辦結的申請總數。抽樣區間為最近六個已公布月份，資料不足時則取現有的全部月份。',
+  'estimator.formula.var.sigmaP.description':
+    '抽樣區間內辦結的申請總數。抽樣區間為最近六個已公布月份，資料不足時則取現有的全部月份。',
   'estimator.formula.var.sigmaN.title': '受理總量',
   'estimator.formula.var.sigmaN.description': '同一抽樣區間內受理的申請總數。',
   'estimator.formula.var.sigmaD.title': '總天數',
@@ -198,7 +199,8 @@ export const zhTw: Dictionary = {
   'estimator.formula.var.mSim.title': '推算月數',
   'estimator.formula.var.mSim.description': '為推進到申請當月，結轉量被逐月往前推算了多少個月。',
   'estimator.formula.var.cPrev.title': '上月結轉',
-  'estimator.formula.var.cPrev.description': '申請當月開始時仍在等候的申請件數。前一個月有公布資料時直接採用，沒有時則從最近有資料的月份起逐月往前推算。',
+  'estimator.formula.var.cPrev.description':
+    '申請當月開始時仍在等候的申請件數。前一個月有公布資料時直接採用，沒有時則從最近有資料的月份起逐月往前推算。',
   'estimator.formula.var.nMonth.title': '當月受理',
   'estimator.formula.var.nMonth.description': '申請當月整月受理的申請件數。',
   'estimator.formula.var.pMonth.title': '當月處理',
@@ -223,7 +225,8 @@ export const zhTw: Dictionary = {
   'estimator.formula.var.cProc.title': '已確認處理量',
   'estimator.formula.var.cProc.description': '申請之後辦結的件數中，已公布資料能夠佐證的部分。',
   'estimator.formula.var.eProc.title': '預估處理量',
-  'estimator.formula.var.eProc.description': '公布資料尚未涵蓋的時段內，預計已辦結的申請件數。若已公布月份的實際辦結量超過按平均速率的預測，該值為負。',
+  'estimator.formula.var.eProc.description':
+    '公布資料尚未涵蓋的時段內，預計已辦結的申請件數。若已公布月份的實際辦結量超過按平均速率的預測，該值為負。',
   'estimator.formula.var.sProc.title': '申請後處理總量',
   'estimator.formula.var.sProc.description': '申請之後辦結的件數合計，由已確認與預估兩部分相加並取整。',
   // Step 4 — position in the queue, and how long it takes to clear.
@@ -239,14 +242,14 @@ export const zhTw: Dictionary = {
   'estimator.formula.var.rBar.title': '月均處理速率',
   'estimator.formula.var.rBar.description': '把各月處理速率按月份數均等平均，而非按件數加權。',
   'estimator.formula.var.uDays.title': '誤差範圍',
-  'estimator.formula.var.uDays.description': '結果旁顯示的 ± 幅度，表示處理步調若像近期一樣波動，預計日期會有多大變化。',
+  'estimator.formula.var.uDays.description':
+    '結果旁顯示的 ± 幅度，表示處理步調若像近期一樣波動，預計日期會有多大變化。',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': '受理與處理',
-  'charts.intake.description':
-    '每月結轉與受理的申請件數，對照各管理局完成處理的數量及其中獲准的比例。',
+  'charts.intake.description': '每月結轉與受理的申請件數，對照各管理局完成處理的數量及其中獲准的比例。',
   'charts.intake.aria':
     '每月待處理與受理申請件數的堆疊長條圖，並以折線呈現已處理數量，另以0至100%的右側縱軸用折線呈現核准率',
   'charts.types.label': '申請類型',
@@ -636,7 +639,8 @@ export const zhTw: Dictionary = {
   'residents.markerCovid.title': '新冠疫情邊境管制',
   'residents.markerCovid.description': '入境限制凍結了新入境,居民人數下滑持續至 2022 年年中。',
   'residents.markerKoreaSplit.title': '韓國·朝鮮統計拆分',
-  'residents.markerKoreaSplit.description': '統計中「韓國·朝鮮」拆分為「韓國」與「朝鮮」兩個序列——屬統計口徑變更,並非人口變動。',
+  'residents.markerKoreaSplit.description':
+    '統計中「韓國·朝鮮」拆分為「韓國」與「朝鮮」兩個序列——屬統計口徑變更,並非人口變動。',
 
   'statusGroup.work': '就業',
   'statusGroup.training': '研修實習',

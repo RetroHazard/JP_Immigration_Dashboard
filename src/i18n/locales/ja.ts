@@ -23,7 +23,7 @@ import type { Dictionary } from '../types';
 export const ja: Dictionary = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': '日本 在留審査統計',
-  'app.subtitle': '出入国在留管理庁の審査データ（e-Stat の公表に合わせて更新）',
+  'app.subtitle': '出入国在留管理庁の審査データと在留外国人統計（e-Stat 提供）',
   'app.skipToContent': '本文へスキップ',
   'app.loadingData': '在留統計を集計しています…',
   'app.loadingDashboard': 'ダッシュボードを読み込んでいます…',
@@ -34,7 +34,7 @@ export const ja: Dictionary = {
   // src/i18n/README.md). Translated so it is ready when per-locale routes are.
   'meta.title': '日本 在留審査統計ダッシュボード',
   'meta.description':
-    '在留審査の処理期間、地方出入国在留管理局ごとの処理状況、そして自分の申請に合わせた待ち行列モデルによる完了時期の推定。出入国在留管理庁の公式統計にもとづき、e-Stat の新規データ公表（おおむね月次）に合わせて更新しています。',
+    '在留審査の処理期間、地方出入国在留管理局ごとの処理状況、在留外国人数の推移、そして自分の申請に合わせた待ち行列モデルによる完了時期の推定。出入国在留管理庁の公式統計にもとづき、e-Stat の新規データ公表に合わせて更新しています。',
   'meta.keywords': '在留審査 処理期間, 出入国在留管理局 統計, 在留申請 進捗, 出入国在留管理庁, e-Stat',
 
   // ── Header and settings drawer ───────────────────────────────────────────
@@ -160,7 +160,8 @@ export const ja: Dictionary = {
   'estimator.formula.explainAria': '{title}の計算式に含まれる変数の説明',
   // Step 1 — throughput baseline.
   'estimator.formula.var.sigmaP.title': '処理件数の合計',
-  'estimator.formula.var.sigmaP.description': '対象期間に処理された申請の合計件数。対象期間は直近6か月分、データがそれより少ない場合はその全期間です。',
+  'estimator.formula.var.sigmaP.description':
+    '対象期間に処理された申請の合計件数。対象期間は直近6か月分、データがそれより少ない場合はその全期間です。',
   'estimator.formula.var.sigmaN.title': '受理件数の合計',
   'estimator.formula.var.sigmaN.description': '同じ対象期間に受理された申請の合計件数。',
   'estimator.formula.var.sigmaD.title': '日数の合計',
@@ -171,7 +172,8 @@ export const ja: Dictionary = {
   'estimator.formula.var.rNew.description': '同じ期間を通じて、1日あたりに受理された申請の平均件数。',
   // Step 2 — the queue on the application date.
   'estimator.formula.var.tPrev.title': '前月の総件数',
-  'estimator.formula.var.tPrev.description': '申請した月の前月に官署が抱えていた申請の総数。繰越分と新規受理分の合計です。',
+  'estimator.formula.var.tPrev.description':
+    '申請した月の前月に官署が抱えていた申請の総数。繰越分と新規受理分の合計です。',
   'estimator.formula.var.pPrev.title': '前月の処理件数',
   'estimator.formula.var.pPrev.description': '申請した月の前月に処理された申請の件数。',
   'estimator.formula.var.cSeed.title': '推計の起点',
@@ -179,7 +181,8 @@ export const ja: Dictionary = {
   'estimator.formula.var.mSim.title': '推計した月数',
   'estimator.formula.var.mSim.description': '申請した月に到達するまでに、繰越件数を何か月分繰り上げたか。',
   'estimator.formula.var.cPrev.title': '前月からの繰越',
-  'estimator.formula.var.cPrev.description': '申請した月の開始時点で未処理だった申請件数。前月の公表値があればそれを用い、なければ公表値のある直近の月から1か月ずつ繰り上げて推計します。',
+  'estimator.formula.var.cPrev.description':
+    '申請した月の開始時点で未処理だった申請件数。前月の公表値があればそれを用い、なければ公表値のある直近の月から1か月ずつ繰り上げて推計します。',
   'estimator.formula.var.nMonth.title': '当月の受理件数',
   'estimator.formula.var.nMonth.description': '申請した月の全体で受理された申請件数。',
   'estimator.formula.var.pMonth.title': '当月の処理件数',
@@ -187,9 +190,11 @@ export const ja: Dictionary = {
   'estimator.formula.var.dMonth.title': '当月の日数',
   'estimator.formula.var.dMonth.description': '申請した月の暦日数。月間の合計を日ごとに均等に配分するために用います。',
   'estimator.formula.var.aDay.title': '申請日',
-  'estimator.formula.var.aDay.description': '申請した日が、その月の何日目にあたるか。待ち行列がどこまで積み上がっていたかを表します。',
+  'estimator.formula.var.aDay.description':
+    '申請した日が、その月の何日目にあたるか。待ち行列がどこまで積み上がっていたかを表します。',
   'estimator.formula.var.nApp.title': '申請前の受理件数',
-  'estimator.formula.var.nApp.description': '申請した月のうち、自分より前に受理された申請件数。申請日までで日割りした値です。',
+  'estimator.formula.var.nApp.description':
+    '申請した月のうち、自分より前に受理された申請件数。申請日までで日割りした値です。',
   'estimator.formula.var.pApp.title': '申請前の処理件数',
   'estimator.formula.var.pApp.description': '申請した月のうち、自分より前に処理された申請件数。同じ日割りで求めます。',
   'estimator.formula.var.qApp.title': '申請時の待ち行列',
@@ -204,28 +209,33 @@ export const ja: Dictionary = {
   'estimator.formula.var.cProc.title': '処理済（実績）',
   'estimator.formula.var.cProc.description': '申請以降に処理された件数のうち、公表済みのデータで裏付けられている分。',
   'estimator.formula.var.eProc.title': '処理済（推定）',
-  'estimator.formula.var.eProc.description': '公表データがまだ及んでいない期間に処理されたと見込まれる件数。公表済みの月が平均速度による予測を上回っている場合は、負の値になります。',
+  'estimator.formula.var.eProc.description':
+    '公表データがまだ及んでいない期間に処理されたと見込まれる件数。公表済みの月が平均速度による予測を上回っている場合は、負の値になります。',
   'estimator.formula.var.sProc.title': '申請後の処理件数',
-  'estimator.formula.var.sProc.description': '申請以降に処理された件数の合計。実績と推定を足し合わせ、整数に丸めた値です。',
+  'estimator.formula.var.sProc.description':
+    '申請以降に処理された件数の合計。実績と推定を足し合わせ、整数に丸めた値です。',
   // Step 4 — position in the queue, and how long it takes to clear.
   'estimator.formula.var.qPos.title': '待ち順位',
-  'estimator.formula.var.qPos.description': '自分より前に残っている申請の件数。0以下であれば、推定完了日をすでに過ぎています。',
+  'estimator.formula.var.qPos.description':
+    '自分より前に残っている申請の件数。0以下であれば、推定完了日をすでに過ぎています。',
   'estimator.formula.var.dRem.title': '残り日数',
   'estimator.formula.var.dRem.description': '現在の処理速度で、残りの待ち行列を消化するのに必要な日数。',
   // Step 5 — the whole-day offset, and the spread around it.
   'estimator.formula.var.dEst.title': '日数（整数）',
-  'estimator.formula.var.dEst.description': '残り日数を0から遠ざかる向きに丸めた値。本日に加算して、上部の完了予定日を求めます。',
+  'estimator.formula.var.dEst.description':
+    '残り日数を0から遠ざかる向きに丸めた値。本日に加算して、上部の完了予定日を求めます。',
   'estimator.formula.var.sigmaR.title': '処理速度のばらつき',
-  'estimator.formula.var.sigmaR.description': '月ごとの処理速度の標準偏差。処理ペースが月によってどれだけ変動するかを表します。',
+  'estimator.formula.var.sigmaR.description':
+    '月ごとの処理速度の標準偏差。処理ペースが月によってどれだけ変動するかを表します。',
   'estimator.formula.var.rBar.title': '月平均の処理速度',
   'estimator.formula.var.rBar.description': '月ごとの処理速度を、件数ではなく月数で均等に平均した値。',
   'estimator.formula.var.uDays.title': '誤差の幅',
-  'estimator.formula.var.uDays.description': '結果の横に表示される±の幅。処理ペースが近年と同程度に変動した場合、推定日がどれだけ動くかを示します。',
+  'estimator.formula.var.uDays.description':
+    '結果の横に表示される±の幅。処理ペースが近年と同程度に変動した場合、推定日がどれだけ動くかを示します。',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   'charts.intake.label': '受理と処理',
-  'charts.intake.description':
-    '月ごとの繰越・受理件数と、各官署が処理した件数、そのうち許可された割合の推移です。',
+  'charts.intake.description': '月ごとの繰越・受理件数と、各官署が処理した件数、そのうち許可された割合の推移です。',
   'charts.intake.aria':
     '月別の未処理件数と受理件数を積み上げた棒グラフ。処理件数を折れ線で重ね、許可率を0〜100%の右側の軸にもう一本の折れ線で表示',
   'charts.types.label': '申請種別',
@@ -543,7 +553,8 @@ export const ja: Dictionary = {
   'charts.origins.description': '統計が対象とする各半期において、主要な国籍がどのように増減してきたか。',
   'charts.origins.aria': '国籍別の在留者数の推移を示す積み上げ面グラフ',
   'charts.flows.label': '国籍から在留資格へ',
-  'charts.flows.description': '世界の地域から国、滞在目的へと流れを表示。地域や国籍を選ぶとそのプロファイルをたどれます。',
+  'charts.flows.description':
+    '世界の地域から国、滞在目的へと流れを表示。地域や国籍を選ぶとそのプロファイルをたどれます。',
   'charts.flows.aria': '地域から国、在留資格カテゴリへの在留者の流れを示すサンキーダイアグラム',
   'charts.statuses.label': '在留資格の構成',
   'charts.statuses.description': '在留者が保持する在留資格を滞在目的別に分類。グループをクリックすると内訳が開きます。',
@@ -604,19 +615,23 @@ export const ja: Dictionary = {
   'residents.flowsTooltipFlowLabel': 'フロー',
   'residents.sunburstHint': '{trail} — {count}人(全体の{percent})',
   'residents.markerResidenceCard.title': '在留カード制度の開始',
-  'residents.markerResidenceCard.description': '外国人登録に代わり在留カードが導入され、この統計はその最初の時点から始まります。',
+  'residents.markerResidenceCard.description':
+    '外国人登録に代わり在留カードが導入され、この統計はその最初の時点から始まります。',
   'residents.markerReopening.title': '入国制限の解除',
   'residents.markerReopening.description': '2022年10月にビザなし渡航が戻り、在留者数は再び増加に転じました。',
   'residents.markerTraining.title': '技能実習に代わる育成就労',
   'residents.markerTraining.description': '令和6年の改正で育成就労制度が創設され、永住許可の要件も厳しくなりました。',
   'residents.markerBusinessManager.title': '経営・管理の基準を厳格化',
-  'residents.markerBusinessManager.description': '2025年10月から、資本金の増額・常勤職員・事業計画の専門家確認が必要です。',
+  'residents.markerBusinessManager.description':
+    '2025年10月から、資本金の増額・常勤職員・事業計画の専門家確認が必要です。',
   'residents.markerSsw.title': '特定技能の創設',
-  'residents.markerSsw.description': '2019年4月に新設された在留資格。十数の産業分野で外国人労働者の受け入れが始まりました。',
+  'residents.markerSsw.description':
+    '2019年4月に新設された在留資格。十数の産業分野で外国人労働者の受け入れが始まりました。',
   'residents.markerCovid.title': '新型コロナによる入国制限',
   'residents.markerCovid.description': '入国制限で新規入国が停止し、2022年半ばまで在留者数が減少しました。',
   'residents.markerKoreaSplit.title': '韓国・朝鮮の統計分割',
-  'residents.markerKoreaSplit.description': '統計上「韓国・朝鮮」が「韓国」と「朝鮮」に分割されました。集計方法の変更であり、人口の変動ではありません。',
+  'residents.markerKoreaSplit.description':
+    '統計上「韓国・朝鮮」が「韓国」と「朝鮮」に分割されました。集計方法の変更であり、人口の変動ではありません。',
 
   'statusGroup.work': '就労',
   'statusGroup.training': '研修・実習',

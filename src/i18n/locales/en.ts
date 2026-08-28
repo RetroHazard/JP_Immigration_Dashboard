@@ -13,7 +13,7 @@
 export const en = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': 'Japan Immigration Statistics',
-  'app.subtitle': 'Bureau processing data from e-Stat, updated with each release',
+  'app.subtitle': 'Application processing and resident population statistics from e-Stat',
   'app.skipToContent': 'Skip to content',
   'app.loadingData': 'Crunching Immigration Data...',
   'app.loadingDashboard': 'Loading Dashboard...',
@@ -25,7 +25,7 @@ export const en = {
   // keep one source of truth, and to be ready for per-locale routes.
   'meta.title': 'Japan Immigration Statistics Dashboard',
   'meta.description':
-    'Visa processing times, bureau workloads, and a queue-model estimator for your own application - built on official Immigration Services Agency statistics, updated whenever e-Stat releases new data (typically monthly).',
+    'Visa processing times, bureau workloads, foreign resident population trends, and a queue-model estimator for your own application - built on official Immigration Services Agency statistics, updated as new data is published on e-Stat.',
   'meta.keywords':
     'Japan visa processing times, immigration bureau statistics, visa application tracker, Immigration Services Agency, e-Stat',
 
@@ -293,11 +293,13 @@ export const en = {
   'policy.eventsShow': 'Show policy events',
   'policy.eventsHide': 'Hide policy events',
   'policy.ssw2019.title': 'Specified Skilled Worker created',
-  'policy.ssw2019.description': 'A status for shortage industries; the Immigration Services Agency opened the same day.',
+  'policy.ssw2019.description':
+    'A status for shortage industries; the Immigration Services Agency opened the same day.',
   'policy.covidClosure.title': 'Pandemic entry restrictions',
   'policy.covidClosure.description': 'Landing denial widened to most of the world as COVID-19 spread.',
   'policy.covidSuspension.title': 'New entry suspended worldwide',
-  'policy.covidSuspension.description': 'From late December no foreign national could enter newly, whatever visa they held.',
+  'policy.covidSuspension.description':
+    'From late December no foreign national could enter newly, whatever visa they held.',
   'policy.covidOmicron.title': 'Reopening reversed for Omicron',
   'policy.covidOmicron.description': 'Entry resumed on 8 November and was shut again three weeks later.',
   'policy.covidResume.title': 'Students and workers admitted again',
@@ -305,7 +307,8 @@ export const en = {
   'policy.covidVisaFree.title': 'Visa-free travel restored',
   'policy.covidVisaFree.description': 'Visa exemptions returned and the daily arrivals cap was abolished.',
   'policy.covidCoe.title': 'Certificate validity extended',
-  'policy.covidCoe.description': 'Certificates of Eligibility stranded by the closure stayed valid well beyond three months.',
+  'policy.covidCoe.description':
+    'Certificates of Eligibility stranded by the closure stayed valid well beyond three months.',
   'policy.covidEnd.title': 'Border measures ended',
   'policy.covidEnd.description': 'Testing and vaccination checks stopped, and COVID-19 moved to Class 5.',
   'policy.act2023.title': 'Immigration Act revision enacted',
@@ -583,7 +586,8 @@ export const en = {
   'charts.growth.label': 'Population Growth',
   'charts.growth.description':
     'The whole foreign-resident population, half-year by half-year, stacked by purpose of stay or by world region.',
-  'charts.growth.aria': 'Stacked bar chart of total foreign residents per half-year, split by status group or by region',
+  'charts.growth.aria':
+    'Stacked bar chart of total foreign residents per half-year, split by status group or by region',
   'charts.origins.label': 'Origins Over Time',
   'charts.origins.description':
     'How the largest nationalities have grown or shrunk across every half-year the statistics cover.',

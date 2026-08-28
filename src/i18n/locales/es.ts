@@ -8,8 +8,7 @@ import type { Dictionary } from '../types';
 export const es: Dictionary = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': 'Estadísticas de Inmigración de Japón',
-  'app.subtitle':
-    'Datos de tramitación de las oficinas de inmigración, obtenidos de e-Stat y actualizados con cada publicación',
+  'app.subtitle': 'Estadísticas de tramitación de solicitudes y de población residente extranjera, obtenidas de e-Stat',
   'app.skipToContent': 'Saltar al contenido',
   'app.loadingData': 'Procesando datos de inmigración...',
   'app.loadingDashboard': 'Cargando panel...',
@@ -21,7 +20,7 @@ export const es: Dictionary = {
   // keep one source of truth, and to be ready for per-locale routes.
   'meta.title': 'Panel de Estadísticas de Inmigración de Japón',
   'meta.description':
-    'Tiempos de tramitación de visados, carga de trabajo de las oficinas y un estimador basado en un modelo de colas para tu propia solicitud, elaborado con estadísticas oficiales de la Agencia de Servicios de Inmigración y actualizado cada vez que e-Stat publica nuevos datos (normalmente cada mes).',
+    'Tiempos de tramitación de visados, carga de trabajo de las oficinas, evolución de la población residente extranjera y un estimador basado en un modelo de colas para tu propia solicitud, elaborado con estadísticas oficiales de la Agencia de Servicios de Inmigración y actualizado a medida que e-Stat publica nuevos datos.',
   'meta.keywords':
     'tiempos de tramitación de visados en Japón, estadísticas de oficinas de inmigración, seguimiento de solicitudes de visado, Agencia de Servicios de Inmigración, e-Stat',
 
@@ -286,7 +285,8 @@ export const es: Dictionary = {
   'policy.covidClosure.title': 'Restricciones de entrada por la pandemia',
   'policy.covidClosure.description': 'La denegación de entrada se amplió a casi todo el mundo.',
   'policy.covidSuspension.title': 'Entradas nuevas suspendidas en todo el mundo',
-  'policy.covidSuspension.description': 'Desde finales de diciembre nadie pudo entrar por primera vez, con visado o sin él.',
+  'policy.covidSuspension.description':
+    'Desde finales de diciembre nadie pudo entrar por primera vez, con visado o sin él.',
   'policy.covidOmicron.title': 'Reapertura revertida por ómicron',
   'policy.covidOmicron.description': 'La entrada reabierta el 8 de noviembre se cerró de nuevo tres semanas después.',
   'policy.covidResume.title': 'Vuelven estudiantes y trabajadores',
@@ -296,7 +296,8 @@ export const es: Dictionary = {
   'policy.covidCoe.title': 'Validez de los certificados ampliada',
   'policy.covidCoe.description': 'Los certificados atrapados por el cierre siguieron válidos mucho más de tres meses.',
   'policy.covidEnd.title': 'Fin de las medidas fronterizas',
-  'policy.covidEnd.description': 'Se acabaron las pruebas y los certificados de vacunación; la enfermedad pasó a clase 5.',
+  'policy.covidEnd.description':
+    'Se acabaron las pruebas y los certificados de vacunación; la enfermedad pasó a clase 5.',
   'policy.act2023.title': 'Reforma de la ley de inmigración',
   'policy.act2023.description': 'Añadió medidas de supervisión en lugar de internamiento y protección complementaria.',
   'policy.digitalNomad.title': 'Estatus para nómadas digitales',
@@ -550,15 +551,19 @@ export const es: Dictionary = {
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': 'Los datos de población extranjera residente no están disponibles en este momento.',
   'charts.growth.label': 'Crecimiento de la Población',
-  'charts.growth.description': 'La población extranjera residente completa, semestre a semestre, apilada por finalidad de estancia o por región del mundo.',
-  'charts.growth.aria': 'Gráfico de barras apiladas del total de residentes extranjeros por semestre, dividido por grupo de estatus o región',
+  'charts.growth.description':
+    'La población extranjera residente completa, semestre a semestre, apilada por finalidad de estancia o por región del mundo.',
+  'charts.growth.aria':
+    'Gráfico de barras apiladas del total de residentes extranjeros por semestre, dividido por grupo de estatus o región',
   'charts.origins.label': 'Orígenes a lo largo del tiempo',
   'charts.origins.description':
     'Cómo han crecido o disminuido las principales nacionalidades en cada semestre que cubren las estadísticas.',
   'charts.origins.aria': 'Gráfico de áreas apiladas del número de residentes por nacionalidad a lo largo del tiempo',
   'charts.flows.label': 'Del Origen al Estatus',
-  'charts.flows.description': 'Regiones del mundo fluyendo por países hasta las finalidades de estancia — elige una región o nacionalidad para seguir su perfil.',
-  'charts.flows.aria': 'Diagrama de Sankey de residentes fluyendo de las regiones del mundo, por países, a las categorías de estatus de residencia',
+  'charts.flows.description':
+    'Regiones del mundo fluyendo por países hasta las finalidades de estancia — elige una región o nacionalidad para seguir su perfil.',
+  'charts.flows.aria':
+    'Diagrama de Sankey de residentes fluyendo de las regiones del mundo, por países, a las categorías de estatus de residencia',
   'charts.statuses.label': 'Composición por estatus de residencia',
   'charts.statuses.description':
     'Qué visados tienen los residentes, agrupados por finalidad de la estancia: haz clic en un grupo para desglosarlo.',
@@ -621,19 +626,26 @@ export const es: Dictionary = {
   'residents.flowsTooltipFlowLabel': 'Flujo',
   'residents.sunburstHint': '{trail} — {count} residentes ({percent} del total)',
   'residents.markerResidenceCard.title': 'Comienza la tarjeta de residencia',
-  'residents.markerResidenceCard.description': 'La tarjeta sustituyó al registro de extranjeros; el recuento arranca ahí.',
+  'residents.markerResidenceCard.description':
+    'La tarjeta sustituyó al registro de extranjeros; el recuento arranca ahí.',
   'residents.markerReopening.title': 'Fronteras reabiertas',
-  'residents.markerReopening.description': 'El viaje sin visado volvió en octubre de 2022 y la población retomó su crecimiento.',
+  'residents.markerReopening.description':
+    'El viaje sin visado volvió en octubre de 2022 y la población retomó su crecimiento.',
   'residents.markerTraining.title': 'Sustitución de las prácticas técnicas',
-  'residents.markerTraining.description': 'La reforma de 2024 crea la nueva formación y endurece la residencia permanente.',
+  'residents.markerTraining.description':
+    'La reforma de 2024 crea la nueva formación y endurece la residencia permanente.',
   'residents.markerBusinessManager.title': 'Reglas de gestión más estrictas',
-  'residents.markerBusinessManager.description': 'Desde octubre de 2025 se exige más capital, un empleado fijo y un plan validado.',
+  'residents.markerBusinessManager.description':
+    'Desde octubre de 2025 se exige más capital, un empleado fijo y un plan validado.',
   'residents.markerSsw.title': 'Lanzamiento del visado Specified Skilled Worker',
-  'residents.markerSsw.description': 'El visado de abril de 2019 abrió más de una docena de sectores a trabajadores extranjeros cualificados.',
+  'residents.markerSsw.description':
+    'El visado de abril de 2019 abrió más de una docena de sectores a trabajadores extranjeros cualificados.',
   'residents.markerCovid.title': 'Cierre de fronteras por COVID-19',
-  'residents.markerCovid.description': 'Las restricciones de entrada congelaron las nuevas llegadas; la población cayó hasta mediados de 2022.',
+  'residents.markerCovid.description':
+    'Las restricciones de entrada congelaron las nuevas llegadas; la población cayó hasta mediados de 2022.',
   'residents.markerKoreaSplit.title': 'División estadística de Corea',
-  'residents.markerKoreaSplit.description': 'Corea (combinada) pasó a ser series separadas de Corea del Sur y Corea (Chosen) — un cambio de registro, no de población.',
+  'residents.markerKoreaSplit.description':
+    'Corea (combinada) pasó a ser series separadas de Corea del Sur y Corea (Chosen) — un cambio de registro, no de población.',
 
   'statusGroup.work': 'Trabajo',
   'statusGroup.training': 'Formación',

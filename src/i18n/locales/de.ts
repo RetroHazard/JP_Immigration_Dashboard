@@ -10,7 +10,7 @@ import type { Dictionary } from '../types';
 export const de: Dictionary = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': 'Japanische Einwanderungsstatistik',
-  'app.subtitle': 'Bearbeitungsdaten der Ämter von e-Stat, aktualisiert mit jeder Veröffentlichung',
+  'app.subtitle': 'Statistiken zu Antragsbearbeitung und ausländischer Wohnbevölkerung von e-Stat',
   'app.skipToContent': 'Zum Inhalt springen',
   'app.loadingData': 'Einwanderungsdaten werden verarbeitet …',
   'app.loadingDashboard': 'Dashboard wird geladen …',
@@ -22,7 +22,7 @@ export const de: Dictionary = {
   // keep one source of truth, and to be ready for per-locale routes.
   'meta.title': 'Dashboard für japanische Einwanderungsstatistik',
   'meta.description':
-    'Bearbeitungszeiten für Visa, Arbeitsaufkommen der Ämter und ein Warteschlangenmodell zur Schätzung für den eigenen Antrag – basierend auf offiziellen Statistiken der Einwanderungsbehörde, aktualisiert bei jeder Veröffentlichung neuer Daten durch e-Stat (in der Regel monatlich).',
+    'Bearbeitungszeiten für Visa, Arbeitsaufkommen der Ämter, Entwicklung der ausländischen Wohnbevölkerung und ein Warteschlangenmodell zur Schätzung für den eigenen Antrag – basierend auf offiziellen Statistiken der Einwanderungsbehörde, aktualisiert, sobald e-Stat neue Daten veröffentlicht.',
   'meta.keywords':
     'Bearbeitungszeiten für japanische Visa, Statistiken der Einwanderungsämter, Visumantrags-Tracker, Einwanderungsbehörde, e-Stat',
 
@@ -310,7 +310,8 @@ export const de: Dictionary = {
   'policy.feeRevision2025.title': 'Antragsgebühren erhöht',
   'policy.feeRevision2025.description': 'Verlängerungen kosten nun 6.000 Yen, die Niederlassung 10.000 Yen.',
   'policy.businessManager2025.title': 'Regeln für Geschäftsführung verschärft',
-  'policy.businessManager2025.description': 'Mehr Kapital, eine Vollzeitkraft und ein geprüfter Geschäftsplan sind nötig.',
+  'policy.businessManager2025.description':
+    'Mehr Kapital, eine Vollzeitkraft und ein geprüfter Geschäftsplan sind nötig.',
   'policy.residenceCard2026.title': 'Aufenthaltskarte trifft My Number',
   'policy.residenceCard2026.description': 'Kombinierte Aufenthalts- und My-Number-Karten sind im Einsatz.',
   'policy.act2026.title': 'Gebührenobergrenze gesetzlich angehoben',
@@ -350,7 +351,8 @@ export const de: Dictionary = {
   'chart.mix.tooltipValue': '{count} Anträge · {percent} von {scope}',
   'chart.mix.scopeAll': 'allen Anträgen',
   'chart.mix.sunburstHint': '{trail} — {count} Anträge ({percent} der Gesamtzahl)',
-  'chart.sunburst.hintClick': 'Klicken Sie auf ein Segment, um hineinzuzoomen · zum Betrachten den Mauszeiger darüber bewegen',
+  'chart.sunburst.hintClick':
+    'Klicken Sie auf ein Segment, um hineinzuzoomen · zum Betrachten den Mauszeiger darüber bewegen',
   'chart.sunburst.hintTap': 'Tippen Sie auf ein Segment für Details, erneut zum Hineinzoomen',
   'chart.sunburst.zoomOutClick': 'Klicken Sie in die Mitte, um herauszuzoomen',
   'chart.sunburst.zoomOutTap': 'Tippen Sie in die Mitte, um herauszuzoomen',
@@ -550,14 +552,17 @@ export const de: Dictionary = {
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': 'Die Daten zur ausländischen Wohnbevölkerung sind derzeit nicht verfügbar.',
   'charts.growth.label': 'Bevölkerungswachstum',
-  'charts.growth.description': 'Die gesamte ausländische Wohnbevölkerung, Halbjahr für Halbjahr, gestapelt nach Aufenthaltszweck oder nach Weltregion.',
-  'charts.growth.aria': 'Gestapeltes Balkendiagramm der ausländischen Einwohner je Halbjahr, aufgeteilt nach Statusgruppe oder Region',
+  'charts.growth.description':
+    'Die gesamte ausländische Wohnbevölkerung, Halbjahr für Halbjahr, gestapelt nach Aufenthaltszweck oder nach Weltregion.',
+  'charts.growth.aria':
+    'Gestapeltes Balkendiagramm der ausländischen Einwohner je Halbjahr, aufgeteilt nach Statusgruppe oder Region',
   'charts.origins.label': 'Herkunft im Zeitverlauf',
   'charts.origins.description':
     'Wie die größten Staatsangehörigkeiten in jedem erfassten Halbjahr gewachsen oder geschrumpft sind.',
   'charts.origins.aria': 'Gestapeltes Flächendiagramm der Einwohnerzahlen je Staatsangehörigkeit im Zeitverlauf',
   'charts.flows.label': 'Von der Herkunft zum Status',
-  'charts.flows.description': 'Weltregionen fließen über Länder zu den Aufenthaltszwecken — eine Region oder Staatsangehörigkeit wählen, um ihr Profil zu verfolgen.',
+  'charts.flows.description':
+    'Weltregionen fließen über Länder zu den Aufenthaltszwecken — eine Region oder Staatsangehörigkeit wählen, um ihr Profil zu verfolgen.',
   'charts.flows.aria': 'Sankey-Diagramm der Einwohner von Weltregionen über Länder zu Aufenthaltstitel-Kategorien',
   'charts.statuses.label': 'Verteilung der Aufenthaltstitel',
   'charts.statuses.description':
@@ -621,19 +626,26 @@ export const de: Dictionary = {
   'residents.flowsTooltipFlowLabel': 'Strom',
   'residents.sunburstHint': '{trail} — {count} Einwohner ({percent} der Gesamtzahl)',
   'residents.markerResidenceCard.title': 'Aufenthaltskarte eingeführt',
-  'residents.markerResidenceCard.description': 'Die Aufenthaltskarte löste die Ausländerregistrierung ab; hier beginnt die Zählung.',
+  'residents.markerResidenceCard.description':
+    'Die Aufenthaltskarte löste die Ausländerregistrierung ab; hier beginnt die Zählung.',
   'residents.markerReopening.title': 'Grenzen wieder offen',
-  'residents.markerReopening.description': 'Im Oktober 2022 kehrte visumfreies Reisen zurück und die Zahl stieg wieder.',
+  'residents.markerReopening.description':
+    'Im Oktober 2022 kehrte visumfreies Reisen zurück und die Zahl stieg wieder.',
   'residents.markerTraining.title': 'Praktikantenprogramm ersetzt',
-  'residents.markerTraining.description': 'Die Novelle von 2024 schafft die Fachkräfteausbildung und verschärft die Niederlassung.',
+  'residents.markerTraining.description':
+    'Die Novelle von 2024 schafft die Fachkräfteausbildung und verschärft die Niederlassung.',
   'residents.markerBusinessManager.title': 'Regeln für Geschäftsführung verschärft',
-  'residents.markerBusinessManager.description': 'Ab Oktober 2025 braucht es mehr Kapital, eine Vollzeitkraft und einen geprüften Plan.',
+  'residents.markerBusinessManager.description':
+    'Ab Oktober 2025 braucht es mehr Kapital, eine Vollzeitkraft und einen geprüften Plan.',
   'residents.markerSsw.title': 'Start des Specified-Skilled-Worker-Visums',
-  'residents.markerSsw.description': 'Das Visum vom April 2019 öffnete über ein Dutzend Branchen für qualifizierte ausländische Arbeitskräfte.',
+  'residents.markerSsw.description':
+    'Das Visum vom April 2019 öffnete über ein Dutzend Branchen für qualifizierte ausländische Arbeitskräfte.',
   'residents.markerCovid.title': 'COVID-19-Grenzschließung',
-  'residents.markerCovid.description': 'Einreisebeschränkungen stoppten Neuankünfte; die Bevölkerung sank bis Mitte 2022.',
+  'residents.markerCovid.description':
+    'Einreisebeschränkungen stoppten Neuankünfte; die Bevölkerung sank bis Mitte 2022.',
   'residents.markerKoreaSplit.title': 'Statistische Aufteilung Koreas',
-  'residents.markerKoreaSplit.description': 'Korea (kombiniert) wurde in getrennte Reihen für Südkorea und Korea (Chosen) aufgeteilt — eine Änderung der Erfassung, nicht der Bevölkerung.',
+  'residents.markerKoreaSplit.description':
+    'Korea (kombiniert) wurde in getrennte Reihen für Südkorea und Korea (Chosen) aufgeteilt — eine Änderung der Erfassung, nicht der Bevölkerung.',
 
   'statusGroup.work': 'Erwerbstätigkeit',
   'statusGroup.training': 'Ausbildung',

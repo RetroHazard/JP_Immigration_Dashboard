@@ -10,7 +10,7 @@ import type { Dictionary } from '../types';
 export const vi: Dictionary = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': 'Thống Kê Xuất Nhập Cảnh Nhật Bản',
-  'app.subtitle': 'Dữ liệu xử lý của các cục quản lý từ e-Stat, cập nhật theo mỗi lần công bố',
+  'app.subtitle': 'Thống kê xử lý hồ sơ và dân số người nước ngoài cư trú, từ e-Stat',
   'app.skipToContent': 'Bỏ qua đến nội dung chính',
   'app.loadingData': 'Đang xử lý dữ liệu xuất nhập cảnh...',
   'app.loadingDashboard': 'Đang tải bảng điều khiển...',
@@ -22,7 +22,7 @@ export const vi: Dictionary = {
   // keep one source of truth, and to be ready for per-locale routes.
   'meta.title': 'Bảng Điều Khiển Thống Kê Xuất Nhập Cảnh Nhật Bản',
   'meta.description':
-    'Thời gian xử lý visa, khối lượng công việc của các cục quản lý, và công cụ ước tính theo mô hình hàng đợi cho hồ sơ của bạn - xây dựng dựa trên số liệu thống kê chính thức của Cục Quản lý Xuất nhập cảnh và Lưu trú, cập nhật mỗi khi e-Stat công bố dữ liệu mới (thường là hàng tháng).',
+    'Thời gian xử lý visa, khối lượng công việc của các cục quản lý, diễn biến dân số người nước ngoài cư trú, và công cụ ước tính theo mô hình hàng đợi cho hồ sơ của bạn - xây dựng dựa trên số liệu thống kê chính thức của Cục Quản lý Xuất nhập cảnh và Lưu trú, cập nhật khi e-Stat công bố dữ liệu mới.',
   'meta.keywords':
     'thời gian xử lý visa Nhật Bản, thống kê cục quản lý xuất nhập cảnh, theo dõi hồ sơ xin visa, Cục Quản lý Xuất nhập cảnh và Lưu trú, e-Stat',
 
@@ -276,11 +276,13 @@ export const vi: Dictionary = {
   'policy.eventsShow': 'Hiện các sự kiện chính sách',
   'policy.eventsHide': 'Ẩn các sự kiện chính sách',
   'policy.ssw2019.title': 'Lập tư cách Kỹ năng đặc định',
-  'policy.ssw2019.description': 'Tư cách cho các ngành thiếu nhân lực; cơ quan quản lý xuất nhập cảnh ra đời cùng ngày.',
+  'policy.ssw2019.description':
+    'Tư cách cho các ngành thiếu nhân lực; cơ quan quản lý xuất nhập cảnh ra đời cùng ngày.',
   'policy.covidClosure.title': 'Hạn chế nhập cảnh thời dịch',
   'policy.covidClosure.description': 'Diện từ chối nhập cảnh mở rộng ra gần như toàn thế giới.',
   'policy.covidSuspension.title': 'Dừng nhập cảnh mới toàn cầu',
-  'policy.covidSuspension.description': 'Từ cuối tháng 12, không người nước ngoài nào được nhập cảnh mới, dù có thị thực.',
+  'policy.covidSuspension.description':
+    'Từ cuối tháng 12, không người nước ngoài nào được nhập cảnh mới, dù có thị thực.',
   'policy.covidOmicron.title': 'Đảo ngược mở cửa vì Omicron',
   'policy.covidOmicron.description': 'Việc nhập cảnh mở lại ngày 8 tháng 11 bị dừng lại sau ba tuần.',
   'policy.covidResume.title': 'Đón lại du học sinh và lao động',
@@ -565,14 +567,17 @@ export const vi: Dictionary = {
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': 'Hiện chưa tải được dữ liệu về người nước ngoài cư trú.',
   'charts.growth.label': 'Tăng trưởng dân số',
-  'charts.growth.description': 'Tổng số cư dân nước ngoài theo từng nửa năm, xếp chồng theo mục đích lưu trú hoặc theo khu vực trên thế giới.',
-  'charts.growth.aria': 'Biểu đồ cột chồng về tổng số cư dân nước ngoài mỗi nửa năm, chia theo nhóm tư cách lưu trú hoặc khu vực',
+  'charts.growth.description':
+    'Tổng số cư dân nước ngoài theo từng nửa năm, xếp chồng theo mục đích lưu trú hoặc theo khu vực trên thế giới.',
+  'charts.growth.aria':
+    'Biểu đồ cột chồng về tổng số cư dân nước ngoài mỗi nửa năm, chia theo nhóm tư cách lưu trú hoặc khu vực',
   'charts.origins.label': 'Quốc tịch theo thời gian',
   'charts.origins.description':
     'Các quốc tịch đông nhất đã tăng hay giảm ra sao qua từng nửa năm mà thống kê ghi nhận.',
   'charts.origins.aria': 'Biểu đồ vùng chồng thể hiện số người cư trú theo quốc tịch qua thời gian',
   'charts.flows.label': 'Từ quốc tịch đến tư cách lưu trú',
-  'charts.flows.description': 'Từ khu vực trên thế giới qua từng quốc gia đến mục đích lưu trú — chọn khu vực hoặc quốc tịch để theo dõi hồ sơ.',
+  'charts.flows.description':
+    'Từ khu vực trên thế giới qua từng quốc gia đến mục đích lưu trú — chọn khu vực hoặc quốc tịch để theo dõi hồ sơ.',
   'charts.flows.aria': 'Sơ đồ Sankey thể hiện cư dân từ khu vực thế giới qua quốc gia vào các danh mục tư cách lưu trú',
   'charts.statuses.label': 'Cơ cấu tư cách lưu trú',
   'charts.statuses.description':
@@ -635,19 +640,25 @@ export const vi: Dictionary = {
   'residents.flowsTooltipFlowLabel': 'Dòng chảy',
   'residents.sunburstHint': '{trail} — {count} cư dân ({percent} tổng số)',
   'residents.markerResidenceCard.title': 'Bắt đầu chế độ thẻ cư trú',
-  'residents.markerResidenceCard.description': 'Thẻ cư trú thay cho đăng ký người nước ngoài; thống kê này bắt đầu từ đó.',
+  'residents.markerResidenceCard.description':
+    'Thẻ cư trú thay cho đăng ký người nước ngoài; thống kê này bắt đầu từ đó.',
   'residents.markerReopening.title': 'Mở lại biên giới',
   'residents.markerReopening.description': 'Đi lại miễn thị thực trở lại vào tháng 10 năm 2022 và dân số lại tăng.',
   'residents.markerTraining.title': 'Thay thế thực tập kỹ năng',
-  'residents.markerTraining.description': 'Lần sửa đổi năm 2024 lập chương trình đào tạo mới và siết điều kiện vĩnh trú.',
+  'residents.markerTraining.description':
+    'Lần sửa đổi năm 2024 lập chương trình đào tạo mới và siết điều kiện vĩnh trú.',
   'residents.markerBusinessManager.title': 'Siết chặt quy định Kinh doanh quản lý',
-  'residents.markerBusinessManager.description': 'Từ tháng 10 năm 2025 cần vốn lớn hơn, nhân viên toàn thời gian và kế hoạch được thẩm định.',
+  'residents.markerBusinessManager.description':
+    'Từ tháng 10 năm 2025 cần vốn lớn hơn, nhân viên toàn thời gian và kế hoạch được thẩm định.',
   'residents.markerSsw.title': 'Ra mắt visa Kỹ năng đặc định',
-  'residents.markerSsw.description': 'Loại visa tháng 4/2019 mở hơn một chục ngành nghề cho lao động nước ngoài có tay nghề.',
+  'residents.markerSsw.description':
+    'Loại visa tháng 4/2019 mở hơn một chục ngành nghề cho lao động nước ngoài có tay nghề.',
   'residents.markerCovid.title': 'Đóng cửa biên giới vì COVID-19',
-  'residents.markerCovid.description': 'Hạn chế nhập cảnh khiến người mới đến ngừng lại; dân số giảm cho đến giữa năm 2022.',
+  'residents.markerCovid.description':
+    'Hạn chế nhập cảnh khiến người mới đến ngừng lại; dân số giảm cho đến giữa năm 2022.',
   'residents.markerKoreaSplit.title': 'Tách thống kê Hàn Quốc / Triều Tiên',
-  'residents.markerKoreaSplit.description': 'Mục Hàn Quốc·Triều Tiên gộp chung tách thành hai chuỗi Hàn Quốc và Triều Tiên — thay đổi cách thống kê, không phải biến động dân số.',
+  'residents.markerKoreaSplit.description':
+    'Mục Hàn Quốc·Triều Tiên gộp chung tách thành hai chuỗi Hàn Quốc và Triều Tiên — thay đổi cách thống kê, không phải biến động dân số.',
 
   'statusGroup.work': 'Lao động',
   'statusGroup.training': 'Thực tập',

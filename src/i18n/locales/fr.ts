@@ -8,7 +8,7 @@ import type { Dictionary } from '../types';
 export const fr: Dictionary = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': "Statistiques de l'immigration japonaise",
-  'app.subtitle': 'Données de traitement des bureaux fournies par e-Stat, mises à jour à chaque publication',
+  'app.subtitle': 'Statistiques de traitement des demandes et de population résidente étrangère, fournies par e-Stat',
   'app.skipToContent': 'Passer au contenu',
   'app.loadingData': "Analyse des données d'immigration en cours...",
   'app.loadingDashboard': 'Chargement du tableau de bord...',
@@ -20,7 +20,7 @@ export const fr: Dictionary = {
   // keep one source of truth, and to be ready for per-locale routes.
   'meta.title': "Tableau de bord des statistiques de l'immigration japonaise",
   'meta.description':
-    "Délais de traitement des visas, charge de travail des bureaux et un estimateur basé sur un modèle de file d'attente pour votre propre demande - fondé sur les statistiques officielles de l'Agence des services de l'immigration, mis à jour à chaque nouvelle publication d'e-Stat (généralement mensuelle).",
+    "Délais de traitement des visas, charge de travail des bureaux, évolution de la population résidente étrangère et un estimateur basé sur un modèle de file d'attente pour votre propre demande - fondé sur les statistiques officielles de l'Agence des services de l'immigration, mis à jour au fil des publications d'e-Stat.",
   'meta.keywords':
     "Délais de traitement des visas au Japon, statistiques des bureaux d'immigration, suivi de demande de visa, Agence des services de l'immigration, e-Stat",
 
@@ -292,19 +292,23 @@ export const fr: Dictionary = {
   'policy.covidOmicron.title': 'Réouverture annulée pour Omicron',
   'policy.covidOmicron.description': 'L’entrée rouverte le 8 novembre a été refermée trois semaines plus tard.',
   'policy.covidResume.title': 'Retour des étudiants et des salariés',
-  'policy.covidResume.description': 'Entrées rouvertes pour les études, le travail et les affaires, sous quota journalier.',
+  'policy.covidResume.description':
+    'Entrées rouvertes pour les études, le travail et les affaires, sous quota journalier.',
   'policy.covidVisaFree.title': 'Retour des voyages sans visa',
   'policy.covidVisaFree.description': 'Les exemptions de visa sont revenues et le quota journalier a été supprimé.',
   'policy.covidCoe.title': 'Validité des certificats prolongée',
-  'policy.covidCoe.description': 'Les certificats bloqués par la fermeture sont restés valables bien au-delà de trois mois.',
+  'policy.covidCoe.description':
+    'Les certificats bloqués par la fermeture sont restés valables bien au-delà de trois mois.',
   'policy.covidEnd.title': 'Fin des mesures aux frontières',
   'policy.covidEnd.description': 'Tests et preuves de vaccination supprimés, la maladie passe en classe 5.',
   'policy.act2023.title': 'Révision de la loi sur l’immigration',
-  'policy.act2023.description': 'Ajout de mesures de surveillance en lieu et place de la rétention et d’une protection complémentaire.',
+  'policy.act2023.description':
+    'Ajout de mesures de surveillance en lieu et place de la rétention et d’une protection complémentaire.',
   'policy.digitalNomad.title': 'Statut pour les nomades numériques',
   'policy.digitalNomad.description': 'Un statut de six mois pour les télétravailleurs et leur famille.',
   'policy.sswExpansion.title': 'Élargissement du Travailleur Qualifié',
-  'policy.sswExpansion.description': 'Une décision du conseil des ministres a ajouté quatre secteurs et de nouveaux quotas.',
+  'policy.sswExpansion.description':
+    'Une décision du conseil des ministres a ajouté quatre secteurs et de nouveaux quotas.',
   'policy.act2023Effect.title': 'Entrée en vigueur des règles d’éloignement',
   'policy.act2023Effect.description': 'Les principales dispositions de la révision de 2023 sont entrées en vigueur.',
   'policy.act2024.title': 'Remplacement du stage technique',
@@ -353,7 +357,7 @@ export const fr: Dictionary = {
   'chart.mix.scopeAll': "l'ensemble des demandes",
   'chart.mix.sunburstHint': '{trail} — {count} demandes ({percent} du total)',
   'chart.sunburst.hintClick': "Cliquez sur un segment pour zoomer · survolez pour l'examiner",
-  'chart.sunburst.hintTap': 'Touchez un segment pour l\'examiner, touchez à nouveau pour zoomer',
+  'chart.sunburst.hintTap': "Touchez un segment pour l'examiner, touchez à nouveau pour zoomer",
   'chart.sunburst.zoomOutClick': 'Cliquez au centre pour dézoomer',
   'chart.sunburst.zoomOutTap': 'Touchez le centre pour dézoomer',
 
@@ -553,15 +557,19 @@ export const fr: Dictionary = {
   'dataset.residentsUnavailable':
     'Les données sur la population résidente étrangère sont indisponibles pour le moment.',
   'charts.growth.label': 'Croissance de la population',
-  'charts.growth.description': 'L’ensemble de la population résidente étrangère, semestre par semestre, empilée par motif de séjour ou par région du monde.',
-  'charts.growth.aria': 'Histogramme empilé du total des résidents étrangers par semestre, réparti par groupe de statut ou par région',
+  'charts.growth.description':
+    'L’ensemble de la population résidente étrangère, semestre par semestre, empilée par motif de séjour ou par région du monde.',
+  'charts.growth.aria':
+    'Histogramme empilé du total des résidents étrangers par semestre, réparti par groupe de statut ou par région',
   'charts.origins.label': 'Origines dans le temps',
   'charts.origins.description':
     'Comment les principales nationalités ont progressé ou reculé sur chaque semestre couvert par les statistiques.',
   'charts.origins.aria': 'Graphique en aires empilées du nombre de résidents par nationalité au fil du temps',
   'charts.flows.label': 'Des origines aux statuts',
-  'charts.flows.description': 'Des régions du monde aux motifs de séjour en passant par les pays — choisissez une région ou une nationalité pour suivre son profil.',
-  'charts.flows.aria': 'Diagramme de Sankey des résidents allant des régions du monde, via les pays, vers les catégories de statut de résidence',
+  'charts.flows.description':
+    'Des régions du monde aux motifs de séjour en passant par les pays — choisissez une région ou une nationalité pour suivre son profil.',
+  'charts.flows.aria':
+    'Diagramme de Sankey des résidents allant des régions du monde, via les pays, vers les catégories de statut de résidence',
   'charts.statuses.label': 'Répartition des statuts de séjour',
   'charts.statuses.description':
     'Les titres de séjour détenus, regroupés par motif de séjour — cliquez sur un groupe pour le détailler.',
@@ -624,19 +632,26 @@ export const fr: Dictionary = {
   'residents.flowsTooltipFlowLabel': 'Flux',
   'residents.sunburstHint': '{trail} — {count} résidents ({percent} du total)',
   'residents.markerResidenceCard.title': 'Début de la carte de séjour',
-  'residents.markerResidenceCard.description': 'La carte de séjour remplace l’enregistrement des étrangers ; le décompte part de là.',
+  'residents.markerResidenceCard.description':
+    'La carte de séjour remplace l’enregistrement des étrangers ; le décompte part de là.',
   'residents.markerReopening.title': 'Réouverture des frontières',
-  'residents.markerReopening.description': 'Le voyage sans visa revient en octobre 2022 et la population repart à la hausse.',
+  'residents.markerReopening.description':
+    'Le voyage sans visa revient en octobre 2022 et la population repart à la hausse.',
   'residents.markerTraining.title': 'Remplacement du stage technique',
-  'residents.markerTraining.description': 'La révision de 2024 crée la nouvelle formation et durcit la résidence permanente.',
+  'residents.markerTraining.description':
+    'La révision de 2024 crée la nouvelle formation et durcit la résidence permanente.',
   'residents.markerBusinessManager.title': 'Règles de gestion renforcées',
-  'residents.markerBusinessManager.description': 'Dès octobre 2025, il faut plus de capital, un salarié à temps plein et un plan validé.',
+  'residents.markerBusinessManager.description':
+    'Dès octobre 2025, il faut plus de capital, un salarié à temps plein et un plan validé.',
   'residents.markerSsw.title': 'Lancement du visa Specified Skilled Worker',
-  'residents.markerSsw.description': 'Le visa d’avril 2019 a ouvert plus d’une douzaine de secteurs aux travailleurs étrangers qualifiés.',
+  'residents.markerSsw.description':
+    'Le visa d’avril 2019 a ouvert plus d’une douzaine de secteurs aux travailleurs étrangers qualifiés.',
   'residents.markerCovid.title': 'Fermeture des frontières (COVID-19)',
-  'residents.markerCovid.description': 'Les restrictions d’entrée ont gelé les nouvelles arrivées ; la population a reculé jusqu’à la mi-2022.',
+  'residents.markerCovid.description':
+    'Les restrictions d’entrée ont gelé les nouvelles arrivées ; la population a reculé jusqu’à la mi-2022.',
   'residents.markerKoreaSplit.title': 'Scission statistique de la Corée',
-  'residents.markerKoreaSplit.description': 'La Corée (combinée) est devenue deux séries distinctes, Corée du Sud et Corée (Chosen) — un changement de comptage, pas de population.',
+  'residents.markerKoreaSplit.description':
+    'La Corée (combinée) est devenue deux séries distinctes, Corée du Sud et Corée (Chosen) — un changement de comptage, pas de population.',
 
   'statusGroup.work': 'Travail',
   'statusGroup.training': 'Formation',

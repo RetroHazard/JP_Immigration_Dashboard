@@ -10,7 +10,7 @@ import type { Dictionary } from '../types';
 export const tl: Dictionary = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': 'Estadistika ng Imigrasyon sa Japan',
-  'app.subtitle': 'Datos ng pagproseso ng mga tanggapan mula sa e-Stat, ina-update sa bawat paglabas',
+  'app.subtitle': 'Estadistika ng pagproseso ng aplikasyon at ng populasyon ng dayuhang residente, mula sa e-Stat',
   'app.skipToContent': 'Lumaktaw sa nilalaman',
   'app.loadingData': 'Pinoproseso ang Datos ng Imigrasyon...',
   'app.loadingDashboard': 'Ikinakarga ang Dashboard...',
@@ -22,7 +22,7 @@ export const tl: Dictionary = {
   // keep one source of truth, and to be ready for per-locale routes.
   'meta.title': 'Dashboard ng Estadistika ng Imigrasyon sa Japan',
   'meta.description':
-    'Mga oras ng pagproseso ng visa, dami ng trabaho ng mga tanggapan, at isang queue-model na tagatantiya para sa iyong sariling aplikasyon - batay sa opisyal na estadistika ng Immigration Services Agency, ina-update sa tuwing maglabas ng bagong datos ang e-Stat (karaniwan ay buwan-buwan).',
+    'Mga oras ng pagproseso ng visa, dami ng trabaho ng mga tanggapan, takbo ng populasyon ng mga dayuhang residente, at isang queue-model na tagatantiya para sa iyong sariling aplikasyon - batay sa opisyal na estadistika ng Immigration Services Agency, ina-update kapag naglabas ng bagong datos ang e-Stat.',
   'meta.keywords':
     'mga oras ng pagproseso ng visa sa Japan, estadistika ng tanggapan ng imigrasyon, tracker ng aplikasyon ng visa, Immigration Services Agency, e-Stat',
 
@@ -284,19 +284,23 @@ export const tl: Dictionary = {
   'policy.eventsShow': 'Ipakita ang mga pangyayaring pampatakaran',
   'policy.eventsHide': 'Itago ang mga pangyayaring pampatakaran',
   'policy.ssw2019.title': 'Nilikha ang Specified Skilled Worker',
-  'policy.ssw2019.description': 'Status para sa mga industriyang kulang sa tao; nabuo rin ang ahensiya nang araw ding iyon.',
+  'policy.ssw2019.description':
+    'Status para sa mga industriyang kulang sa tao; nabuo rin ang ahensiya nang araw ding iyon.',
   'policy.covidClosure.title': 'Pagbabawal sa pagpasok dahil sa pandemya',
   'policy.covidClosure.description': 'Lumawak sa halos buong mundo ang pagtanggi sa pagpasok.',
   'policy.covidSuspension.title': 'Itinigil ang bagong pagpasok sa buong mundo',
   'policy.covidSuspension.description': 'Mula huling bahagi ng Disyembre, walang bagong makakapasok kahit may bisa.',
   'policy.covidOmicron.title': 'Binawi ang pagbubukas dahil sa Omicron',
-  'policy.covidOmicron.description': 'Ang pagpasok na binuksan noong 8 Nobyembre ay muling isinara makalipas ang tatlong linggo.',
+  'policy.covidOmicron.description':
+    'Ang pagpasok na binuksan noong 8 Nobyembre ay muling isinara makalipas ang tatlong linggo.',
   'policy.covidResume.title': 'Muling tinanggap ang mga estudyante at manggagawa',
-  'policy.covidResume.description': 'Muling binuksan ang pagpasok para sa pag-aaral, trabaho at negosyo, may pang-araw-araw na limitasyon.',
+  'policy.covidResume.description':
+    'Muling binuksan ang pagpasok para sa pag-aaral, trabaho at negosyo, may pang-araw-araw na limitasyon.',
   'policy.covidVisaFree.title': 'Bumalik ang biyaheng walang bisa',
   'policy.covidVisaFree.description': 'Bumalik ang exemption sa bisa at inalis ang pang-araw-araw na limitasyon.',
   'policy.covidCoe.title': 'Pinalawig ang bisa ng sertipiko',
-  'policy.covidCoe.description': 'Ang mga sertipikong naipit dahil sa pagsasara ay nanatiling balido nang lampas tatlong buwan.',
+  'policy.covidCoe.description':
+    'Ang mga sertipikong naipit dahil sa pagsasara ay nanatiling balido nang lampas tatlong buwan.',
   'policy.covidEnd.title': 'Natapos ang mga hakbang sa hangganan',
   'policy.covidEnd.description': 'Tumigil ang pagsusuri at patunay ng bakuna, at naging Class 5 na ang sakit.',
   'policy.act2023.title': 'Nirebisa ang batas sa imigrasyon',
@@ -310,9 +314,11 @@ export const tl: Dictionary = {
   'policy.act2024.title': 'Pinalitan ang technical intern training',
   'policy.act2024.description': 'Mula 2027, papalitan ng bagong programa ang technical intern training.',
   'policy.feeRevision2025.title': 'Itinaas ang bayad sa aplikasyon',
-  'policy.feeRevision2025.description': 'Umakyat sa 6,000 yen ang extension at 10,000 yen ang permanenteng paninirahan.',
+  'policy.feeRevision2025.description':
+    'Umakyat sa 6,000 yen ang extension at 10,000 yen ang permanenteng paninirahan.',
   'policy.businessManager2025.title': 'Hinigpitan ang panuntunan sa Business Manager',
-  'policy.businessManager2025.description': 'Kailangan ng mas malaking kapital, full-time na empleyado at beripikadong plano.',
+  'policy.businessManager2025.description':
+    'Kailangan ng mas malaking kapital, full-time na empleyado at beripikadong plano.',
   'policy.residenceCard2026.title': 'Pinagsama ang residence card at My Number',
   'policy.residenceCard2026.description': 'Nagsimula na ang pinagsamang residence at My Number card.',
   'policy.act2026.title': 'Itinaas ang legal na limitasyon ng bayad',
@@ -564,16 +570,20 @@ export const tl: Dictionary = {
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': 'Hindi makuha sa ngayon ang datos tungkol sa dayuhang naninirahan.',
   'charts.growth.label': 'Paglago ng Populasyon',
-  'charts.growth.description': 'Ang kabuuang bilang ng mga dayuhang residente kada kalahating taon, nakasalansan ayon sa layunin ng pananatili o ayon sa rehiyon ng mundo.',
-  'charts.growth.aria': 'Stacked bar chart ng kabuuang dayuhang residente kada kalahating taon, hati ayon sa grupo ng status o rehiyon',
+  'charts.growth.description':
+    'Ang kabuuang bilang ng mga dayuhang residente kada kalahating taon, nakasalansan ayon sa layunin ng pananatili o ayon sa rehiyon ng mundo.',
+  'charts.growth.aria':
+    'Stacked bar chart ng kabuuang dayuhang residente kada kalahating taon, hati ayon sa grupo ng status o rehiyon',
   'charts.origins.label': 'Pinagmulan sa paglipas ng panahon',
   'charts.origins.description':
     'Kung paano lumaki o lumiit ang pinakamalalaking nasyonalidad sa bawat kalahating taon na saklaw ng estadistika.',
   'charts.origins.aria':
     'Nakasalansang area chart ng bilang ng naninirahan ayon sa nasyonalidad sa paglipas ng panahon',
   'charts.flows.label': 'Mula Nasyonalidad Patungong Status',
-  'charts.flows.description': 'Mula sa mga rehiyon ng mundo, dumadaan sa mga bansa, patungo sa layunin ng pananatili — pumili ng rehiyon o nasyonalidad para masundan ang profile nito.',
-  'charts.flows.aria': 'Sankey diagram ng mga residenteng dumadaloy mula sa mga rehiyon ng mundo, dumadaan sa mga bansa, patungo sa mga kategorya ng residence status',
+  'charts.flows.description':
+    'Mula sa mga rehiyon ng mundo, dumadaan sa mga bansa, patungo sa layunin ng pananatili — pumili ng rehiyon o nasyonalidad para masundan ang profile nito.',
+  'charts.flows.aria':
+    'Sankey diagram ng mga residenteng dumadaloy mula sa mga rehiyon ng mundo, dumadaan sa mga bansa, patungo sa mga kategorya ng residence status',
   'charts.statuses.label': 'Kabuuan ng katayuan sa paninirahan',
   'charts.statuses.description':
     'Anong visa ang hawak ng mga naninirahan, nakagrupo ayon sa layunin ng pananatili — pindutin ang isang grupo para lumawak.',
@@ -637,19 +647,26 @@ export const tl: Dictionary = {
   'residents.flowsTooltipFlowLabel': 'Daloy',
   'residents.sunburstHint': '{trail} — {count} residente ({percent} ng kabuuan)',
   'residents.markerResidenceCard.title': 'Nagsimula ang residence card',
-  'residents.markerResidenceCard.description': 'Pinalitan ng residence card ang alien registration; dito nagsisimula ang bilang na ito.',
+  'residents.markerResidenceCard.description':
+    'Pinalitan ng residence card ang alien registration; dito nagsisimula ang bilang na ito.',
   'residents.markerReopening.title': 'Muling nagbukas ang hangganan',
-  'residents.markerReopening.description': 'Bumalik ang biyaheng walang bisa noong Oktubre 2022 at muling lumago ang populasyon.',
+  'residents.markerReopening.description':
+    'Bumalik ang biyaheng walang bisa noong Oktubre 2022 at muling lumago ang populasyon.',
   'residents.markerTraining.title': 'Pinalitan ang technical intern training',
-  'residents.markerTraining.description': 'Ang rebisyon noong 2024 ay lumilikha ng bagong programa at naghihigpit sa permanenteng paninirahan.',
+  'residents.markerTraining.description':
+    'Ang rebisyon noong 2024 ay lumilikha ng bagong programa at naghihigpit sa permanenteng paninirahan.',
   'residents.markerBusinessManager.title': 'Hinigpitan ang panuntunan sa Business Manager',
-  'residents.markerBusinessManager.description': 'Mula Oktubre 2025, kailangan ng mas malaking kapital, full-time na empleyado at beripikadong plano.',
+  'residents.markerBusinessManager.description':
+    'Mula Oktubre 2025, kailangan ng mas malaking kapital, full-time na empleyado at beripikadong plano.',
   'residents.markerSsw.title': 'Paglulunsad ng Specified Skilled Worker',
-  'residents.markerSsw.description': 'Binuksan ng visa noong Abril 2019 ang mahigit isang dosenang industriya para sa mga skilled na dayuhang manggagawa.',
+  'residents.markerSsw.description':
+    'Binuksan ng visa noong Abril 2019 ang mahigit isang dosenang industriya para sa mga skilled na dayuhang manggagawa.',
   'residents.markerCovid.title': 'Pagsasara ng border dahil sa COVID-19',
-  'residents.markerCovid.description': 'Huminto ang mga bagong dating dahil sa entry restrictions; bumaba ang populasyon hanggang kalagitnaan ng 2022.',
+  'residents.markerCovid.description':
+    'Huminto ang mga bagong dating dahil sa entry restrictions; bumaba ang populasyon hanggang kalagitnaan ng 2022.',
   'residents.markerKoreaSplit.title': 'Paghahati ng estadistika ng Korea',
-  'residents.markerKoreaSplit.description': 'Ang pinagsamang Korea ay naging magkahiwalay na serye ng South Korea at Korea (Chosen) — pagbabago sa pag-uulat, hindi sa populasyon.',
+  'residents.markerKoreaSplit.description':
+    'Ang pinagsamang Korea ay naging magkahiwalay na serye ng South Korea at Korea (Chosen) — pagbabago sa pag-uulat, hindi sa populasyon.',
 
   'statusGroup.work': 'Trabaho',
   'statusGroup.training': 'Pagsasanay',
