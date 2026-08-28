@@ -2,7 +2,7 @@
 
 All notable user-facing changes to the Japan Immigration Bureaus Statistics Dashboard are documented in this file, grouped by month. The dashboard's header shows the currently deployed version.
 
-## 2026-08
+## 2026-09
 
 ### Added
 
@@ -14,6 +14,52 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - A marker only appears while its period is in view, so widening the range uncovers more of them
 
 - **v1.5.1**: The Regional Map has a data table of its own — all 47 prefectures with their servicing bureau, population, area and density, downloadable as CSV. It's the reference geography the map is shaded from, and the only chart whose table shows figures the picture itself can't be read for
+
+### Changed
+
+- **v1.6.3**: Each month in this changelog is now a section you can fold away. The newest release is open when the dialog appears and the months behind it are listed as headers, so what shipped last is readable without scrolling past it, and the history is a list you can pick from rather than one continuous page. Expand all opens every month at once when you want to read or search the whole thing
+
+- **v1.6.2**: A downloaded CSV is now named for what it contains — `immigration-stats_intake_fukuoka_ext_12.csv` where it used to read `immigration-stats_intake_101720_20_12.csv`. The bureau and application type were written as the statistics bureau's own code numbers, which say nothing to whoever opens the file or sorts a folder of them; they now carry the bureau's name and the type's short form, in lowercase. The contents are unchanged, and the name stays English like the file itself, whatever language the dashboard is in
+
+- **v1.5.3**: **Intake & Processing** now tracks the approval rate over time, alongside what it already showed —
+  - The share of processed applications that were granted is drawn as a second line, on its own axis fixed at 0–100% so a month reads the same however the volume scale moves underneath it. Until now the approval rate only existed as a single figure for a whole period, on the Outcomes tab and in the stats cards; there was no way to see whether it was moving
+  - It uses the same definition as those two — granted out of everything processed — so all three agree for any one bureau and application type
+  - Everything else about the chart is unchanged: stacked bars for carried-over and newly received applications, with completed volume as a line on the same axis. The second axis is a genuinely different unit rather than the two identical volume axes an earlier version of this chart had
+  - The month-by-month breakdown of what processing actually decided — granted, denied, other — stays in the collapsible data table below the chart, which carries all six figures as text or CSV
+
+- **v1.5.2**: The estimator's "Show the math" breakdown now shows how every figure in it is reached, not just the last three steps —
+  - Five steps instead of three, ordered so that no symbol is used before the step that defines it. The daily processing rate used to be introduced in step 2 and then relied on by step 1
+  - Each derived value now shows its own working — the carry-over, the pro-rated figures for your application month, the processed-since totals, and the ± spread beside the result, none of which had a formula before
+  - The model takes a different route in three places, depending on whether the month before yours is published, whether your own application month is, and how far past the data your application sits. The breakdown shows the route your estimate actually took rather than a general form
+  - Figures inside the formulas now use your own language's digit grouping and decimal mark, rather than always the English ones
+  - Opening the breakdown folds the bureau, type and date inputs away, leaving a single row naming the three you picked — tap it to bring them back. The derivation is long enough that on a phone it otherwise started below the fold
+
+### Fixed
+
+- **v1.6.1**: Hovering a policy marker now reads the month underneath it, exactly as hovering the bar does —
+  - The marker sits directly over the column it annotates, and pointing at it made the tooltip disappear rather than describe that month, leaving a dead spot on the one place a reader is most likely to aim
+  - Pointing at the marker's icon read the wrong month entirely — the first period on the chart rather than its own
+  - On a touchscreen, tapping a marker now pins its month the same way tapping its bar does
+
+- **v1.5.4**: Lines on the time-series charts no longer get stranded when the figures behind them change scale —
+  - Picking a bureau or an application type can move the y-axis by orders of magnitude — the nationwide total against one office's caseload. The axis rescaled, the bars followed, but a line could stay drawn against the old scale, usually flattened along the bottom of the plot. Hovering it gave the right number in the right place, which made the line itself look broken rather than stale
+  - The axis rescale is animated, and each of its frames was interrupting the line's own redraw and leaving it holding the previous scale's positions. The two now run together, so a line follows its axis down as it rescales instead of being left behind by it
+  - This affected every chart drawing a line, and had done for some time; it showed up intermittently because it depended on which animation won the race
+
+- **v1.5.2**: The queue position shown in the estimator's breakdown now matches the subtraction printed above it. The two applications-processed figures were each rounded on their own before being subtracted, while the total they were taken from rounded them together, so the arithmetic on screen could land one short of the answer beside it.
+
+- **v1.5.1**: The data table under each Application Processing chart now describes that chart, instead of the same intake figures appearing beneath all seven —
+  - Under **Application Types** the table had no application-type column at all: its "Received" figure was the six plotted lines added together, and the types themselves appeared nowhere. There is now one column per application type, matching the lines above it
+  - **Bureau Share** and **Processing Efficiency** break down by bureau, as their charts do, rather than collapsing to the single nationwide row. Bureau Share lists each bureau's intake and its share of the total — including the smaller ones the donut folds into its "Other" slice — and Processing Efficiency lists received, processed, and completion rate in the ranking's own order
+  - **Category Mix** is now the treemap's bureau-by-type grid, and **Outcomes** carries the granted/denied/withdrawn split per application type that the sankey draws, alongside its approval rate
+  - The **Regional Map** showed monthly application counts unrelated to anything on screen. It now lists each prefecture's servicing bureau alongside the population, area and density the shading comes from
+  - **Intake & Processing** is unchanged — it was the one chart the old table already described
+  - Read with a screen reader, each table now announces itself by the chart it belongs to — "Showing Bureau Share for Nationwide" — where all seven used to read "Monthly application statistics for …" regardless of what was above them
+  - Each chart's CSV now downloads under its own name with its own columns, where every tab used to produce an identical file. Fields are quoted, so a value containing a comma can no longer split a row
+
+## 2026-08
+
+### Added
 
 - **v1.4.4**: The header now links to the project's source repository, next to the theme toggle on desktop and under About in the mobile settings drawer
 
@@ -46,21 +92,6 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Changed
 
-- **v1.6.2**: A downloaded CSV is now named for what it contains — `immigration-stats_intake_fukuoka_ext_12.csv` where it used to read `immigration-stats_intake_101720_20_12.csv`. The bureau and application type were written as the statistics bureau's own code numbers, which say nothing to whoever opens the file or sorts a folder of them; they now carry the bureau's name and the type's short form, in lowercase. The contents are unchanged, and the name stays English like the file itself, whatever language the dashboard is in
-
-- **v1.5.3**: **Intake & Processing** now tracks the approval rate over time, alongside what it already showed —
-  - The share of processed applications that were granted is drawn as a second line, on its own axis fixed at 0–100% so a month reads the same however the volume scale moves underneath it. Until now the approval rate only existed as a single figure for a whole period, on the Outcomes tab and in the stats cards; there was no way to see whether it was moving
-  - It uses the same definition as those two — granted out of everything processed — so all three agree for any one bureau and application type
-  - Everything else about the chart is unchanged: stacked bars for carried-over and newly received applications, with completed volume as a line on the same axis. The second axis is a genuinely different unit rather than the two identical volume axes an earlier version of this chart had
-  - The month-by-month breakdown of what processing actually decided — granted, denied, other — stays in the collapsible data table below the chart, which carries all six figures as text or CSV
-
-- **v1.5.2**: The estimator's "Show the math" breakdown now shows how every figure in it is reached, not just the last three steps —
-  - Five steps instead of three, ordered so that no symbol is used before the step that defines it. The daily processing rate used to be introduced in step 2 and then relied on by step 1
-  - Each derived value now shows its own working — the carry-over, the pro-rated figures for your application month, the processed-since totals, and the ± spread beside the result, none of which had a formula before
-  - The model takes a different route in three places, depending on whether the month before yours is published, whether your own application month is, and how far past the data your application sits. The breakdown shows the route your estimate actually took rather than a general form
-  - Figures inside the formulas now use your own language's digit grouping and decimal mark, rather than always the English ones
-  - Opening the breakdown folds the bureau, type and date inputs away, leaving a single row naming the three you picked — tap it to bring them back. The derivation is long enough that on a phone it otherwise started below the fold
-
 - **v1.5.0**: On phones and tablets, chart tooltips are now opened by tapping rather than by holding a finger down —
   - Holding was the only way to see a value, and letting go dismissed it, so a reading could never be held still long enough to compare against anything. A tap now pins the tooltip open; tap the same point again to close it, or another point to move it. Tapping outside the chart, scrolling, or opening a tooltip on a different chart also closes it, so only ever one is on screen
   - Most charts had no touch handling at all and were relying on the mouse events a browser invents after a tap. That is why a tooltip would sometimes flash and vanish, or stay stuck on the wrong point: the map, both sankeys, the bureau-share ring, the treemap, and the efficiency ranking are all covered now
@@ -78,31 +109,12 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
-- **v1.6.1**: Hovering a policy marker now reads the month underneath it, exactly as hovering the bar does —
-  - The marker sits directly over the column it annotates, and pointing at it made the tooltip disappear rather than describe that month, leaving a dead spot on the one place a reader is most likely to aim
-  - Pointing at the marker's icon read the wrong month entirely — the first period on the chart rather than its own
-  - On a touchscreen, tapping a marker now pins its month the same way tapping its bar does
-
-- **v1.5.4**: Lines on the time-series charts no longer get stranded when the figures behind them change scale —
-  - Picking a bureau or an application type can move the y-axis by orders of magnitude — the nationwide total against one office's caseload. The axis rescaled, the bars followed, but a line could stay drawn against the old scale, usually flattened along the bottom of the plot. Hovering it gave the right number in the right place, which made the line itself look broken rather than stale
-  - The axis rescale is animated, and each of its frames was interrupting the line's own redraw and leaving it holding the previous scale's positions. The two now run together, so a line follows its axis down as it rescales instead of being left behind by it
-  - This affected every chart drawing a line, and had done for some time; it showed up intermittently because it depended on which animation won the race
-
-- **v1.5.2**: The queue position shown in the estimator's breakdown now matches the subtraction printed above it. The two applications-processed figures were each rounded on their own before being subtracted, while the total they were taken from rounded them together, so the arithmetic on screen could land one short of the answer beside it.
-
-- **v1.5.1**: The data table under each Application Processing chart now describes that chart, instead of the same intake figures appearing beneath all seven —
-  - Under **Application Types** the table had no application-type column at all: its "Received" figure was the six plotted lines added together, and the types themselves appeared nowhere. There is now one column per application type, matching the lines above it
-  - **Bureau Share** and **Processing Efficiency** break down by bureau, as their charts do, rather than collapsing to the single nationwide row. Bureau Share lists each bureau's intake and its share of the total — including the smaller ones the donut folds into its "Other" slice — and Processing Efficiency lists received, processed, and completion rate in the ranking's own order
-  - **Category Mix** is now the treemap's bureau-by-type grid, and **Outcomes** carries the granted/denied/withdrawn split per application type that the sankey draws, alongside its approval rate
-  - The **Regional Map** showed monthly application counts unrelated to anything on screen. It now lists each prefecture's servicing bureau alongside the population, area and density the shading comes from
-  - **Intake & Processing** is unchanged — it was the one chart the old table already described
-  - Read with a screen reader, each table now announces itself by the chart it belongs to — "Showing Bureau Share for Nationwide" — where all seven used to read "Monthly application statistics for …" regardless of what was above them
-  - Each chart's CSV now downloads under its own name with its own columns, where every tab used to produce an identical file. Fields are quoted, so a value containing a comma can no longer split a row
-
 - **v1.5.0**: Clicking a chart with a mouse no longer disturbs the tooltip you were reading —
   - On the four line and bar time-series charts, pressing the mouse button hid the tooltip and it stayed hidden until you moved the cursor again. A press had to be treated as the start of a drag-to-highlight, because there was no way yet to tell the two apart. A drag now only begins once the cursor has actually travelled a few pixels, so a click leaves the tooltip exactly where it was and dragging a range still works as before
   - On the Processing Efficiency ranking, clicking a row tore its card away from the cursor and re-anchored it above the row, because clicking a row also focuses it and focusing was meant for keyboard use. Keyboard navigation still opens the card that way; a mouse click now leaves it alone
+
 - **v1.5.0**: The hint under the Category Mix and Residence Status sunbursts ("Click a segment to zoom in · hover to inspect") was in English in every language. It is now translated, and reads differently on touch, where neither "click" nor "hover" describes anything you can do.
+
 - **v1.4.4**: The Regional Map was sluggish to pan and zoom, and close to unusable on a phone — both are fixed —
   - Panning and zooming re-drew the entire map from scratch on every frame, and hovering a prefecture tore down and rebuilt all 47 shapes. Neither is needed: the map now redraws only what actually changed, which takes dragging from roughly 300ms a frame to a steady 60fps, and a great deal more than that on a phone
   - On a phone the map used to swallow the page scroll, so a finger landing on it left you stuck. One finger now scrolls the dashboard as it should, and two fingers pan and zoom the map
@@ -112,10 +124,13 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
   - The map's shape data carried far more coastline detail than a screen can show — enough for roughly nineteen points per pixel on a phone. It has been thinned to what actually renders, which also cuts the download from 416KB to 160KB. The map looks the same
 
 - **v1.4.3**: Hovering the Population Growth chart drew a dot per series that sat below its own bar segment, bunched near the bottom of the plot, in both the by-purpose and by-region views. The dots are gone — the highlighted bars and the tooltip already give every value, and the dots only offered a second, wrong reading of them. Intake & Processing had the same problem on its two stacked bars; there the dot survives on the completed-applications line, where it tracks the line correctly.
+
 - **v1.4.2**: World regions showed up as raw codes — `region.1000` instead of "Asia" — on Chrome and Edge, in every language. It affected the Resident Flows sankey's left column, the region filter, Population Growth's by-region view, and the Residence Status sunburst; "Stateless" was the only region that read correctly —
   - Continent names were being taken from the browser's own locale data, the same as country names. That works for countries everywhere, but Chrome and Edge ship no names for continents specifically, so they handed back the code they were given. Firefox and Safari were unaffected, which is what kept this out of sight
   - All seven regions are now written into each of the twelve translations, so they read the same whichever browser you use
+
 - **v1.4.1**: The Intake & Processing and Application Types charts' axis labels and tooltips showed only month and day, dropping the year — ambiguous once a range spans more than one year, since every January looked the same. Both now show month and year instead.
+
 - **v1.2.6**: Chart axis numbers could render as clipped or outright wrong values in German, Portuguese, Spanish, and Italian — repeated "0.000" ticks, a leading digit sheared off ("800 mil" reading as "00 mil"), or no labels at all on narrow screens. Two causes stacked together: a CSS rule was silently re-clipping an intentional label overflow, and the axis margin was sized for English-length numbers ("1.2M") rather than the wider forms other locales use ("1,2 Mio.", "800 mil"). The margin now measures each locale's actual label width instead of assuming one —
   - Longer translations in KPI cards, the processing-time estimator heading, and the approval-rate gauge caption no longer lose characters at cramped widths — they wrap instead of silently truncating, or were shortened where that read better
   - The Outcomes Sankey chart's node-label margins are sized the same way, fixing German and Portuguese labels that clipped against the chart edge

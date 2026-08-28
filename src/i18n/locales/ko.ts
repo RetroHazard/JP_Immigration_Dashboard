@@ -386,6 +386,8 @@ export const ko: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': '변경 이력',
   'changelog.loading': '불러오는 중…',
+  'changelog.expandAll': '모두 펼치기',
+  'changelog.collapseAll': '모두 접기',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   'errors.dataTitle': '데이터 로딩 오류',

@@ -393,6 +393,8 @@ export const tl: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': 'Listahan ng Pagbabago',
   'changelog.loading': 'Ikinakarga...',
+  'changelog.expandAll': 'Palawakin lahat',
+  'changelog.collapseAll': 'Itiklop lahat',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   'errors.dataTitle': 'Error sa Pag-load ng Datos',

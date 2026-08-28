@@ -233,7 +233,7 @@ graph TD
     SHELL --> ACTIVE["🔀 ActiveChart<br/>Renders the selected tab"]
     SHELL --> TABLE["📋 ChartDataTable<br/>Per-chart data table + CSV export"]
     SHELL --> ESTIMATOR["⏱️ EstimationCard<br/>Queue Predictor"]
-    SHELL --> CHANGELOG["📰 ChangelogModal<br/>Opened from the version link"]
+    SHELL --> CHANGELOG["📰 ChangelogModal<br/>Opened from the version link<br/>Collapsible month sections"]
     
     ACTIVE --> CHARTS["ChartComponents registry"]
     CHARTS --> INTAKE["📊 IntakeProcessingBarChart"]
@@ -393,7 +393,7 @@ the bare number too. A script globbing the old filename needs updating.
 #### **EstimationCard** (`src/components/EstimationCard.tsx`)
 
 Interactive queue position estimator:
-- Accepts user input (bureau, application type, submission date). Opening the breakdown folds those inputs away behind a one-line summary of the selection, using `src/components/ui/collapsible.tsx` — the app's only use of Radix `Collapsible`
+- Accepts user input (bureau, application type, submission date). Opening the breakdown folds those inputs away behind a one-line summary of the selection, using `src/components/ui/collapsible.tsx`, shared with `ChangelogModal`
 - Calls `calculateEstimatedDate` (`src/utils/calculateEstimates.ts`)
 - Displays a "Show the math" breakdown with KaTeX formulas (`EstimationFormula`, in step cards from `FormulaTooltip`). `buildFormulaSteps` is a pure function of the model variables and the branch record `calculateEstimatedDate` returns, so the dependency ordering between steps is unit-tested rather than assumed
 - Generates shareable permalinks (`src/utils/urlApplicationDetails.ts`)
@@ -404,6 +404,15 @@ Summary statistics display, built from `StatCard` (`src/components/common/StatCa
 - Shows key metrics (submissions, processed, approval rate, etc.), animated with a custom `useCountUp` hook (`src/lib/motion.ts`, built on Anime.js) — `@number-flow/react` is a real dependency but is used only inside the vendored Bklit charts' gauge/ring/pie centers, not here
 - Updates based on filters
 - Responsive layout for mobile
+
+#### **ChangelogModal** (`src/components/ChangelogModal.tsx`)
+
+The one asset fetched at runtime rather than bundled: `scripts/sync-changelog.js` copies the repo-root `CHANGELOG.md` into `public/` at build time, and the modal fetches `/CHANGELOG.md?v=<buildVersion>` the first time it is opened. The version query is load-bearing — nothing else invalidates a stable URL on deploy — and the response is cached in component state for the session.
+
+- `parseChangelog` (`src/utils/renderChangelog.tsx`) turns the markdown into `ChangelogMonth[]` in document order, which is newest-first because that is how the file is written. It understands exactly what the changelog convention uses: `## YYYY-MM` months, `### Added/Changed/Fixed` sections, bullets, one level of nesting, and inline `**bold**`/`` `code` ``/links
+- Each month renders as a Radix `Collapsible` (`src/components/ui/collapsible.tsx`). The `<h3>` wraps the trigger rather than the reverse — a `<button>` may not contain a heading, and heading navigation still has to work
+- Which months are open lives in `ChangelogModal`, not the renderer, because the expand/collapse-all control sits outside the scroll container and reads the same state. It is held as `readonly string[] | null`, where `null` resolves to "newest month only"; closing the dialog resets it to `null`, so every visit starts on the current release
+- Collapsed content is unmounted by the primitive, so a browser page search will not reach it. Expand all is the way back to the whole document
 
 ### Header & Footer
 

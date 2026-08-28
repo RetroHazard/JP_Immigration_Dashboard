@@ -54,6 +54,11 @@ describe('serializeTableCsv', () => {
     expect(lines[1]).toBe('# chart=share; bureau=all; type=all; range=12');
   });
 
+  it('leaves the caption unquoted when it carries no separator', () => {
+    // `a11y.showingChart` — no type, so no comma, so nothing to escape.
+    expect(lines[0].startsWith('# ')).toBe(true);
+  });
+
   it('emits one header row and one line per row, and nothing else', () => {
     // Two comment lines, a header, two rows, and the trailing newline's tail.
     expect(lines).toHaveLength(6);
@@ -104,6 +109,26 @@ describe('a real table', () => {
     { month: '2025-06', bureau: '100000', type: '20', status: '103000', value: 500 },
     { month: '2025-06', bureau: '100000', type: '60', status: '103000', value: 200 },
   ];
+
+  // "Showing {chart} for {bureau}, {type}" — the one line in the file that
+  // reliably carries a separator, and a spreadsheet reads a `#` opener as a
+  // data row, not a comment. Unquoted, the caption arrived as two cells.
+  it('quotes the caption when a selected type puts a comma in it', () => {
+    const caption = serializeTableCsv(
+      buildProcessingTable('intakeByMonth', {
+        data,
+        filters: { bureau: 'all', type: '60' },
+        range: 'all',
+        chartKey: 'intake',
+      })
+    ).split('\n')[0];
+
+    expect(caption).toContain(',');
+    expect(caption).toBe(`"# ${en['a11y.showingChartWithType']
+      .replace('{chart}', en['charts.intake.label'])
+      .replace('{bureau}', en['bureau.all'])
+      .replace('{type}', en['appType.60'])}"`);
+  });
 
   it('names application types in the header of the Application Types export', () => {
     const csv = serializeTableCsv(

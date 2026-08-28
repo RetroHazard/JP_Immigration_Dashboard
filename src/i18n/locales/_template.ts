@@ -415,6 +415,8 @@ export const template: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   // 'changelog.title': 'Changelog',
   // 'changelog.loading': 'Loading...',
+  // 'changelog.expandAll': 'Expand all',
+  // 'changelog.collapseAll': 'Collapse all',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   // 'errors.dataTitle': 'Error Loading Data',

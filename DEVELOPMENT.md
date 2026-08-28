@@ -237,7 +237,7 @@ JP_Immigration_Dashboard/
 │   │   ├── EstimationCard.tsx         # Processing Time Estimator (sidebar/sheet)
 │   │   ├── EstimationFormula.tsx      # The estimator's five-step KaTeX breakdown
 │   │   ├── ChartDataTable.tsx         # Collapsible per-chart data table + CSV export
-│   │   ├── ChangelogModal.tsx         # CHANGELOG.md viewer (shadcn Dialog)
+│   │   ├── ChangelogModal.tsx         # CHANGELOG.md viewer (shadcn Dialog, collapsible months)
 │   │   │
 │   │   ├── charts/
 │   │   │   ├── IntakeProcessingBarChart.tsx      # Bklit ComposedChart (stacked bars + two lines, dual axis)
@@ -314,7 +314,7 @@ JP_Immigration_Dashboard/
 │   │   ├── bureauColors.ts            # Per-theme bureau color helpers
 │   │   ├── getBureauData.ts           # Bureau option lookups
 │   │   ├── urlApplicationDetails.ts   # Estimator permalink <-> URL params
-│   │   ├── renderChangelog.tsx        # Minimal inline-markdown renderer for the changelog modal
+│   │   ├── renderChangelog.tsx        # Minimal inline-markdown renderer; months render as collapsibles
 │   │   ├── logger.ts                  # Dev-only console logger
 │   │   ├── residentsData.ts           # Pack/unpack format for residents.json
 │   │   ├── loadResidentsData.ts       # Runtime fetch of public/data/residents.json
