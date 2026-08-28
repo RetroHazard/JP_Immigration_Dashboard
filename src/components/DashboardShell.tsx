@@ -53,6 +53,7 @@ import { LanguageSwitcher } from './common/LanguageSwitcher';
 import { PeriodSelector } from './common/PeriodSelector';
 import { SnapshotPeriodSelector } from './common/SnapshotPeriodSelector';
 import { GitHubIcon } from './icons/GitHubIcon';
+import { JapanFlagIcon } from './icons/JapanFlagIcon';
 import { ActiveChart } from './ActiveChart';
 import { ChangelogModal } from './ChangelogModal';
 import { ChartDataTable } from './ChartDataTable';
@@ -301,12 +302,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
         <div className="marginals">
           <div className="flex h-16 items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div
-                aria-hidden="true"
-                className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground"
-              >
-                JP
-              </div>
+              {/* The same hinomaru as the favicon and PWA icons, so the tab
+                  icon and the header agree on what the site's mark is. */}
+              <JapanFlagIcon className="h-6 w-9 shrink-0" />
               <div className="min-w-0">
                 <h1 className="truncate text-sm font-bold leading-tight md:text-base">{t('app.title')}</h1>
                 <p className="truncate text-xxs text-muted-foreground sm:text-xs">{t('app.subtitle')}</p>
