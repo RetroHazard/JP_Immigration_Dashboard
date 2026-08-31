@@ -11,7 +11,8 @@ import type { Dictionary } from '../types';
 export const it: Dictionary = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': "Statistiche sull'immigrazione in Giappone",
-  'app.subtitle': 'Dati di elaborazione degli uffici forniti da e-Stat, aggiornati a ogni pubblicazione',
+  'app.subtitle':
+    "Statistiche sull'elaborazione delle domande e sulla popolazione residente straniera, fornite da e-Stat",
   'app.skipToContent': 'Vai al contenuto',
   'app.loadingData': "Elaborazione dei dati sull'immigrazione...",
   'app.loadingDashboard': 'Caricamento della dashboard...',
@@ -23,7 +24,7 @@ export const it: Dictionary = {
   // keep one source of truth, and to be ready for per-locale routes.
   'meta.title': "Dashboard delle statistiche sull'immigrazione in Giappone",
   'meta.description':
-    "Tempi di elaborazione dei visti, carico di lavoro degli uffici e uno stimatore basato su modello di coda per la propria domanda, costruito sulle statistiche ufficiali dell'Agenzia per i Servizi dell'Immigrazione, aggiornato ogni volta che e-Stat pubblica nuovi dati (generalmente ogni mese).",
+    "Tempi di elaborazione dei visti, carico di lavoro degli uffici, andamento della popolazione residente straniera e uno stimatore basato su modello di coda per la propria domanda, costruito sulle statistiche ufficiali dell'Agenzia per i Servizi dell'Immigrazione, aggiornato man mano che e-Stat pubblica nuovi dati.",
   'meta.keywords':
     "tempi di elaborazione dei visti in Giappone, statistiche degli uffici immigrazione, tracciamento domande di visto, Agenzia per i Servizi dell'Immigrazione, e-Stat",
 
@@ -87,7 +88,7 @@ export const it: Dictionary = {
   'metric.denied': 'Respinte',
   'metric.other': 'Altro',
   'metric.approvalRate': 'Tasso di approvazione',
-  'metric.completion': 'Completamento',
+  'metric.efficiency': 'Efficienza',
   'metric.applications': 'Domande',
   'metric.population': 'Popolazione',
   'metric.area': 'Superficie',
@@ -282,7 +283,8 @@ export const it: Dictionary = {
   'policy.eventsShow': 'Mostra gli eventi normativi',
   'policy.eventsHide': 'Nascondi gli eventi normativi',
   'policy.ssw2019.title': 'Nasce il Lavoratore Qualificato',
-  'policy.ssw2019.description': 'Uno status per i settori in carenza; l’agenzia per l’immigrazione nasce lo stesso giorno.',
+  'policy.ssw2019.description':
+    'Uno status per i settori in carenza; l’agenzia per l’immigrazione nasce lo stesso giorno.',
   'policy.covidClosure.title': 'Restrizioni d’ingresso della pandemia',
   'policy.covidClosure.description': 'Il respingimento è stato esteso a quasi tutto il mondo.',
   'policy.covidSuspension.title': 'Nuovi ingressi sospesi ovunque',
@@ -298,11 +300,13 @@ export const it: Dictionary = {
   'policy.covidEnd.title': 'Fine delle misure alle frontiere',
   'policy.covidEnd.description': 'Finiti test e certificati vaccinali, la malattia passa alla classe 5.',
   'policy.act2023.title': 'Riforma della legge sull’immigrazione',
-  'policy.act2023.description': 'Introdotte misure di sorveglianza al posto del trattenimento e la protezione complementare.',
+  'policy.act2023.description':
+    'Introdotte misure di sorveglianza al posto del trattenimento e la protezione complementare.',
   'policy.digitalNomad.title': 'Status per nomadi digitali',
   'policy.digitalNomad.description': 'Uno status di sei mesi per lavoratori da remoto e le loro famiglie.',
   'policy.sswExpansion.title': 'Ampliato il Lavoratore Qualificato',
-  'policy.sswExpansion.description': 'Una delibera del consiglio dei ministri ha aggiunto quattro settori e nuove quote.',
+  'policy.sswExpansion.description':
+    'Una delibera del consiglio dei ministri ha aggiunto quattro settori e nuove quote.',
   'policy.act2023Effect.title': 'In vigore le norme sui rimpatri',
   'policy.act2023Effect.description': 'Le disposizioni principali della riforma del 2023 sono entrate in vigore.',
   'policy.act2024.title': 'Sostituito il tirocinio tecnico',
@@ -553,15 +557,19 @@ export const it: Dictionary = {
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': 'I dati sulla popolazione straniera residente non sono al momento disponibili.',
   'charts.growth.label': 'Crescita della popolazione',
-  'charts.growth.description': 'L’intera popolazione straniera residente, semestre per semestre, impilata per finalità di soggiorno o per regione del mondo.',
-  'charts.growth.aria': 'Grafico a barre impilate del totale dei residenti stranieri per semestre, suddiviso per gruppo di status o regione',
+  'charts.growth.description':
+    'L’intera popolazione straniera residente, semestre per semestre, impilata per finalità di soggiorno o per regione del mondo.',
+  'charts.growth.aria':
+    'Grafico a barre impilate del totale dei residenti stranieri per semestre, suddiviso per gruppo di status o regione',
   'charts.origins.label': 'Origini nel tempo',
   'charts.origins.description':
     'Come sono cresciute o diminuite le principali cittadinanze in ciascun semestre coperto dalle statistiche.',
   'charts.origins.aria': 'Grafico ad aree impilate del numero di residenti per cittadinanza nel tempo',
   'charts.flows.label': 'Dall’origine allo status',
-  'charts.flows.description': 'Le regioni del mondo fluiscono attraverso i paesi verso le finalità di soggiorno — scegli una regione o una nazionalità per seguirne il profilo.',
-  'charts.flows.aria': 'Diagramma di Sankey dei residenti che fluiscono dalle regioni del mondo, attraverso i paesi, verso le categorie di status di residenza',
+  'charts.flows.description':
+    'Le regioni del mondo fluiscono attraverso i paesi verso le finalità di soggiorno — scegli una regione o una nazionalità per seguirne il profilo.',
+  'charts.flows.aria':
+    'Diagramma di Sankey dei residenti che fluiscono dalle regioni del mondo, attraverso i paesi, verso le categorie di status di residenza',
   'charts.statuses.label': 'Composizione dei permessi di soggiorno',
   'charts.statuses.description':
     'Quali permessi possiedono i residenti, raggruppati per finalità del soggiorno: fai clic su un gruppo per aprirlo.',
@@ -624,19 +632,26 @@ export const it: Dictionary = {
   'residents.flowsTooltipFlowLabel': 'Flusso',
   'residents.sunburstHint': '{trail} — {count} residenti ({percent} del totale)',
   'residents.markerResidenceCard.title': 'Arriva la carta di soggiorno',
-  'residents.markerResidenceCard.description': 'La carta sostituì la registrazione degli stranieri; il conteggio parte da lì.',
+  'residents.markerResidenceCard.description':
+    'La carta sostituì la registrazione degli stranieri; il conteggio parte da lì.',
   'residents.markerReopening.title': 'Frontiere riaperte',
-  'residents.markerReopening.description': 'Il viaggio senza visto torna nell’ottobre 2022 e la popolazione riprende a crescere.',
+  'residents.markerReopening.description':
+    'Il viaggio senza visto torna nell’ottobre 2022 e la popolazione riprende a crescere.',
   'residents.markerTraining.title': 'Sostituito il tirocinio tecnico',
-  'residents.markerTraining.description': 'La riforma del 2024 crea la nuova formazione e irrigidisce il soggiorno permanente.',
+  'residents.markerTraining.description':
+    'La riforma del 2024 crea la nuova formazione e irrigidisce il soggiorno permanente.',
   'residents.markerBusinessManager.title': 'Regole più severe per i gestori',
-  'residents.markerBusinessManager.description': 'Da ottobre 2025 servono più capitale, un dipendente a tempo pieno e un piano verificato.',
+  'residents.markerBusinessManager.description':
+    'Da ottobre 2025 servono più capitale, un dipendente a tempo pieno e un piano verificato.',
   'residents.markerSsw.title': 'Lancio del visto Specified Skilled Worker',
-  'residents.markerSsw.description': 'Il visto dell’aprile 2019 ha aperto oltre una dozzina di settori ai lavoratori stranieri qualificati.',
+  'residents.markerSsw.description':
+    'Il visto dell’aprile 2019 ha aperto oltre una dozzina di settori ai lavoratori stranieri qualificati.',
   'residents.markerCovid.title': 'Chiusura delle frontiere per COVID-19',
-  'residents.markerCovid.description': 'Le restrizioni all’ingresso hanno congelato i nuovi arrivi; la popolazione è calata fino a metà 2022.',
+  'residents.markerCovid.description':
+    'Le restrizioni all’ingresso hanno congelato i nuovi arrivi; la popolazione è calata fino a metà 2022.',
   'residents.markerKoreaSplit.title': 'Separazione statistica della Corea',
-  'residents.markerKoreaSplit.description': 'La Corea (combinata) è diventata serie separate per Corea del Sud e Corea (Chosen) — un cambiamento di rilevazione, non di popolazione.',
+  'residents.markerKoreaSplit.description':
+    'La Corea (combinata) è diventata serie separate per Corea del Sud e Corea (Chosen) — un cambiamento di rilevazione, non di popolazione.',
 
   'statusGroup.work': 'Lavoro',
   'statusGroup.training': 'Tirocinio',

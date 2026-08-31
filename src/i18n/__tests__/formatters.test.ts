@@ -19,7 +19,10 @@ describe('createFormatters', () => {
     expect(createFormatters('en-US').decimal(112.706)).toBe('112.71');
     expect(createFormatters('de-DE').decimal(112.706)).toBe('112,71');
     expect(createFormatters('en-US').decimal(112.7, 0)).toBe('113');
-    expect(createFormatters('fr-FR').decimal(1007.654)).toBe('1\u202f007,65');
+    // fr-FR's group separator is ICU-version-dependent: U+00A0 before ICU 72,
+    // U+202F after. Either is correct output; pinning one failed good code on
+    // a Node built against an older system ICU.
+    expect(createFormatters('fr-FR').decimal(1007.654)).toMatch(/^1[\u00a0\u202f]007,65$/);
   });
 
   it('takes a 0-100 percentage rather than a ratio', () => {

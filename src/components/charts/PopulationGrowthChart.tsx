@@ -165,52 +165,56 @@ export const PopulationGrowthChart: React.FC<ResidentChartData> = ({ data, filte
           {t('chart.allSeriesHidden')}
         </div>
       ) : (
-        <div className="chart-container" role="img" aria-label={t('charts.growth.aria')}>
-          <ComposedChart
-            data={chartData}
-            stacked
-            stackGap={1}
-            maxBarSize={18}
-            aspectRatio="16 / 8"
-            // Half-yearly points are all Jun 1 / Dec 1 — the default month+day
-            // labels carry no year and collapse to two ticks.
-            formatDateLabel={(date) => formatters.monthYear(date)}
-          >
-            <Grid horizontal />
-            <YAxis />
-            {visible.map((entry) => (
-              <SeriesBar key={entry.id} dataKey={entry.id} fill={entry.color} />
-            ))}
-            <XAxis />
-            {/* `fan={false}`: see IntakeProcessingBarChart. Half-yearly
+        <>
+          <div className="chart-container" role="img" aria-label={t('charts.growth.aria')}>
+            <ComposedChart
+              data={chartData}
+              stacked
+              stackGap={1}
+              maxBarSize={18}
+              aspectRatio="16 / 8"
+              // Half-yearly points are all Jun 1 / Dec 1 — the default month+day
+              // labels carry no year and collapse to two ticks.
+              formatDateLabel={(date) => formatters.monthYear(date)}
+            >
+              <Grid horizontal />
+              <YAxis />
+              {visible.map((entry) => (
+                <SeriesBar key={entry.id} dataKey={entry.id} fill={entry.color} />
+              ))}
+              <XAxis />
+              {/* `fan={false}`: see IntakeProcessingBarChart. Half-yearly
                 periods sit about a marker's width apart, so the arc would
                 reach through its neighbours here too. */}
-            <ChartMarkers items={markers} fan={false} size={24} />
-            {/* Dots off: every series here is a bar, and the tooltip places a
+              <ChartMarkers items={markers} fan={false} size={24} />
+              {/* Dots off: every series here is a bar, and the tooltip places a
                 bar's dot at its raw axis value rather than on the stacked
                 segment. The highlighted bars carry the reading anyway. */}
-            <ChartTooltip
-              showDots={false}
-              titleFormat={(date) => formatters.monthYear(date)}
-              rows={(point) => [
-                ...visible.map((entry) => ({
-                  color: entry.color,
-                  label: entry.label,
-                  value: Number(point[entry.id] ?? 0),
-                })),
-                {
-                  color: 'var(--chart-foreground)',
-                  label: t('residents.growthTotal'),
-                  value: visible.reduce((sum, entry) => sum + Number(point[entry.id] ?? 0), 0),
-                },
-              ]}
-            >
-              <TooltipMarkers markers={markers} />
-            </ChartTooltip>
-          </ComposedChart>
-        </div>
+              <ChartTooltip
+                showDots={false}
+                titleFormat={(date) => formatters.monthYear(date)}
+                rows={(point) => [
+                  ...visible.map((entry) => ({
+                    color: entry.color,
+                    label: entry.label,
+                    value: Number(point[entry.id] ?? 0),
+                  })),
+                  {
+                    color: 'var(--chart-foreground)',
+                    label: t('residents.growthTotal'),
+                    value: visible.reduce((sum, entry) => sum + Number(point[entry.id] ?? 0), 0),
+                  },
+                ]}
+              >
+                <TooltipMarkers markers={markers} />
+              </ChartTooltip>
+            </ComposedChart>
+          </div>
+          {/* Inside the ternary: the list describes the markers on the plot, so
+            it goes when every series is hidden and the plot goes with them. */}
+          <PolicyEventList events={events} />
+        </>
       )}
-      <PolicyEventList events={events} />
     </div>
   );
 };

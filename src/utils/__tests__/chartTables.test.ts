@@ -112,16 +112,25 @@ describe('typesByMonth — the table reported as showing intake instead of appli
   });
 });
 
-describe('intakeByMonth — the one table that was already right', () => {
+describe('intakeByMonth — the table that was already right, plus the rate line', () => {
   const model = buildProcessingTable('intakeByMonth', input());
 
-  it('keeps its six status columns', () => {
-    expect(columnIds(model)).toEqual(['carriedOver', 'received', 'processed', 'granted', 'denied', 'other']);
+  it('keeps its six status columns, with the approval-rate line as the seventh', () => {
+    expect(columnIds(model)).toEqual([
+      'carriedOver',
+      'received',
+      'processed',
+      'granted',
+      'denied',
+      'other',
+      'approvalRate',
+    ]);
   });
 
   it('sums the nationwide aggregate row only', () => {
     // 500 + 200 received across the two types; the per-bureau rows stay out.
-    expect(row(model, '2025-06')?.values).toEqual([300, 700, 500, 410, 30, 20]);
+    // The trailing 82 is the chart's approval-rate line: 410 of 500 processed.
+    expect(row(model, '2025-06')?.values).toEqual([300, 700, 500, 410, 30, 20, 82]);
   });
 
   it('narrows to the range', () => {

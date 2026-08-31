@@ -42,8 +42,22 @@ const readStoredLocale = (): Locale | null => {
   }
 };
 
-const readBrowserLocale = (): Locale | null =>
-  navigator.languages?.map((tag) => tag.split('-')[0]).find(isLocale) ?? null;
+/** Registry codes by lowercased tag, so `zh-cn` and `zh-CN` both resolve. */
+const CANONICAL_BY_TAG = new Map<string, Locale>(LOCALE_CODES.map((code) => [code.toLowerCase(), code]));
+
+// Each browser tag tries its exact form before its base language, in the
+// user's preference order. Truncating every tag to the base first meant a
+// region-keyed catalogue could never be detected: `zh-CN` became `zh`, which
+// is no registry code, so a Chinese browser got English despite a complete
+// zh-CN catalogue — and the CN/TW distinction went with it.
+const readBrowserLocale = (): Locale | null => {
+  for (const tag of navigator.languages ?? []) {
+    const lower = tag.toLowerCase();
+    const match = CANONICAL_BY_TAG.get(lower) ?? CANONICAL_BY_TAG.get(lower.split('-')[0]);
+    if (match) return match;
+  }
+  return null;
+};
 
 const detectLocale = (): Locale => {
   if (typeof window === 'undefined') return DEFAULT_LOCALE;

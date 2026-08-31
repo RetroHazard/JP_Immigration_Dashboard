@@ -17,7 +17,7 @@ means writing one file. You do not need to touch a component.
 
    export const ko: Dictionary = {
      'app.title': '일본 출입국 통계',
-     // 'app.subtitle': 'Bureau processing data from e-Stat, updated with each release',
+     // 'app.subtitle': 'Application processing and resident population statistics from e-Stat',
    };
    ```
 

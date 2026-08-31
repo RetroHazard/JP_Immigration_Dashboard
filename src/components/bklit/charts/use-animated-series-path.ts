@@ -96,10 +96,21 @@ export function useAnimatedSeriesPath({
   const prevTransitionSignatureRef = useRef(transitionSignature);
 
   useEffect(() => {
-    if (!animatingRef.current) {
+    // LOCAL MODIFICATION: resync only while the signature is unchanged — i.e.
+    // the scale moved but the data did not, so no transition is coming. This
+    // effect runs before the animation effect in the same commit, and without
+    // the guard a data change had the new target written over the previous
+    // frame's points before the transition read them as its starting snapshot:
+    // the "morph" then interpolated the new path onto itself, a snap. The
+    // animation effect updates prevTransitionSignatureRef, so the guard opens
+    // again once the transition has started. (Re-apply after a re-vendor.)
+    if (
+      !animatingRef.current &&
+      prevTransitionSignatureRef.current === transitionSignature
+    ) {
       displayedPointsRef.current = targetPoints;
     }
-  }, [targetPoints]);
+  }, [targetPoints, transitionSignature]);
 
   useEffect(() => {
     const shouldAnimate =

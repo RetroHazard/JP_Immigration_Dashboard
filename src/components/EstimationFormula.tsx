@@ -118,6 +118,14 @@ export const buildFormulaSteps = (
 ): FormulaStep[] => {
   const { n, rate } = fmt;
 
+  // Application counts print whole — the display is small, and decimals made
+  // large queue figures read even longer. The model's fractional intermediates
+  // are rounded for display only, so a ⌊·⌉ row's visible operands can read one
+  // off the printed result; the notation already says the *sum* is what gets
+  // rounded, and compactness wins (deliberate call — see the review branch).
+  // Rates keep their two decimals: `rate()` is what makes a per-day figure
+  // legible at all.
+
   // ── 1. Throughput baseline ─────────────────────────────────────────────
   const throughput: FormulaStep = {
     step: 1,

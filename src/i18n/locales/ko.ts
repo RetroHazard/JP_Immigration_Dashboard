@@ -29,7 +29,7 @@ import type { Dictionary } from '../types';
 export const ko: Dictionary = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': '일본 출입국 통계',
-  'app.subtitle': 'e-Stat 제공 관리국 처리 데이터 (자료 공개마다 갱신)',
+  'app.subtitle': 'e-Stat 제공 신청 처리 및 재류 외국인 통계',
   'app.skipToContent': '본문으로 건너뛰기',
   'app.loadingData': '출입국 통계 집계 중…',
   'app.loadingDashboard': '대시보드 불러오는 중…',
@@ -40,7 +40,7 @@ export const ko: Dictionary = {
   // src/i18n/README.md). Translated so it is ready when per-locale routes are.
   'meta.title': '일본 출입국 통계 대시보드',
   'meta.description':
-    '일본 출입국재류관리청의 공식 통계를 바탕으로 한 비자 처리 기간, 관리국별 업무량, 그리고 본인의 신청에 맞춘 대기열 모델 완료 시점 추정 - e-Stat에 새 데이터가 공개될 때마다(대개 매월) 갱신됩니다.',
+    '일본 출입국재류관리청의 공식 통계를 바탕으로 한 비자 처리 기간, 관리국별 업무량, 재류 외국인 수 추이, 그리고 본인의 신청에 맞춘 대기열 모델 완료 시점 추정 - e-Stat에 새 데이터가 공개될 때마다 갱신됩니다.',
   'meta.keywords': '일본 비자 처리 기간, 출입국관리국 통계, 비자 신청 추적, 출입국재류관리청, e-Stat',
 
   // ── Header and settings drawer ───────────────────────────────────────────
@@ -102,7 +102,7 @@ export const ko: Dictionary = {
   'metric.denied': '불허가',
   'metric.other': '기타',
   'metric.approvalRate': '허가율',
-  'metric.completion': '처리율',
+  'metric.efficiency': '효율',
   'metric.applications': '신청 건수',
   'metric.population': '인구',
   'metric.area': '면적',
@@ -167,7 +167,8 @@ export const ko: Dictionary = {
   'estimator.formula.explainAria': '{title} 계산식에 쓰인 변수 설명',
   // Step 1 — throughput baseline.
   'estimator.formula.var.sigmaP.title': '총 처리 건수',
-  'estimator.formula.var.sigmaP.description': '표본 기간에 처리된 신청 건수의 합계입니다. 표본 기간은 최근 6개월이며, 자료가 그보다 적으면 있는 만큼만 씁니다.',
+  'estimator.formula.var.sigmaP.description':
+    '표본 기간에 처리된 신청 건수의 합계입니다. 표본 기간은 최근 6개월이며, 자료가 그보다 적으면 있는 만큼만 씁니다.',
   'estimator.formula.var.sigmaN.title': '총 접수 건수',
   'estimator.formula.var.sigmaN.description': '같은 표본 기간에 접수된 신청 건수의 합계입니다.',
   'estimator.formula.var.sigmaD.title': '총 일수',
@@ -178,11 +179,13 @@ export const ko: Dictionary = {
   'estimator.formula.var.rNew.description': '같은 기간 전체에서 하루 평균 접수된 신청 건수입니다.',
   // Step 2 — the queue on the application date.
   'estimator.formula.var.tPrev.title': '전월 총 건수',
-  'estimator.formula.var.tPrev.description': '신청한 달의 직전 달에 관서가 안고 있던 신청 총수로, 이월분과 신규 접수분을 합한 값입니다.',
+  'estimator.formula.var.tPrev.description':
+    '신청한 달의 직전 달에 관서가 안고 있던 신청 총수로, 이월분과 신규 접수분을 합한 값입니다.',
   'estimator.formula.var.pPrev.title': '전월 처리 건수',
   'estimator.formula.var.pPrev.description': '신청한 달의 직전 달에 처리된 신청 건수입니다.',
   'estimator.formula.var.cSeed.title': '추정 기준점',
-  'estimator.formula.var.cSeed.description': '신청한 달의 직전 달 수치가 공표되지 않았을 때 출발점으로 쓰는, 가장 최근에 공표된 이월 건수입니다.',
+  'estimator.formula.var.cSeed.description':
+    '신청한 달의 직전 달 수치가 공표되지 않았을 때 출발점으로 쓰는, 가장 최근에 공표된 이월 건수입니다.',
   'estimator.formula.var.mSim.title': '추정한 개월 수',
   'estimator.formula.var.mSim.description': '신청한 달에 이르기까지 이월 건수를 몇 개월분 밀어 올렸는지를 나타냅니다.',
   'estimator.formula.var.cPrev.title': '전월 이월',
@@ -193,13 +196,17 @@ export const ko: Dictionary = {
   'estimator.formula.var.pMonth.title': '해당 월 처리',
   'estimator.formula.var.pMonth.description': '신청한 달 전체에 걸쳐 처리된 신청 건수입니다.',
   'estimator.formula.var.dMonth.title': '해당 월 일수',
-  'estimator.formula.var.dMonth.description': '신청한 달의 달력 일수로, 월간 합계를 하루 단위로 고르게 나누는 데 씁니다.',
+  'estimator.formula.var.dMonth.description':
+    '신청한 달의 달력 일수로, 월간 합계를 하루 단위로 고르게 나누는 데 씁니다.',
   'estimator.formula.var.aDay.title': '신청일',
-  'estimator.formula.var.aDay.description': '신청한 날이 그 달의 며칠째인지를 뜻하며, 대기열이 어디까지 쌓였는지를 나타냅니다.',
+  'estimator.formula.var.aDay.description':
+    '신청한 날이 그 달의 며칠째인지를 뜻하며, 대기열이 어디까지 쌓였는지를 나타냅니다.',
   'estimator.formula.var.nApp.title': '신청 전 접수',
-  'estimator.formula.var.nApp.description': '신청한 달 안에서 본인보다 먼저 접수된 신청 건수로, 신청일까지 일할 계산한 값입니다.',
+  'estimator.formula.var.nApp.description':
+    '신청한 달 안에서 본인보다 먼저 접수된 신청 건수로, 신청일까지 일할 계산한 값입니다.',
   'estimator.formula.var.pApp.title': '신청 전 처리',
-  'estimator.formula.var.pApp.description': '신청한 달 안에서 본인보다 먼저 처리된 신청 건수로, 같은 방식으로 일할 계산합니다.',
+  'estimator.formula.var.pApp.description':
+    '신청한 달 안에서 본인보다 먼저 처리된 신청 건수로, 같은 방식으로 일할 계산합니다.',
   'estimator.formula.var.qApp.title': '신청 시 대기열',
   'estimator.formula.var.qApp.description': '신청한 날 기준으로 본인 앞에 놓여 있던 신청 건수입니다.',
   // Step 3 — progress since the application date.
@@ -215,21 +222,26 @@ export const ko: Dictionary = {
   'estimator.formula.var.eProc.description':
     '아직 공표 수치가 닿지 않은 구간에서 처리되었으리라 보는 건수입니다. 공표된 달이 평균 속도의 예상을 이미 넘어선 경우에는 음수가 됩니다.',
   'estimator.formula.var.sProc.title': '신청 후 처리량',
-  'estimator.formula.var.sProc.description': '신청 이후 처리된 건수의 합계로, 확정분과 추정분을 더해 정수로 반올림한 값입니다.',
+  'estimator.formula.var.sProc.description':
+    '신청 이후 처리된 건수의 합계로, 확정분과 추정분을 더해 정수로 반올림한 값입니다.',
   // Step 4 — position in the queue, and how long it takes to clear.
   'estimator.formula.var.qPos.title': '대기 순번',
-  'estimator.formula.var.qPos.description': '본인 앞에 아직 남아 있는 신청 건수입니다. 0 이하이면 추정 완료일이 이미 지났다는 뜻입니다.',
+  'estimator.formula.var.qPos.description':
+    '본인 앞에 아직 남아 있는 신청 건수입니다. 0 이하이면 추정 완료일이 이미 지났다는 뜻입니다.',
   'estimator.formula.var.dRem.title': '남은 일수',
   'estimator.formula.var.dRem.description': '현재 처리 속도로 남은 대기열을 소화하는 데 걸리는 일수입니다.',
   // Step 5 — the whole-day offset, and the spread around it.
   'estimator.formula.var.dEst.title': '정수 일수',
-  'estimator.formula.var.dEst.description': '남은 일수를 0에서 멀어지는 쪽으로 반올림한 값으로, 오늘에 더해 위쪽 완료 예정일을 구합니다.',
+  'estimator.formula.var.dEst.description':
+    '남은 일수를 0에서 멀어지는 쪽으로 반올림한 값으로, 오늘에 더해 위쪽 완료 예정일을 구합니다.',
   'estimator.formula.var.sigmaR.title': '속도 편차',
-  'estimator.formula.var.sigmaR.description': '달마다의 처리 속도에 대한 표준편차로, 처리 속도가 달에 따라 얼마나 흔들리는지를 나타냅니다.',
+  'estimator.formula.var.sigmaR.description':
+    '달마다의 처리 속도에 대한 표준편차로, 처리 속도가 달에 따라 얼마나 흔들리는지를 나타냅니다.',
   'estimator.formula.var.rBar.title': '월평균 처리 속도',
   'estimator.formula.var.rBar.description': '달마다의 처리 속도를 건수가 아니라 달 수로 고르게 평균한 값입니다.',
   'estimator.formula.var.uDays.title': '오차 범위',
-  'estimator.formula.var.uDays.description': '결과 옆에 표시되는 ± 폭으로, 처리 속도가 최근만큼 흔들릴 때 추정일이 얼마나 움직이는지를 보여 줍니다.',
+  'estimator.formula.var.uDays.description':
+    '결과 옆에 표시되는 ± 폭으로, 처리 속도가 최근만큼 흔들릴 때 추정일이 얼마나 움직이는지를 보여 줍니다.',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card
@@ -556,7 +568,8 @@ export const ko: Dictionary = {
   'charts.origins.description': '통계가 다루는 각 반기 동안 주요 국적이 어떻게 늘고 줄었는지 보여 줍니다.',
   'charts.origins.aria': '국적별 체류자 수의 추이를 나타낸 누적 영역 차트',
   'charts.flows.label': '국적에서 체류자격으로',
-  'charts.flows.description': '세계 지역에서 국가, 체류 목적으로 이어지는 흐름. 지역이나 국적을 선택하면 해당 프로필을 추적할 수 있습니다.',
+  'charts.flows.description':
+    '세계 지역에서 국가, 체류 목적으로 이어지는 흐름. 지역이나 국적을 선택하면 해당 프로필을 추적할 수 있습니다.',
   'charts.flows.aria': '지역에서 국가, 체류자격 카테고리로 이어지는 체류자 흐름을 나타내는 생키 다이어그램',
   'charts.statuses.label': '체류 자격 구성',
   'charts.statuses.description':
@@ -618,19 +631,23 @@ export const ko: Dictionary = {
   'residents.flowsTooltipFlowLabel': '흐름',
   'residents.sunburstHint': '{trail} — {count}명 (전체의 {percent})',
   'residents.markerResidenceCard.title': '체류카드 제도 시행',
-  'residents.markerResidenceCard.description': '외국인등록을 대신해 체류카드가 도입되었고, 이 통계는 그 첫 시점부터 시작합니다.',
+  'residents.markerResidenceCard.description':
+    '외국인등록을 대신해 체류카드가 도입되었고, 이 통계는 그 첫 시점부터 시작합니다.',
   'residents.markerReopening.title': '국경 재개방',
   'residents.markerReopening.description': '2022년 10월 무사증 여행이 돌아오면서 체류자 수가 다시 늘기 시작했습니다.',
   'residents.markerTraining.title': '기능실습을 대체하는 육성취로',
   'residents.markerTraining.description': '2024년 개정으로 육성취로제도가 신설되고 영주허가 요건도 강화되었습니다.',
   'residents.markerBusinessManager.title': '경영·관리 기준 강화',
-  'residents.markerBusinessManager.description': '2025년 10월부터 자본금 증액, 상근 직원, 사업계획 전문가 확인이 필요합니다.',
+  'residents.markerBusinessManager.description':
+    '2025년 10월부터 자본금 증액, 상근 직원, 사업계획 전문가 확인이 필요합니다.',
   'residents.markerSsw.title': '특정기능 제도 시행',
-  'residents.markerSsw.description': '2019년 4월 신설된 체류자격으로, 여러 산업 분야에서 외국인 노동자 수용이 시작되었습니다.',
+  'residents.markerSsw.description':
+    '2019년 4월 신설된 체류자격으로, 여러 산업 분야에서 외국인 노동자 수용이 시작되었습니다.',
   'residents.markerCovid.title': '코로나19 국경 제한',
   'residents.markerCovid.description': '입국 제한으로 신규 입국이 중단되어 2022년 중반까지 체류자 수가 감소했습니다.',
   'residents.markerKoreaSplit.title': '한국·조선 통계 분리',
-  'residents.markerKoreaSplit.description': '통계상 ‘한국·조선’ 항목이 ‘한국’과 ‘조선’으로 분리되었습니다. 집계 방식 변경일 뿐 인구 변동이 아닙니다.',
+  'residents.markerKoreaSplit.description':
+    '통계상 ‘한국·조선’ 항목이 ‘한국’과 ‘조선’으로 분리되었습니다. 집계 방식 변경일 뿐 인구 변동이 아닙니다.',
 
   'statusGroup.work': '취업',
   'statusGroup.training': '연수・실습',

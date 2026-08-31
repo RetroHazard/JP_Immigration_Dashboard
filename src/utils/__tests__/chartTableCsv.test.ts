@@ -17,7 +17,7 @@ const model: TableModel = {
   columns: [
     { id: 'note', labelKey: 'metric.other', format: 'label' },
     { id: 'received', labelKey: 'metric.received', format: 'count' },
-    { id: 'completion', labelKey: 'metric.completion', format: 'percent' },
+    { id: 'efficiency', labelKey: 'metric.efficiency', format: 'percent' },
   ],
   rows: [
     { id: 'a', label: 'Osaka, Kansai', values: ['plain', 1234, 86.25] },
@@ -67,7 +67,7 @@ describe('serializeTableCsv', () => {
 
   it('marks the unit on a percent header and writes the cell as a bare number', () => {
     expect(lines[2]).toBe(
-      `${en['filters.bureau']},${en['metric.other']},${en['metric.received']},${en['metric.completion']} (%)`
+      `${en['filters.bureau']},${en['metric.other']},${en['metric.received']},${en['metric.efficiency']} (%)`
     );
     expect(lines[3]).toBe('"Osaka, Kansai",plain,1234,86.3');
   });
@@ -81,6 +81,26 @@ describe('serializeTableCsv', () => {
     // falls through an empty dictionary to the English catalogue.
     expect(englishOnly('metric.received')).toBe(en['metric.received']);
     expect(serializeTableCsv(model)).not.toContain(ja['metric.received']!);
+  });
+});
+
+describe('unit headers', () => {
+  it('carries a count column\'s unit in the header, cells staying bare numbers', () => {
+    // The prefecture table shows "2,200 km²" on screen; the export moves the
+    // unit to the header the way percent columns move their `%`.
+    const csv = serializeTableCsv(
+      buildProcessingTable('prefectures', {
+        data: [],
+        filters: { bureau: 'all', type: 'all' },
+        range: 'all',
+        chartKey: 'map',
+      })
+    );
+    const [, , header, firstRow] = csv.split('\n');
+    expect(header).toContain(`${en['metric.area']} (km²)`);
+    expect(header).toContain(`${en['metric.density']} (/km²)`);
+    // Hokkaido's row: bare numbers, no unit text in any cell.
+    expect(firstRow).not.toContain('km²');
   });
 });
 

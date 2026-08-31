@@ -87,9 +87,11 @@ export function computeYDomainsByAxis({
   resolveDomain: (dataKeys: string[], axisId: string) => YDomain;
   /**
    * LOCAL MODIFICATION: axes held at a fixed domain. Used verbatim — `nice()`
-   * would move the endpoints a caller pinned deliberately. Axes listed here get
-   * a domain even with no series on them, so toggling the only series off an
-   * axis doesn't silently rescale it. (Re-apply after a re-vendor.)
+   * would move the endpoints a caller pinned deliberately. Axes listed here
+   * keep a *domain* even with no series on them; note the scale layer
+   * (`buildYScalesFromDomains`) still builds scales from the series list, so a
+   * pinned axis whose last series is removed has a domain but no scale of its
+   * own and falls back to the primary. (Re-apply after a re-vendor.)
    */
   pinnedDomains?: Record<string, YDomain>;
 }): Record<string, YDomain> {

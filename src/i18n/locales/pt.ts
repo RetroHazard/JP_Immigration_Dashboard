@@ -10,7 +10,8 @@ import type { Dictionary } from '../types';
 export const pt: Dictionary = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': 'Estatísticas de Imigração do Japão',
-  'app.subtitle': 'Dados de processamento dos gabinetes fornecidos pelo e-Stat, atualizados a cada publicação',
+  'app.subtitle':
+    'Estatísticas de processamento de pedidos e de população residente estrangeira, fornecidas pelo e-Stat',
   'app.skipToContent': 'Saltar para o conteúdo',
   'app.loadingData': 'A processar dados de imigração...',
   'app.loadingDashboard': 'A carregar o painel...',
@@ -22,7 +23,7 @@ export const pt: Dictionary = {
   // keep one source of truth, and to be ready for per-locale routes.
   'meta.title': 'Painel de Estatísticas de Imigração do Japão',
   'meta.description':
-    'Tempos de processamento de vistos, carga de trabalho dos gabinetes e um estimador baseado num modelo de fila para a sua candidatura - construído com estatísticas oficiais da Agência de Serviços de Imigração, atualizado sempre que o e-Stat publica novos dados (normalmente mensal).',
+    'Tempos de processamento de vistos, carga de trabalho dos gabinetes, evolução da população residente estrangeira e um estimador baseado num modelo de fila para a sua candidatura - construído com estatísticas oficiais da Agência de Serviços de Imigração, atualizado à medida que o e-Stat publica novos dados.',
   'meta.keywords':
     'tempos de processamento de vistos no Japão, estatísticas dos gabinetes de imigração, acompanhamento de candidaturas de visto, Agência de Serviços de Imigração, e-Stat',
 
@@ -86,7 +87,7 @@ export const pt: Dictionary = {
   'metric.denied': 'Recusadas',
   'metric.other': 'Outras',
   'metric.approvalRate': 'Taxa de aprovação',
-  'metric.completion': 'Conclusão',
+  'metric.efficiency': 'Eficiência',
   'metric.applications': 'Candidaturas',
   'metric.population': 'População',
   'metric.area': 'Área',
@@ -287,7 +288,8 @@ export const pt: Dictionary = {
   'policy.covidClosure.title': 'Restrições de entrada da pandemia',
   'policy.covidClosure.description': 'A recusa de entrada alargou-se a quase todo o mundo.',
   'policy.covidSuspension.title': 'Novas entradas suspensas em todo o mundo',
-  'policy.covidSuspension.description': 'Desde o final de dezembro ninguém entrou pela primeira vez, com visto ou sem ele.',
+  'policy.covidSuspension.description':
+    'Desde o final de dezembro ninguém entrou pela primeira vez, com visto ou sem ele.',
   'policy.covidOmicron.title': 'Reabertura revertida pela ómicron',
   'policy.covidOmicron.description': 'A entrada reaberta a 8 de novembro fechou de novo três semanas depois.',
   'policy.covidResume.title': 'Regressam estudantes e trabalhadores',
@@ -295,7 +297,8 @@ export const pt: Dictionary = {
   'policy.covidVisaFree.title': 'Regressa a viagem sem visto',
   'policy.covidVisaFree.description': 'As isenções de visto voltaram e o limite diário de chegadas foi abolido.',
   'policy.covidCoe.title': 'Validade dos certificados alargada',
-  'policy.covidCoe.description': 'Os certificados retidos pelo encerramento mantiveram-se válidos muito além de três meses.',
+  'policy.covidCoe.description':
+    'Os certificados retidos pelo encerramento mantiveram-se válidos muito além de três meses.',
   'policy.covidEnd.title': 'Fim das medidas nas fronteiras',
   'policy.covidEnd.description': 'Acabaram os testes e os comprovativos de vacinação; a doença passou a classe 5.',
   'policy.act2023.title': 'Revisão da lei de imigração',
@@ -311,7 +314,8 @@ export const pt: Dictionary = {
   'policy.feeRevision2025.title': 'Aumento das taxas de pedido',
   'policy.feeRevision2025.description': 'As prorrogações passam a 6.000 ienes e a residência permanente a 10.000.',
   'policy.businessManager2025.title': 'Regras de gestão mais exigentes',
-  'policy.businessManager2025.description': 'Exige-se mais capital, um trabalhador a tempo inteiro e um plano validado.',
+  'policy.businessManager2025.description':
+    'Exige-se mais capital, um trabalhador a tempo inteiro e um plano validado.',
   'policy.residenceCard2026.title': 'Cartão de residência com My Number',
   'policy.residenceCard2026.description': 'Entraram em serviço os cartões combinados de residência e My Number.',
   'policy.act2026.title': 'Limite legal das taxas aumentado',
@@ -553,15 +557,19 @@ export const pt: Dictionary = {
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': 'Os dados da população estrangeira residente não estão disponíveis de momento.',
   'charts.growth.label': 'Crescimento da População',
-  'charts.growth.description': 'A população estrangeira residente completa, semestre a semestre, empilhada por finalidade de permanência ou por região do mundo.',
-  'charts.growth.aria': 'Gráfico de barras empilhadas do total de residentes estrangeiros por semestre, dividido por grupo de status ou região',
+  'charts.growth.description':
+    'A população estrangeira residente completa, semestre a semestre, empilhada por finalidade de permanência ou por região do mundo.',
+  'charts.growth.aria':
+    'Gráfico de barras empilhadas do total de residentes estrangeiros por semestre, dividido por grupo de status ou região',
   'charts.origins.label': 'Origens ao longo do tempo',
   'charts.origins.description':
     'Como as principais nacionalidades cresceram ou diminuíram em cada semestre abrangido pelas estatísticas.',
   'charts.origins.aria': 'Gráfico de áreas empilhadas do número de residentes por nacionalidade ao longo do tempo',
   'charts.flows.label': 'Da Origem ao Status',
-  'charts.flows.description': 'Regiões do mundo fluindo por países até as finalidades de permanência — escolha uma região ou nacionalidade para seguir o seu perfil.',
-  'charts.flows.aria': 'Diagrama de Sankey de residentes fluindo das regiões do mundo, por países, até as categorias de status de residência',
+  'charts.flows.description':
+    'Regiões do mundo fluindo por países até as finalidades de permanência — escolha uma região ou nacionalidade para seguir o seu perfil.',
+  'charts.flows.aria':
+    'Diagrama de Sankey de residentes fluindo das regiões do mundo, por países, até as categorias de status de residência',
   'charts.statuses.label': 'Composição dos estatutos de residência',
   'charts.statuses.description':
     'Que vistos os residentes possuem, agrupados por finalidade da estadia — clique num grupo para o desdobrar.',
@@ -626,17 +634,22 @@ export const pt: Dictionary = {
   'residents.markerResidenceCard.title': 'Início do cartão de residência',
   'residents.markerResidenceCard.description': 'O cartão substituiu o registo de estrangeiros; a contagem começa aí.',
   'residents.markerReopening.title': 'Fronteiras reabertas',
-  'residents.markerReopening.description': 'A viagem sem visto voltou em outubro de 2022 e a população retomou o crescimento.',
+  'residents.markerReopening.description':
+    'A viagem sem visto voltou em outubro de 2022 e a população retomou o crescimento.',
   'residents.markerTraining.title': 'Substituição do estágio técnico',
   'residents.markerTraining.description': 'A revisão de 2024 cria a nova formação e aperta a residência permanente.',
   'residents.markerBusinessManager.title': 'Regras de gestão mais exigentes',
-  'residents.markerBusinessManager.description': 'Desde outubro de 2025 exige-se mais capital, um trabalhador a tempo inteiro e um plano validado.',
+  'residents.markerBusinessManager.description':
+    'Desde outubro de 2025 exige-se mais capital, um trabalhador a tempo inteiro e um plano validado.',
   'residents.markerSsw.title': 'Lançamento do visto Specified Skilled Worker',
-  'residents.markerSsw.description': 'O visto de abril de 2019 abriu mais de uma dezena de setores a trabalhadores estrangeiros qualificados.',
+  'residents.markerSsw.description':
+    'O visto de abril de 2019 abriu mais de uma dezena de setores a trabalhadores estrangeiros qualificados.',
   'residents.markerCovid.title': 'Fechamento de fronteiras na COVID-19',
-  'residents.markerCovid.description': 'As restrições de entrada congelaram as novas chegadas; a população caiu até meados de 2022.',
+  'residents.markerCovid.description':
+    'As restrições de entrada congelaram as novas chegadas; a população caiu até meados de 2022.',
   'residents.markerKoreaSplit.title': 'Separação estatística da Coreia',
-  'residents.markerKoreaSplit.description': 'A Coreia (combinada) tornou-se séries separadas de Coreia do Sul e Coreia (Chosen) — mudança de registro, não de população.',
+  'residents.markerKoreaSplit.description':
+    'A Coreia (combinada) tornou-se séries separadas de Coreia do Sul e Coreia (Chosen) — mudança de registro, não de população.',
 
   'statusGroup.work': 'Trabalho',
   'statusGroup.training': 'Formação',

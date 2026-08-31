@@ -28,7 +28,7 @@ import type { Dictionary } from '../types';
 export const zhCn: Dictionary = {
   // ── App shell ────────────────────────────────────────────────────────────
   'app.title': '日本在留审查统计',
-  'app.subtitle': '出入国在留管理厅的审查数据（随e-Stat发布同步更新）',
+  'app.subtitle': '出入国在留管理厅的审查数据与在留外国人统计（来自e-Stat）',
   'app.skipToContent': '跳转到内容',
   'app.loadingData': '正在汇总在留统计数据…',
   'app.loadingDashboard': '正在加载仪表盘…',
@@ -39,7 +39,7 @@ export const zhCn: Dictionary = {
   // src/i18n/README.md). Translated so it is ready when per-locale routes are.
   'meta.title': '日本在留审查统计仪表盘',
   'meta.description':
-    '在留资格审查处理时间、各出入国在留管理局的处理情况，以及针对您自己申请的排队模型完成时间预估——基于出入国在留管理厅的官方统计数据，随e-Stat发布新数据（通常为每月一次）同步更新。',
+    '在留资格审查处理时间、各出入国在留管理局的处理情况、在留外国人数的变化趋势，以及针对您自己申请的排队模型完成时间预估——基于出入国在留管理厅的官方统计数据，随e-Stat发布新数据同步更新。',
   'meta.keywords': '日本签证处理时间, 出入国在留管理局统计, 签证申请进度查询, 出入国在留管理厅, e-Stat',
 
   // ── Header and settings drawer ───────────────────────────────────────────
@@ -101,7 +101,7 @@ export const zhCn: Dictionary = {
   'metric.denied': '拒绝',
   'metric.other': '其他',
   'metric.approvalRate': '批准率',
-  'metric.completion': '处理率',
+  'metric.efficiency': '效率',
   'metric.applications': '申请数',
   'metric.population': '人口',
   'metric.area': '面积',
@@ -166,7 +166,8 @@ export const zhCn: Dictionary = {
   'estimator.formula.explainAria': '解释{title}公式中的各个变量',
   // Step 1 — throughput baseline.
   'estimator.formula.var.sigmaP.title': '处理总量',
-  'estimator.formula.var.sigmaP.description': '抽样区间内办结的申请总数。抽样区间为最近六个已公布月份，数据不足时则取现有的全部月份。',
+  'estimator.formula.var.sigmaP.description':
+    '抽样区间内办结的申请总数。抽样区间为最近六个已公布月份，数据不足时则取现有的全部月份。',
   'estimator.formula.var.sigmaN.title': '受理总量',
   'estimator.formula.var.sigmaN.description': '同一抽样区间内受理的申请总数。',
   'estimator.formula.var.sigmaD.title': '总天数',
@@ -185,7 +186,8 @@ export const zhCn: Dictionary = {
   'estimator.formula.var.mSim.title': '推算月数',
   'estimator.formula.var.mSim.description': '为推进到申请当月，结转量被逐月往前推算了多少个月。',
   'estimator.formula.var.cPrev.title': '上月结转',
-  'estimator.formula.var.cPrev.description': '申请当月开始时仍在等待的申请件数。前一个月有公布数据时直接采用，没有时则从最近有数据的月份起逐月往前推算。',
+  'estimator.formula.var.cPrev.description':
+    '申请当月开始时仍在等待的申请件数。前一个月有公布数据时直接采用，没有时则从最近有数据的月份起逐月往前推算。',
   'estimator.formula.var.nMonth.title': '当月受理',
   'estimator.formula.var.nMonth.description': '申请当月整月受理的申请件数。',
   'estimator.formula.var.pMonth.title': '当月处理',
@@ -210,7 +212,8 @@ export const zhCn: Dictionary = {
   'estimator.formula.var.cProc.title': '已确认处理量',
   'estimator.formula.var.cProc.description': '申请之后办结的件数中，已公布数据能够佐证的部分。',
   'estimator.formula.var.eProc.title': '预估处理量',
-  'estimator.formula.var.eProc.description': '公布数据尚未覆盖的时段内，预计已办结的申请件数。若已公布月份的实际办结量超过按平均速率的预测，该值为负。',
+  'estimator.formula.var.eProc.description':
+    '公布数据尚未覆盖的时段内，预计已办结的申请件数。若已公布月份的实际办结量超过按平均速率的预测，该值为负。',
   'estimator.formula.var.sProc.title': '申请后处理总量',
   'estimator.formula.var.sProc.description': '申请之后办结的件数合计，由已确认与预估两部分相加并取整。',
   // Step 4 — position in the queue, and how long it takes to clear.
@@ -226,12 +229,12 @@ export const zhCn: Dictionary = {
   'estimator.formula.var.rBar.title': '月均处理速率',
   'estimator.formula.var.rBar.description': '把各月处理速率按月份数均等平均，而非按件数加权。',
   'estimator.formula.var.uDays.title': '误差范围',
-  'estimator.formula.var.uDays.description': '结果旁显示的 ± 幅度，表示处理节奏若像近期一样波动，预计日期会有多大变化。',
+  'estimator.formula.var.uDays.description':
+    '结果旁显示的 ± 幅度，表示处理节奏若像近期一样波动，预计日期会有多大变化。',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   'charts.intake.label': '受理与处理',
-  'charts.intake.description':
-    '每月结转和受理的申请件数，与受理局完成处理的件数及其中获批的比例对比。',
+  'charts.intake.description': '每月结转和受理的申请件数，与受理局完成处理的件数及其中获批的比例对比。',
   'charts.intake.aria':
     '按月堆叠显示待处理和受理申请数量的柱状图，并以折线叠加显示处理量，另以0至100%的右侧纵轴用折线显示批准率',
   'charts.types.label': '申请类型',
@@ -626,7 +629,8 @@ export const zhCn: Dictionary = {
   'residents.markerCovid.title': '新冠疫情边境管制',
   'residents.markerCovid.description': '入境限制冻结了新增入境,居民人数下降持续至 2022 年年中。',
   'residents.markerKoreaSplit.title': '韩国·朝鲜统计拆分',
-  'residents.markerKoreaSplit.description': '统计中“韩国·朝鲜”拆分为“韩国”和“朝鲜”两个序列——是统计口径变化,并非人口变动。',
+  'residents.markerKoreaSplit.description':
+    '统计中“韩国·朝鲜”拆分为“韩国”和“朝鲜”两个序列——是统计口径变化,并非人口变动。',
 
   'statusGroup.work': '就业',
   'statusGroup.training': '研修实习',
