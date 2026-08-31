@@ -92,7 +92,10 @@ export const template: Dictionary = {
   // 'stats.momDelta': '{delta} MoM',
 
   // ── Shared vocabulary ────────────────────────────────────────────────────
-  // Metric names reused across the table, chart legends, and hover cards.
+  // Metric names reused across the data tables, chart legends, and hover cards
+  // — and written verbatim as CSV column headers, in English whatever the
+  // interface language (utils/chartTableCsv.ts), so rewording one changes the
+  // header of an export someone may be parsing.
   // 'metric.carriedOver': 'Carried over',
   // 'metric.pending': 'Pending (carried over)',
   // 'metric.received': 'Received',
@@ -100,6 +103,7 @@ export const template: Dictionary = {
   // 'metric.granted': 'Granted',
   // 'metric.denied': 'Denied',
   // 'metric.other': 'Other',
+  // 'metric.approvalRate': 'Approval rate',
   // 'metric.completion': 'Completion',
   // 'metric.applications': 'Applications',
   // 'metric.population': 'Population',
@@ -108,11 +112,16 @@ export const template: Dictionary = {
   // 'common.noDataForFilters': 'No data for this combination of filters.',
 
   // ── Data table ───────────────────────────────────────────────────────────
+  // The table's own chrome and its row headers — one per row axis, since each
+  // chart's table has its own shape (utils/chartTables.ts). Column headers and
+  // row labels come from the shared sections instead: metric.*, appType.*,
+  // bureau.*, prefecture.*, map.*, filters.*.
   // 'table.view': 'View data table',
   // 'table.hide': 'Hide data table',
   // 'table.downloadCsv': 'Download CSV',
-  // 'table.caption': 'Monthly application statistics for {bureau}',
   // 'table.month': 'Month',
+  // 'table.prefecture': 'Prefecture',
+  // 'table.shareOfTotal': 'Share of total',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   // 'estimator.title': 'Processing Time Estimator',
@@ -120,6 +129,10 @@ export const template: Dictionary = {
   // 'estimator.selectBureau': 'Select Bureau',
   // 'estimator.selectType': 'Select Type',
   // 'estimator.applicationDate': 'Application Date',
+  // Stands in for the inputs while the "Show the math" breakdown is open;
+  // the summary carries no prose of its own, only the three chosen values.
+  // 'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  // 'estimator.editDetails': 'Edit your application details',
   // 'estimator.empty':
   //   'Select your bureau, application type, and application date to estimate when your application will be processed.',
   // 'estimator.estimatedCompletion': 'Estimated completion',
@@ -160,40 +173,103 @@ export const template: Dictionary = {
   // 'estimator.disclaimerEmphasis': 'estimate',
 
   // ── Estimator: the "Show the math" breakdown ─────────────────────────────
-  // 'estimator.formula.step1': 'Queue at application',
-  // 'estimator.formula.step2': 'Queue position & daily rate',
-  // 'estimator.formula.step3': 'Remaining days',
+  // 'estimator.formula.step1': 'Throughput baseline',
+  // 'estimator.formula.step2': 'Queue at application',
+  // 'estimator.formula.step3': 'Processed since application',
+  // 'estimator.formula.step4': 'Queue position & remaining days',
+  // 'estimator.formula.step5': 'Completion offset & spread',
   // 'estimator.formula.explainAria': 'Explain the variables in the {title} formula',
-  // 'estimator.formula.var.dRem.title': 'Remaining Days',
-  // 'estimator.formula.var.dRem.description': 'Estimated days until processing completes.',
-  // 'estimator.formula.var.qPos.title': 'Queue Position',
-  // 'estimator.formula.var.qPos.description': 'Estimated position in the processing queue.',
-  // 'estimator.formula.var.rDaily.title': 'Daily Rate',
-  // 'estimator.formula.var.rDaily.description': 'Average applications processed per day.',
-  // 'estimator.formula.var.cProc.title': 'Confirmed Processed',
-  // 'estimator.formula.var.cProc.description': 'Confirmed number of applications processed since submission.',
-  // 'estimator.formula.var.eProc.title': 'Estimated Processed',
-  // 'estimator.formula.var.eProc.description': 'Estimated number of applications processed since last data point.',
+  // Step 1 — throughput baseline.
   // 'estimator.formula.var.sigmaP.title': 'Total Processed',
-  // 'estimator.formula.var.sigmaP.description': 'Sum of processed applications used for calculating averages.',
+  // 'estimator.formula.var.sigmaP.description':
+  //   'Applications completed across the sampled window — the last six published months, or fewer where that is all there is.',
+  // 'estimator.formula.var.sigmaN.title': 'Total Received',
+  // 'estimator.formula.var.sigmaN.description': 'Applications taken in across the same sampled window.',
   // 'estimator.formula.var.sigmaD.title': 'Total Days',
-  // 'estimator.formula.var.sigmaD.description': 'Sum of days used for calculating averages.',
-  // 'estimator.formula.var.qApp.title': 'Application Queue',
-  // 'estimator.formula.var.qApp.description': 'Estimated queue position at submission time.',
+  // 'estimator.formula.var.sigmaD.description': 'Calendar days in the sampled window, added up month by month.',
+  // 'estimator.formula.var.rProc.title': 'Processing Rate',
+  // 'estimator.formula.var.rProc.description': 'Applications completed per day, averaged across the sampled window.',
+  // 'estimator.formula.var.rNew.title': 'Intake Rate',
+  // 'estimator.formula.var.rNew.description': 'Applications received per day, averaged across the same window.',
+  // Step 2 — the queue on the application date.
+  // 'estimator.formula.var.tPrev.title': 'Previous Month Total',
+  // 'estimator.formula.var.tPrev.description':
+  //   'Total applications on record for the month before yours — carried in plus newly received.',
+  // 'estimator.formula.var.pPrev.title': 'Previous Month Processed',
+  // 'estimator.formula.var.pPrev.description': 'Applications completed in the month before yours.',
+  // 'estimator.formula.var.cSeed.title': 'Simulation Start',
+  // 'estimator.formula.var.cSeed.description':
+  //   'The last published carry-over, used as the starting point when the month before yours has no figures of its own.',
+  // 'estimator.formula.var.mSim.title': 'Months Simulated',
+  // 'estimator.formula.var.mSim.description':
+  //   'How many months the carry-over was rolled forward to reach your application month.',
   // 'estimator.formula.var.cPrev.title': 'Carried Over',
-  // 'estimator.formula.var.cPrev.description': 'Applications carried forward from the previous month.',
-  // 'estimator.formula.var.nApp.title': 'New Applications',
-  // 'estimator.formula.var.nApp.description': 'Estimated applications received prior to submission.',
-  // 'estimator.formula.var.pApp.title': 'Processed Applications',
-  // 'estimator.formula.var.pApp.description': 'Estimated applications processed prior to submission.',
+  // 'estimator.formula.var.cPrev.description':
+  //   'Applications still waiting when your application month began. Read from the previous month where it is published, otherwise rolled forward one month at a time from the last month that has figures.',
+  // 'estimator.formula.var.nMonth.title': 'Month Received',
+  // 'estimator.formula.var.nMonth.description': 'Applications received across the whole of your application month.',
+  // 'estimator.formula.var.pMonth.title': 'Month Processed',
+  // 'estimator.formula.var.pMonth.description': 'Applications completed across the whole of your application month.',
+  // 'estimator.formula.var.dMonth.title': 'Days in Month',
+  // 'estimator.formula.var.dMonth.description':
+  //   'Calendar days in your application month, used to spread its monthly totals evenly across the days.',
+  // 'estimator.formula.var.aDay.title': 'Application Day',
+  // 'estimator.formula.var.aDay.description':
+  //   'The day of the month you applied — how far into the month the queue had built up.',
+  // 'estimator.formula.var.nApp.title': 'Received Before You',
+  // 'estimator.formula.var.nApp.description':
+  //   'Applications received earlier in your application month, pro-rated to the day you applied.',
+  // 'estimator.formula.var.pApp.title': 'Processed Before You',
+  // 'estimator.formula.var.pApp.description':
+  //   'Applications completed earlier in your application month, pro-rated the same way.',
+  // 'estimator.formula.var.qApp.title': 'Application Queue',
+  // 'estimator.formula.var.qApp.description': 'How many applications were ahead of yours the day you applied.',
+  // Step 3 — progress since the application date.
+  // 'estimator.formula.var.pAfter.title': 'Later Months Processed',
+  // 'estimator.formula.var.pAfter.description':
+  //   'Applications completed in the published months that follow your application month.',
+  // 'estimator.formula.var.tApp.title': 'Days Since Applying',
+  // 'estimator.formula.var.tApp.description': 'Calendar days between your application date and today.',
+  // 'estimator.formula.var.tData.title': 'Days Since Last Data',
+  // 'estimator.formula.var.tData.description':
+  //   'Calendar days between the end of the most recently published month and today.',
+  // 'estimator.formula.var.cProc.title': 'Confirmed Processed',
+  // 'estimator.formula.var.cProc.description':
+  //   'Applications completed since you applied that published figures already account for.',
+  // 'estimator.formula.var.eProc.title': 'Projected Processed',
+  // 'estimator.formula.var.eProc.description':
+  //   'Applications assumed completed over the stretch no published figures cover yet. Goes negative when those figures already account for more than the average rate predicts.',
+  // 'estimator.formula.var.sProc.title': 'Processed Since',
+  // 'estimator.formula.var.sProc.description':
+  //   'Everything worked through since you applied — confirmed and projected together, rounded to whole applications.',
+  // Step 4 — position in the queue, and how long it takes to clear.
+  // 'estimator.formula.var.qPos.title': 'Queue Position',
+  // 'estimator.formula.var.qPos.description':
+  //   'How many applications are still ahead of yours. Zero or below means the estimate has already passed.',
+  // 'estimator.formula.var.dRem.title': 'Remaining Days',
+  // 'estimator.formula.var.dRem.description': 'Days needed to clear the rest of the queue at the current rate.',
+  // Step 5 — the whole-day offset, and the spread around it.
+  // 'estimator.formula.var.dEst.title': 'Whole Days',
+  // 'estimator.formula.var.dEst.description':
+  //   'The remaining days rounded away from zero — the offset added to today to give the date shown above.',
+  // 'estimator.formula.var.sigmaR.title': 'Rate Spread',
+  // 'estimator.formula.var.sigmaR.description':
+  //   'Standard deviation of the monthly processing rates — how much the pace varies from month to month.',
+  // 'estimator.formula.var.rBar.title': 'Mean Monthly Rate',
+  // 'estimator.formula.var.rBar.description':
+  //   'The monthly processing rates averaged one weight per month, rather than weighted by volume.',
+  // 'estimator.formula.var.uDays.title': 'Uncertainty',
+  // 'estimator.formula.var.uDays.description':
+  //   'The ± band shown beside the result: how far the estimate moves if the pace varies as much as it recently has.',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card
   // subtitle, `.aria` describes the graphic to a screen reader.
   // 'charts.intake.label': 'Intake & Processing',
   // 'charts.intake.description':
-  //   'Applications carried over and received each month, against the volume the bureaus completed.',
-  // 'charts.intake.aria': 'Stacked bars of pending and received applications per month, with processed volume as a line',
+  //   'Applications carried over and received each month, against the volume the bureaus completed and the share of it that was approved.',
+  // 'charts.intake.aria':
+  //   'Stacked bars of pending and received applications per month, with processed volume as a line, and the approval rate as a second line on a right-hand axis running from zero to one hundred percent',
   // 'charts.types.label': 'Application Types',
   // 'charts.types.description':
   //   'Monthly new submissions broken down by application type — click a legend entry to toggle a series.',
@@ -221,6 +297,47 @@ export const template: Dictionary = {
   // 'chart.legendShow': 'Show {series}',
   // 'chart.legendHide': 'Hide {series}',
   // 'chart.allSeriesHidden': 'All series hidden — click a legend entry to show one.',
+
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  // Pinned to the month whose intake the change actually moved, which is the
+  // commencement date far more often than the announcement. Sources live
+  // beside the dates in src/constants/policyEvents.ts.
+  // 'policy.eventsShow': 'Show policy events',
+  // 'policy.eventsHide': 'Hide policy events',
+  // 'policy.ssw2019.title': 'Specified Skilled Worker created',
+  // 'policy.ssw2019.description': 'A status for shortage industries; the Immigration Services Agency opened the same day.',
+  // 'policy.covidClosure.title': 'Pandemic entry restrictions',
+  // 'policy.covidClosure.description': 'Landing denial widened to most of the world as COVID-19 spread.',
+  // 'policy.covidSuspension.title': 'New entry suspended worldwide',
+  // 'policy.covidSuspension.description': 'From late December no foreign national could enter newly, whatever visa they held.',
+  // 'policy.covidOmicron.title': 'Reopening reversed for Omicron',
+  // 'policy.covidOmicron.description': 'Entry resumed on 8 November and was shut again three weeks later.',
+  // 'policy.covidResume.title': 'Students and workers admitted again',
+  // 'policy.covidResume.description': 'New entry reopened for study, work and business, under a daily arrivals cap.',
+  // 'policy.covidVisaFree.title': 'Visa-free travel restored',
+  // 'policy.covidVisaFree.description': 'Visa exemptions returned and the daily arrivals cap was abolished.',
+  // 'policy.covidCoe.title': 'Certificate validity extended',
+  // 'policy.covidCoe.description': 'Certificates of Eligibility stranded by the closure stayed valid well beyond three months.',
+  // 'policy.covidEnd.title': 'Border measures ended',
+  // 'policy.covidEnd.description': 'Testing and vaccination checks stopped, and COVID-19 moved to Class 5.',
+  // 'policy.act2023.title': 'Immigration Act revision enacted',
+  // 'policy.act2023.description': 'Added supervision in place of detention and a complementary protection status.',
+  // 'policy.digitalNomad.title': 'Digital nomad status created',
+  // 'policy.digitalNomad.description': 'A six-month Designated Activities status for remote workers and their families.',
+  // 'policy.sswExpansion.title': 'Specified Skilled Worker expanded',
+  // 'policy.sswExpansion.description': 'A cabinet decision added four industries and reset five-year intake targets.',
+  // 'policy.act2023Effect.title': 'Deportation rules take effect',
+  // 'policy.act2023Effect.description': 'The main provisions of the 2023 revision came into force.',
+  // 'policy.act2024.title': 'Technical intern training replaced',
+  // 'policy.act2024.description': 'Employment for Skill Development supersedes the training programme from 2027.',
+  // 'policy.feeRevision2025.title': 'Application fees raised',
+  // 'policy.feeRevision2025.description': 'Extensions rose to 6,000 yen and permanent residence to 10,000 yen.',
+  // 'policy.businessManager2025.title': 'Business Manager rules tightened',
+  // 'policy.businessManager2025.description': 'Higher capital, a full-time employee and a vetted business plan required.',
+  // 'policy.residenceCard2026.title': 'Residence card meets My Number',
+  // 'policy.residenceCard2026.description': 'Combined residence and My Number cards entered service.',
+  // 'policy.act2026.title': 'Fee ceiling raised by law',
+  // 'policy.act2026.description': 'The 2026 revision lifted the statutory cap on residence permit fees.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
@@ -295,6 +412,8 @@ export const template: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   // 'changelog.title': 'Changelog',
   // 'changelog.loading': 'Loading...',
+  // 'changelog.expandAll': 'Expand all',
+  // 'changelog.collapseAll': 'Collapse all',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   // 'errors.dataTitle': 'Error Loading Data',
@@ -306,9 +425,15 @@ export const template: Dictionary = {
   // 'errors.reload': 'Reload Page',
   // 'errors.changelogUnavailable': 'Unable to load the changelog.',
 
-  // ── Screen-reader only ───────────────────────────────────────────────────
+  // ── Chart announcement ───────────────────────────────────────────────────
+  // Three jobs, not one: the live region reads this on a view change, the data
+  // table uses it as its (sr-only) caption, and it is the first line of every
+  // CSV export — where it is pinned to English like the rest of the file
+  // (utils/chartTableCsv.ts). So it is not screen-reader-only any more: this
+  // sentence ships inside files people open in a spreadsheet.
   // 'a11y.showingChart': 'Showing {chart} for {bureau}',
   // 'a11y.showingChartWithType': 'Showing {chart} for {bureau}, {type}',
+  // 'a11y.policyEvents': 'Policy events shown on this chart',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   // 'footer.attribution': 'Official statistics provided by the Immigration Services Agency of Japan',
@@ -542,6 +667,18 @@ export const template: Dictionary = {
   // 'residents.flowsTooltipValueLabel': 'Residents',
   // 'residents.flowsTooltipFlowLabel': 'Flow',
   // 'residents.sunburstHint': '{trail} — {count} residents ({percent} of total)',
+  // 'residents.markerResidenceCard.title': 'Residence card system began',
+  // 'residents.markerResidenceCard.description':
+  //   'Residence cards replaced alien registration; this table starts with the first count taken under them.',
+  // 'residents.markerReopening.title': 'Borders reopened',
+  // 'residents.markerReopening.description':
+  //   'Visa-free travel returned in October 2022 and the population resumed growing.',
+  // 'residents.markerTraining.title': 'Technical intern training replaced',
+  // 'residents.markerTraining.description':
+  //   'The 2024 revision creates Employment for Skill Development and tightens permanent residence.',
+  // 'residents.markerBusinessManager.title': 'Business Manager rules tightened',
+  // 'residents.markerBusinessManager.description':
+  //   'Higher capital, a full-time employee and a vetted business plan required from October 2025.',
   // 'residents.markerSsw.title': 'Specified Skilled Worker launched',
   // 'residents.markerSsw.description': 'The April 2019 visa opened over a dozen industries to skilled foreign workers.',
   // 'residents.markerCovid.title': 'COVID-19 border closure',

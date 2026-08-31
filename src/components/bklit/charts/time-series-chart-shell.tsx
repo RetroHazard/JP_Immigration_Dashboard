@@ -153,6 +153,12 @@ export interface TimeSeriesChartInnerProps {
   composedStackGap?: number;
   /** When set, drives the y-axis max instead of scanning `lines` (e.g. stacked bar totals). */
   yScaleDomainMax?: number;
+  /**
+   * LOCAL MODIFICATION: axes held at a fixed domain, keyed by `yAxisId`. A
+   * percentage axis should read 0-100% whatever the data does, and upstream has
+   * no way to say so. (Re-apply after a re-vendor.)
+   */
+  yAxisDomains?: Record<string, [number, number]>;
   /** Loading vs ready — drives chart phase until transition orchestration lands. */
   chartStatus?: ChartStatus;
   loadingLabel?: string;
@@ -209,6 +215,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
   composedStackOffsets,
   composedStackGap,
   yScaleDomainMax,
+  yAxisDomains,
   chartStatus = DEFAULT_CHART_STATUS,
   loadingLabel,
   yDomainTween = true,
@@ -223,18 +230,23 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
+  // LOCAL MODIFICATION: upstream only honours `yScaleDomainMax` when every
+  // series shares the default axis, so adding a second axis silently dropped
+  // the stacked-bar total and rescaled the primary axis to the tallest single
+  // segment — stacked bars then overflowed the plot. The total describes the
+  // primary axis specifically, so key it on `axisId` instead of on how many
+  // axes exist. (Re-apply after a re-vendor.)
   const resolveYDomain = useCallback(
-    (sourceData: Record<string, unknown>[], dataKeys: string[]) => {
-      const axisGroups = groupLinesByYAxisId(lines);
-      const usesDefaultOnly =
-        axisGroups.size === 1 && axisGroups.has(DEFAULT_Y_AXIS_ID);
+    (
+      sourceData: Record<string, unknown>[],
+      dataKeys: string[],
+      axisId: string = DEFAULT_Y_AXIS_ID
+    ) => {
       const domainMax =
-        usesDefaultOnly && yScaleDomainMax != null
-          ? yScaleDomainMax
-          : undefined;
+        axisId === DEFAULT_Y_AXIS_ID ? yScaleDomainMax : undefined;
       return resolveTimeSeriesYDomain(sourceData, dataKeys, domainMax);
     },
-    [lines, yScaleDomainMax]
+    [yScaleDomainMax]
   );
 
   const skeletonData = useMemo(() => {
@@ -341,22 +353,32 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
     () =>
       computeYDomainsByAxis({
         lines,
-        resolveDomain: (dataKeys) => resolveYDomain(skeletonData, dataKeys),
+        pinnedDomains: yAxisDomains,
+        resolveDomain: (dataKeys, axisId) =>
+          resolveYDomain(skeletonData, dataKeys, axisId),
       }),
-    [lines, resolveYDomain, skeletonData]
+    [lines, resolveYDomain, skeletonData, yAxisDomains]
   );
 
   const yDomainTargetByAxis = useMemo(() => {
     const base = computeYDomainsByAxis({
       lines,
-      resolveDomain: (dataKeys) =>
-        resolveYDomain(xDomain ? visiblePlotData : data, dataKeys),
+      pinnedDomains: yAxisDomains,
+      resolveDomain: (dataKeys, axisId) =>
+        resolveYDomain(xDomain ? visiblePlotData : data, dataKeys, axisId),
     });
     if (projectionConfigs.length === 0) {
       return base;
     }
     const merged: Record<string, [number, number]> = { ...base };
+    // LOCAL MODIFICATION: a pinned axis stays pinned — widening it to fit a
+    // projection would undo what the caller asked for.
+    // (Re-apply after a re-vendor.)
+    const isPinned = (axisId: string) => yAxisDomains?.[axisId] != null;
     for (const axisId of Object.keys(base)) {
+      if (isPinned(axisId)) {
+        continue;
+      }
       merged[axisId] = mergeProjectionYDomain(
         base[axisId] ?? [0, 100],
         projectionConfigs,
@@ -364,7 +386,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       );
     }
     for (const config of projectionConfigs) {
-      if (!merged[config.yAxisId]) {
+      if (!merged[config.yAxisId] && !isPinned(config.yAxisId)) {
         merged[config.yAxisId] = mergeProjectionYDomain(
           [0, 100],
           projectionConfigs,
@@ -380,6 +402,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
     resolveYDomain,
     visiblePlotData,
     xDomain,
+    yAxisDomains,
   ]);
 
   const animatedYDomainsByAxis = useAnimatedYDomains({

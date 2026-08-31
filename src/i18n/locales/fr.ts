@@ -83,6 +83,7 @@ export const fr: Dictionary = {
   'metric.granted': 'Accordées',
   'metric.denied': 'Refusées',
   'metric.other': 'Autres',
+  'metric.approvalRate': "Taux d'acceptation",
   'metric.completion': 'Achèvement',
   'metric.applications': 'Demandes',
   'metric.population': 'Habitants',
@@ -94,8 +95,9 @@ export const fr: Dictionary = {
   'table.view': 'Afficher le tableau de données',
   'table.hide': 'Masquer le tableau de données',
   'table.downloadCsv': 'Télécharger le CSV',
-  'table.caption': 'Statistiques mensuelles des demandes pour {bureau}',
   'table.month': 'Mois',
+  'table.prefecture': 'Préfecture',
+  'table.shareOfTotal': 'Part du total',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Estimateur de délai',
@@ -104,6 +106,8 @@ export const fr: Dictionary = {
   'estimator.selectBureau': 'Sélectionner un bureau',
   'estimator.selectType': 'Sélectionner un type',
   'estimator.applicationDate': 'Date de la demande',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': 'Modifier les détails de votre demande',
   'estimator.empty':
     'Sélectionnez votre bureau, le type de demande et la date de la demande pour estimer quand votre demande sera traitée.',
   'estimator.estimatedCompletion': 'Achèvement estimé',
@@ -144,39 +148,105 @@ export const fr: Dictionary = {
   'estimator.disclaimerEmphasis': 'estimation',
 
   // ── Estimator: the "Show the math" breakdown ─────────────────────────────
-  'estimator.formula.step1': "File d'attente au dépôt",
-  'estimator.formula.step2': 'Position dans la file et taux journalier',
-  'estimator.formula.step3': 'Jours restants',
+  'estimator.formula.step1': 'Débit de référence',
+  'estimator.formula.step2': "File d'attente au dépôt",
+  'estimator.formula.step3': 'Traité depuis le dépôt',
+  'estimator.formula.step4': 'Position dans la file et jours restants',
+  'estimator.formula.step5': 'Jours entiers et marge',
   'estimator.formula.explainAria': 'Expliquer les variables de la formule {title}',
-  'estimator.formula.var.dRem.title': 'Jours restants',
-  'estimator.formula.var.dRem.description': 'Nombre de jours estimé avant la fin du traitement.',
-  'estimator.formula.var.qPos.title': 'Position dans la file',
-  'estimator.formula.var.qPos.description': 'Position estimée dans la file de traitement.',
-  'estimator.formula.var.rDaily.title': 'Taux journalier',
-  'estimator.formula.var.rDaily.description': 'Nombre moyen de demandes traitées par jour.',
-  'estimator.formula.var.cProc.title': 'Traitées confirmées',
-  'estimator.formula.var.cProc.description': 'Nombre confirmé de demandes traitées depuis le dépôt.',
-  'estimator.formula.var.eProc.title': 'Traitées estimées',
-  'estimator.formula.var.eProc.description': 'Nombre estimé de demandes traitées depuis le dernier point de données.',
+  // Step 1 — throughput baseline.
   'estimator.formula.var.sigmaP.title': 'Total traité',
-  'estimator.formula.var.sigmaP.description': 'Somme des demandes traitées utilisée pour le calcul des moyennes.',
+  'estimator.formula.var.sigmaP.description':
+    "Demandes traitées sur la période échantillonnée, soit les six derniers mois publiés, ou moins si les données s'arrêtent avant.",
+  'estimator.formula.var.sigmaN.title': 'Total reçu',
+  'estimator.formula.var.sigmaN.description': 'Demandes reçues sur cette même période échantillonnée.',
   'estimator.formula.var.sigmaD.title': 'Total des jours',
-  'estimator.formula.var.sigmaD.description': 'Somme des jours utilisée pour le calcul des moyennes.',
-  'estimator.formula.var.qApp.title': "File d'attente des demandes",
-  'estimator.formula.var.qApp.description': 'Position estimée dans la file au moment du dépôt.',
-  'estimator.formula.var.cPrev.title': 'Reportées',
-  'estimator.formula.var.cPrev.description': 'Demandes reportées du mois précédent.',
-  'estimator.formula.var.nApp.title': 'Nouvelles demandes',
-  'estimator.formula.var.nApp.description': 'Demandes estimées reçues avant le dépôt.',
-  'estimator.formula.var.pApp.title': 'Demandes traitées',
-  'estimator.formula.var.pApp.description': 'Demandes estimées traitées avant le dépôt.',
+  'estimator.formula.var.sigmaD.description':
+    'Jours calendaires de la période échantillonnée, additionnés mois par mois.',
+  'estimator.formula.var.rProc.title': 'Cadence de traitement',
+  'estimator.formula.var.rProc.description':
+    'Demandes traitées par jour, en moyenne sur toute la période échantillonnée.',
+  'estimator.formula.var.rNew.title': 'Cadence de dépôt',
+  'estimator.formula.var.rNew.description': 'Demandes reçues par jour, en moyenne sur cette même période.',
+  // Step 2 — the queue on the application date.
+  'estimator.formula.var.tPrev.title': 'Total du mois précédent',
+  'estimator.formula.var.tPrev.description':
+    'Ensemble des demandes en portefeuille le mois précédant le vôtre : le report plus les nouvelles arrivées.',
+  'estimator.formula.var.pPrev.title': 'Traité le mois précédent',
+  'estimator.formula.var.pPrev.description': 'Demandes traitées durant le mois précédant le vôtre.',
+  'estimator.formula.var.cSeed.title': 'Point de départ de la simulation',
+  'estimator.formula.var.cSeed.description':
+    "Dernier report publié, utilisé comme point de départ lorsque le mois précédant le vôtre n'a pas de chiffres propres.",
+  'estimator.formula.var.mSim.title': 'Mois simulés',
+  'estimator.formula.var.mSim.description':
+    'Nombre de mois sur lesquels le report a été projeté pour atteindre votre mois de dépôt.',
+  'estimator.formula.var.cPrev.title': 'Report',
+  'estimator.formula.var.cPrev.description':
+    "Demandes encore en attente à l'ouverture de votre mois de dépôt. Reprise du mois précédent lorsqu'il est publié, sinon projetée mois après mois depuis le dernier mois chiffré.",
+  'estimator.formula.var.nMonth.title': 'Reçu dans le mois',
+  'estimator.formula.var.nMonth.description': "Demandes reçues sur l'ensemble de votre mois de dépôt.",
+  'estimator.formula.var.pMonth.title': 'Traité dans le mois',
+  'estimator.formula.var.pMonth.description': "Demandes traitées sur l'ensemble de votre mois de dépôt.",
+  'estimator.formula.var.dMonth.title': 'Jours du mois',
+  'estimator.formula.var.dMonth.description':
+    'Jours calendaires de votre mois de dépôt, servant à répartir uniformément les totaux mensuels sur les jours.',
+  'estimator.formula.var.aDay.title': 'Jour du dépôt',
+  'estimator.formula.var.aDay.description':
+    "Le quantième auquel vous avez déposé, c'est-à-dire jusqu'où la file s'était accumulée dans le mois.",
+  'estimator.formula.var.nApp.title': 'Reçu avant vous',
+  'estimator.formula.var.nApp.description':
+    "Demandes reçues plus tôt dans votre mois de dépôt, calculées au prorata jusqu'au jour du dépôt.",
+  'estimator.formula.var.pApp.title': 'Traité avant vous',
+  'estimator.formula.var.pApp.description':
+    'Demandes traitées plus tôt dans votre mois de dépôt, au prorata de la même façon.',
+  'estimator.formula.var.qApp.title': 'File au dépôt',
+  'estimator.formula.var.qApp.description': 'Nombre de demandes qui précédaient la vôtre le jour du dépôt.',
+  // Step 3 — progress since the application date.
+  'estimator.formula.var.pAfter.title': 'Traité les mois suivants',
+  'estimator.formula.var.pAfter.description':
+    'Demandes traitées durant les mois publiés qui suivent votre mois de dépôt.',
+  'estimator.formula.var.tApp.title': 'Jours depuis le dépôt',
+  'estimator.formula.var.tApp.description': "Jours calendaires entre votre date de dépôt et aujourd'hui.",
+  'estimator.formula.var.tData.title': 'Jours depuis les données',
+  'estimator.formula.var.tData.description': "Jours calendaires entre la fin du dernier mois publié et aujourd'hui.",
+  'estimator.formula.var.cProc.title': 'Traité confirmé',
+  'estimator.formula.var.cProc.description':
+    'Demandes traitées depuis votre dépôt que les chiffres publiés couvrent déjà.',
+  'estimator.formula.var.eProc.title': 'Traité projeté',
+  'estimator.formula.var.eProc.description':
+    "Demandes supposées traitées sur l'intervalle que les chiffres publiés ne couvrent pas encore. Devient négatif lorsque ces chiffres dépassent déjà ce que la cadence moyenne prévoyait.",
+  'estimator.formula.var.sProc.title': 'Traité depuis',
+  'estimator.formula.var.sProc.description':
+    "Tout ce qui a été traité depuis votre dépôt : le confirmé et le projeté réunis, arrondis à l'unité.",
+  // Step 4 — position in the queue, and how long it takes to clear.
+  'estimator.formula.var.qPos.title': 'Position dans la file',
+  'estimator.formula.var.qPos.description':
+    "Nombre de demandes encore devant la vôtre. Zéro ou moins signifie que l'estimation est déjà dépassée.",
+  'estimator.formula.var.dRem.title': 'Jours restants',
+  'estimator.formula.var.dRem.description':
+    'Jours nécessaires pour résorber le reste de la file à la cadence actuelle.',
+  // Step 5 — the whole-day offset, and the spread around it.
+  'estimator.formula.var.dEst.title': 'Jours entiers',
+  'estimator.formula.var.dEst.description':
+    "Les jours restants arrondis en s'éloignant de zéro : le décalage ajouté à aujourd'hui pour obtenir la date affichée plus haut.",
+  'estimator.formula.var.sigmaR.title': 'Dispersion de la cadence',
+  'estimator.formula.var.sigmaR.description':
+    "Écart type des cadences mensuelles de traitement, c'est-à-dire l'ampleur des variations d'un mois sur l'autre.",
+  'estimator.formula.var.rBar.title': 'Cadence mensuelle moyenne',
+  'estimator.formula.var.rBar.description':
+    'Moyenne des cadences mensuelles à poids égal par mois, et non pondérée par le volume.',
+  'estimator.formula.var.uDays.title': 'Incertitude',
+  'estimator.formula.var.uDays.description':
+    "La marge ± affichée à côté du résultat : de combien l'estimation bouge si la cadence varie autant qu'elle l'a fait récemment.",
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Réception et traitement',
-  'charts.intake.description': 'Demandes reportées et reçues chaque mois, comparées au volume traité par les bureaux.',
-  'charts.intake.aria': 'Barres empilées des demandes en attente et reçues par mois, avec le volume traité en courbe',
+  'charts.intake.description':
+    'Demandes reportées et reçues chaque mois, comparées au volume traité par les bureaux et à la part qui en a été acceptée.',
+  'charts.intake.aria':
+    'Barres empilées des demandes en attente et reçues par mois, avec le volume traité en courbe et le taux d’acceptation en seconde courbe sur un axe de droite allant de zéro à cent pour cent',
   'charts.types.label': 'Types de demandes',
   'charts.types.description':
     'Nouvelles soumissions mensuelles réparties par type de demande — cliquez sur une entrée de légende pour afficher ou masquer une série.',
@@ -209,6 +279,44 @@ export const fr: Dictionary = {
   'chart.legendShow': 'Afficher {series}',
   'chart.legendHide': 'Masquer {series}',
   'chart.allSeriesHidden': 'Toutes les séries sont masquées — cliquez sur une entrée de légende pour en afficher une.',
+
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.eventsShow': 'Afficher les événements politiques',
+  'policy.eventsHide': 'Masquer les événements politiques',
+  'policy.ssw2019.title': 'Création du Travailleur Qualifié',
+  'policy.ssw2019.description': 'Un statut pour les secteurs en pénurie ; l’agence de l’immigration naît le même jour.',
+  'policy.covidClosure.title': 'Restrictions d’entrée de la pandémie',
+  'policy.covidClosure.description': 'Le refus d’admission a été étendu à la quasi-totalité du monde.',
+  'policy.covidSuspension.title': 'Entrées nouvelles suspendues partout',
+  'policy.covidSuspension.description': 'À partir de fin décembre, plus aucune entrée nouvelle, quel que soit le visa.',
+  'policy.covidOmicron.title': 'Réouverture annulée pour Omicron',
+  'policy.covidOmicron.description': 'L’entrée rouverte le 8 novembre a été refermée trois semaines plus tard.',
+  'policy.covidResume.title': 'Retour des étudiants et des salariés',
+  'policy.covidResume.description': 'Entrées rouvertes pour les études, le travail et les affaires, sous quota journalier.',
+  'policy.covidVisaFree.title': 'Retour des voyages sans visa',
+  'policy.covidVisaFree.description': 'Les exemptions de visa sont revenues et le quota journalier a été supprimé.',
+  'policy.covidCoe.title': 'Validité des certificats prolongée',
+  'policy.covidCoe.description': 'Les certificats bloqués par la fermeture sont restés valables bien au-delà de trois mois.',
+  'policy.covidEnd.title': 'Fin des mesures aux frontières',
+  'policy.covidEnd.description': 'Tests et preuves de vaccination supprimés, la maladie passe en classe 5.',
+  'policy.act2023.title': 'Révision de la loi sur l’immigration',
+  'policy.act2023.description': 'Ajout de mesures de surveillance en lieu et place de la rétention et d’une protection complémentaire.',
+  'policy.digitalNomad.title': 'Statut pour les nomades numériques',
+  'policy.digitalNomad.description': 'Un statut de six mois pour les télétravailleurs et leur famille.',
+  'policy.sswExpansion.title': 'Élargissement du Travailleur Qualifié',
+  'policy.sswExpansion.description': 'Une décision du conseil des ministres a ajouté quatre secteurs et de nouveaux quotas.',
+  'policy.act2023Effect.title': 'Entrée en vigueur des règles d’éloignement',
+  'policy.act2023Effect.description': 'Les principales dispositions de la révision de 2023 sont entrées en vigueur.',
+  'policy.act2024.title': 'Remplacement du stage technique',
+  'policy.act2024.description': 'À partir de 2027, la nouvelle formation remplace le programme de stage technique.',
+  'policy.feeRevision2025.title': 'Hausse des frais de dossier',
+  'policy.feeRevision2025.description': 'Les renouvellements passent à 6 000 yens et la résidence permanente à 10 000.',
+  'policy.businessManager2025.title': 'Règles de gestion renforcées',
+  'policy.businessManager2025.description': 'Il faut plus de capital, un salarié à temps plein et un plan validé.',
+  'policy.residenceCard2026.title': 'La carte de séjour rejoint My Number',
+  'policy.residenceCard2026.description': 'Les cartes combinant séjour et My Number sont entrées en service.',
+  'policy.act2026.title': 'Plafond légal des frais relevé',
+  'policy.act2026.description': 'La révision de 2026 a relevé le plafond légal des frais de séjour.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
@@ -279,6 +387,8 @@ export const fr: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': 'Journal des modifications',
   'changelog.loading': 'Chargement...',
+  'changelog.expandAll': 'Tout développer',
+  'changelog.collapseAll': 'Tout réduire',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   'errors.dataTitle': 'Erreur de chargement des données',
@@ -293,6 +403,7 @@ export const fr: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': 'Affichage de {chart} pour {bureau}',
   'a11y.showingChartWithType': 'Affichage de {chart} pour {bureau}, {type}',
+  'a11y.policyEvents': 'Événements politiques affichés sur ce graphique',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': "Statistiques officielles fournies par l'Agence des services de l'immigration du Japon",
@@ -514,6 +625,14 @@ export const fr: Dictionary = {
   'residents.flowsTooltipValueLabel': 'Résidents',
   'residents.flowsTooltipFlowLabel': 'Flux',
   'residents.sunburstHint': '{trail} — {count} résidents ({percent} du total)',
+  'residents.markerResidenceCard.title': 'Début de la carte de séjour',
+  'residents.markerResidenceCard.description': 'La carte de séjour remplace l’enregistrement des étrangers ; le décompte part de là.',
+  'residents.markerReopening.title': 'Réouverture des frontières',
+  'residents.markerReopening.description': 'Le voyage sans visa revient en octobre 2022 et la population repart à la hausse.',
+  'residents.markerTraining.title': 'Remplacement du stage technique',
+  'residents.markerTraining.description': 'La révision de 2024 crée la nouvelle formation et durcit la résidence permanente.',
+  'residents.markerBusinessManager.title': 'Règles de gestion renforcées',
+  'residents.markerBusinessManager.description': 'Dès octobre 2025, il faut plus de capital, un salarié à temps plein et un plan validé.',
   'residents.markerSsw.title': 'Lancement du visa Specified Skilled Worker',
   'residents.markerSsw.description': 'Le visa d’avril 2019 a ouvert plus d’une douzaine de secteurs aux travailleurs étrangers qualifiés.',
   'residents.markerCovid.title': 'Fermeture des frontières (COVID-19)',

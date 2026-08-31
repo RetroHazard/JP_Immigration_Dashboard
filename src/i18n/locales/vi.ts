@@ -85,6 +85,7 @@ export const vi: Dictionary = {
   'metric.granted': 'Đã chấp thuận',
   'metric.denied': 'Bị từ chối',
   'metric.other': 'Khác',
+  'metric.approvalRate': 'Tỷ lệ chấp thuận',
   'metric.completion': 'Hoàn thành',
   'metric.applications': 'Hồ sơ',
   'metric.population': 'Dân số',
@@ -96,8 +97,9 @@ export const vi: Dictionary = {
   'table.view': 'Xem bảng dữ liệu',
   'table.hide': 'Ẩn bảng dữ liệu',
   'table.downloadCsv': 'Tải xuống CSV',
-  'table.caption': 'Số liệu thống kê hồ sơ hàng tháng của {bureau}',
   'table.month': 'Tháng',
+  'table.prefecture': 'Tỉnh',
+  'table.shareOfTotal': 'Tỷ trọng',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Công cụ Ước tính Thời gian Xử lý',
@@ -105,6 +107,8 @@ export const vi: Dictionary = {
   'estimator.selectBureau': 'Chọn cục quản lý',
   'estimator.selectType': 'Chọn loại hồ sơ',
   'estimator.applicationDate': 'Ngày nộp hồ sơ',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': 'Chỉnh sửa thông tin hồ sơ của bạn',
   'estimator.empty': 'Chọn cục quản lý, loại hồ sơ và ngày nộp hồ sơ để ước tính thời điểm hồ sơ của bạn được xử lý.',
   'estimator.estimatedCompletion': 'Thời điểm hoàn thành dự kiến',
   'estimator.queuePosition': 'Vị trí trong hàng đợi',
@@ -144,41 +148,98 @@ export const vi: Dictionary = {
   'estimator.disclaimerEmphasis': 'ước tính',
 
   // ── Estimator: the "Show the math" breakdown ─────────────────────────────
-  'estimator.formula.step1': 'Hàng đợi tại thời điểm nộp hồ sơ',
-  'estimator.formula.step2': 'Vị trí hàng đợi & tốc độ hàng ngày',
-  'estimator.formula.step3': 'Số ngày còn lại',
+  'estimator.formula.step1': 'Năng suất nền',
+  'estimator.formula.step2': 'Hàng chờ lúc nộp',
+  'estimator.formula.step3': 'Đã xử lý từ khi nộp',
+  'estimator.formula.step4': 'Vị trí hàng chờ và số ngày còn lại',
+  'estimator.formula.step5': 'Số ngày tròn và biên sai số',
   'estimator.formula.explainAria': 'Giải thích các biến trong công thức {title}',
-  'estimator.formula.var.dRem.title': 'Số ngày còn lại',
-  'estimator.formula.var.dRem.description': 'Số ngày ước tính cho đến khi hoàn tất xử lý.',
-  'estimator.formula.var.qPos.title': 'Vị trí hàng đợi',
-  'estimator.formula.var.qPos.description': 'Vị trí ước tính trong hàng đợi xử lý.',
-  'estimator.formula.var.rDaily.title': 'Tốc độ hàng ngày',
-  'estimator.formula.var.rDaily.description': 'Số hồ sơ trung bình được xử lý mỗi ngày.',
-  'estimator.formula.var.cProc.title': 'Đã xử lý (xác nhận)',
-  'estimator.formula.var.cProc.description': 'Số hồ sơ đã xử lý được xác nhận kể từ khi nộp.',
-  'estimator.formula.var.eProc.title': 'Đã xử lý (ước tính)',
-  'estimator.formula.var.eProc.description': 'Số hồ sơ ước tính đã xử lý kể từ mốc dữ liệu gần nhất.',
-  'estimator.formula.var.sigmaP.title': 'Tổng số đã xử lý',
-  'estimator.formula.var.sigmaP.description': 'Tổng số hồ sơ đã xử lý dùng để tính giá trị trung bình.',
+  // Step 1 — throughput baseline.
+  'estimator.formula.var.sigmaP.title': 'Tổng đã xử lý',
+  'estimator.formula.var.sigmaP.description':
+    'Số hồ sơ hoàn tất trong khoảng lấy mẫu, tức sáu tháng công bố gần nhất, hoặc ít hơn nếu dữ liệu dừng sớm hơn.',
+  'estimator.formula.var.sigmaN.title': 'Tổng đã tiếp nhận',
+  'estimator.formula.var.sigmaN.description': 'Số hồ sơ tiếp nhận trong cùng khoảng lấy mẫu đó.',
   'estimator.formula.var.sigmaD.title': 'Tổng số ngày',
-  'estimator.formula.var.sigmaD.description': 'Tổng số ngày dùng để tính giá trị trung bình.',
-  'estimator.formula.var.qApp.title': 'Hàng đợi hồ sơ',
-  'estimator.formula.var.qApp.description': 'Vị trí hàng đợi ước tính tại thời điểm nộp hồ sơ.',
-  'estimator.formula.var.cPrev.title': 'Chuyển từ kỳ trước',
-  'estimator.formula.var.cPrev.description': 'Hồ sơ được chuyển tiếp từ tháng trước.',
-  'estimator.formula.var.nApp.title': 'Hồ sơ mới',
-  'estimator.formula.var.nApp.description': 'Số hồ sơ ước tính được tiếp nhận trước khi nộp.',
-  'estimator.formula.var.pApp.title': 'Hồ sơ đã xử lý',
-  'estimator.formula.var.pApp.description': 'Số hồ sơ ước tính đã được xử lý trước khi nộp.',
+  'estimator.formula.var.sigmaD.description': 'Số ngày theo lịch trong khoảng lấy mẫu, cộng dồn theo từng tháng.',
+  'estimator.formula.var.rProc.title': 'Tốc độ xử lý',
+  'estimator.formula.var.rProc.description': 'Số hồ sơ hoàn tất mỗi ngày, tính trung bình trên toàn khoảng lấy mẫu.',
+  'estimator.formula.var.rNew.title': 'Tốc độ tiếp nhận',
+  'estimator.formula.var.rNew.description': 'Số hồ sơ tiếp nhận mỗi ngày, tính trung bình trên cùng khoảng đó.',
+  // Step 2 — the queue on the application date.
+  'estimator.formula.var.tPrev.title': 'Tổng của tháng trước',
+  'estimator.formula.var.tPrev.description':
+    'Toàn bộ hồ sơ cơ quan đang giữ trong tháng liền trước tháng của bạn, gồm phần chuyển sang cộng với phần mới tiếp nhận.',
+  'estimator.formula.var.pPrev.title': 'Đã xử lý tháng trước',
+  'estimator.formula.var.pPrev.description': 'Số hồ sơ hoàn tất trong tháng liền trước tháng của bạn.',
+  'estimator.formula.var.cSeed.title': 'Điểm khởi đầu mô phỏng',
+  'estimator.formula.var.cSeed.description':
+    'Số hồ sơ chuyển sang được công bố gần nhất, dùng làm điểm xuất phát khi tháng liền trước tháng của bạn chưa có số liệu riêng.',
+  'estimator.formula.var.mSim.title': 'Số tháng mô phỏng',
+  'estimator.formula.var.mSim.description':
+    'Số hồ sơ chuyển sang đã được đẩy tới trước bao nhiêu tháng để chạm tới tháng bạn nộp.',
+  'estimator.formula.var.cPrev.title': 'Chuyển sang',
+  'estimator.formula.var.cPrev.description':
+    'Số hồ sơ vẫn còn chờ khi tháng bạn nộp bắt đầu. Lấy theo tháng liền trước nếu tháng đó đã công bố, nếu không thì đẩy tới từng tháng một kể từ tháng gần nhất có số liệu.',
+  'estimator.formula.var.nMonth.title': 'Tiếp nhận trong tháng',
+  'estimator.formula.var.nMonth.description': 'Số hồ sơ tiếp nhận trong suốt cả tháng bạn nộp.',
+  'estimator.formula.var.pMonth.title': 'Xử lý trong tháng',
+  'estimator.formula.var.pMonth.description': 'Số hồ sơ hoàn tất trong suốt cả tháng bạn nộp.',
+  'estimator.formula.var.dMonth.title': 'Số ngày trong tháng',
+  'estimator.formula.var.dMonth.description':
+    'Số ngày theo lịch của tháng bạn nộp, dùng để chia đều tổng của cả tháng cho từng ngày.',
+  'estimator.formula.var.aDay.title': 'Ngày nộp',
+  'estimator.formula.var.aDay.description': 'Bạn nộp vào ngày thứ mấy của tháng, cho biết hàng chờ đã dồn tới đâu.',
+  'estimator.formula.var.nApp.title': 'Tiếp nhận trước bạn',
+  'estimator.formula.var.nApp.description':
+    'Số hồ sơ tiếp nhận sớm hơn trong tháng bạn nộp, chia theo tỷ lệ tới đúng ngày bạn nộp.',
+  'estimator.formula.var.pApp.title': 'Xử lý trước bạn',
+  'estimator.formula.var.pApp.description': 'Số hồ sơ hoàn tất sớm hơn trong tháng bạn nộp, chia theo tỷ lệ tương tự.',
+  'estimator.formula.var.qApp.title': 'Hàng chờ khi nộp',
+  'estimator.formula.var.qApp.description': 'Có bao nhiêu hồ sơ đứng trước hồ sơ của bạn vào ngày bạn nộp.',
+  // Step 3 — progress since the application date.
+  'estimator.formula.var.pAfter.title': 'Xử lý các tháng sau',
+  'estimator.formula.var.pAfter.description': 'Số hồ sơ hoàn tất trong những tháng đã công bố nằm sau tháng bạn nộp.',
+  'estimator.formula.var.tApp.title': 'Số ngày từ khi nộp',
+  'estimator.formula.var.tApp.description': 'Số ngày theo lịch giữa ngày bạn nộp và hôm nay.',
+  'estimator.formula.var.tData.title': 'Số ngày từ dữ liệu',
+  'estimator.formula.var.tData.description': 'Số ngày theo lịch giữa ngày cuối của tháng công bố gần nhất và hôm nay.',
+  'estimator.formula.var.cProc.title': 'Đã xử lý xác nhận',
+  'estimator.formula.var.cProc.description': 'Phần hồ sơ hoàn tất kể từ khi bạn nộp mà số liệu công bố đã ghi nhận.',
+  'estimator.formula.var.eProc.title': 'Đã xử lý ước tính',
+  'estimator.formula.var.eProc.description':
+    'Số hồ sơ được cho là đã hoàn tất trong quãng mà số liệu công bố chưa vươn tới. Giá trị này âm khi số liệu đã công bố vượt quá mức mà tốc độ trung bình dự đoán.',
+  'estimator.formula.var.sProc.title': 'Đã xử lý từ đó',
+  'estimator.formula.var.sProc.description':
+    'Toàn bộ phần đã giải quyết kể từ khi bạn nộp, gồm phần xác nhận và phần ước tính cộng lại rồi làm tròn thành số hồ sơ nguyên.',
+  // Step 4 — position in the queue, and how long it takes to clear.
+  'estimator.formula.var.qPos.title': 'Vị trí hàng chờ',
+  'estimator.formula.var.qPos.description':
+    'Còn bao nhiêu hồ sơ đứng trước hồ sơ của bạn. Bằng không hoặc thấp hơn nghĩa là mốc ước tính đã trôi qua.',
+  'estimator.formula.var.dRem.title': 'Số ngày còn lại',
+  'estimator.formula.var.dRem.description': 'Số ngày cần để giải quyết hết phần hàng chờ còn lại theo tốc độ hiện tại.',
+  // Step 5 — the whole-day offset, and the spread around it.
+  'estimator.formula.var.dEst.title': 'Số ngày tròn',
+  'estimator.formula.var.dEst.description':
+    'Số ngày còn lại được làm tròn ra xa số không, chính là phần cộng thêm vào hôm nay để ra ngày hiển thị phía trên.',
+  'estimator.formula.var.sigmaR.title': 'Độ dao động tốc độ',
+  'estimator.formula.var.sigmaR.description':
+    'Độ lệch chuẩn của các tốc độ xử lý theo tháng, cho thấy nhịp xử lý thay đổi nhiều hay ít giữa các tháng.',
+  'estimator.formula.var.rBar.title': 'Tốc độ trung bình tháng',
+  'estimator.formula.var.rBar.description':
+    'Trung bình các tốc độ theo tháng với trọng số bằng nhau cho mỗi tháng, không tính theo khối lượng.',
+  'estimator.formula.var.uDays.title': 'Biên sai số',
+  'estimator.formula.var.uDays.description':
+    'Biên ± hiển thị cạnh kết quả, cho biết mốc ước tính xê dịch bao nhiêu nếu nhịp xử lý dao động như thời gian gần đây.',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Tiếp nhận & xử lý',
   'charts.intake.description':
-    'Hồ sơ chuyển từ kỳ trước và tiếp nhận mỗi tháng, so với khối lượng mà các cục đã xử lý xong.',
+    'Hồ sơ chuyển từ kỳ trước và tiếp nhận mỗi tháng, so với khối lượng mà các cục đã xử lý xong và tỷ lệ được chấp thuận trong đó.',
   'charts.intake.aria':
-    'Biểu đồ cột chồng thể hiện hồ sơ đang chờ và đã tiếp nhận theo tháng, cùng khối lượng đã xử lý dưới dạng đường',
+    'Biểu đồ cột chồng thể hiện hồ sơ đang chờ và đã tiếp nhận theo tháng, cùng khối lượng đã xử lý dưới dạng đường và tỷ lệ chấp thuận dưới dạng đường thứ hai trên trục bên phải chạy từ 0 đến 100 phần trăm',
   'charts.types.label': 'Loại hồ sơ',
   'charts.types.description':
     'Số hồ sơ mới nộp hàng tháng phân theo loại hồ sơ — nhấp vào một mục chú giải để bật/tắt chuỗi dữ liệu.',
@@ -210,6 +271,44 @@ export const vi: Dictionary = {
   'chart.legendShow': 'Hiện {series}',
   'chart.legendHide': 'Ẩn {series}',
   'chart.allSeriesHidden': 'Tất cả chuỗi dữ liệu đang bị ẩn — nhấp vào một mục chú giải để hiện.',
+
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.eventsShow': 'Hiện các sự kiện chính sách',
+  'policy.eventsHide': 'Ẩn các sự kiện chính sách',
+  'policy.ssw2019.title': 'Lập tư cách Kỹ năng đặc định',
+  'policy.ssw2019.description': 'Tư cách cho các ngành thiếu nhân lực; cơ quan quản lý xuất nhập cảnh ra đời cùng ngày.',
+  'policy.covidClosure.title': 'Hạn chế nhập cảnh thời dịch',
+  'policy.covidClosure.description': 'Diện từ chối nhập cảnh mở rộng ra gần như toàn thế giới.',
+  'policy.covidSuspension.title': 'Dừng nhập cảnh mới toàn cầu',
+  'policy.covidSuspension.description': 'Từ cuối tháng 12, không người nước ngoài nào được nhập cảnh mới, dù có thị thực.',
+  'policy.covidOmicron.title': 'Đảo ngược mở cửa vì Omicron',
+  'policy.covidOmicron.description': 'Việc nhập cảnh mở lại ngày 8 tháng 11 bị dừng lại sau ba tuần.',
+  'policy.covidResume.title': 'Đón lại du học sinh và lao động',
+  'policy.covidResume.description': 'Mở lại nhập cảnh để học tập, làm việc và kinh doanh, có giới hạn mỗi ngày.',
+  'policy.covidVisaFree.title': 'Khôi phục đi lại miễn thị thực',
+  'policy.covidVisaFree.description': 'Miễn thị thực được khôi phục và bỏ giới hạn số người nhập cảnh mỗi ngày.',
+  'policy.covidCoe.title': 'Gia hạn hiệu lực giấy chứng nhận',
+  'policy.covidCoe.description': 'Giấy chứng nhận bị kẹt vì đóng cửa vẫn có hiệu lực quá ba tháng.',
+  'policy.covidEnd.title': 'Kết thúc biện pháp biên giới',
+  'policy.covidEnd.description': 'Ngừng xét nghiệm và kiểm tra chứng nhận tiêm chủng; bệnh chuyển sang nhóm 5.',
+  'policy.act2023.title': 'Sửa đổi luật nhập cư',
+  'policy.act2023.description': 'Bổ sung biện pháp giám sát thay cho tạm giữ và quy chế bảo vệ bổ sung.',
+  'policy.digitalNomad.title': 'Lập tư cách cho người du mục số',
+  'policy.digitalNomad.description': 'Tư cách sáu tháng cho người làm việc từ xa và gia đình họ.',
+  'policy.sswExpansion.title': 'Mở rộng Kỹ năng đặc định',
+  'policy.sswExpansion.description': 'Nội các bổ sung bốn ngành và đặt lại chỉ tiêu tiếp nhận năm năm.',
+  'policy.act2023Effect.title': 'Quy định trục xuất có hiệu lực',
+  'policy.act2023Effect.description': 'Các quy định chính của lần sửa đổi năm 2023 đã có hiệu lực.',
+  'policy.act2024.title': 'Thay thế thực tập kỹ năng',
+  'policy.act2024.description': 'Từ năm 2027, chương trình đào tạo mới thay cho thực tập kỹ năng.',
+  'policy.feeRevision2025.title': 'Tăng lệ phí hồ sơ',
+  'policy.feeRevision2025.description': 'Gia hạn tăng lên 6.000 yên và vĩnh trú lên 10.000 yên.',
+  'policy.businessManager2025.title': 'Siết chặt quy định Kinh doanh quản lý',
+  'policy.businessManager2025.description': 'Cần vốn lớn hơn, một nhân viên toàn thời gian và kế hoạch được thẩm định.',
+  'policy.residenceCard2026.title': 'Thẻ cư trú tích hợp My Number',
+  'policy.residenceCard2026.description': 'Thẻ cư trú tích hợp My Number đã được đưa vào sử dụng.',
+  'policy.act2026.title': 'Nâng trần lệ phí theo luật',
+  'policy.act2026.description': 'Lần sửa đổi năm 2026 đã nâng trần pháp định của lệ phí cư trú.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
@@ -280,6 +379,8 @@ export const vi: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': 'Nhật ký thay đổi',
   'changelog.loading': 'Đang tải...',
+  'changelog.expandAll': 'Mở rộng tất cả',
+  'changelog.collapseAll': 'Thu gọn tất cả',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   'errors.dataTitle': 'Lỗi tải dữ liệu',
@@ -294,6 +395,7 @@ export const vi: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': 'Đang hiển thị {chart} cho {bureau}',
   'a11y.showingChartWithType': 'Đang hiển thị {chart} cho {bureau}, {type}',
+  'a11y.policyEvents': 'Các sự kiện chính sách hiển thị trên biểu đồ này',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': 'Số liệu thống kê chính thức do Cục Quản lý Xuất nhập cảnh và Lưu trú Nhật Bản cung cấp',
@@ -534,6 +636,14 @@ export const vi: Dictionary = {
   'residents.flowsTooltipValueLabel': 'Cư dân',
   'residents.flowsTooltipFlowLabel': 'Dòng chảy',
   'residents.sunburstHint': '{trail} — {count} cư dân ({percent} tổng số)',
+  'residents.markerResidenceCard.title': 'Bắt đầu chế độ thẻ cư trú',
+  'residents.markerResidenceCard.description': 'Thẻ cư trú thay cho đăng ký người nước ngoài; thống kê này bắt đầu từ đó.',
+  'residents.markerReopening.title': 'Mở lại biên giới',
+  'residents.markerReopening.description': 'Đi lại miễn thị thực trở lại vào tháng 10 năm 2022 và dân số lại tăng.',
+  'residents.markerTraining.title': 'Thay thế thực tập kỹ năng',
+  'residents.markerTraining.description': 'Lần sửa đổi năm 2024 lập chương trình đào tạo mới và siết điều kiện vĩnh trú.',
+  'residents.markerBusinessManager.title': 'Siết chặt quy định Kinh doanh quản lý',
+  'residents.markerBusinessManager.description': 'Từ tháng 10 năm 2025 cần vốn lớn hơn, nhân viên toàn thời gian và kế hoạch được thẩm định.',
   'residents.markerSsw.title': 'Ra mắt visa Kỹ năng đặc định',
   'residents.markerSsw.description': 'Loại visa tháng 4/2019 mở hơn một chục ngành nghề cho lao động nước ngoài có tay nghề.',
   'residents.markerCovid.title': 'Đóng cửa biên giới vì COVID-19',

@@ -1,7 +1,7 @@
 // src/i18n/__tests__/catalogue.test.ts
 // Integrity checks every locale file must pass. These are what make a
 // community-contributed language file safe to accept: a reviewer does not have
-// to diff 300 keys by eye to know it lines up with English.
+// to diff the whole catalogue by eye to know it lines up with English.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';

@@ -31,22 +31,46 @@ interface FormulaTooltipProps {
 }
 
 /**
- * Model variable ids, in the order they appear in the breakdown. Kept
+ * Model variable ids, grouped by the breakdown step that introduces them. Kept
  * camelCase rather than mirroring the LaTeX subscripts (`D_rem`) because the
- * catalogue reserves underscores for plural suffixes.
+ * catalogue reserves underscores for plural suffixes. `EstimationFormula`
+ * holds the LaTeX each one renders as.
  */
 const VARIABLE_IDS = [
-  'dRem',
-  'qPos',
-  'rDaily',
-  'cProc',
-  'eProc',
+  // 1 - throughput baseline
   'sigmaP',
+  'sigmaN',
   'sigmaD',
-  'qApp',
+  'rProc',
+  'rNew',
+  // 2 - queue at application
+  'tPrev',
+  'pPrev',
+  'cSeed',
+  'mSim',
   'cPrev',
+  'nMonth',
+  'pMonth',
+  'dMonth',
+  'aDay',
   'nApp',
   'pApp',
+  'qApp',
+  // 3 - processed since application
+  'pAfter',
+  'tApp',
+  'tData',
+  'cProc',
+  'eProc',
+  'sProc',
+  // 4 - queue position and remaining days
+  'qPos',
+  'dRem',
+  // 5 - completion offset and spread
+  'dEst',
+  'sigmaR',
+  'rBar',
+  'uDays',
 ] as const;
 
 export type VariableId = (typeof VARIABLE_IDS)[number];
@@ -92,7 +116,7 @@ export const FormulaTooltip: React.FC<FormulaTooltipProps> = ({ step, title, var
               <CircleHelp className="size-3.5" aria-hidden="true" />
             </button>
           </PopoverTrigger>
-          <PopoverContent side="left" align="start" className="w-72 p-3">
+          <PopoverContent side="left" align="start" className="max-h-[60vh] w-72 overflow-y-auto p-3">
             <ul className="space-y-2 text-xs">
               {Object.entries(variables).map(([symbol, explanation]) => (
                 <li key={symbol} className="flex gap-2">

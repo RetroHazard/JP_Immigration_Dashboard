@@ -1,5 +1,5 @@
 # Japan Immigration Statistics Dashboard
-[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
+[![Version](https://img.shields.io/badge/version-1.6.3-blue.svg)](https://github.com/RetroHazard/JP_Immigration_Dashboard/releases)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -53,12 +53,14 @@ per-chart filtering and a configurable time range.
 Seven charts, filterable by bureau and/or application type where relevant.
 
 #### **Intake & Processing**
-- **Purpose:** Applications carried over and newly received each month, against the volume the bureaus completed.
+- **Purpose:** Applications carried over and newly received each month, against the volume the bureaus completed and the share of it that was approved.
 - **Features:**
   - Stacked bars for carried-over + newly received applications, with completed volume as a line on the same axis
+  - Approval rate (granted ÷ processed) as a second line on its own axis, fixed at 0–100%, using the same definition as the Outcomes gauge and the stats cards
   - Filterable by bureau and application type
   - Bureau-to-bureau comparison view
   - Configurable time range (6/12/24/36 months, or all)
+  - Policy event markers for law revisions, border measures, fee changes, and operational shifts, with a collapsible list of the events in view linking to the government page that establishes each date
 
 #### **Application Types**
 - **Purpose:** Monthly new submissions broken down by application type.
@@ -103,6 +105,7 @@ Seven charts, filterable by bureau and/or application type where relevant.
   - Interactive choropleth of Japan at the prefectural level, shaded by population density (Statistics Bureau of Japan estimates)
   - Bureau and airport office markers with location-specific tooltips
   - Built-in zoom and pan
+  - A data table listing all 47 prefectures with their servicing bureau, population, area and density — the reference geography the map is shaded from, exportable as CSV
 
 #### Resident Population
 Six charts answering a different question from the rest of the dashboard: not how fast applications are
@@ -115,7 +118,7 @@ or show a single half-yearly snapshot, picked with the same range control.
 - **Purpose:** How the total resident population has grown over time, and who's driving it.
 - **Features:**
   - Stacked bars of total residents per half-year since 2012, toggleable between purpose-of-stay and world-region breakdowns
-  - Event markers for policy changes and the COVID-19 dip
+  - Event markers for policy changes, the COVID-19 dip and the 2022 reopening, and the reporting changes that explain a step in the series rather than a real one — with the same collapsible list of sourced events as Intake & Processing
   - Filterable by region and nationality
 
 #### **Origins Over Time**
@@ -167,6 +170,9 @@ or show a single half-yearly snapshot, picked with the same range control.
   - Queue position tracking
   - Historical processing rate analysis (rolling 6-month average)
   - Predictive modeling with a step-by-step calculation breakdown rendered in LaTeX (KaTeX)
+    - Five dependency-ordered steps: throughput baseline, queue at application, processed since application, queue position and remaining days, completion offset and spread
+    - Every derived value shows its own working, and shows the branch the estimate actually took where the model has more than one
+    - Opening the breakdown folds the inputs away behind a one-line summary of the bureau, type and date it describes; the summary is the way back to them
     - Inline tooltip reference w/ variable explanations
   - One-click reset
   - Shareable permalink for a filled-out estimate (bureau, application type, and date)
@@ -184,8 +190,9 @@ or show a single half-yearly snapshot, picked with the same range control.
 ---
 
 ### :clipboard: Data Table & Export
-- Collapsible monthly data table for the current chart selection — also serves as an accessible text alternative to the SVG charts
-- One-click CSV export
+- Collapsible data table under every Application Processing chart, shaped to match that chart rather than to a single fixed template. Rows are months under Intake & Processing and Application Types, application types under Outcomes, bureaus under Bureau Share, Category Mix and Processing Efficiency, and prefectures under the Regional Map — so it genuinely is an accessible text alternative to the SVG above it
+- Where a chart has to summarise, the table doesn't: Bureau Share lists every bureau, including the smaller ones the donut folds into its "Other" slice
+- One-click CSV export, one file per chart — its own filename, encoding the filters in effect, and its own columns. Column headers and row labels stay English whatever the interface language, so a spreadsheet or script built against an export keeps parsing; two leading `#` comment lines record what the file is and the selection that produced it, and fields are quoted so a value containing a comma can't split a row
 
 ---
 
@@ -213,9 +220,10 @@ or show a single half-yearly snapshot, picked with the same range control.
 - `React 19` – UI library
 - `TypeScript` (strict) – Type-safe JavaScript
 - `Tailwind CSS v4` – Utility-first styling with a CSS-variable design-token system ("Civic Glass")
-- `shadcn/ui` (vendored) – Radix-based UI primitives (tabs, dialog, sheet, select, tooltip)
+- `shadcn/ui` (vendored) – Radix-based UI primitives (tabs, dialog, sheet, select, popover, collapsible, tooltip)
 - `Bklit UI` (vendored, MIT) – visx-based chart components (line, composed, pie, sunburst, radar, sankey, gauge, choropleth)
 - `visx` – Used internally by the vendored Bklit charts (not by the two hand-rolled custom charts, Category Mix Treemap and Processing Efficiency, which use no charting library / `d3-scale` respectively)
+- `@base-ui/react` – Not an app-level choice: it arrives with the vendored Bklit kit, reached by one component (`bklit/charts/legend/legend-progress.tsx`) that nothing renders, so it tree-shakes out of the build entirely. The app's own primitives are Radix, above
 - `Anime.js v4` – App-level motion layer (entrances, count-ups, chart transitions) with a single reduced-motion chokepoint (`src/lib/motion.ts`); the vendored Bklit charts animate internally via `motion` (motion/react) instead, with their own independent reduced-motion handling
 - `@number-flow/react` – Animated number counters inside the Bklit charts' gauge/ring/pie centers (StatCard uses its own Anime.js-based `useCountUp` instead)
 - `nuqs` – URL state (chart tab, filters, time range, compare mode are all shareable links)
@@ -270,7 +278,7 @@ Two independent e-Stat tables, published by the Japan Immigration Services Agenc
 | Measures | applications received and processed | people resident, at a point in time |
 | Dimensions | bureau × application type × status | nationality/region × residence status |
 | Cadence | monthly | half-yearly (半期), each June and December |
-| Coverage | rolling | 2012-12 onward |
+| Coverage | 2020-11 onward | 2012-12 onward |
 
 They share no dimension, which is why they are separate views rather than combined ones: nothing in the residents table can be broken down by bureau, and nothing in the processing table can be broken down by nationality.
 
@@ -322,7 +330,7 @@ Country and continent names are not translated by hand: `src/constants/nationali
 - **Centralized Filtering:** Shared `selectData` selector (`src/utils/selectors.ts`), explicit about bureau scope (nationwide, a single bureau, or a per-bureau breakdown) instead of overloading a single "all" value
 - **Performance Optimization:**
   - Memoized calculations to prevent unnecessary re-renders
-  - Lazy loading of KaTeX library for mathematical formulas
+  - KaTeX ships inside the deferred dashboard chunk rather than the initial payload
   - Pre-calculated prefecture color scales for map rendering
 - **Status Code Constants:** Type-safe constants for all data categorization
 
@@ -356,7 +364,7 @@ Country and continent names are not translated by hand: `src/constants/nationali
 
 ### Performance Optimizations
 - **React Memoization:** `useMemo` and `useCallback` for expensive calculations
-- **Lazy Loading:** Dynamic imports for heavy dependencies (KaTeX ~100KB)
+- **Lazy Loading:** The dashboard itself is a dynamic import (`src/app/[[...slug]]/client.tsx`), so heavy dependencies it pulls in — KaTeX at ~74KB gzipped among them — stay out of the initial payload
 - **Single-Pass Filtering:** Centralized filtering eliminates duplicate operations across all 13 chart components in both datasets
 - **Pre-computed Data:** Color scales and static configurations calculated once at mount
 

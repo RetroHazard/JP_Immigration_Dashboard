@@ -77,16 +77,34 @@ export function resolveAnimatedYDestinationDomains(
 export function computeYDomainsByAxis({
   lines,
   resolveDomain,
+  pinnedDomains,
 }: {
   lines: LineConfig[];
-  resolveDomain: (dataKeys: string[]) => YDomain;
+  // LOCAL MODIFICATION: `axisId` is passed through so a caller can resolve a
+  // domain per axis rather than per key set — a chart with a percentage axis
+  // alongside a count axis needs to treat the two differently.
+  // (Re-apply after a re-vendor.)
+  resolveDomain: (dataKeys: string[], axisId: string) => YDomain;
+  /**
+   * LOCAL MODIFICATION: axes held at a fixed domain. Used verbatim — `nice()`
+   * would move the endpoints a caller pinned deliberately. Axes listed here get
+   * a domain even with no series on them, so toggling the only series off an
+   * axis doesn't silently rescale it. (Re-apply after a re-vendor.)
+   */
+  pinnedDomains?: Record<string, YDomain>;
 }): Record<string, YDomain> {
   const groups = groupLinesByYAxisId(lines);
   const domains: Record<string, YDomain> = {};
 
   for (const [axisId, axisLines] of groups) {
-    const dataKeys = axisLines.map((line) => line.dataKey);
-    domains[normalizeYAxisId(axisId)] = niceYDomain(resolveDomain(dataKeys));
+    const normalized = normalizeYAxisId(axisId);
+    const pinned = pinnedDomains?.[normalized];
+    domains[normalized] =
+      pinned ?? niceYDomain(resolveDomain(axisLines.map((l) => l.dataKey), normalized));
+  }
+
+  for (const [axisId, domain] of Object.entries(pinnedDomains ?? {})) {
+    domains[normalizeYAxisId(axisId)] = domain;
   }
 
   if (!domains.left) {

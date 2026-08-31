@@ -1,7 +1,10 @@
 // src/utils/categoryMixTree.ts
 // Shared hierarchy for the Category Mix views: all applications → application
 // type → bureau, built from new submissions in the selected window. Used by
-// the sunburst (active) and the zoomable treemap (registry-ready alternate).
+// the zoomable treemap (active), the sunburst (registry-ready alternate), and
+// the `mixByBureau` table builder in utils/chartTables.ts — the table reads the
+// tree rather than re-deriving it, so it cannot disagree with the chart above
+// it.
 import { applicationOptions } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
 import { STATUS_CODES } from '../constants/statusCodes';

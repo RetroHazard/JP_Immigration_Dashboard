@@ -9,6 +9,68 @@ interface ApplicationDetails {
   applicationDate: string;
 }
 
+/**
+ * Which code path produced each branch-dependent variable. The "Show the math"
+ * breakdown renders only the branch that actually ran, so it has to be told
+ * which one that was.
+ */
+export interface ModelBranches {
+  /** `C_prev`: reported by the previous month, simulated forward from the last month with data, or absent entirely. */
+  carryover: 'reported' | 'simulated' | 'unavailable';
+  /** `N_app`/`P_app`/`C_proc`: pro-rated from the application month's own figures, or projected from the window rates. */
+  appMonth: 'reported' | 'projected';
+  /** `E_proc`: measured forward from the application date, or projected past the last published month. */
+  sinceApplication: 'fromApplication' | 'fromLastData';
+}
+
+/**
+ * The display-facing view of the model, ordered so that every variable is
+ * defined before the one that consumes it. Optional fields exist on only one
+ * branch - see `ModelBranches`.
+ */
+export interface ModelVariables {
+  // Step 1: throughput over the sampled window
+  Sigma_P: number;
+  Sigma_N: number;
+  Sigma_D: number;
+  R_proc: number;
+  R_new: number;
+  // Step 2: the queue on the application date
+  A_day: number;
+  D_month: number;
+  /** `carryover: 'reported'` only. */
+  T_prev?: number;
+  /** `carryover: 'reported'` only. */
+  P_prev?: number;
+  /** `carryover: 'simulated'` only - the reported carry-over the roll-forward starts from. */
+  C_seed?: number;
+  /** `carryover: 'simulated'` only - how many months it was rolled forward. */
+  M_sim?: number;
+  /** `appMonth: 'reported'` only. */
+  N_month?: number;
+  /** `appMonth: 'reported'` only. */
+  P_month?: number;
+  C_prev: number;
+  N_app: number;
+  P_app: number;
+  Q_app: number;
+  // Step 3: what has been processed since
+  P_after: number;
+  T_app: number;
+  T_data: number;
+  C_proc: number;
+  E_proc: number;
+  S_proc: number;
+  // Step 4: position in the queue, and how long it takes to clear
+  Q_pos: number;
+  D_rem: number;
+  // Step 5: whole-day offset, and the spread around it
+  D_est: number;
+  R_bar: number;
+  R_sd: number;
+  U_days: number;
+}
+
 interface CalculationDetails {
   queueAtApplication: number;
   queuePosition: number;
@@ -23,19 +85,8 @@ interface CalculationDetails {
   monthsUsed: number;
   /** ± band on the remaining days, from month-to-month processing-rate variance */
   uncertaintyDays: number;
-  modelVariables: {
-    C_prev: number;
-    N_app: number;
-    P_app: number;
-    R_daily: number;
-    Sigma_P: number;
-    Sigma_D: number;
-    Q_app: number;
-    C_proc: number;
-    E_proc: number;
-    Q_pos: number;
-    D_rem: number;
-  };
+  modelVariables: ModelVariables;
+  branches: ModelBranches;
   isPastDue: boolean;
 }
 
@@ -182,22 +233,22 @@ export const calculateEstimatedDate = (
   const predictionDays = getDaysBetweenDates(lastAvailableDateEnd, new Date());
 
   // Processed applications estimation
-  let processedInAppMonth = 0;
-  if (hasActualAppMonth) {
-    const daysInMonth = getDaysInMonth(applicationMonth);
-    processedInAppMonth = dailyProcessed * (daysInMonth - appDay);
-  }
+  const daysInApplicationMonth = getDaysInMonth(applicationMonth);
+  const processedInAppMonth = hasActualAppMonth ? dailyProcessed * (daysInApplicationMonth - appDay) : 0;
 
-  const confirmedProcessed = sumByStatus(STATUS_CODES.PROCESSED, (m) => m > applicationMonth) + processedInAppMonth;
+  // Held apart from the application month's own remainder: the breakdown shows
+  // the two terms of C_proc separately.
+  const processedAfterAppMonth = sumByStatus(STATUS_CODES.PROCESSED, (m) => m > applicationMonth);
+  const confirmedProcessed = processedAfterAppMonth + processedInAppMonth;
 
   // --------------------------------------------
   // Predictive Calculations
   // --------------------------------------------
   const daysSinceApplication = getDaysBetweenDates(appDate, new Date());
-  const estimatedProcessed =
-    applicationDate > lastAvailableMonth
-      ? dailyProcessed * daysSinceApplication - confirmedProcessed
-      : dailyProcessed * predictionDays;
+  const isBeyondPublishedData = applicationDate > lastAvailableMonth;
+  const estimatedProcessed = isBeyondPublishedData
+    ? dailyProcessed * daysSinceApplication - confirmedProcessed
+    : dailyProcessed * predictionDays;
 
   const totalProcessedSinceApp = Math.round(confirmedProcessed + estimatedProcessed);
 
@@ -211,8 +262,14 @@ export const calculateEstimatedDate = (
   // Carryover calculations
   // --------------------------------------------
   let carriedOver = 0;
+  let reportedPrevTotal: number | undefined;
+  let reportedPrevProcessed: number | undefined;
+  let carrySeed: number | undefined;
+  let carryMonthsSimulated: number | undefined;
   if (hasActualPrevMonth) {
-    carriedOver = getMonthData(prevMonth, STATUS_CODES.TOTAL_APPLICATIONS) - getMonthData(prevMonth, STATUS_CODES.PROCESSED);
+    reportedPrevTotal = getMonthData(prevMonth, STATUS_CODES.TOTAL_APPLICATIONS);
+    reportedPrevProcessed = getMonthData(prevMonth, STATUS_CODES.PROCESSED);
+    carriedOver = reportedPrevTotal - reportedPrevProcessed;
   } else {
     const availableMonths = months.filter((m) => m < applicationMonth);
     if (availableMonths.length) {
@@ -221,6 +278,7 @@ export const calculateEstimatedDate = (
       // Calculate initial carriedOver from the last available month
       let simulatedCarriedOver =
         getMonthData(lastAvailableMonth, STATUS_CODES.TOTAL_APPLICATIONS) - getMonthData(lastAvailableMonth, STATUS_CODES.PROCESSED);
+      carrySeed = simulatedCarriedOver;
 
       // Calculate the exact number of full months between the last available month and application month
       const lastAvailableDate = new Date(lastAvailableMonth + '-01');
@@ -258,19 +316,21 @@ export const calculateEstimatedDate = (
         currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
       }
 
+      carryMonthsSimulated = monthsSimulated;
       carriedOver = simulatedCarriedOver;
     }
   }
 
   // Received/processed by application date
   let receivedByAppDate: number, processedByAppDate: number;
+  let reportedMonthNew: number | undefined;
+  let reportedMonthProcessed: number | undefined;
   if (hasActualAppMonth) {
-    const receivedInMonth = getMonthData(applicationMonth, STATUS_CODES.NEW_APPLICATIONS);
-    const processedInMonth = getMonthData(applicationMonth, STATUS_CODES.PROCESSED);
-    const daysInMonth = getDaysInMonth(applicationMonth);
+    reportedMonthNew = getMonthData(applicationMonth, STATUS_CODES.NEW_APPLICATIONS);
+    reportedMonthProcessed = getMonthData(applicationMonth, STATUS_CODES.PROCESSED);
 
-    receivedByAppDate = (receivedInMonth / daysInMonth) * appDay;
-    processedByAppDate = (processedInMonth / daysInMonth) * appDay;
+    receivedByAppDate = (reportedMonthNew / daysInApplicationMonth) * appDay;
+    processedByAppDate = (reportedMonthProcessed / daysInApplicationMonth) * appDay;
   } else {
     receivedByAppDate = dailyNew * appDay;
     processedByAppDate = dailyProcessed * appDay;
@@ -320,18 +380,45 @@ export const calculateEstimatedDate = (
     dataQuality,
     monthsUsed: selectedMonths.length,
     uncertaintyDays,
+    // Every field is explained in the catalogue, under
+    // `estimator.formula.var.*` - the "Show the math" popovers read from there.
     modelVariables: {
-      C_prev: Number(carriedOver), // Applications carried forward from the previous month.
-      N_app: Number(receivedByAppDate), // Estimated applications received prior to submission time.
-      P_app: Number(processedByAppDate), // Estimated applications processed prior to submission time.
-      R_daily: Number(dailyProcessed), // Average applications processed per day.
-      Sigma_P: Number(totalProcessed), // Sum of processed applications used for calculating averages.
-      Sigma_D: Number(totalDays), // Sum of days used for calculating averages.
-      Q_app: Number(queueAtApplication), // Estimated queue position at submission time.
-      C_proc: Number(confirmedProcessed), // Confirmed number of applications processed since submission.
-      E_proc: Number(estimatedProcessed), // Estimated number of applications processed since last data point.
-      Q_pos: Number(queuePosition), // Estimated position in the processing queue.
-      D_rem: Number(daysRemaining), // Estimated days until processing completes.
+      Sigma_P: totalProcessed,
+      Sigma_N: totalNew,
+      Sigma_D: totalDays,
+      R_proc: dailyProcessed,
+      R_new: dailyNew,
+      A_day: appDay,
+      D_month: daysInApplicationMonth,
+      T_prev: reportedPrevTotal,
+      P_prev: reportedPrevProcessed,
+      C_seed: carrySeed,
+      M_sim: carryMonthsSimulated,
+      N_month: reportedMonthNew,
+      P_month: reportedMonthProcessed,
+      C_prev: carriedOver,
+      N_app: receivedByAppDate,
+      P_app: processedByAppDate,
+      Q_app: queueAtApplication,
+      P_after: processedAfterAppMonth,
+      T_app: daysSinceApplication,
+      T_data: predictionDays,
+      C_proc: confirmedProcessed,
+      E_proc: estimatedProcessed,
+      S_proc: totalProcessedSinceApp,
+      Q_pos: queuePosition,
+      D_rem: daysRemaining,
+      D_est: estimatedDays,
+      R_bar: meanRate,
+      R_sd: rateStdDev,
+      U_days: uncertaintyDays,
+    },
+    branches: {
+      // A date in the earliest month the dataset covers has no prior month to
+      // carry anything over from, and nothing to simulate forward from either.
+      carryover: hasActualPrevMonth ? 'reported' : carrySeed === undefined ? 'unavailable' : 'simulated',
+      appMonth: hasActualAppMonth ? 'reported' : 'projected',
+      sinceApplication: isBeyondPublishedData ? 'fromApplication' : 'fromLastData',
     },
     isPastDue: queuePosition <= 0,
   };

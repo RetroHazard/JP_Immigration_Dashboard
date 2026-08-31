@@ -119,6 +119,10 @@ npm run build
 Both transforms fall back to a deterministic fixture when their raw payload is absent, so
 nothing below is required to run the dashboard — it is only needed to see real figures.
 
+Each fixture spans the same period as the table it stands in for — processing from 2020-11, residents from
+2012-12 — so anything keyed to a date, the policy event markers included, appears locally and in CI exactly
+where it appears in production.
+
 1. Register for an application ID at [e-Stat](https://www.e-stat.go.jp/) and export it:
 
    ```bash
@@ -213,6 +217,7 @@ JP_Immigration_Dashboard/
 ├── src/
 │   ├── App.tsx                        # Data-loading gate: spinner/error/DashboardShell
 │   ├── index.css                      # Tailwind v4 entry + Civic Glass @theme tokens
+│   ├── test-utils.tsx                 # renderWithProviders(); bare RTL render throws without LocaleProvider
 │   │
 │   ├── app/
 │   │   ├── layout.tsx                 # Root layout: fonts, metadata, GoogleAnalytics
@@ -230,11 +235,12 @@ JP_Immigration_Dashboard/
 │   │   ├── StatsSummary.tsx           # Summary stat cards (Application Processing)
 │   │   ├── ResidentsStatsSummary.tsx  # Summary stat cards (Resident Population), incl. % of total population
 │   │   ├── EstimationCard.tsx         # Processing Time Estimator (sidebar/sheet)
-│   │   ├── ChartDataTable.tsx         # Collapsible data table + CSV export
-│   │   ├── ChangelogModal.tsx         # CHANGELOG.md viewer (shadcn Dialog)
+│   │   ├── EstimationFormula.tsx      # The estimator's five-step KaTeX breakdown
+│   │   ├── ChartDataTable.tsx         # Collapsible per-chart data table + CSV export
+│   │   ├── ChangelogModal.tsx         # CHANGELOG.md viewer (shadcn Dialog, collapsible months)
 │   │   │
 │   │   ├── charts/
-│   │   │   ├── IntakeProcessingBarChart.tsx      # Bklit ComposedChart (bar + line)
+│   │   │   ├── IntakeProcessingBarChart.tsx      # Bklit ComposedChart (stacked bars + two lines, dual axis)
 │   │   │   ├── CategorySubmissionsLineChart.tsx  # Bklit LineChart
 │   │   │   ├── OutcomesSankeyChart.tsx           # Bklit Sankey + Gauge
 │   │   │   ├── BureauDistributionRingChart.tsx   # Bklit PieChart (donut)
@@ -250,50 +256,68 @@ JP_Immigration_Dashboard/
 │   │   │   ├── ResidenceStatusSunburst.tsx       # Bklit SunburstChart; live status-mix view
 │   │   │   ├── ResidenceStatusMixChart.tsx       # Alternate treemap view (same hierarchy, unregistered)
 │   │   │   ├── OriginChoroplethChart.tsx         # Bklit choropleth; resident count by country, log scale
-│   │   │   └── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
+│   │   │   ├── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
+│   │   │   ├── sunburstHint.ts                   # Pointer-aware hint text for the two sunburst views
+│   │   │   └── __tests__/                        # Chart tests (markers, tap behaviour, efficiency rows)
 │   │   │
 │   │   ├── common/
-│   │   │   ├── ChartComponents.tsx    # Chart registry: label, icon, filters, ranges per chart
+│   │   │   ├── ChartComponents.tsx    # Chart registry: key, icon, filters, ranges, data table per chart
 │   │   │   ├── ErrorBoundary.tsx
 │   │   │   ├── FilterInput.tsx
 │   │   │   ├── FormulaTooltip.tsx     # KaTeX formula popover for the estimator
 │   │   │   ├── IconTooltip.tsx        # Wrapper over the shadcn/Radix Tooltip
+│   │   │   ├── LanguageSwitcher.tsx   # Locale picker; renders nothing while LOCALE_SWITCHER_ENABLED is false
 │   │   │   ├── LoadingSpinner.tsx
 │   │   │   ├── PeriodSelector.tsx     # Range picker (Application Processing + "range"-mode resident charts)
+│   │   │   ├── PolicyEventList.tsx   # Policy-event markers hook + the collapsible list of sourced events
 │   │   │   ├── SnapshotPeriodSelector.tsx  # Single half-year picker for "snapshot"-mode resident charts
 │   │   │   ├── SeriesLegend.tsx
 │   │   │   └── StatCard.tsx
 │   │   │
 │   │   ├── ui/                        # shadcn/Radix primitives (vendored)
-│   │   │   └── badge, button, card, dialog, label, popover, select,
-│   │   │       separator, sheet, skeleton, tabs, toggle(-group), tooltip
+│   │   │   └── badge, button, card, collapsible, dialog, label, popover,
+│   │   │       select, separator, sheet, skeleton, tabs, toggle(-group),
+│   │   │       tooltip
 │   │   │
 │   │   ├── bklit/                     # Vendored Bklit UI chart library (visx-based)
 │   │   │   ├── charts/                # Line/Bar/Pie/Sankey/Sunburst/Choropleth/Radar/Gauge primitives
 │   │   │   └── components/
 │   │   │
 │   │   └── __tests__/
+│   │       ├── ChangelogModal.test.tsx
+│   │       ├── EstimationFormula.test.ts
+│   │       ├── LanguageSwitcher.test.tsx
+│   │       ├── LanguageSwitcherGate.test.tsx
 │   │       ├── components.smoke.test.tsx
 │   │       └── residents.smoke.test.tsx
 │   │
 │   ├── hooks/
 │   │   ├── useImmigrationData.ts      # Fetches + unpacks public/data/dashboard.json
-│   │   └── useResidentsData.ts        # Fetches + unpacks public/data/residents.json
+│   │   ├── useResidentsData.ts        # Fetches + unpacks public/data/residents.json
+│   │   ├── useCoarsePointer.ts        # Touch detection; hover handlers are not attached on a coarse pointer
+│   │   └── useTapPin.ts               # Per-chart half of tap-to-pin; which datapoint holds the pin
 │   │
 │   ├── utils/
 │   │   ├── dashboardData.ts           # Pack/unpack format shared with scripts/transform-data.mts
 │   │   ├── dataTransform.ts           # e-Stat payload → ImmigrationData[] flattening
+│   │   ├── estatPayload.ts            # Guards against a truncated e-Stat response (100k-row cap)
 │   │   ├── correctBureauAggregates.ts # Subtracts branch offices out of aggregate bureaus
 │   │   ├── loadLocalData.ts           # Runtime fetch of public/data/dashboard.json
+│   │   ├── loadResidentsData.ts       # Runtime fetch of public/data/residents.json
 │   │   ├── selectors.ts               # BureauScope-aware data selection/filtering
+│   │   ├── excludeAirportData.ts      # Airport toggle: drops branch rows AND subtracts them from the nationwide aggregate
 │   │   ├── calculateEstimates.ts      # Queue-position / processing-time estimation model
 │   │   ├── categoryMixTree.ts         # Shared hierarchy for the Category Mix charts
+│   │   ├── processingEfficiency.ts    # Per-bureau received/processed/completion; shared by the efficiency views and their table
+│   │   ├── chartTables.ts             # Per-chart data table models (row axis varies by chart)
+│   │   ├── chartTableCsv.ts           # TableModel → CSV; English-pinned, RFC 4180 quoting
 │   │   ├── bureauColors.ts            # Per-theme bureau color helpers
 │   │   ├── getBureauData.ts           # Bureau option lookups
 │   │   ├── urlApplicationDetails.ts   # Estimator permalink <-> URL params
-│   │   ├── renderChangelog.tsx        # Minimal inline-markdown renderer for the changelog modal
+│   │   ├── renderChangelog.tsx        # Minimal inline-markdown renderer; months render as collapsibles
 │   │   ├── logger.ts                  # Dev-only console logger
 │   │   ├── residentsData.ts           # Pack/unpack format for residents.json
+│   │   ├── loadResidentsData.ts       # Runtime fetch of public/data/residents.json
 │   │   ├── residentsTransform.ts      # e-Stat payload → ResidentRecord[] flattening + verifyResidentTotals
 │   │   ├── residentsSelectors.ts      # useSelectedResidents; residents-cube analogue of selectors.ts
 │   │   ├── residentsGrowth.ts         # Growth-chart series builders (status-group/region), indexSeries()
@@ -310,7 +334,8 @@ JP_Immigration_Dashboard/
 │   │   ├── statusCodes.ts
 │   │   ├── nationalities.ts           # Nationality/region identity table (ISO 3166-1, M49 continent codes)
 │   │   ├── residenceStatuses.ts       # Residence-status identity table + corrected parent hierarchy
-│   │   └── japanPopulation.ts         # Japan's total population by year (denominator for % of total)
+│   │   ├── japanPopulation.ts         # Japan's total population by year (denominator for % of total)
+│   │   └── policyEvents.ts            # Dated policy changes per dataset, each with its government source
 │   │
 │   ├── contexts/
 │   │   └── ThemeContext.tsx           # Thin adapter over next-themes
@@ -341,7 +366,8 @@ JP_Immigration_Dashboard/
 │   │
 │   └── lib/
 │       ├── utils.ts                   # cn() class-merge helper (shadcn convention)
-│       └── motion.ts                  # Anime.js scope helper + reduced-motion gate
+│       ├── motion.ts                  # Anime.js scope helper + reduced-motion gate
+│       └── tooltip-pin.ts             # One pinned tooltip per page; outside-tap / scroll / Escape dismissal
 │
 ├── public/
 │   ├── data/dashboard.json            # Build-time-transformed processing data the client fetches
@@ -349,7 +375,6 @@ JP_Immigration_Dashboard/
 │   ├── datastore/processingData.json  # Raw e-Stat 0003449073 (build input; stripped from export output)
 │   ├── datastore/residentsData.json   # Raw e-Stat 0004019020 (build input; stripped from export output)
 │   ├── datastore/.estat-baseline.json # SURVEY_DATE the watcher last published, per dataset
-
 │   ├── static/japan.topo.json         # TopoJSON for the regional map
 │   ├── static/world.topo.json         # TopoJSON for the world origins map
 │   ├── CHANGELOG.md                   # Synced from the repo root at build time
@@ -372,6 +397,7 @@ JP_Immigration_Dashboard/
 │   ├── generate-fixture.mjs       # Deterministic processing fixture for local/CI builds
 │   ├── generateResidentsFixture.mts # Deterministic residents fixture (imports the real code lists)
 │   ├── generate-locale-template.mts # Emits the locale template from src/i18n
+│   ├── localeTemplate.ts          # The transform behind it, importable so tests can assert it is current
 │   ├── strip-raw-data.mjs         # Removes datastore/ from the exported build output
 │   ├── sync-changelog.js          # Copies CHANGELOG.md into public/
 │   ├── vendor-bklit.mjs           # Pulls Bklit UI registry items into the repo
@@ -389,6 +415,9 @@ JP_Immigration_Dashboard/
 ```
 
 Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/index.css` — there is no `tailwind.config.ts`.
+
+Tests aren't listed above beyond the folders that hold them: they live in a `__tests__/` directory beside the code
+they cover, in `src/` and in `scripts/` alike, so the tree names the folder rather than its contents.
 
 ## Key Technologies
 
@@ -414,7 +443,8 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
 
 ### UI Utilities
 
-- **radix-ui** (`^1.6.7`) — Unstyled accessible primitives underlying the shadcn/ui components (Dialog, Popover, Select, Sheet, Tabs, Toggle, Tooltip, ...)
+- **radix-ui** (`^1.6.7`) — Unstyled accessible primitives underlying the shadcn/ui components (Collapsible, Dialog, Popover, Select, Sheet, Tabs, Toggle, Tooltip, ...)
+- **@base-ui/react** (`^1.6.0`) — A second primitive library, carried by the vendored Bklit kit rather than chosen here. Its only importer is `bklit/charts/legend/legend-progress.tsx`, which no chart composes, so nothing from it reaches the bundle. Radix is the choice for app UI
 - **lucide-react** — Icon library
 - **next-themes** — Dark/light mode, adapted by `src/contexts/ThemeContext.tsx`
 - **nuqs** — Type-safe URL query state (active chart, filters, time range, compare)
@@ -468,13 +498,21 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
        icon: SomeLucideIcon,
        component: NewChart,
        filters: { bureau: true, appType: true },
+       table: 'intakeByMonth',
        compare: false,
        ranges: ['6', '12', '24', '36', 'all'],
        defaultRange: '12',
      },
    ];
    ```
-   A resident chart follows the same shape but with `dataset: 'residents'`, a `component: React.ComponentType<ResidentChartData>`, `filters: { region, nationality, group }` instead of `{ bureau, appType }`, and a `timeControl` of `'range'` (sums over the picked window, like processing charts) or `'snapshot'` (draws one half-yearly period via `SnapshotPeriodSelector` instead of a window — use this when summing across periods wouldn't make sense, e.g. a cross-tabulation). It goes in `RESIDENT_CHARTS` instead.
+   `table` names the data table that stands in as this chart's text alternative — the
+   field is required, so a new chart can't ship without someone deciding what its table
+   shows. Reuse an existing `ProcessingTableId` where the shape fits; a genuinely new
+   shape means a new builder in `src/utils/chartTables.ts`, a new member of the
+   `ProcessingTableId` union, and possibly new column labels in all twelve catalogues
+   (see [Localization](#i18n)).
+
+   A resident chart follows the same shape but with `dataset: 'residents'`, a `component: React.ComponentType<ResidentChartData>`, `filters: { region, nationality, group }` instead of `{ bureau, appType }`, and a `timeControl` of `'range'` (sums over the picked window, like processing charts) or `'snapshot'` (draws one half-yearly period via `SnapshotPeriodSelector` instead of a window — use this when summing across periods wouldn't make sense, e.g. a cross-tabulation). It carries no `table` — the residents dataset has no data table at all — and goes in `RESIDENT_CHARTS` instead.
 
 4. **Test in dev server:**
    ```bash
@@ -482,9 +520,10 @@ Note: Tailwind v4 is configured via `@theme`/`:root` tokens directly in `src/ind
    # Visit http://localhost:3000 and verify
    ```
 
-5. **Run linting and tests:**
+5. **Run linting, typecheck, and tests:**
    ```bash
    npm run lint
+   npm run typecheck
    npm test
    ```
 
@@ -511,9 +550,13 @@ Both transforms run from `scripts/transform-data.mts`, and both files are fetche
 
 To modify calculations:
 1. Edit the relevant module from the table above, or the chart component itself
-2. Add unit tests in `src/utils/__tests__/`
-3. Test with `npm test`
-4. Verify in dev server with `npm run dev`
+2. Change the matching table builder in `src/utils/chartTables.ts` in the same edit — the
+   builders read the same selectors and helpers the charts do (`selectData`,
+   `buildCategoryMixTree`, `computeBureauVolumes`), which is what keeps a chart and the
+   table under it in agreement. Change one without the other and they disagree silently
+3. Add unit tests in `src/utils/__tests__/`
+4. Test with `npm test`
+5. Verify in dev server with `npm run dev`
 
 ### Adding a dataset
 

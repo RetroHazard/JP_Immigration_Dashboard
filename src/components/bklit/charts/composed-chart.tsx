@@ -17,6 +17,7 @@ import type { ChartPhase } from "./chart-phase";
 import { estimateAxisMarginLeft } from "./chart-formatters";
 import { Line, type LineProps } from "./line";
 import { SeriesBar, type SeriesBarProps } from "./series-bar";
+import { DEFAULT_Y_AXIS_ID, normalizeYAxisId } from "./y-axis-scales";
 import { TimeSeriesChartInner } from "./time-series-chart-shell";
 
 export interface ComposedChartProps {
@@ -43,6 +44,12 @@ export interface ComposedChartProps {
   stacked?: boolean;
   /** Gap in px between stacked segments. Default: 0 */
   stackGap?: number;
+  /**
+   * LOCAL MODIFICATION: axes held at a fixed domain, keyed by `yAxisId` — e.g.
+   * `{ right: [0, 100] }` for a percentage axis that should read 0-100%
+   * whatever the data does. (Re-apply after a re-vendor.)
+   */
+  yAxisDomains?: Record<string, [number, number]>;
   onPhaseChange?: (phase: ChartPhase) => void;
   /** LOCAL MODIFICATION: x tick/ticker label format override — see time-series-chart-shell.tsx. */
   formatDateLabel?: (date: Date) => string;
@@ -123,6 +130,11 @@ function tryAppendArea(child: ReactElement, lines: LineConfig[]): boolean {
   return true;
 }
 
+// NOTE: `Children.forEach` flattens arrays but not Fragments, and a Fragment's
+// type is a symbol that `getChildComponentName` reads as "". A `SeriesBar`
+// wrapped in <>…</> would still render, but register no dataKey, no stack, no
+// domain contribution and no tooltip row — so series must be direct children
+// or a flat array.
 function extractComposedSeries(children: ReactNode): {
   lines: LineConfig[];
   barDataKeys: string[];
@@ -146,7 +158,7 @@ function extractComposedSeries(children: ReactNode): {
   return { lines, barDataKeys };
 }
 
-function computeComposedYScaleDomainMax(
+export function computeComposedYScaleDomainMax(
   data: Record<string, unknown>[],
   lines: LineConfig[],
   barDataKeys: string[]
@@ -164,6 +176,13 @@ function computeComposedYScaleDomainMax(
     let rowMaxOther = 0;
     for (const line of lines) {
       if (barSet.has(line.dataKey)) {
+        continue;
+      }
+      // LOCAL MODIFICATION: this is the *primary* axis's max, so a series on a
+      // secondary axis must not raise it. Upstream folds in every line, which
+      // is only harmless while no chart uses a second axis.
+      // (Re-apply after a re-vendor.)
+      if (normalizeYAxisId(line.yAxisId) !== DEFAULT_Y_AXIS_ID) {
         continue;
       }
       const v = d[line.dataKey];
@@ -193,6 +212,7 @@ interface ChartInnerProps {
   barGap?: number;
   stacked?: boolean;
   stackGap?: number;
+  yAxisDomains?: Record<string, [number, number]>;
   onPhaseChange?: (phase: ChartPhase) => void;
   formatDateLabel?: (date: Date) => string;
 }
@@ -214,6 +234,7 @@ function ChartInner({
   barGap,
   stacked = false,
   stackGap = 0,
+  yAxisDomains,
   onPhaseChange,
   formatDateLabel,
 }: ChartInnerProps) {
@@ -277,6 +298,7 @@ function ChartInner({
       revealSignature={revealSignature}
       width={width}
       xDataKey={xDataKey}
+      yAxisDomains={yAxisDomains}
       yScaleDomainMax={yScaleDomainMax}
     >
       {children}
@@ -300,6 +322,7 @@ export function ComposedChart({
   barGap = 4,
   stacked = false,
   stackGap = 0,
+  yAxisDomains,
   onPhaseChange,
   formatDateLabel,
 }: ComposedChartProps) {
@@ -335,6 +358,7 @@ export function ComposedChart({
             stackGap={stackGap}
             width={width}
             xDataKey={xDataKey}
+            yAxisDomains={yAxisDomains}
           >
             {children}
           </ChartInner>

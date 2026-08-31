@@ -151,14 +151,14 @@ Follow the existing project structure:
 src/
 ├── app/              # Next.js app routes (static export entry points)
 ├── components/       # React components
-│   ├── common/       # Reusable components (StatCard, FilterInput, ...)
-│   ├── charts/       # Chart components (one per chart tab)
+│   ├── common/       # Reusable components (StatCard, FilterInput, PolicyEventList, ...)
+│   ├── charts/       # Chart components (one per chart tab) (+ __tests__/)
 │   ├── ui/           # shadcn/Radix primitives (vendored)
 │   ├── bklit/        # Vendored Bklit UI chart library (visx-based)
 │   └── __tests__/    # Component tests
 ├── hooks/            # Custom React hooks
 ├── utils/            # Utility functions and data selectors (+ __tests__/)
-├── constants/        # Constants (bureaus, application types, status codes, ...)
+├── constants/        # Constants (bureaus, application types, status codes, policy events, ...)
 ├── contexts/         # React context providers (theme)
 ├── i18n/             # Locale catalogues, translation runtime, and formatters
 └── lib/              # Small shared helpers (class-merge, motion)
@@ -193,6 +193,33 @@ If you'd rather flag a mistake than fix it yourself, open a
 [bug report issue](https://github.com/RetroHazard/JP_Immigration_Dashboard/issues/new?template=bug_report.md)
 naming the language, the key or on-screen text, and what it should say
 instead.
+
+### Adding or removing an English string
+
+Any code change that introduces user-visible text needs a catalogue key, and a
+key is never English-only: all twelve locales are marked `complete`, so CI
+fails the moment English defines something they don't.
+
+1. Add the key to `src/i18n/locales/en.ts`, in the section for the surface it
+   appears on. `DictionaryKey` derives from this file, so nothing type-checks
+   until it exists here.
+2. Add a translation to each of the other eleven locale files. The catalogue
+   tests reject a value left identical to English, and hold `ja`, `ko`,
+   `zh-CN` and `zh-TW` to their own scripts — a copied English string will not
+   pass. If you can't translate one, say so in the PR rather than pasting
+   English in.
+3. **Removing** a key is the same in reverse: delete it from all twelve files,
+   then grep the repo for stragglers — including the Markdown, where catalogue
+   keys quoted in documentation are checked by nothing.
+4. Regenerate the contributor template: `npm run i18n:template`. A test
+   compares the committed template against English, so skipping this fails CI.
+5. Run `npx vitest run src/i18n` before pushing.
+
+Two things worth reusing rather than adding to: bureau, application-type and
+prefecture names already exist in three widths each, and the `metric.*` names
+are shared across chart legends, hover cards and data-table columns — where
+they are also written into CSV exports, so rewording one changes a file other
+people may be parsing.
 
 Adding a language you don't see listed follows the same catalogue file
 mechanism — the step-by-step is in `src/i18n/README.md`, not repeated here.
@@ -234,11 +261,35 @@ npm test -- --watch     # Run in watch mode
 
 ## Documentation
 
-### Update README.md
+### Which docs to update
 
-If your changes affect the dashboard's features, behavior, or setup:
-1. Update relevant sections in `README.md`
-2. Add an entry to `CHANGELOG.md` under the current month
+The repo keeps six documents, and they cover different readers. Match your
+change to the ones it actually affects:
+
+| If your change… | Update |
+| --- | --- |
+| affects features, behaviour, or setup | `README.md` |
+| is user-visible at all | `CHANGELOG.md`, under the current month |
+| **adds or renames a file** under `src/` | the file-by-file tree in `DEVELOPMENT.md` — it is exhaustive, and a missing entry is a real gap |
+| adds a component, a pure module, or a new pattern | a `#### **Name**` section in `ARCHITECTURE.md`, and any diagram that would now be incomplete without it |
+| changes how a workflow is done (adding a chart, a dataset, a catalogue key) | the matching walkthrough in `DEVELOPMENT.md` or `CONTRIBUTING.md`. A code sample in a guide is code: if it no longer compiles, it is a bug |
+| touches the catalogue | `src/i18n/README.md` |
+
+Also bump the version in `package.json` and the version badge at the top of
+`README.md` together — they are checked by nobody and drift the moment one
+moves without the other.
+
+### Bump the version
+
+A changelog entry names a version, so the version has to move with it. Both
+places, or the two disagree:
+
+1. `version` in `package.json` — what `react-build-info` stamps into the footer
+2. The version badge on line 2 of `README.md`
+
+Semver as usual: a new feature or a visible change to one takes the minor, a
+bug fix on its own takes the patch. Everything shipping together shares a
+single version, however many commits it took.
 
 ### Update CHANGELOG.md
 

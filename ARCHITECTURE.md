@@ -77,12 +77,22 @@ graph LR
     FILTER["🔍 selectData<br/>Filter by Selection"]
     CALC["⚙️ Chart Calculations<br/>Aggregate & Normalize"]
     VIZ["📈 Visualization<br/>Bklit UI (visx)"]
+    TABLE["📋 chartTables<br/>Per-chart TableModel"]
+    DOM["📄 ChartDataTable<br/>Text alternative"]
+    CSV["⬇️ chartTableCsv<br/>CSV export (English-pinned)"]
     
     DATA --> HOOK
     HOOK --> FILTER
     FILTER --> CALC
     CALC --> VIZ
+    FILTER --> TABLE
+    TABLE --> DOM
+    TABLE --> CSV
 ```
+
+The lower branch is not a second pipeline: each table builder reads the same selectors
+and helpers its chart does, which is what keeps the two in agreement. The CSV is the
+app's only data egress.
 
 ## Data Flow
 
@@ -166,6 +176,9 @@ graph TD
     MIX -.->|Render| VIZ5["Custom squarified treemap (no charting lib)"]
     EFFICIENCY -.->|Render| VIZ6["Custom ranked lollipop (CSS grid rows, no charting lib)"]
     MAP -.->|Render| VIZ7["Bklit Choropleth (visx)"]
+    
+    RAW --> TABLES["chartTables.buildProcessingTable<br/>one builder per chart, same selectors"]
+    TABLES -.->|Render| VIZ8["ChartDataTable + CSV export"]
 ```
 
 Each chart calls `selectData` independently with its own bureau/type/range selection — there's no shared, pre-filtered dataset (see [Single-Pass Filtering](#single-pass-filtering)). The one global exception is the airport toggle: when airport offices are excluded, `DashboardShell` runs the array through `excludeAirportData` before it reaches any chart, stat, or table — the airport rows are dropped and their volumes subtracted from the nationwide aggregate row, so totals reflect only the visible bureaus (the estimator keeps the full dataset). `visx` is used inside the vendored Bklit chart library only; the two custom charts (Category Mix Treemap, Processing Efficiency) don't depend on it.
@@ -218,9 +231,9 @@ graph TD
     SHELL --> STATS["📊 StatsSummary<br/>Summary Stat Cards"]
     SHELL --> RSTATS["📊 ResidentsStatsSummary<br/>Summary Stat Cards"]
     SHELL --> ACTIVE["🔀 ActiveChart<br/>Renders the selected tab"]
-    SHELL --> TABLE["📋 ChartDataTable<br/>Data table + CSV export"]
+    SHELL --> TABLE["📋 ChartDataTable<br/>Per-chart data table + CSV export"]
     SHELL --> ESTIMATOR["⏱️ EstimationCard<br/>Queue Predictor"]
-    SHELL --> CHANGELOG["📰 ChangelogModal<br/>Opened from the version link"]
+    SHELL --> CHANGELOG["📰 ChangelogModal<br/>Opened from the version link<br/>Collapsible month sections"]
     
     ACTIVE --> CHARTS["ChartComponents registry"]
     CHARTS --> INTAKE["📊 IntakeProcessingBarChart"]
@@ -255,8 +268,8 @@ graph TD
 
 Every user-visible string resolves through a per-language catalogue; `src/i18n/README.md` is the reference. Two things are worth knowing before working elsewhere in the tree:
 
-- **Domain constants carry no display text.** `bureauOptions`, `applicationOptions`, `japanPrefectures`, and `CHART_COMPONENTS` hold codes, geometry, and capability flags only. Names come from the catalogue, joined back by the hooks in `useDomainLabels.ts`. Consequently a bureau's name can only be resolved inside a component — utilities that need one take a resolver argument (`computeEfficiencyPoints`).
-- **A growing set of vendored Bklit files are locally modified.** `charts/chart-formatters.ts` and `charts/chart-stat-flow.tsx` had their `Intl` locale hardcoded to `en-US` (and, in one case, left to the browser); `charts/y-axis.tsx` built tick labels with an English `${n / 1000}k` suffix. Those three now read module state that `LocaleProvider` sets during render. `charts/sankey/sankey-tooltip.tsx` hardcoded its two row labels, and takes `valueLabel` / `linkLabel` props instead. Two further changes came out of actually rendering Japanese: `chart-stat-flow.tsx` also passes `locales` to `NumberFlow`, which otherwise reverted to the browser locale once the animation library loaded, and `y-axis.tsx` marks tick labels `whitespace-nowrap`, because `100万` breaks across two lines in a fixed-width axis margin. That fixed width turned out to be the deeper bug: once five more locales shipped in v1.2.5, German/Portuguese/Spanish/Italian's own compact-number forms ("1,2 Mio.", "800 mil") were wider than the English-sized margin `whitespace-nowrap` was overflowing *into* — and a `.card-content` CSS rule was silently re-clipping that overflow besides (`overflow-x: visible` and `overflow-y: auto` can't coexist on one element per the CSS overflow spec; the browser coerces the visible axis back to `auto`). `chart-formatters.ts` now exports `estimateAxisMarginLeft()` / `measureLabelWidth()`, real `canvas.measureText` calls against the current locale's rendered output, and `line-chart.tsx`, `bar-chart.tsx`, `area-chart.tsx`, and `composed-chart.tsx` all consult it when resolving their margin instead of the vendored flat 40px; `bar-y-axis.tsx`'s category-label width is measured the same way. Chart components route through a new `chart-card-content` utility (in `src/index.css`, not vendored) rather than the shared `card-content` class, so they never inherit the coupling bug in the first place. `chart-formatters.ts`'s `compactFmt` also now guards against an ICU quirk (observed on de-DE and it-IT in an older bundled Chromium) where compact notation silently fails to abbreviate at all in the low hundred-thousands — detected by comparing against genuinely-unabbreviated standard notation, so locales whose compact notation works correctly are untouched. `charts/tooltip/chart-tooltip.tsx` carries two changes of its own: a `titleFormat` prop, because the vendored weekday+month+day title has no year and a meaningless weekday on the half-yearly and monthly charts, and a `dotKeys` allowlist that narrows the hover-dot layer to named series. The second exists because `ComposedChart` registers a zero-width line per `SeriesBar` so bars appear in the tooltip, and the dot layer places those at the raw axis value rather than the stacked segment top — every segment above the bottom one lands in the wrong place. Population Growth turns dots off outright (`showDots={false}`, all bars); Intake & Processing passes `dotKeys={['processed']}` to keep the dot on its one real line. `scripts/vendor-bklit.mjs` would overwrite every file listed here — re-apply after a re-vendor. Each file says so at the point of change.
+- **Domain constants carry no display text.** `bureauOptions`, `applicationOptions`, `japanPrefectures`, `policyEvents`, and `CHART_COMPONENTS` hold codes, geometry, dates, and capability flags only — a policy event is a period, a category and the government page that establishes it, with its title and description resolved from the catalogue by key like everything else. Names come from the catalogue, joined back by the hooks in `useDomainLabels.ts`. Consequently a bureau's name can only be resolved inside a component, and utilities handle that one of two ways. Most take a **resolver argument** — `computeEfficiencyPoints` is handed a `(code) => name` function by its caller. The table builders in `chartTables.ts` take none: they emit `LabelRef` values (a catalogue key plus params, or a language-neutral literal) and leave resolution to whoever consumes the model — the locale-bound `t` in the DOM, or `englishOnly` in `chartTableCsv.ts`. That second pattern is what makes the English-only CSV export true by construction rather than by discipline, and it is why `computeEfficiencyPoints` is now a thin wrapper over the resolver-free `computeBureauVolumes`: the table needs the arithmetic without the names.
+- **A growing set of vendored Bklit files are locally modified.** `charts/chart-formatters.ts` and `charts/chart-stat-flow.tsx` had their `Intl` locale hardcoded to `en-US` (and, in one case, left to the browser); `charts/y-axis.tsx` built tick labels with an English `${n / 1000}k` suffix. Those three now read module state that `LocaleProvider` sets during render. `charts/sankey/sankey-tooltip.tsx` hardcoded its two row labels, and takes `valueLabel` / `linkLabel` props instead. Two further changes came out of actually rendering Japanese: `chart-stat-flow.tsx` also passes `locales` to `NumberFlow`, which otherwise reverted to the browser locale once the animation library loaded, and `y-axis.tsx` marks tick labels `whitespace-nowrap`, because `100万` breaks across two lines in a fixed-width axis margin. That fixed width turned out to be the deeper bug: once five more locales shipped in v1.2.5, German/Portuguese/Spanish/Italian's own compact-number forms ("1,2 Mio.", "800 mil") were wider than the English-sized margin `whitespace-nowrap` was overflowing *into* — and a `.card-content` CSS rule was silently re-clipping that overflow besides (`overflow-x: visible` and `overflow-y: auto` can't coexist on one element per the CSS overflow spec; the browser coerces the visible axis back to `auto`). `chart-formatters.ts` now exports `estimateAxisMarginLeft()` / `measureLabelWidth()`, real `canvas.measureText` calls against the current locale's rendered output, and `line-chart.tsx`, `bar-chart.tsx`, `area-chart.tsx`, and `composed-chart.tsx` all consult it when resolving their margin instead of the vendored flat 40px; `bar-y-axis.tsx`'s category-label width is measured the same way. Chart components route through a new `chart-card-content` utility (in `src/index.css`, not vendored) rather than the shared `card-content` class, so they never inherit the coupling bug in the first place. `chart-formatters.ts`'s `compactFmt` also now guards against an ICU quirk (observed on de-DE and it-IT in an older bundled Chromium) where compact notation silently fails to abbreviate at all in the low hundred-thousands — detected by comparing against genuinely-unabbreviated standard notation, so locales whose compact notation works correctly are untouched. `charts/tooltip/chart-tooltip.tsx` carries two changes of its own: a `titleFormat` prop, because the vendored weekday+month+day title has no year and a meaningless weekday on the half-yearly and monthly charts, and a `dotKeys` allowlist that narrows the hover-dot layer to named series. The second exists because `ComposedChart` registers a zero-width line per `SeriesBar` so bars appear in the tooltip, and the dot layer places those at the raw axis value rather than the stacked segment top — every segment above the bottom one lands in the wrong place. Population Growth turns dots off outright (`showDots={false}`, all bars); Intake & Processing passes `dotKeys={['processed', 'approvalRate']}` to keep dots on its two real lines. Three more changes came out of giving Intake & Processing an approval-rate axis, all of them limitations rather than localization. `charts/time-series-chart-shell.tsx` and `charts/y-domain-utils.ts` carry most of it: `yScaleDomainMax` — the stacked-bar total — was gated behind "every series is on the default axis", so adding a second axis silently dropped it and rescaled the primary axis to the tallest single segment, overflowing the plot; it is keyed on the axis id now. They also accept `yAxisDomains`, axes pinned to a fixed domain and used verbatim rather than nice()'d and padded, which is what holds the approval-rate axis at 0–100% whatever the rate does, and a projection is no longer allowed to widen a pinned axis. `charts/composed-chart.tsx` threads that prop through and no longer lets a series on a secondary axis raise the primary axis maximum — harmless while a percentage is the only such series, but wrong for one measured in raw units. `charts/use-animated-series-path.ts` carries a fix rather than a feature: its transition effect only did work when the *transition signature* changed — x-domain, width and the raw y values — but listed the scales and data in its dependency array. A y-domain tween hands every series a new y-scale on each of its frames, so the effect re-ran, its cleanup stopped the animation, and the body then early-returned on the unchanged signature. `onComplete` is the only place the animated snapshot is released, and stopping skips it, so the path stayed pinned to pixels from the domain the chart had *before* the change — visible as a line collapsed onto the baseline after a filter change, while its tooltip dot (recomputed live at hover time) sat correctly. The volatile inputs are read through a ref now, the deps match the guard the body applies, and the cleanup releases the snapshot too. Reading the scale live is also what recomputing the target every frame was always for: the path morph and the domain tween compose, so a line follows its axis as it rescales. `scripts/vendor-bklit.mjs` would overwrite every file listed here — re-apply after a re-vendor. Each file says so at the point of change, and `grep -rl 'LOCAL MODIFICATION\|LOCAL ADDITION' src/components/bklit` is the authoritative list: if it returns a file this section does not name, the section is out of date, not the code. `src/components/bklit/__tests__/vendoring-ledger.test.ts` asserts exactly that, so the list cannot drift silently the way it had. (Check it by running the test rather than by eye: the tables below name files inside `{a,b,c}.tsx` shorthand, so grepping this section for a filename gives the wrong answer.)
 - **A second set of vendored changes makes tooltips tappable.** These are listed as a table rather than folded into the paragraph above, because they follow one rule applied in many places instead of a different fix per file. The rule: on a coarse pointer (`(hover: none) and (pointer: coarse)`, read via `src/hooks/useCoarsePointer.ts`) hover handlers are **not attached at all**, and the tooltip is driven from `onClick`. Leaving them off rather than guarding them is what stops the compatibility mouse events a browser fires ~300ms after `touchend` from re-opening or clearing a tooltip a tap has just pinned. `src/lib/tooltip-pin.ts` enforces one pinned tooltip per page and owns outside-tap / scroll / Escape dismissal; `src/hooks/useTapPin.ts` is the per-chart half, and its `activationProps()` helper is the one-line swap at each call site. All three are app-owned and survive a re-vendor; the files below do not.
 
   | Vendored file | Change |
@@ -271,9 +284,13 @@ Every user-visible string resolves through a per-language catalogue; `src/i18n/R
   | `charts/sankey/{sankey-chart,sankey-context,sankey-node,sankey-link}.tsx` | Tap position recorded on `pointerdown`, since node/link clicks stop propagating |
   | `charts/choropleth/{choropleth-chart,choropleth-context,choropleth-feature}.tsx` | Layered on top of the delegation described under [Local patches to the vendored choropleth](#local-patches-to-the-vendored-choropleth): an `onFeatureTap` prop replaces the delegated `onMouseOver`/`onMouseLeave` pair on a coarse pointer, so a second tap on the same prefecture dismisses it and the pin registers page-wide. Gesture handling and `touch-action: pan-y` are that section's, not this one's |
   | `charts/{pie-chart,pie-context,pie-slice}.tsx` | `tapMode` supplied by the chart owner, so slices and the app-side legend share one pin |
-  | `charts/markers/marker-group.tsx` | The marker fan opens on tap |
+  | `charts/markers/marker-group.tsx` | The marker fan opens on tap. Separately, a `fan` prop turns the fan-out off entirely, which the policy markers on Intake & Processing and Population Growth both pass: the 50px fan arc reached straight through the neighbouring markers on a monthly axis, and the icons it threw carried no label to say where they led. A period holding several events stays one badged circle instead, and the crosshair tooltip reads them out. Those markers carry no `onClick` or `href` at all — they are annotation, not navigation, and the collapsible list under each chart is where every source lives. `fan` governs pointer interception as well: a group that cannot fan attaches no handlers and keeps the plot's crosshair cursor, so the event bubbles to the chart's own `<g>` — the one these markers already render inside — and hovering a marker resolves the same tooltip as hovering the bar under it, by the same code path. Interception only ever existed to hold the crosshair still while a fan was open. The icon's `foreignObject` is `pointer-events: none` for the same reason: `localPoint` mis-resolves an event whose target is HTML inside one, reporting an x near the axis origin, so a hover over the icon read the wrong period until the event was allowed to fall through to the `circle` beneath |
+  | `charts/chart-context.tsx` | Declares `TooltipData.tapY`, the y of the tap that pinned the tooltip, in container pixels and only on a coarse pointer. Easy to overlook because the two rows that *consume* it — `tooltip-box.tsx`'s `anchorAboveY` placement and `chart-tooltip.tsx` passing it in — describe the behaviour without naming where the field comes from |
+  | `charts/markers/chart-markers.tsx` | Forwards `fan` through to `MarkerGroup`. One line, but it is the half of that patch a re-vendor is easiest to miss: without it the prop never reaches the component that reads it, and the fan silently comes back |
 
-  Deliberately **not** converted, because nothing outside `src/components/bklit/` imports them: `use-scatter-chart-interaction.ts`, `scatter-chart-shell.tsx`, `bar-chart.tsx` (the bar charts are `ComposedChart` + `SeriesBar`), `radar-area.tsx`, `legend/legend-item.tsx`, `ring.tsx`. Each would be a permanent re-vendor cost for no user-visible gain. Also still open: `src/components/ui/tooltip.tsx` (Radix) never opens on touch at all — `src/components/common/FormulaTooltip.tsx` shows the Popover pattern that fixes it.
+  One file in that tree is a local **addition** rather than a modification, which is a different hazard. `charts/sankey/sankey-connectivity.ts` is not an upstream registry item, and `scripts/vendor-bklit.mjs` copies only what the clone's `registry.json` lists, so a re-vendor will not touch it. It will overwrite `sankey/sankey-node.tsx` and `sankey/sankey-link.tsx`, which import it — the imports go, the file is left orphaned, and the sankey silently reverts to the stock one-hop hover. That hover is why the file exists: it walks the link graph strictly downstream and strictly upstream from a node, never re-reversing, so on the three-column resident flows chart hovering a region no longer dims the status groups its own residents flow into, and a region still cannot reach its sibling regions through a shared middle node.
+
+  Deliberately **not** converted, because nothing outside `src/components/bklit/` imports them: `use-scatter-chart-interaction.ts`, `scatter-chart-shell.tsx`, `bar-chart.tsx` (the bar charts are `ComposedChart` + `SeriesBar`), `radar-area.tsx`, `legend/legend-item.tsx`, `ring.tsx`. Each would be a permanent re-vendor cost for no user-visible gain. `legend/legend-progress.tsx` sits beside `legend-item.tsx` but is a different case, not a skipped one: it has no interaction to convert at all. It is also the tree's only importer of `@base-ui/react`, and nothing composes `<LegendProgress>`, so neither the component nor that dependency reaches the bundle. Also still open: `src/components/ui/tooltip.tsx` (Radix) never opens on touch at all — `src/components/common/FormulaTooltip.tsx` shows the Popover pattern that fixes it.
 
 - **Domain names come in three widths.** `bureau.*` and `appType.*` each carry `.label`, `.compact`, and `.short`, resolved together by `useDomainLabels.ts`. The width-constrained surfaces — the efficiency chart's 92px label column, the ring-chart legend, the treemap tile, and the Sankey's narrow layout — read `.compact`; everything with room reads `.label`. English says the same thing at every width, so this is invisible there; Japanese needs it, because 東京出入国在留管理局横浜支局 and 東京出入国在留管理局成田空港支局 truncate identically.
 
@@ -282,7 +299,7 @@ The language switcher is gated behind `LOCALE_SWITCHER_ENABLED` in `src/i18n/con
 #### **DashboardShell** (`src/components/DashboardShell.tsx`)
 
 The single responsive shell that:
-- Renders the header, chart tabs, filter bar, data table, and footer
+- Renders the header, chart tabs, filter bar, data table (passing the active chart's `table` id through to `ChartDataTable`), and footer
 - Owns the URL-first state (`chart`, `bureau`, `type`, `range`, `compare`, `airports` query params via nuqs)
 - Hosts the Processing Time Estimator as a collapsible desktop sidebar or a mobile bottom sheet
 - Coordinates all child components
@@ -313,7 +330,7 @@ Seven for Application Processing:
 
 | Component | Library | Purpose |
 |-----------|---------|---------|
-| IntakeProcessingBarChart | Bklit ComposedChart | Intake/Processing trends |
+| IntakeProcessingBarChart | Bklit ComposedChart | Intake/Processing trends and approval rate |
 | CategorySubmissionsLineChart | Bklit LineChart | Submission trends over time |
 | OutcomesSankeyChart | Bklit Sankey + Gauge | Application outcomes flow + approval rate |
 | BureauDistributionRingChart | Bklit PieChart | Bureau share of intake |
@@ -341,12 +358,44 @@ Each chart:
 - Manages its own visualization state
 - Is self-contained and reusable
 
+Intake & Processing and Population Growth additionally draw a policy-annotation layer over the plot: markers from `src/constants/policyEvents.ts`, built by `usePolicyMarkers` and listed beneath the chart by `PolicyEventList` (both in `src/components/common/PolicyEventList.tsx`). The markers are annotation only — the list is what carries each event's link to the government page establishing its date.
+
+#### **ChartDataTable** (`src/components/ChartDataTable.tsx`)
+
+The collapsible text alternative under each Application Processing chart, and the app's only CSV export.
+
+It holds no domain knowledge. Every chart's registry entry names a `ProcessingTableId`, and the shapes and their selector math live in `src/utils/chartTables.ts` keyed on that id; the component renders whichever `TableModel` comes back. That is what lets the row axis vary — months under Intake and Application Types, bureaus under Bureau Share, Category Mix and Processing Efficiency, application types under Outcomes, prefectures under the Regional Map — without the component knowing the difference.
+
+Each builder reads its numbers from the same helper its chart does (`buildCategoryMixTree` for the treemap, `computeBureauVolumes` for the lollipop, the ring chart's own status pair for the donut), so a table cannot drift from the chart above it. The field was made required on `ProcessingChartDefinition` deliberately: the table was previously a single hardcoded month × status pivot mounted under all seven charts, which described only `intake`, and requiring the declaration is what stops the next chart being added without anyone deciding.
+
+Labels travel as `LabelRef` — a catalogue key, or a language-neutral literal — rather than as resolved text, so the DOM can resolve them through the locale-bound `t` while `src/utils/chartTableCsv.ts` resolves the same refs against English. That is what keeps the export English-only by construction now that rows and cells carry names and not just months, and `csvField` quotes per RFC 4180 so a value containing a separator cannot split a row.
+
+The export contract changed with it, and downstream consumers feel it. Where every tab
+once downloaded `immigration-stats_<bureau>_<type>_<range>.csv` with the same six status
+columns, each builder now names its own stem carrying only the inputs that actually
+applied — `immigration-stats_types_<bureau>_<range>` (the Application Types chart ignores
+the type filter), `immigration-stats_share_<type>_<range>` (Bureau Share forces bureau to
+`all`), and a bare `immigration-stats_prefectures` for the Regional Map, where no filter
+or range applies at all. Those slots hold names rather than e-Stat codes —
+`immigration-stats_intake_fukuoka_ext_12.csv`, not `..._101720_20_12.csv`, which named the
+file after identifiers a reader has no way to place. The bureau takes its full English name
+and the type its `EXT`/`PR` abbreviation, both resolved through the same `englishOnly`
+pin as the contents (`src/i18n/translate.ts`) so a filename cannot localize away from the
+file it names, then lowercased and reduced to `[a-z0-9_-]` by `fileSafe` — which is what
+keeps a two-word bureau ("Narita Airport") off disk as `narita-airport`. The file opens
+with **two** `#` comment lines rather than one:
+the same caption the `<caption>` renders, then a language-neutral echo of the selection
+(`chart=share; bureau=all; type=all; range=12`). Percent columns take a ` (%)` suffix on
+the header and write a bare `86.3` — no sign, no locale grouping — so the column stays
+numeric to a spreadsheet; columns that render a unit on screen (`map.areaValue`) write
+the bare number too. A script globbing the old filename needs updating.
+
 #### **EstimationCard** (`src/components/EstimationCard.tsx`)
 
 Interactive queue position estimator:
-- Accepts user input (bureau, application type, submission date)
+- Accepts user input (bureau, application type, submission date). Opening the breakdown folds those inputs away behind a one-line summary of the selection, using `src/components/ui/collapsible.tsx`, shared with `ChangelogModal`
 - Calls `calculateEstimatedDate` (`src/utils/calculateEstimates.ts`)
-- Displays a "Show the math" breakdown with KaTeX formulas (`FormulaTooltip`)
+- Displays a "Show the math" breakdown with KaTeX formulas (`EstimationFormula`, in step cards from `FormulaTooltip`). `buildFormulaSteps` is a pure function of the model variables and the branch record `calculateEstimatedDate` returns, so the dependency ordering between steps is unit-tested rather than assumed
 - Generates shareable permalinks (`src/utils/urlApplicationDetails.ts`)
 
 #### **StatsSummary** (`src/components/StatsSummary.tsx`)
@@ -355,6 +404,15 @@ Summary statistics display, built from `StatCard` (`src/components/common/StatCa
 - Shows key metrics (submissions, processed, approval rate, etc.), animated with a custom `useCountUp` hook (`src/lib/motion.ts`, built on Anime.js) — `@number-flow/react` is a real dependency but is used only inside the vendored Bklit charts' gauge/ring/pie centers, not here
 - Updates based on filters
 - Responsive layout for mobile
+
+#### **ChangelogModal** (`src/components/ChangelogModal.tsx`)
+
+The one asset fetched at runtime rather than bundled: `scripts/sync-changelog.js` copies the repo-root `CHANGELOG.md` into `public/` at build time, and the modal fetches `/CHANGELOG.md?v=<buildVersion>` the first time it is opened. The version query is load-bearing — nothing else invalidates a stable URL on deploy — and the response is cached in component state for the session.
+
+- `parseChangelog` (`src/utils/renderChangelog.tsx`) turns the markdown into `ChangelogMonth[]` in document order, which is newest-first because that is how the file is written. It understands exactly what the changelog convention uses: `## YYYY-MM` months, `### Added/Changed/Fixed` sections, bullets, one level of nesting, and inline `**bold**`/`` `code` ``/links
+- Each month renders as a Radix `Collapsible` (`src/components/ui/collapsible.tsx`). The `<h3>` wraps the trigger rather than the reverse — a `<button>` may not contain a heading, and heading navigation still has to work
+- Which months are open lives in `ChangelogModal`, not the renderer, because the expand/collapse-all control sits outside the scroll container and reads the same state. It is held as `readonly string[] | null`, where `null` resolves to "newest month only"; closing the dialog resets it to `null`, so every visit starts on the current release
+- Collapsed content is unmounted by the primitive, so a browser page search will not reach it. Expand all is the way back to the whole document
 
 ### Header & Footer
 
@@ -396,6 +454,9 @@ graph TD
     DATA -->|passed as props, airport toggle pre-applied| CHARTS["7 Processing Chart Components"]
     FILTERS -->|passed as props| CHARTS
     CHARTS -->|each independently calls| FILTERED["🔄 selectData / useSelectedData<br/>Memoized per chart, on its own selection key"]
+    DATA -->|same props, plus the registry's table id| TABLE["📋 ChartDataTable"]
+    FILTERS -->|passed as props| TABLE
+    TABLE -->|builds while open| FILTERED
 
     RDATA -->|passed as props, unfiltered| RCHARTS["6 Resident Chart Components"]
     RFILTERS -->|passed as props| RCHARTS
@@ -511,6 +572,7 @@ graph LR
     UNPACK -->|props, unfiltered| MIX["CategoryMixTreemap"]
     UNPACK -->|props, unfiltered| EFFICIENCY["ProcessingEfficiencyLollipop"]
     UNPACK -->|props, unfiltered| MAP["GeographicDistributionChart"]
+    UNPACK -->|props, unfiltered| TABLE["ChartDataTable → chartTables → CSV"]
 
     RUNPACK -->|props, unfiltered| GROWTH["PopulationGrowthChart"]
     RUNPACK -->|props, unfiltered| ORIGINS["NationalityTrendChart"]
@@ -567,7 +629,7 @@ The residents cube needs a different correction, for the same class of reason �
 
 ### 4. Filtering & Memoization
 
-This runs independently **inside each of the 13 chart components across both datasets** — there is no single shared cache distributed to all of them. Processing charts memoize through `selectData`/`useSelectedData` (`src/utils/selectors.ts`); residents charts memoize the same way through `useSelectedResidents` (`src/utils/residentsSelectors.ts`):
+This runs independently **inside each of the 13 chart components across both datasets**, and inside `ChartDataTable` alongside them — there is no single shared cache distributed to all of them. The table memoizes on its own key and only builds while its disclosure is open, so a collapsed table costs nothing. Processing charts memoize through `selectData`/`useSelectedData` (`src/utils/selectors.ts`); residents charts memoize the same way through `useSelectedResidents` (`src/utils/residentsSelectors.ts`):
 
 ```mermaid
 stateDiagram-v2
@@ -592,32 +654,49 @@ For processing time prediction:
 ```mermaid
 graph TD
     INPUT["📝 User Input<br/>Bureau + Type<br/>+ Submission Date"]
-    
-    HIST["📊 Historical Data<br/>Last 6 months<br/>processing rates"]
-    
-    RATE["⚙️ Calculate Rate<br/>Avg daily processing<br/>for this bureau/type"]
-    
-    QUEUE["🔢 Estimate Queue<br/>Position at<br/>submission date"]
-    
-    PROJECT["📈 Project Timeline<br/>Through current<br/>month's rate"]
-    
-    OUTPUT["📅 Output<br/>Estimated completion<br/>date + confidence"]
-    
-    LATEX["🔬 Render Formula<br/>KaTeX math<br/>notation"]
-    
-    INPUT --> HIST
-    HIST --> RATE
-    RATE --> QUEUE
-    QUEUE --> PROJECT
-    PROJECT --> OUTPUT
+
+    S1["1️⃣ Throughput baseline<br/>R_proc, R_new over<br/>the last 6 months"]
+
+    S2["2️⃣ Queue at application<br/>C_prev, N_app, P_app<br/>→ Q_app"]
+
+    S3["3️⃣ Processed since<br/>C_proc, E_proc<br/>→ S_proc"]
+
+    S4["4️⃣ Queue position<br/>Q_pos = Q_app − S_proc<br/>D_rem = Q_pos / R_proc"]
+
+    S5["5️⃣ Offset and spread<br/>D_est = ⌈D_rem⌉<br/>± band from rate variance"]
+
+    BRANCH{"🔀 ModelBranches<br/>carryover · appMonth<br/>· sinceApplication"}
+
+    OUTPUT["📅 Output<br/>ModelVariables +<br/>ModelBranches"]
+
+    LATEX["🔬 buildFormulaSteps<br/>pure → 5 KaTeX steps,<br/>only the branch that ran"]
+
+    INPUT --> S1
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
+    S5 --> OUTPUT
+    BRANCH -.-> S2
+    BRANCH -.-> S3
     OUTPUT --> LATEX
-    
+
     style INPUT fill:#4CAF50,color:#fff
+    style BRANCH fill:#9C27B0,color:#fff
     style OUTPUT fill:#2196F3,color:#fff
     style LATEX fill:#FF9800,color:#fff
 ```
 
-**Code Location:** `src/utils/calculateEstimates.ts` → `calculateEstimatedDate()`
+Steps run in dependency order — no symbol appears in a formula before the step
+that defines it, which `EstimationFormula.test.ts` asserts rather than assumes.
+The dashed edges are the two steps whose arithmetic changes shape depending on
+whether the dataset actually covers the application month; the breakdown renders
+only the path that ran.
+
+**Code Location:** `src/utils/calculateEstimates.ts` → `calculateEstimatedDate()`,
+returning the exported `ModelVariables` and `ModelBranches`;
+`src/components/EstimationFormula.tsx` → `buildFormulaSteps()` turns those into
+the five rendered steps.
 
 ## Performance Optimizations
 
@@ -634,10 +713,10 @@ graph TD
     PERF --> BUILD["🔨 Production Build<br/>Minified & tree-shaken"]
     
     MEMO --> EXAMPLE1["Prevent re-filtering<br/>on every render"]
-    LAZY --> EXAMPLE2["KaTeX ~100KB<br/>deferred with the app chunk"]
+    LAZY --> EXAMPLE2["Dashboard chunk<br/>carries KaTeX ~74KB gz<br/>with it"]
     SINGLE --> EXAMPLE3["useSelectedData<br/>memoized per chart"]
     PRECOMP --> EXAMPLE4["Color scales<br/>calculated once"]
-    BUILD --> EXAMPLE5["JS ~150KB gzipped<br/>Fast delivery"]
+    BUILD --> EXAMPLE5["First load ~220KB gz<br/>Fast delivery"]
     
     style PERF fill:#4CAF50,color:#fff
     style MEMO fill:#2196F3,color:#fff
@@ -852,7 +931,7 @@ components/
 │   └── components.smoke.test.tsx     # Cross-component smoke tests
 ```
 
-(Chart-specific aggregation currently lives inline in each chart component rather than in a colocated hook; utils/hooks are extracted once logic is actually shared.)
+(Chart-specific aggregation currently lives inline in each chart component rather than in a colocated hook; utils/hooks are extracted once logic is actually shared. `src/utils/chartTables.ts` is that rule firing: once each chart's data table had to report the same numbers the chart plots, the aggregation became genuinely shared, and `computeBureauVolumes` was split out of `computeEfficiencyPoints` for the same reason.)
 
 ### Principle: Shared Code in Utils/Hooks
 
@@ -928,9 +1007,43 @@ The Processing Efficiency and Category Mix charts don't use `visx` at all — Bk
 ### Why Bklit UI (vendored) over Chart.js?
 
 - **Design-token theming** — Every chart reads the same CSS variables as the rest of the UI, in both themes
-- **Vendored source** — Components are copied into the repo (shadcn registry model), so gaps are patched locally (e.g. responsive choropleth scale, Sankey value units, the choropleth render/gesture patches below)
+- **Vendored source** — Components are copied into the repo (shadcn registry model), so gaps are patched locally (e.g. responsive choropleth scale, Sankey value units, and the sankey and choropleth patches below)
 - **SVG rendering** — Text alternatives and styling that canvas can't offer
 - **Composable API** — Charts assemble from Grid/Axis/Series/Tooltip parts, so remixes stay small
+
+#### Local patches to the vendored sankey
+
+The vendored Sankey assumes two columns. `ResidentFlowsSankeyChart` is three — region
+into country into purpose-of-stay group — and every patch below exists because something
+that is merely suboptimal at two tiers is actively wrong at three. `OutcomesSankeyChart`
+is two-column and resolves to the vendored behaviour throughout.
+
+- **Transitive highlighting** (`sankey-connectivity.ts`, `sankey-node.tsx`, `sankey-link.tsx`)
+  — stock hover connectivity is 1-hop, which on a three-column chart reads as broken:
+  hovering a region dims the very status groups its own residents flow into.
+  `getReachableNodes()` walks the link graph strictly downstream and strictly upstream from
+  a node, never re-reversing direction — so a region does not reach its sibling regions
+  through a shared middle node. Node hover uses it; link hover deliberately stays 1-hop.
+  The file itself is a **local addition** rather than a modification: it is not a registry
+  item, so `vendor-bklit.mjs` will not overwrite it — but the imports referencing it in
+  `sankey-node.tsx` and `sankey-link.tsx` are modifications, and a re-vendor drops those,
+  leaving an orphaned file and a broken build rather than a silent regression.
+- **Label side from column, not x-position** (`sankey-node.tsx`) — upstream picks left or
+  right by comparing the node's x to the chart's midpoint, which gives the middle tier
+  "left" and draws its labels backwards across the incoming ribbon bundle. The side comes
+  from `node.depth` against the deepest column now, adding a `middle` case that renders
+  centered above the node and never carries a value sublabel (d3 gives short middle nodes
+  only a few pixels). Two-column charts resolve to left/right exactly as before. There is
+  no collision avoidance for middle labels, so narrow layouts pass `showMiddleLabels={false}`.
+- **Vertical de-overlap for side labels** (`sankey-node.tsx`) — real distributions are
+  dominated by one node (Asia is ~87% of the total), which squeezes the rest of its column
+  into a few pixels each while every label block still needs 20–36px. A greedy sweep pushes
+  colliding blocks apart top-down, then pulls the chain back inside the plot bottom-up;
+  labels move off their node's center only as far as the collision requires, and a short
+  leader line is drawn when they do.
+- **Node keys include the index** (`sankey-node.tsx`) — the same name legitimately appears
+  in two tiers (無国籍 is both a region and a country), so a name-only React key collapses
+  them.
 
 #### Local patches to the vendored choropleth
 
@@ -994,15 +1107,70 @@ describe('calculateEstimatedDate month-boundary sensitivity', () => {
 });
 ```
 
+This is where most of the coverage lives, because most of the logic is pure — the estimator model, the aggregate-bureau correction, the airport exclusion, both cubes' selectors, the residents transform, the per-bureau efficiency derivation, and the seven per-chart table builders. The builders are asserted against the same helpers their charts read, so a table that drifted from the chart above it fails here rather than on screen. Two shared hierarchies, `categoryMixTree.ts` and `residenceStatusTree.ts`, have no suite of their own and are covered only through their consumers.
+
+### Generated-Output Tests
+
+Neither a pure util nor a rendered component: `buildFormulaSteps` emits LaTeX, so
+the test drives it over every branch combination and compiles the result.
+
+```typescript
+// src/components/__tests__/EstimationFormula.test.ts
+it.each(LOCALE_CODES.flatMap((code) => COMBINATIONS.map((b) => [code, label(b), b])))(
+  'compiles under KaTeX in %s (%s)',
+  (code, _name, branches) => {
+    buildFormulaSteps(BASE, branches, formattersFor(code)).forEach((step) => {
+      expect(() =>
+        katex.renderToString(step.math, { displayMode: true, throwOnError: true, strict: 'error' })
+      ).not.toThrow();
+    });
+  }
+);
+```
+
+`strict: 'error'` is the point: a separator KaTeX cannot typeset — fr-FR groups
+with U+202F — degrades to a console warning and a zero-width box otherwise. A
+companion assertion walks the emitted SVG, because KaTeX inspects neither.
+
+### Contract Tests for the CSV Export
+
+`src/utils/__tests__/chartTableCsv.test.ts` is the one suite that asserts on bytes rather than behaviour, because the CSV is the only thing the app hands to another program. It pins the two properties a consumer depends on: the file stays English whatever the interface language, and fields are quoted per RFC 4180 so a value carrying a separator can't split a row. Both are invisible on screen and would otherwise only surface in someone else's spreadsheet.
+
 ### Integration Tests for Components
+
+Two rules make a component test work here. `useLocale()` throws outside its provider, so tests render through `renderWithProviders` (`src/test-utils.tsx`) rather than RTL's bare `render`; and assertions read their expected text out of the English catalogue rather than repeating it, so rewording a string doesn't quietly break a test — only removing the key does.
 
 ```typescript
 // Test component behavior (src/components/__tests__/components.smoke.test.tsx)
-test('StatCard renders title, formatted value, and MoM delta', () => {
-  render(<StatCard title="Total Applications" value={12345} delta={{ percent: 3.2, direction: 'neutral' }} {...rest} />);
-  expect(screen.getByText('Total Applications')).toBeTruthy();
+it('renders title, formatted value, and MoM delta', () => {
+  renderWithProviders(<StatCard title={en['stats.totalApplications']} value={12345} {...rest} />);
+  expect(screen.getByText(en['stats.totalApplications'])).toBeTruthy();
+  expect(screen.getByText('12,345')).toBeTruthy();
 });
 ```
+
+Passing `{ locale: 'ja' }` as the second argument asserts against a different catalogue, which is what proves a locale switch actually reaches the DOM.
+
+### Chart Logic Is Tested Through Hooks, Not Rendered SVG
+
+visx sizes itself from real measurements, and jsdom reports none — a chart
+rendered in a test lays out at zero and its geometry proves nothing. So chart
+behaviour is tested one layer down:
+
+- **Pure geometry and domain helpers directly** — `series-bar-layout.ts`,
+  `y-domain-utils.ts`, `computeComposedYScaleDomainMax`. Cheap, and they are
+  where the arithmetic actually lives.
+- **Hooks through `renderHook`** — `use-chart-interaction.test.tsx` (tap-to-pin)
+  and `use-animated-series-path.test.tsx` (the path/domain animation race).
+  The latter mocks `motion` outright: it caches reduced-motion at import, and
+  its frame loop doesn't tick usefully in jsdom, so driving `onUpdate` by hand
+  is the only way to express "a frame ran, then the scale moved."
+- **Row builders as exported functions** — e.g. `buildIntakeRows` in
+  `IntakeProcessingBarChart.tsx`, exported purely so the numbers can be
+  asserted without a chart.
+
+What is left for a rendered test is what jsdom *can* answer: that the legend
+names every series, and that the graphic carries its `aria-label`.
 
 ### No E2E Tests Currently
 
@@ -1076,6 +1244,11 @@ npm install parent-package@latest          # Update parent if needed
 - **Branch Office** — Sub-bureau reporting separately (e.g., Yokohama under Shinagawa)
 - **e-Stat** — Official Japanese statistics API
 - **SURVEY_DATE** — Date of data collection in e-Stat
+- **Cube** — One dataset's fact table. The processing cube is bureau × application type × status by month; the residents cube is nationality × residence status by half-year. They share no dimension, which is why they share no code path
+- **TableModel** — What a data table is, independent of how it renders: a row-header key, a column spec, rows, a caption, and a filename stem (`src/utils/chartTables.ts`)
+- **TableBuilder** — A pure `(data, filters, range) → TableModel` function. One per chart, reading the same helpers that chart reads
+- **ProcessingTableId** — The name a chart's registry entry gives its builder. Required on every processing chart, so none can be added without deciding what its table shows
+- **LabelRef** — Display text named by identity rather than by value: a catalogue key plus params, or a language-neutral literal. Resolved through `t` for the DOM and against English for the CSV, which is what keeps the export English-only by construction
 
 ---
 

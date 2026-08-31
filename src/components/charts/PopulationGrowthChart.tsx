@@ -3,15 +3,16 @@
 // stacked bars on Bklit's ComposedChart — 2M to 4M with the COVID dip in the
 // middle — split by status group (why people are here) or, via the toggle,
 // by world region (where they are from). Event markers annotate the moments
-// the shape of the data changes: the Specified Skilled Worker launch, the
-// pandemic border closure, and the 2015 Korea reporting split.
+// the shape of the data changes — the Specified Skilled Worker launch, the
+// pandemic border closure and reopening, the 2015 Korea reporting split — from
+// the shared list in src/constants/policyEvents.ts.
 'use client';
 
 import { useMemo, useState } from 'react';
 
-import { BadgeCheck, Plane, Split } from 'lucide-react';
 import type React from 'react';
 
+import { RESIDENT_EVENTS } from '../../constants/policyEvents';
 import type { StatusGroup } from '../../constants/residenceStatuses';
 import { useLocale } from '../../i18n/LocaleContext';
 import { useNationalityLabel, useRegionLabel, useStatusGroupLabel } from '../../i18n/useDomainLabels';
@@ -33,6 +34,7 @@ import { ChartTooltip } from '../bklit/charts/tooltip';
 import { XAxis } from '../bklit/charts/x-axis';
 import { YAxis } from '../bklit/charts/y-axis';
 import type { ResidentChartData } from '../common/ChartComponents';
+import { PolicyEventList, usePolicyMarkers } from '../common/PolicyEventList';
 import { SeriesLegend } from '../common/SeriesLegend';
 
 /** Positional hues for the nationality stack (a filtered region's countries). */
@@ -48,32 +50,6 @@ const NATIONALITY_COLORS = [
 
 /** The everyone-else stack segment stays visually recessive. */
 const OTHER_COLOR = 'var(--muted-foreground)';
-
-/**
- * The events worth pinning to the timeline. Dates are half-year keys matched
- * against the plotted periods, so a marker outside the visible window (or a
- * range that starts after it) simply isn't rendered.
- */
-const EVENTS = [
-  {
-    period: '2015-12',
-    icon: <Split className="size-3.5" aria-hidden="true" />,
-    titleKey: 'residents.markerKoreaSplit.title',
-    descriptionKey: 'residents.markerKoreaSplit.description',
-  },
-  {
-    period: '2019-06',
-    icon: <BadgeCheck className="size-3.5" aria-hidden="true" />,
-    titleKey: 'residents.markerSsw.title',
-    descriptionKey: 'residents.markerSsw.description',
-  },
-  {
-    period: '2020-06',
-    icon: <Plane className="size-3.5" aria-hidden="true" />,
-    titleKey: 'residents.markerCovid.title',
-    descriptionKey: 'residents.markerCovid.description',
-  },
-] as const;
 
 /** Marker details shown inside the shared crosshair tooltip. */
 const TooltipMarkers: React.FC<{ markers: ChartMarker[] }> = ({ markers }) => {
@@ -128,15 +104,8 @@ export const PopulationGrowthChart: React.FC<ResidentChartData> = ({ data, filte
     [rows, keys]
   );
 
-  const markers: ChartMarker[] = useMemo(() => {
-    const plotted = new Set(rows.map((row) => row.period));
-    return EVENTS.filter((event) => plotted.has(event.period)).map((event) => ({
-      date: periodToDate(event.period),
-      icon: event.icon,
-      title: t(event.titleKey),
-      description: t(event.descriptionKey),
-    }));
-  }, [rows, t]);
+  const plottedPeriods = useMemo(() => rows.map((row) => row.period), [rows]);
+  const { visible: events, markers } = usePolicyMarkers(RESIDENT_EVENTS, plottedPeriods);
 
   const visible = series.filter((entry) => !hiddenSeries.has(entry.id));
 
@@ -213,7 +182,10 @@ export const PopulationGrowthChart: React.FC<ResidentChartData> = ({ data, filte
               <SeriesBar key={entry.id} dataKey={entry.id} fill={entry.color} />
             ))}
             <XAxis />
-            <ChartMarkers items={markers} size={24} />
+            {/* `fan={false}`: see IntakeProcessingBarChart. Half-yearly
+                periods sit about a marker's width apart, so the arc would
+                reach through its neighbours here too. */}
+            <ChartMarkers items={markers} fan={false} size={24} />
             {/* Dots off: every series here is a bar, and the tooltip places a
                 bar's dot at its raw axis value rather than on the stacked
                 segment. The highlighted bars carry the reading anyway. */}
@@ -238,6 +210,7 @@ export const PopulationGrowthChart: React.FC<ResidentChartData> = ({ data, filte
           </ComposedChart>
         </div>
       )}
+      <PolicyEventList events={events} />
     </div>
   );
 };

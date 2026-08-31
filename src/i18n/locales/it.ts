@@ -86,6 +86,7 @@ export const it: Dictionary = {
   'metric.granted': 'Concesse',
   'metric.denied': 'Respinte',
   'metric.other': 'Altro',
+  'metric.approvalRate': 'Tasso di approvazione',
   'metric.completion': 'Completamento',
   'metric.applications': 'Domande',
   'metric.population': 'Popolazione',
@@ -97,8 +98,9 @@ export const it: Dictionary = {
   'table.view': 'Visualizza tabella dati',
   'table.hide': 'Nascondi tabella dati',
   'table.downloadCsv': 'Scarica CSV',
-  'table.caption': 'Statistiche mensili delle domande per {bureau}',
   'table.month': 'Mese',
+  'table.prefecture': 'Prefettura',
+  'table.shareOfTotal': 'Quota sul totale',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Stimatore dei tempi di elaborazione',
@@ -107,6 +109,8 @@ export const it: Dictionary = {
   'estimator.selectBureau': 'Seleziona ufficio',
   'estimator.selectType': 'Seleziona tipo',
   'estimator.applicationDate': 'Data della domanda',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': 'Modifica i dati della domanda',
   'estimator.empty':
     'Seleziona il tuo ufficio, il tipo di domanda e la data di presentazione per stimare quando la tua domanda sarà elaborata.',
   'estimator.estimatedCompletion': 'Completamento stimato',
@@ -147,41 +151,101 @@ export const it: Dictionary = {
   'estimator.disclaimerEmphasis': 'stima',
 
   // ── Estimator: the "Show the math" breakdown ─────────────────────────────
-  'estimator.formula.step1': 'Coda al momento della domanda',
-  'estimator.formula.step2': 'Posizione in coda e tasso giornaliero',
-  'estimator.formula.step3': 'Giorni rimanenti',
+  'estimator.formula.step1': 'Base di produttività',
+  'estimator.formula.step2': 'Coda al momento della domanda',
+  'estimator.formula.step3': 'Lavorato dopo la domanda',
+  'estimator.formula.step4': 'Posizione in coda e giorni residui',
+  'estimator.formula.step5': 'Giorni interi e margine',
   'estimator.formula.explainAria': 'Spiega le variabili della formula {title}',
-  'estimator.formula.var.dRem.title': 'Giorni rimanenti',
-  'estimator.formula.var.dRem.description': "Giorni stimati fino al completamento dell'elaborazione.",
-  'estimator.formula.var.qPos.title': 'Posizione in coda',
-  'estimator.formula.var.qPos.description': 'Posizione stimata nella coda di elaborazione.',
-  'estimator.formula.var.rDaily.title': 'Tasso giornaliero',
-  'estimator.formula.var.rDaily.description': 'Numero medio di domande elaborate al giorno.',
-  'estimator.formula.var.cProc.title': 'Elaborate confermate',
-  'estimator.formula.var.cProc.description': 'Numero confermato di domande elaborate dalla presentazione.',
-  'estimator.formula.var.eProc.title': 'Elaborate stimate',
-  'estimator.formula.var.eProc.description': "Numero stimato di domande elaborate dall'ultimo dato disponibile.",
-  'estimator.formula.var.sigmaP.title': 'Totale elaborate',
-  'estimator.formula.var.sigmaP.description': 'Somma delle domande elaborate usata per calcolare le medie.',
+  // Step 1 — throughput baseline.
+  'estimator.formula.var.sigmaP.title': 'Totale lavorato',
+  'estimator.formula.var.sigmaP.description':
+    'Domande definite nel periodo campionato, ossia gli ultimi sei mesi pubblicati, o meno se i dati si fermano prima.',
+  'estimator.formula.var.sigmaN.title': 'Totale ricevuto',
+  'estimator.formula.var.sigmaN.description': 'Domande ricevute nello stesso periodo campionato.',
   'estimator.formula.var.sigmaD.title': 'Totale giorni',
-  'estimator.formula.var.sigmaD.description': 'Somma dei giorni usata per calcolare le medie.',
-  'estimator.formula.var.qApp.title': 'Coda delle domande',
-  'estimator.formula.var.qApp.description': 'Posizione stimata in coda al momento della presentazione.',
-  'estimator.formula.var.cPrev.title': 'Riportate',
-  'estimator.formula.var.cPrev.description': 'Domande riportate dal mese precedente.',
-  'estimator.formula.var.nApp.title': 'Nuove domande',
-  'estimator.formula.var.nApp.description': 'Domande stimate ricevute prima della presentazione.',
-  'estimator.formula.var.pApp.title': 'Domande elaborate',
-  'estimator.formula.var.pApp.description': 'Domande stimate elaborate prima della presentazione.',
+  'estimator.formula.var.sigmaD.description': 'Giorni di calendario del periodo campionato, sommati mese per mese.',
+  'estimator.formula.var.rProc.title': 'Ritmo di lavorazione',
+  'estimator.formula.var.rProc.description': "Domande definite al giorno, mediate sull'intero periodo campionato.",
+  'estimator.formula.var.rNew.title': 'Ritmo di arrivo',
+  'estimator.formula.var.rNew.description': 'Domande ricevute al giorno, mediate sullo stesso periodo.',
+  // Step 2 — the queue on the application date.
+  'estimator.formula.var.tPrev.title': 'Totale del mese precedente',
+  'estimator.formula.var.tPrev.description':
+    'Tutte le domande in carico nel mese precedente al suo: il riporto più i nuovi arrivi.',
+  'estimator.formula.var.pPrev.title': 'Lavorato nel mese precedente',
+  'estimator.formula.var.pPrev.description': 'Domande definite nel mese precedente al suo.',
+  'estimator.formula.var.cSeed.title': 'Avvio della simulazione',
+  'estimator.formula.var.cSeed.description':
+    "L'ultimo riporto pubblicato, usato come punto di partenza quando il mese precedente al suo non ha cifre proprie.",
+  'estimator.formula.var.mSim.title': 'Mesi simulati',
+  'estimator.formula.var.mSim.description':
+    'Per quanti mesi il riporto è stato proiettato in avanti fino a raggiungere il suo mese di domanda.',
+  'estimator.formula.var.cPrev.title': 'Riporto',
+  'estimator.formula.var.cPrev.description':
+    "Domande ancora in attesa all'inizio del suo mese di domanda. Presa dal mese precedente quando è pubblicato, altrimenti proiettata mese per mese dall'ultimo mese con cifre.",
+  'estimator.formula.var.nMonth.title': 'Ricevuto nel mese',
+  'estimator.formula.var.nMonth.description': "Domande ricevute nell'arco dell'intero mese della sua domanda.",
+  'estimator.formula.var.pMonth.title': 'Lavorato nel mese',
+  'estimator.formula.var.pMonth.description': "Domande definite nell'arco dell'intero mese della sua domanda.",
+  'estimator.formula.var.dMonth.title': 'Giorni del mese',
+  'estimator.formula.var.dMonth.description':
+    'Giorni di calendario del suo mese di domanda, usati per distribuire uniformemente i totali mensili sui singoli giorni.',
+  'estimator.formula.var.aDay.title': 'Giorno della domanda',
+  'estimator.formula.var.aDay.description':
+    'Il giorno del mese in cui ha presentato, cioè fin dove la coda si era accumulata.',
+  'estimator.formula.var.nApp.title': 'Ricevuto prima di lei',
+  'estimator.formula.var.nApp.description':
+    'Domande ricevute prima nel suo mese di domanda, calcolate in proporzione fino al giorno di presentazione.',
+  'estimator.formula.var.pApp.title': 'Lavorato prima di lei',
+  'estimator.formula.var.pApp.description':
+    'Domande definite prima nel suo mese di domanda, calcolate in proporzione allo stesso modo.',
+  'estimator.formula.var.qApp.title': 'Coda alla domanda',
+  'estimator.formula.var.qApp.description': 'Quante domande precedevano la sua il giorno in cui ha presentato.',
+  // Step 3 — progress since the application date.
+  'estimator.formula.var.pAfter.title': 'Lavorato nei mesi successivi',
+  'estimator.formula.var.pAfter.description': 'Domande definite nei mesi pubblicati successivi al suo mese di domanda.',
+  'estimator.formula.var.tApp.title': 'Giorni dalla domanda',
+  'estimator.formula.var.tApp.description': 'Giorni di calendario tra la data della sua domanda e oggi.',
+  'estimator.formula.var.tData.title': 'Giorni dai dati',
+  'estimator.formula.var.tData.description': "Giorni di calendario tra la fine dell'ultimo mese pubblicato e oggi.",
+  'estimator.formula.var.cProc.title': 'Lavorato confermato',
+  'estimator.formula.var.cProc.description':
+    'Definizioni successive alla sua domanda che le cifre pubblicate già registrano.',
+  'estimator.formula.var.eProc.title': 'Lavorato stimato',
+  'estimator.formula.var.eProc.description':
+    'Domande che si presume siano state definite nel tratto che le cifre pubblicate non coprono ancora. Diventa negativo quando quelle cifre superano già quanto previsto dal ritmo medio.',
+  'estimator.formula.var.sProc.title': 'Lavorato da allora',
+  'estimator.formula.var.sProc.description':
+    'Tutto ciò che è stato smaltito dalla sua domanda in poi: confermato e stimato insieme, arrotondati a domande intere.',
+  // Step 4 — position in the queue, and how long it takes to clear.
+  'estimator.formula.var.qPos.title': 'Posizione in coda',
+  'estimator.formula.var.qPos.description':
+    'Quante domande restano davanti alla sua. Zero o meno significa che la stima è già passata.',
+  'estimator.formula.var.dRem.title': 'Giorni residui',
+  'estimator.formula.var.dRem.description': 'Giorni necessari a smaltire il resto della coda al ritmo attuale.',
+  // Step 5 — the whole-day offset, and the spread around it.
+  'estimator.formula.var.dEst.title': 'Giorni interi',
+  'estimator.formula.var.dEst.description':
+    'I giorni residui arrotondati allontanandosi da zero: lo scarto sommato a oggi per ottenere la data mostrata sopra.',
+  'estimator.formula.var.sigmaR.title': 'Dispersione del ritmo',
+  'estimator.formula.var.sigmaR.description':
+    "Deviazione standard dei ritmi mensili di lavorazione, cioè quanto il passo varia da un mese all'altro.",
+  'estimator.formula.var.rBar.title': 'Ritmo mensile medio',
+  'estimator.formula.var.rBar.description':
+    'La media dei ritmi mensili con peso uguale per ogni mese, non ponderata sul volume.',
+  'estimator.formula.var.uDays.title': 'Incertezza',
+  'estimator.formula.var.uDays.description':
+    'Il margine ± mostrato accanto al risultato: di quanto si sposta la stima se il passo varia quanto ha fatto di recente.',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Ricezione ed elaborazione',
   'charts.intake.description':
-    'Domande riportate e ricevute ogni mese, a confronto con il volume completato dagli uffici.',
+    'Domande riportate e ricevute ogni mese, a confronto con il volume completato dagli uffici e con la quota di esso che è stata concessa.',
   'charts.intake.aria':
-    'Barre impilate delle domande in attesa e ricevute per mese, con il volume elaborato rappresentato da una linea',
+    'Barre impilate delle domande in attesa e ricevute per mese, con il volume elaborato rappresentato da una linea e il tasso di approvazione da una seconda linea su un asse destro da zero a cento per cento',
   'charts.types.label': 'Tipi di domanda',
   'charts.types.description':
     'Nuove domande mensili suddivise per tipo — fai clic su una voce della legenda per attivare o disattivare una serie.',
@@ -213,6 +277,44 @@ export const it: Dictionary = {
   'chart.legendShow': 'Mostra {series}',
   'chart.legendHide': 'Nascondi {series}',
   'chart.allSeriesHidden': 'Tutte le serie sono nascoste — fai clic su una voce della legenda per mostrarne una.',
+
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.eventsShow': 'Mostra gli eventi normativi',
+  'policy.eventsHide': 'Nascondi gli eventi normativi',
+  'policy.ssw2019.title': 'Nasce il Lavoratore Qualificato',
+  'policy.ssw2019.description': 'Uno status per i settori in carenza; l’agenzia per l’immigrazione nasce lo stesso giorno.',
+  'policy.covidClosure.title': 'Restrizioni d’ingresso della pandemia',
+  'policy.covidClosure.description': 'Il respingimento è stato esteso a quasi tutto il mondo.',
+  'policy.covidSuspension.title': 'Nuovi ingressi sospesi ovunque',
+  'policy.covidSuspension.description': 'Da fine dicembre nessuno poté entrare per la prima volta, con o senza visto.',
+  'policy.covidOmicron.title': 'Riapertura annullata per Omicron',
+  'policy.covidOmicron.description': 'L’ingresso riaperto l’8 novembre fu richiuso tre settimane dopo.',
+  'policy.covidResume.title': 'Tornano studenti e lavoratori',
+  'policy.covidResume.description': 'Riaprono gli ingressi per studio, lavoro e affari, con un tetto giornaliero.',
+  'policy.covidVisaFree.title': 'Torna il viaggio senza visto',
+  'policy.covidVisaFree.description': 'Le esenzioni dal visto sono tornate e il tetto giornaliero è stato abolito.',
+  'policy.covidCoe.title': 'Validità dei certificati prolungata',
+  'policy.covidCoe.description': 'I certificati bloccati dalla chiusura restarono validi ben oltre i tre mesi.',
+  'policy.covidEnd.title': 'Fine delle misure alle frontiere',
+  'policy.covidEnd.description': 'Finiti test e certificati vaccinali, la malattia passa alla classe 5.',
+  'policy.act2023.title': 'Riforma della legge sull’immigrazione',
+  'policy.act2023.description': 'Introdotte misure di sorveglianza al posto del trattenimento e la protezione complementare.',
+  'policy.digitalNomad.title': 'Status per nomadi digitali',
+  'policy.digitalNomad.description': 'Uno status di sei mesi per lavoratori da remoto e le loro famiglie.',
+  'policy.sswExpansion.title': 'Ampliato il Lavoratore Qualificato',
+  'policy.sswExpansion.description': 'Una delibera del consiglio dei ministri ha aggiunto quattro settori e nuove quote.',
+  'policy.act2023Effect.title': 'In vigore le norme sui rimpatri',
+  'policy.act2023Effect.description': 'Le disposizioni principali della riforma del 2023 sono entrate in vigore.',
+  'policy.act2024.title': 'Sostituito il tirocinio tecnico',
+  'policy.act2024.description': 'Dal 2027 la nuova formazione sostituisce il programma di tirocinio tecnico.',
+  'policy.feeRevision2025.title': 'Aumento delle tasse di domanda',
+  'policy.feeRevision2025.description': 'I rinnovi salgono a 6.000 yen e il soggiorno permanente a 10.000.',
+  'policy.businessManager2025.title': 'Regole più severe per i gestori',
+  'policy.businessManager2025.description': 'Servono più capitale, un dipendente a tempo pieno e un piano verificato.',
+  'policy.residenceCard2026.title': 'La carta di soggiorno incontra My Number',
+  'policy.residenceCard2026.description': 'Sono entrate in servizio le carte combinate di soggiorno e My Number.',
+  'policy.act2026.title': 'Alzato il tetto legale delle tasse',
+  'policy.act2026.description': 'La riforma del 2026 ha alzato il tetto legale delle tasse di soggiorno.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
@@ -283,6 +385,8 @@ export const it: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': 'Registro delle modifiche',
   'changelog.loading': 'Caricamento...',
+  'changelog.expandAll': 'Espandi tutto',
+  'changelog.collapseAll': 'Comprimi tutto',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   'errors.dataTitle': 'Errore nel caricamento dei dati',
@@ -297,6 +401,7 @@ export const it: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': 'Visualizzazione di {chart} per {bureau}',
   'a11y.showingChartWithType': 'Visualizzazione di {chart} per {bureau}, {type}',
+  'a11y.policyEvents': 'Eventi normativi mostrati in questo grafico',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': "Statistiche ufficiali fornite dall'Agenzia per i Servizi dell'Immigrazione del Giappone",
@@ -518,6 +623,14 @@ export const it: Dictionary = {
   'residents.flowsTooltipValueLabel': 'Residenti',
   'residents.flowsTooltipFlowLabel': 'Flusso',
   'residents.sunburstHint': '{trail} — {count} residenti ({percent} del totale)',
+  'residents.markerResidenceCard.title': 'Arriva la carta di soggiorno',
+  'residents.markerResidenceCard.description': 'La carta sostituì la registrazione degli stranieri; il conteggio parte da lì.',
+  'residents.markerReopening.title': 'Frontiere riaperte',
+  'residents.markerReopening.description': 'Il viaggio senza visto torna nell’ottobre 2022 e la popolazione riprende a crescere.',
+  'residents.markerTraining.title': 'Sostituito il tirocinio tecnico',
+  'residents.markerTraining.description': 'La riforma del 2024 crea la nuova formazione e irrigidisce il soggiorno permanente.',
+  'residents.markerBusinessManager.title': 'Regole più severe per i gestori',
+  'residents.markerBusinessManager.description': 'Da ottobre 2025 servono più capitale, un dipendente a tempo pieno e un piano verificato.',
   'residents.markerSsw.title': 'Lancio del visto Specified Skilled Worker',
   'residents.markerSsw.description': 'Il visto dell’aprile 2019 ha aperto oltre una dozzina di settori ai lavoratori stranieri qualificati.',
   'residents.markerCovid.title': 'Chiusura delle frontiere per COVID-19',

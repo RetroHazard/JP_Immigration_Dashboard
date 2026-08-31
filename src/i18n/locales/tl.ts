@@ -85,6 +85,7 @@ export const tl: Dictionary = {
   'metric.granted': 'Naaprubahan',
   'metric.denied': 'Tinanggihan',
   'metric.other': 'Iba Pa',
+  'metric.approvalRate': 'Rate ng pag-apruba',
   'metric.completion': 'Pagkumpleto',
   'metric.applications': 'Mga Aplikasyon',
   'metric.population': 'Populasyon',
@@ -96,8 +97,9 @@ export const tl: Dictionary = {
   'table.view': 'Tingnan ang talaan ng datos',
   'table.hide': 'Itago ang talaan ng datos',
   'table.downloadCsv': 'I-download ang CSV',
-  'table.caption': 'Buwanang estadistika ng aplikasyon para sa {bureau}',
   'table.month': 'Buwan',
+  'table.prefecture': 'Prefektura',
+  'table.shareOfTotal': 'Bahagi ng kabuuan',
 
   // ── Estimator ────────────────────────────────────────────────────────────
   'estimator.title': 'Tagatantiya ng Oras ng Pagproseso',
@@ -105,6 +107,8 @@ export const tl: Dictionary = {
   'estimator.selectBureau': 'Pumili ng Tanggapan',
   'estimator.selectType': 'Pumili ng Uri',
   'estimator.applicationDate': 'Petsa ng Aplikasyon',
+  'estimator.selectionSummary': '{bureau} · {type} · {date}',
+  'estimator.editDetails': 'Baguhin ang mga detalye ng iyong aplikasyon',
   'estimator.empty':
     'Piliin ang iyong tanggapan, uri ng aplikasyon, at petsa ng aplikasyon upang matantiya kung kailan maiproseso ang iyong aplikasyon.',
   'estimator.estimatedCompletion': 'Tinatayang pagkumpleto',
@@ -145,41 +149,104 @@ export const tl: Dictionary = {
   'estimator.disclaimerEmphasis': 'tantiya',
 
   // ── Estimator: the "Show the math" breakdown ─────────────────────────────
-  'estimator.formula.step1': 'Pila sa oras ng aplikasyon',
-  'estimator.formula.step2': 'Posisyon sa pila at araw-araw na rate',
-  'estimator.formula.step3': 'Natitirang araw',
-  'estimator.formula.explainAria': 'Ipaliwanag ang mga variable sa formula ng {title}',
-  'estimator.formula.var.dRem.title': 'Natitirang Araw',
-  'estimator.formula.var.dRem.description': 'Tinatayang bilang ng araw bago makumpleto ang pagproseso.',
-  'estimator.formula.var.qPos.title': 'Posisyon sa Pila',
-  'estimator.formula.var.qPos.description': 'Tinatayang posisyon sa pila ng pagproseso.',
-  'estimator.formula.var.rDaily.title': 'Araw-araw na Rate',
-  'estimator.formula.var.rDaily.description': 'Karaniwang bilang ng aplikasyong naiproseso kada araw.',
-  'estimator.formula.var.cProc.title': 'Kumpirmadong Naiproseso',
-  'estimator.formula.var.cProc.description': 'Kumpirmadong bilang ng aplikasyong naiproseso mula nang isumite.',
-  'estimator.formula.var.eProc.title': 'Tinatayang Naiproseso',
-  'estimator.formula.var.eProc.description': 'Tinatayang bilang ng aplikasyong naiproseso mula sa huling datos.',
-  'estimator.formula.var.sigmaP.title': 'Kabuuang Naiproseso',
-  'estimator.formula.var.sigmaP.description': 'Kabuuan ng naiprosesong aplikasyon na ginamit sa pagkalkula ng average.',
-  'estimator.formula.var.sigmaD.title': 'Kabuuang Araw',
-  'estimator.formula.var.sigmaD.description': 'Kabuuan ng araw na ginamit sa pagkalkula ng average.',
-  'estimator.formula.var.qApp.title': 'Pila ng Aplikasyon',
-  'estimator.formula.var.qApp.description': 'Tinatayang posisyon sa pila sa oras ng pagsumite.',
-  'estimator.formula.var.cPrev.title': 'Dinalang Balanse',
-  'estimator.formula.var.cPrev.description': 'Mga aplikasyong dinala mula sa nakaraang buwan.',
-  'estimator.formula.var.nApp.title': 'Bagong Aplikasyon',
-  'estimator.formula.var.nApp.description': 'Tinatayang aplikasyong natanggap bago ang pagsumite.',
-  'estimator.formula.var.pApp.title': 'Naiprosesong Aplikasyon',
-  'estimator.formula.var.pApp.description': 'Tinatayang aplikasyong naiproseso bago ang pagsumite.',
+  'estimator.formula.step1': 'Batayang bilis ng proseso',
+  'estimator.formula.step2': 'Pila noong nag-apply',
+  'estimator.formula.step3': 'Naproseso mula nang mag-apply',
+  'estimator.formula.step4': 'Pwesto sa pila at natitirang araw',
+  'estimator.formula.step5': 'Buong araw at saklaw ng pagkakaiba',
+  'estimator.formula.explainAria': 'Ipaliwanag ang mga variable sa pormulang {title}',
+  // Step 1 — throughput baseline.
+  'estimator.formula.var.sigmaP.title': 'Kabuuang naproseso',
+  'estimator.formula.var.sigmaP.description':
+    'Mga aplikasyong natapos sa saklaw na sinuri, ang huling anim na buwang inilathala, o mas kaunti kung doon lang umabot ang datos.',
+  'estimator.formula.var.sigmaN.title': 'Kabuuang natanggap',
+  'estimator.formula.var.sigmaN.description': 'Mga aplikasyong tinanggap sa parehong saklaw na sinuri.',
+  'estimator.formula.var.sigmaD.title': 'Kabuuang araw',
+  'estimator.formula.var.sigmaD.description': 'Mga araw sa kalendaryo sa loob ng saklaw na sinuri, sinuma buwan-buwan.',
+  'estimator.formula.var.rProc.title': 'Bilis ng pagproseso',
+  'estimator.formula.var.rProc.description':
+    'Mga aplikasyong natatapos kada araw, pinagtantiya sa buong saklaw na sinuri.',
+  'estimator.formula.var.rNew.title': 'Bilis ng pagpasok',
+  'estimator.formula.var.rNew.description': 'Mga aplikasyong natatanggap kada araw, pinagtantiya sa parehong saklaw.',
+  // Step 2 — the queue on the application date.
+  'estimator.formula.var.tPrev.title': 'Kabuuan noong nakaraang buwan',
+  'estimator.formula.var.tPrev.description':
+    'Lahat ng aplikasyong hawak noong buwan bago ang sa iyo: ang dala mula sa nauna kasama ang bagong natanggap.',
+  'estimator.formula.var.pPrev.title': 'Naproseso noong nakaraang buwan',
+  'estimator.formula.var.pPrev.description': 'Mga aplikasyong natapos noong buwan bago ang sa iyo.',
+  'estimator.formula.var.cSeed.title': 'Simula ng pagtaya',
+  'estimator.formula.var.cSeed.description':
+    'Ang huling inilathalang dala, ginagamit na panimula kapag walang sariling bilang ang buwan bago ang sa iyo.',
+  'estimator.formula.var.mSim.title': 'Bilang ng buwang tinaya',
+  'estimator.formula.var.mSim.description': 'Ilang buwan isinulong ang dala para maabot ang buwan ng iyong aplikasyon.',
+  'estimator.formula.var.cPrev.title': 'Dalang naiwan',
+  'estimator.formula.var.cPrev.description':
+    'Mga aplikasyong naghihintay pa nang magsimula ang buwan ng iyong aplikasyon. Kinukuha sa nakaraang buwan kapag inilathala na ito, kung wala ay isinusulong isang buwan bawat hakbang mula sa huling buwang may bilang.',
+  'estimator.formula.var.nMonth.title': 'Natanggap sa buwan',
+  'estimator.formula.var.nMonth.description': 'Mga aplikasyong natanggap sa buong buwan ng iyong aplikasyon.',
+  'estimator.formula.var.pMonth.title': 'Naproseso sa buwan',
+  'estimator.formula.var.pMonth.description': 'Mga aplikasyong natapos sa buong buwan ng iyong aplikasyon.',
+  'estimator.formula.var.dMonth.title': 'Araw sa buwan',
+  'estimator.formula.var.dMonth.description':
+    'Mga araw sa kalendaryo ng buwan ng iyong aplikasyon, ginagamit upang pantay na ikalat ang buwanang kabuuan sa bawat araw.',
+  'estimator.formula.var.aDay.title': 'Araw ng aplikasyon',
+  'estimator.formula.var.aDay.description':
+    'Kung ilang araw na ang buwan nang mag-apply ka, kaya nasusukat kung gaano na kataas ang naipong pila.',
+  'estimator.formula.var.nApp.title': 'Natanggap bago ka',
+  'estimator.formula.var.nApp.description':
+    'Mga aplikasyong natanggap nang mas maaga sa buwan ng iyong aplikasyon, hinati ayon sa araw ng iyong pag-apply.',
+  'estimator.formula.var.pApp.title': 'Naproseso bago ka',
+  'estimator.formula.var.pApp.description':
+    'Mga aplikasyong natapos nang mas maaga sa buwan ng iyong aplikasyon, hinati sa parehong paraan.',
+  'estimator.formula.var.qApp.title': 'Pila noong nag-apply',
+  'estimator.formula.var.qApp.description': 'Ilang aplikasyon ang nauna sa iyo noong araw na nag-apply ka.',
+  // Step 3 — progress since the application date.
+  'estimator.formula.var.pAfter.title': 'Naproseso sa sumunod na buwan',
+  'estimator.formula.var.pAfter.description':
+    'Mga aplikasyong natapos sa mga inilathalang buwan matapos ang buwan ng iyong aplikasyon.',
+  'estimator.formula.var.tApp.title': 'Araw mula nang mag-apply',
+  'estimator.formula.var.tApp.description': 'Mga araw sa kalendaryo mula sa petsa ng iyong aplikasyon hanggang ngayon.',
+  'estimator.formula.var.tData.title': 'Araw mula sa huling datos',
+  'estimator.formula.var.tData.description':
+    'Mga araw sa kalendaryo mula sa katapusan ng pinakahuling inilathalang buwan hanggang ngayon.',
+  'estimator.formula.var.cProc.title': 'Nakumpirmang naproseso',
+  'estimator.formula.var.cProc.description':
+    'Mga natapos mula nang mag-apply ka na nasasaklaw na ng inilathalang bilang.',
+  'estimator.formula.var.eProc.title': 'Tinatayang naproseso',
+  'estimator.formula.var.eProc.description':
+    'Mga aplikasyong ipinapalagay na natapos sa bahaging hindi pa naaabot ng inilathalang bilang. Nagiging negatibo ito kapag mas marami nang naitala ang inilathalang buwan kaysa sa hinuhulaan ng karaniwang bilis.',
+  'estimator.formula.var.sProc.title': 'Naproseso mula noon',
+  'estimator.formula.var.sProc.description':
+    'Lahat ng nagawa mula nang mag-apply ka: ang nakumpirma at ang tinataya nang magkasama, binilog sa buong aplikasyon.',
+  // Step 4 — position in the queue, and how long it takes to clear.
+  'estimator.formula.var.qPos.title': 'Pwesto sa pila',
+  'estimator.formula.var.qPos.description':
+    'Ilang aplikasyon pa ang nauuna sa iyo. Kapag sero o mas mababa, lumipas na ang tinatayang petsa.',
+  'estimator.formula.var.dRem.title': 'Natitirang araw',
+  'estimator.formula.var.dRem.description':
+    'Mga araw na kailangan upang maubos ang natitirang pila sa kasalukuyang bilis.',
+  // Step 5 — the whole-day offset, and the spread around it.
+  'estimator.formula.var.dEst.title': 'Buong araw',
+  'estimator.formula.var.dEst.description':
+    'Ang natitirang araw na binilog palayo sa sero: ang idinaragdag sa araw na ito upang makuha ang petsang nasa itaas.',
+  'estimator.formula.var.sigmaR.title': 'Pagkakalat ng bilis',
+  'estimator.formula.var.sigmaR.description':
+    'Ang standard deviation ng buwanang bilis ng pagproseso, ibig sabihin kung gaano nagbabago ang takbo buwan-buwan.',
+  'estimator.formula.var.rBar.title': 'Karaniwang buwanang bilis',
+  'estimator.formula.var.rBar.description':
+    'Ang katamtaman ng buwanang bilis na pantay ang timbang sa bawat buwan, hindi nakabatay sa dami.',
+  'estimator.formula.var.uDays.title': 'Kawalang-katiyakan',
+  'estimator.formula.var.uDays.description':
+    'Ang saklaw na ± na nasa tabi ng resulta: kung gaano gumagalaw ang tantiya kapag nagbago ang takbo nang kasing lawak ng nakaraan.',
 
   // ── Charts: registry ─────────────────────────────────────────────────────
   // `.label` names the tab and the card heading, `.description` is the card
   // subtitle, `.aria` describes the graphic to a screen reader.
   'charts.intake.label': 'Pagtanggap at Pagproseso',
   'charts.intake.description':
-    'Mga aplikasyong dinala mula sa nakaraan at natanggap kada buwan, laban sa dami na nakumpleto ng mga tanggapan.',
+    'Mga aplikasyong dinala mula sa nakaraan at natanggap kada buwan, laban sa dami na nakumpleto ng mga tanggapan at sa bahagi niyon na naaprubahan.',
   'charts.intake.aria':
-    'Stacked bars ng nakabinbin at natanggap na aplikasyon kada buwan, may naiprosesong dami bilang linya',
+    'Stacked bars ng nakabinbin at natanggap na aplikasyon kada buwan, may naiprosesong dami bilang linya at ang rate ng pag-apruba bilang pangalawang linya sa aksis sa kanan mula zero hanggang isang daang porsyento',
   'charts.types.label': 'Mga Uri ng Aplikasyon',
   'charts.types.description':
     'Buwanang bagong pagsusumite na hinati ayon sa uri ng aplikasyon — i-click ang isang entry sa legend para i-toggle ang isang serye.',
@@ -212,6 +279,44 @@ export const tl: Dictionary = {
   'chart.legendShow': 'Ipakita ang {series}',
   'chart.legendHide': 'Itago ang {series}',
   'chart.allSeriesHidden': 'Nakatago ang lahat ng serye — i-click ang isang entry sa legend para magpakita ng isa.',
+
+  // ── Chart: Intake & Processing — policy event markers ────────────────────
+  'policy.eventsShow': 'Ipakita ang mga pangyayaring pampatakaran',
+  'policy.eventsHide': 'Itago ang mga pangyayaring pampatakaran',
+  'policy.ssw2019.title': 'Nilikha ang Specified Skilled Worker',
+  'policy.ssw2019.description': 'Status para sa mga industriyang kulang sa tao; nabuo rin ang ahensiya nang araw ding iyon.',
+  'policy.covidClosure.title': 'Pagbabawal sa pagpasok dahil sa pandemya',
+  'policy.covidClosure.description': 'Lumawak sa halos buong mundo ang pagtanggi sa pagpasok.',
+  'policy.covidSuspension.title': 'Itinigil ang bagong pagpasok sa buong mundo',
+  'policy.covidSuspension.description': 'Mula huling bahagi ng Disyembre, walang bagong makakapasok kahit may bisa.',
+  'policy.covidOmicron.title': 'Binawi ang pagbubukas dahil sa Omicron',
+  'policy.covidOmicron.description': 'Ang pagpasok na binuksan noong 8 Nobyembre ay muling isinara makalipas ang tatlong linggo.',
+  'policy.covidResume.title': 'Muling tinanggap ang mga estudyante at manggagawa',
+  'policy.covidResume.description': 'Muling binuksan ang pagpasok para sa pag-aaral, trabaho at negosyo, may pang-araw-araw na limitasyon.',
+  'policy.covidVisaFree.title': 'Bumalik ang biyaheng walang bisa',
+  'policy.covidVisaFree.description': 'Bumalik ang exemption sa bisa at inalis ang pang-araw-araw na limitasyon.',
+  'policy.covidCoe.title': 'Pinalawig ang bisa ng sertipiko',
+  'policy.covidCoe.description': 'Ang mga sertipikong naipit dahil sa pagsasara ay nanatiling balido nang lampas tatlong buwan.',
+  'policy.covidEnd.title': 'Natapos ang mga hakbang sa hangganan',
+  'policy.covidEnd.description': 'Tumigil ang pagsusuri at patunay ng bakuna, at naging Class 5 na ang sakit.',
+  'policy.act2023.title': 'Nirebisa ang batas sa imigrasyon',
+  'policy.act2023.description': 'Nagdagdag ng pagsubaybay kapalit ng detensyon at karagdagang proteksyon.',
+  'policy.digitalNomad.title': 'Bagong status para sa digital nomad',
+  'policy.digitalNomad.description': 'Anim na buwang status para sa mga remote worker at kanilang pamilya.',
+  'policy.sswExpansion.title': 'Pinalawak ang Specified Skilled Worker',
+  'policy.sswExpansion.description': 'Nagdagdag ng apat na industriya ang gabinete at nagtakda ng bagong target.',
+  'policy.act2023Effect.title': 'Ipinatupad ang panuntunan sa deportasyon',
+  'policy.act2023Effect.description': 'Naging epektibo ang pangunahing probisyon ng rebisyon noong 2023.',
+  'policy.act2024.title': 'Pinalitan ang technical intern training',
+  'policy.act2024.description': 'Mula 2027, papalitan ng bagong programa ang technical intern training.',
+  'policy.feeRevision2025.title': 'Itinaas ang bayad sa aplikasyon',
+  'policy.feeRevision2025.description': 'Umakyat sa 6,000 yen ang extension at 10,000 yen ang permanenteng paninirahan.',
+  'policy.businessManager2025.title': 'Hinigpitan ang panuntunan sa Business Manager',
+  'policy.businessManager2025.description': 'Kailangan ng mas malaking kapital, full-time na empleyado at beripikadong plano.',
+  'policy.residenceCard2026.title': 'Pinagsama ang residence card at My Number',
+  'policy.residenceCard2026.description': 'Nagsimula na ang pinagsamang residence at My Number card.',
+  'policy.act2026.title': 'Itinaas ang legal na limitasyon ng bayad',
+  'policy.act2026.description': 'Itinaas ng rebisyon noong 2026 ang legal na limitasyon ng mga bayarin.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names. Deliberately separate from
@@ -282,6 +387,8 @@ export const tl: Dictionary = {
   // ── Changelog ────────────────────────────────────────────────────────────
   'changelog.title': 'Listahan ng Pagbabago',
   'changelog.loading': 'Ikinakarga...',
+  'changelog.expandAll': 'Palawakin lahat',
+  'changelog.collapseAll': 'Itiklop lahat',
 
   // ── Errors ───────────────────────────────────────────────────────────────
   'errors.dataTitle': 'Error sa Pag-load ng Datos',
@@ -296,6 +403,7 @@ export const tl: Dictionary = {
   // ── Screen-reader only ───────────────────────────────────────────────────
   'a11y.showingChart': 'Ipinapakita ang {chart} para sa {bureau}',
   'a11y.showingChartWithType': 'Ipinapakita ang {chart} para sa {bureau}, {type}',
+  'a11y.policyEvents': 'Mga pangyayaring pampatakaran na ipinapakita sa tsart na ito',
 
   // ── Footer ───────────────────────────────────────────────────────────────
   'footer.attribution': 'Opisyal na estadistika mula sa Immigration Services Agency ng Japan',
@@ -530,6 +638,14 @@ export const tl: Dictionary = {
   'residents.flowsTooltipValueLabel': 'Mga residente',
   'residents.flowsTooltipFlowLabel': 'Daloy',
   'residents.sunburstHint': '{trail} — {count} residente ({percent} ng kabuuan)',
+  'residents.markerResidenceCard.title': 'Nagsimula ang residence card',
+  'residents.markerResidenceCard.description': 'Pinalitan ng residence card ang alien registration; dito nagsisimula ang bilang na ito.',
+  'residents.markerReopening.title': 'Muling nagbukas ang hangganan',
+  'residents.markerReopening.description': 'Bumalik ang biyaheng walang bisa noong Oktubre 2022 at muling lumago ang populasyon.',
+  'residents.markerTraining.title': 'Pinalitan ang technical intern training',
+  'residents.markerTraining.description': 'Ang rebisyon noong 2024 ay lumilikha ng bagong programa at naghihigpit sa permanenteng paninirahan.',
+  'residents.markerBusinessManager.title': 'Hinigpitan ang panuntunan sa Business Manager',
+  'residents.markerBusinessManager.description': 'Mula Oktubre 2025, kailangan ng mas malaking kapital, full-time na empleyado at beripikadong plano.',
   'residents.markerSsw.title': 'Paglulunsad ng Specified Skilled Worker',
   'residents.markerSsw.description': 'Binuksan ng visa noong Abril 2019 ang mahigit isang dosenang industriya para sa mga skilled na dayuhang manggagawa.',
   'residents.markerCovid.title': 'Pagsasara ng border dahil sa COVID-19',

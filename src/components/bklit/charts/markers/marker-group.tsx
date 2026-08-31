@@ -94,6 +94,17 @@ export interface MarkerGroupProps {
    * parent layers to spotlight the active cluster.
    */
   isMuted?: boolean;
+  /**
+   * LOCAL MODIFICATION: allow the fan to be turned off entirely, so a group of
+   * several markers stays a single circle with its count badge. On a dense
+   * monthly axis the 50px fan arc reaches straight through the neighbouring
+   * markers, and the icons it throws carry no label to say where they lead.
+   * Callers that suppress it need somewhere else to read the group — the
+   * crosshair tooltip lists every marker on the date regardless.
+   * Default `true`, so an un-patched caller behaves exactly as before.
+   * (Re-apply after a re-vendor.)
+   */
+  fan?: boolean;
 }
 
 // Entrance + fanned + muted variants. `fanned` shrinks and dims the
@@ -143,11 +154,13 @@ export function MarkerGroup({
   borderWidth = 1.5,
   maxFanned,
   isMuted = false,
+  // LOCAL MODIFICATION: see `fan` in MarkerGroupProps. (Re-apply after a re-vendor.)
+  fan = true,
 }: MarkerGroupProps) {
   const [isHovered, setIsHovered] = useState(false);
   // LOCAL MODIFICATION: tap-to-open on touch. (Re-apply after a re-vendor.)
   const coarsePointer = useCoarsePointer();
-  const shouldFan = (isHovered || forceOpen) && markers.length > 1;
+  const shouldFan = fan && (isHovered || forceOpen) && markers.length > 1;
   const hasMultiple = markers.length > 1;
   const fannedMarkers =
     maxFanned === undefined ? markers : markers.slice(0, maxFanned);
@@ -201,13 +214,28 @@ export function MarkerGroup({
     });
   };
 
-  const hitProps = coarsePointer
-    ? { onClick: handleTap }
-    : {
-        onMouseEnter: handleMouseEnter,
-        onMouseLeave: handleMouseLeave,
-        onMouseMove: handleMouseMove,
-      };
+  /**
+   * LOCAL MODIFICATION: a group that cannot fan does not intercept the pointer.
+   * Interception exists only to hold the crosshair still while a fan is open,
+   * so with `fan={false}` it buys nothing and costs the reader the month: the
+   * marker sits directly over the column it annotates, and swallowing the move
+   * left a dead spot there. Attaching nothing lets the event bubble to the
+   * chart's own handlers — these markers render inside the very `<g>` that
+   * carries them — so hovering a marker resolves the same tooltip as hovering
+   * its bar, through the same code path, and a tap pins it the same way.
+   * The shapes stay: at y = -8 nothing else is under the cursor, so
+   * `pointer-events: none` would drop the event entirely rather than pass it
+   * down. (Re-apply after a re-vendor.)
+   */
+  const hitProps = !fan
+    ? {}
+    : coarsePointer
+      ? { onClick: handleTap }
+      : {
+          onMouseEnter: handleMouseEnter,
+          onMouseLeave: handleMouseLeave,
+          onMouseMove: handleMouseMove,
+        };
 
   const portalX = x + marginLeft;
   const portalY = y + marginTop;
@@ -248,7 +276,9 @@ export function MarkerGroup({
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Chart marker interaction */}
         <g
           {...hitProps}
-          style={{ cursor: "pointer" }}
+          // LOCAL MODIFICATION: only a fanning marker is its own target; the
+          // rest inherit the plot's crosshair. (Re-apply after a re-vendor.)
+          style={fan ? { cursor: "pointer" } : undefined}
         >
           <motion.g
             animate={currentVariant}
@@ -455,8 +485,15 @@ function MarkerCircle({
         stroke={borderColor ?? chartCssVars.markerBorder}
         strokeWidth={borderWidth}
       />
+      {/* LOCAL MODIFICATION: the icon is not a pointer target. `localPoint`
+          mis-resolves an event whose target is HTML inside a foreignObject,
+          reporting an x near the axis origin, so a hover over the icon read
+          the wrong period entirely. Letting it fall through to the `circle`
+          below keeps every part of the marker resolving the same month.
+          (Re-apply after a re-vendor.) */}
       <foreignObject
         height={size - inset * 2}
+        pointerEvents="none"
         width={size - inset * 2}
         x={-size / 2 + inset}
         y={-size / 2 + inset}

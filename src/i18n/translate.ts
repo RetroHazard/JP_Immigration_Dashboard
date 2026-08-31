@@ -1,8 +1,9 @@
 // src/i18n/translate.ts
 // The lookup and interpolation core, kept free of React so it can be unit
-// tested directly and reused outside a component tree (metadata, for one).
+// tested directly and reused outside a component tree: page metadata, and the
+// CSV export's English pin (utils/chartTableCsv.ts).
 import { en } from './locales/en';
-import type { Dictionary, DictionaryKey, PluralSuffix, TParams } from './types';
+import type { Dictionary, DictionaryKey, PluralSuffix, TParams, TranslateFn } from './types';
 
 const PLACEHOLDER = /\{(\w+)\}/g;
 
@@ -18,11 +19,30 @@ export const interpolate = (template: string, params?: TParams): string =>
  * Resolves a key against the active catalogue, then English, then the key
  * itself — an unknown key renders as `some.missing.key`, which is obvious in
  * review rather than silently blank.
+ *
+ * The English step is not only a safety net. utils/chartTableCsv.ts pins CSV
+ * exports to English by resolving through a permanently empty dictionary, so
+ * this fallthrough is what keeps a downloaded file parseable whatever the
+ * interface language — collapsing it would silently localize every export.
  */
 export const lookup = (dictionary: Dictionary, key: DictionaryKey): string => dictionary[key] ?? en[key] ?? key;
 
 export const translate = (dictionary: Dictionary, key: DictionaryKey, params?: TParams): string =>
   interpolate(lookup(dictionary, key), params);
+
+const NO_OVERRIDES: Dictionary = {};
+
+/**
+ * Resolves catalogue keys against English, whatever the active locale is, by
+ * looking them up through a permanently empty dictionary — `lookup` then falls
+ * through to the English catalogue for every key.
+ *
+ * The CSV export uses this twice over, and both matter: for the file's
+ * contents (utils/chartTableCsv.ts) and for the filename its builders assemble
+ * (utils/chartTables.ts). One definition rather than two is what keeps a
+ * downloaded file's name and its rows from disagreeing about a bureau.
+ */
+export const englishOnly: TranslateFn = (key, params) => translate(NO_OVERRIDES, key, params);
 
 /**
  * Resolves `<key>_<category>` for `count`, falling back to `_other` — the one
