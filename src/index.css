@@ -28,15 +28,22 @@
   --secondary: #eef0f4;
   --secondary-foreground: #4d5160;
   --muted: #edeff3;
-  --muted-foreground: #6d7285;
+  /* muted-foreground and destructive are text colors that sit directly on
+     the ground as well as on cards. The darker ground above took both below
+     4.5:1 on it, so each steps down within its own hue: 4.9:1 on the ground
+     for both, and 4.6:1 for destructive on its own 10% notice tint. */
+  --muted-foreground: #62677a;
   --accent: #eceefb;
   --accent-foreground: #3a3f96;
-  --destructive: #d03b3b;
+  --destructive: #bf3434;
   --destructive-foreground: #ffffff;
   --success: #006300;
   --warning: #a05a00;
   --border: #e5e7ee;
-  --input: #dcdfe8;
+  /* A form control's edge is the only thing marking it as a control, so it
+     meets the 3:1 non-text minimum on the ground, cards and popovers alike.
+     border stays a decorative hairline. */
+  --input: #888a93;
   --ring: #4f56d3;
   --radius: 0.75rem;
 
@@ -70,7 +77,7 @@
 
   /* Bklit chart component tokens */
   --chart-background: var(--card);
-  --chart-foreground: #6d7285;
+  --chart-foreground: #62677a;
   --chart-foreground-muted: #c6cad6;
   --chart-line-primary: var(--chart-1);
   --chart-line-secondary: var(--chart-2);
@@ -117,7 +124,10 @@
   --success: #35c06f;
   --warning: #e0a83c;
   --border: #262834;
-  --input: #30323f;
+  /* Same 3:1 floor as light. The primitives also tint dark outline buttons,
+     select triggers and the active tab with input at 30%, which this lifts
+     from #1e2029 to #2e3039. */
+  --input: #646775;
   --ring: #7b81e8;
 
   /* Chart series (dark steps of the same hues) */

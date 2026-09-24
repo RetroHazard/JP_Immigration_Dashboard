@@ -58,7 +58,7 @@ Credit the source on every page: "Official statistics provided by the Immigratio
 ### Color
 
 - Set the page on `background` and every panel on `card` with a 1px `border` and `shadow-soft`. Floating panels (menus, popovers, tooltips, hover cards) use `popover`.
-- Text: `foreground` for figures, titles and body; `secondary-foreground` for labels and secondary copy; `muted-foreground` for metadata. In light, keep `muted-foreground` on `card` or `popover` only; on `background` or `muted` it falls below 4.5:1.
+- Text: `foreground` for figures, titles and body; `secondary-foreground` for labels and secondary copy; `muted-foreground` for metadata. All three reach 4.5:1 on every surface in both themes; `muted-foreground` is lowest, at 4.88:1 on `muted` in light.
 - `primary` is the one accent. A selected option is a `primary` fill with `primary-foreground` text (pills, view toggles) or a 10% `primary` tint with a 40% `primary` border and `primary` text (option rows, the pressed airport toggle). The estimate card is a 5% tint with a 25% border.
 - `success`, `warning` and `destructive` carry meaning, never decoration, and always travel with a word or icon. Deltas are graded by what the metric means: pending going up is a `warning`, granted going up is a `success`, a resident stock moving is neutral `muted-foreground`.
 - Charts use `chart-1` to `chart-8` in fixed order for categories, `chart-mix-1` to `chart-mix-6` for hierarchies, and `bureau-*` for regional identity. Details and caveats are in Data visualization.
@@ -85,7 +85,7 @@ Credit the source on every page: "Official statistics provided by the Immigratio
 
 - Radius steps: `radius-md` for controls, `radius-lg` for tracks, square icon buttons and floating panels, `radius-xl` for cards, `radius-full` for pills, round icon buttons and progress bars. Never write an arbitrary pixel radius.
 - Depth is soft and low: `shadow-soft` at rest, `shadow-soft-lg` on hover and for floating readouts. The vendored primitives still use Tailwind's neutral `shadow-md` and `shadow-lg`.
-- Borders are 1px hairlines in `border`, or `input` on form controls. Dashed `border` marks an empty state or a summary row that stands in for hidden inputs.
+- Borders are 1px hairlines in `border`, which is decorative, or `input` on form controls, which meets 3:1 because the edge is what marks a control. Dashed `border` marks an empty state or a summary row that stands in for hidden inputs.
 
 ### States
 

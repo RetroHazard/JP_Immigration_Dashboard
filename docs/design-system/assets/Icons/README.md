@@ -1,6 +1,6 @@
 # Icons
 
-The lucide-react 1.27 icons the dashboard uses, one file per icon, named by lucide's own file name, with the React import name the code uses and what it means here. Files are 24px outline strokes (2px, round caps and joins) drawn in #6d7285, the light `muted-foreground`, so they read on light and dark tiles; in the app they take `currentColor`. Copy icons from lucide rather than from these files when building.
+The lucide-react 1.27 icons the dashboard uses, one file per icon, named by lucide's own file name, with the React import name the code uses and what it means here. Files are 24px outline strokes (2px, round caps and joins) drawn in #6d7285, a mid neutral that reads on light and dark tiles; in the app they take `currentColor`. Copy icons from lucide rather than from these files when building.
 
 | File | Import | Meaning |
 | --- | --- | --- |

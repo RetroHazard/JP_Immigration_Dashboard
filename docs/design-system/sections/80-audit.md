@@ -1,6 +1,6 @@
 # Audit: gaps and inconsistencies
 
-What the codebase does today measured against the rules in this system, at v1.6.3 (commit 8d6d85e). Findings marked **measured** were checked in a Tailwind build or in the running app; contrast figures are WCAG 2 ratios computed from the token values. IDs are referenced from the Roadmap.
+What the codebase does measured against the rules in this system, audited at v1.6.3 (commit 8d6d85e). Findings marked **measured** were checked in a Tailwind build or in the running app; contrast figures are WCAG 2 ratios computed from the token values. Parts fixed since are marked **Fixed in v1.6.4**. IDs are referenced from the Roadmap.
 
 ## Defects: visible now, fix first
 
@@ -8,10 +8,10 @@ What the codebase does today measured against the rules in this system, at v1.6.
 
 **A2. The v1.6.3 surface change was not carried through the neutral ramp.** `background` moved from #f6f7f9 to #eef0f4 and `card` from #ffffff to #f8f9fc, and nothing else moved with them. In light:
 - `secondary` (#eef0f4) is now identical to `background`, and `muted` (#edeff3) is 1.01:1 against it. The chart-tab track, which sits on the ground (DashboardShell.tsx:559), has disappeared, and `hover:bg-muted` does nothing on ground-level controls.
-- `muted-foreground` is 4.19:1 on `background` and 4.15:1 on `muted`, below AA. Inactive tab labels (60% `foreground` on `muted`) are 4.35:1; the formula-step eyebrow is 4.34:1.
+- **Fixed in v1.6.4:** `muted-foreground` was 4.19:1 on `background` and 4.15:1 on `muted`, below AA; it is now #62677a, at 4.92:1 and 4.88:1. Inactive tab labels (60% `foreground` on `muted`) are still 4.35:1.
 - The browser `theme-color` (layout.tsx:56), the manifest `background_color` (manifest.webmanifest:9) and the social-card template (og-template.html:5) still use the old #f6f7f9.
 
-**A3. Notice text misses AA, and the past-due card stacks two tints (measured).** The estimator's notices set 12px `warning` or `destructive` text on their own 10% tint (EstimationCard.tsx:372, 384): 4.41:1 and 3.97:1 in light. When an estimate is past due, both notices sit inside a card that is itself warning-tinted (line 356), which drops them to 3.89:1 and 3.51:1 and puts a red box inside an amber one.
+**A3. Notice text misses AA, and the past-due card stacks two tints (measured).** The estimator's notices set 12px `warning` or `destructive` text on their own 10% tint (EstimationCard.tsx:372, 384): 4.41:1 for warning in light. When an estimate is past due, both notices sit inside a card that is itself warning-tinted (line 356), which drops them to 3.89:1 and 4.03:1 and puts a red box inside an amber one. **Fixed in v1.6.4:** `destructive` is now #bf3434, which lifts the red notice from 3.97:1 to 4.57:1 on its own tint; the warning notice and the nesting remain.
 
 **A4. Focus is inconsistent and the primitives' ring misses 3:1.** Button, Badge, Select, Tabs and Toggle draw `ring-[3px] ring-ring/50` (ui/button.tsx:8, badge.tsx:8, select.tsx:40, tabs.tsx:67, toggle.tsx:10); half-strength indigo is 2.13:1 on `card` in light and 2.23:1 in dark. Most hand-built buttons (header icons, filter icons, pills, disclosures, drawer rows) declare no focus style and show the browser default. Only SeriesLegend and the Regional Map markers use a solid 2px `ring` outline, which is 5.5:1.
 

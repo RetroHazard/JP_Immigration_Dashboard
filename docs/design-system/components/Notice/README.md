@@ -16,10 +16,10 @@ A bold lead-in ending in a colon, then one or two plain sentences; the icon matc
 
 ## Rules
 
-- Write the body in `foreground`; the hue goes on the icon and lead-in, in `warning-strong` or `destructive-strong` (proposed tokens).
+- Write the body in `foreground`; the hue goes on the icon and lead-in, in `warning-strong` (proposed) or `destructive-strong` (an alias of `destructive`).
 - Never place a tinted notice inside another tinted surface.
 - An empty state says what is empty and why ("for this combination of filters"), not "No results".
 
 ## Code today
 
-The whole notice is set in its hue: 4.41:1 (warning) and 3.97:1 (destructive) on their tints in light, lower when nested (Audit A3).
+The whole notice is set in its hue. Destructive reaches 4.57:1 on its tint since v1.6.4; warning is 4.41:1 in light, and both drop when nested (Audit A3).

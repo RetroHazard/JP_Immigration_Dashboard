@@ -20,6 +20,3 @@ The step number and title, the variable glossary for the step, and the formula w
 - Print fractional operands with two decimals and whole values as grouped integers, so the arithmetic on screen can be checked by hand.
 - Figures use the reader's own digit grouping and decimal mark.
 
-## Code today
-
-The eyebrow here sits on 50% `muted`, where `muted-foreground` reads 4.34:1 in light (Audit A2).

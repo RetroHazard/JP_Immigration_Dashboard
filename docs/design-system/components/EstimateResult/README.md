@@ -24,4 +24,4 @@ The estimate result (date, spread, months used, data quality, queue variables) f
 
 ## Code today
 
-Past due turns the whole card `warning` (10% tint, 40% border, date in `warning`) and nests both notices inside it at 3.89:1 and 3.51:1 (Audit A3). The notice body here uses `foreground`, as the Roadmap proposes.
+Past due turns the whole card `warning` (10% tint, 40% border, date in `warning`) and nests both notices inside it, at 3.89:1 (warning) and 4.03:1 (destructive) (Audit A3). The notice body here uses `foreground`, as the Roadmap proposes.

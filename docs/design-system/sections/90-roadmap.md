@@ -15,18 +15,21 @@ The order matters: repairs first because readers see them today, then the compon
 
    Axis ticks move to #4d5160 / #b3b8c9 and tooltip labels to `muted-foreground`, restoring the label/value hierarchy. No component changes.
 
-2. **Re-derive the light neutrals for the #eef0f4 ground (A2).** Dark stays as it is.
+2. **Re-derive the light neutrals for the #eef0f4 ground (A2).** Dark stays as it is, apart from `input`. The text colors and `input` shipped in v1.6.4; `muted` and `secondary` are still to do.
 
    | Token | Now | Proposed | Why |
    | --- | --- | --- | --- |
    | `muted` | #edeff3 | #e6e9ef | 1.07:1 against the ground and 1.16:1 against cards, so the tab track and hover fills show again |
    | `secondary` | #eef0f4 | #e6e9ef | stops matching the ground exactly |
-   | `muted-foreground` | #6d7285 | #62677a | 4.92:1 on `background`, 5.33 on `card`, 4.62 on the new `muted` |
-   | `chart-foreground` | #6d7285 | #62677a | follows `muted-foreground` |
+   | `muted-foreground` | #6d7285 | #62677a (done, v1.6.4) | 4.92:1 on `background`, 5.33 on `card`, 4.62 on the new `muted` |
+   | `chart-foreground` | #6d7285 | #62677a (done, v1.6.4) | follows `muted-foreground` |
+   | `destructive` | #d03b3b | #bf3434 (done, v1.6.4) | 4.90:1 on `background`, 4.57 on its own notice tint |
+   | `input`, light | #dcdfe8 | #888a93 (done, v1.6.4) | 3.27:1 on `card`, 3.02 on `background`: the 3:1 floor for control edges |
+   | `input`, dark | #30323f | #646775 (done, v1.6.4) | 3.15:1 on `card`, 3.36 on `background`, 3.02 on `popover` |
 
    Then set the light `theme-color` (layout.tsx:56), the manifest `background_color` and the social-card template to #eef0f4.
 
-3. **Make notices legible and stop nesting them (A3).** Write the notice body in `foreground` (14.4:1 on either tint), keep the hue for the icon and the bold lead-in, and add two tokens for that lead-in: `warning-strong` #8a4d00 (5.55:1 on its tint) and `destructive-strong` #b83232 (4.90:1), both equal to their base token in dark. A past-due estimate keeps the neutral result card and places the destructive notice below it.
+3. **Make notices legible and stop nesting them (A3).** Write the notice body in `foreground` (14.4:1 on either tint), keep the hue for the icon and the bold lead-in, and add `warning-strong` #8a4d00 (5.55:1 on its tint, equal to `warning` in dark) for the warning lead-in. The destructive lead-in needs no token of its own since v1.6.4: `destructive` reaches 4.57:1 on its tint, and `destructive-strong` is an alias of it. A past-due estimate keeps the neutral result card and places the destructive notice below it.
 
 4. **One focus ring (A4).** In `@layer base`, give `:focus-visible` a 2px solid `ring` outline with a 2px offset (5.53:1 light, 5.18:1 dark). In the five primitives, replace `focus-visible:ring-[3px] focus-visible:ring-ring/50` with `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring`. Hand-built buttons inherit the base rule.
 
