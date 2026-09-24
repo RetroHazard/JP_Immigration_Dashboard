@@ -40,6 +40,7 @@ For detailed setup instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — Technical architecture and design patterns
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — Contribution guidelines and development workflow
 - **[CHANGELOG.md](CHANGELOG.md)** — Version history and release notes
+- **[docs/design-system](docs/design-system/README.md)** — The Civic Glass design system: tokens, components, audit and roadmap
 
 ---
 

@@ -1,0 +1,34 @@
+<!-- @dsCard group="Data display" height=110 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>SeriesLegend — preview</title></head>
+<body>
+<div class="cg-stage col on-card">
+  <div class="cg-legend">
+    <span class="cg-legend-item"><span class="cg-swatch" style="background:var(--chart-1)"></span>Pending (carried over)</span>
+    <span class="cg-legend-item"><span class="cg-swatch" style="background:var(--chart-2)"></span>Received</span>
+    <span class="cg-legend-item"><span class="cg-swatch line" style="background:var(--chart-3)"></span>Processed</span>
+    <span class="cg-legend-item"><span class="cg-swatch line" style="background:var(--chart-7)"></span>Approval rate</span>
+  </div>
+  <div class="cg-legend" id="toggles">
+    <button class="cg-legend-item" aria-pressed="true" title="Hide Asia"><span class="cg-swatch" style="background:var(--chart-1)"></span>Asia</button>
+    <button class="cg-legend-item" aria-pressed="true" title="Hide Europe"><span class="cg-swatch" style="background:var(--chart-2)"></span>Europe</button>
+    <button class="cg-legend-item" aria-pressed="false" title="Show Africa"><span class="cg-swatch" style="background:var(--chart-3)"></span>Africa</button>
+    <button class="cg-legend-item" aria-pressed="true" title="Hide North America"><span class="cg-swatch" style="background:var(--chart-4)"></span>North America</button>
+    <button class="cg-legend-item" aria-pressed="true" title="Hide South America"><span class="cg-swatch" style="background:var(--chart-5)"></span>South America</button>
+    <button class="cg-legend-item" aria-pressed="true" title="Hide Oceania"><span class="cg-swatch" style="background:var(--chart-6)"></span>Oceania</button>
+    <button class="cg-legend-item" aria-pressed="true" title="Hide Stateless"><span class="cg-swatch" style="background:var(--chart-8)"></span>Stateless</button>
+  </div>
+</div>
+<script>
+document.getElementById('toggles').addEventListener('click', function (event) {
+  var b = event.target.closest('button');
+  if (!b) return;
+  var on = b.getAttribute('aria-pressed') !== 'true';
+  b.setAttribute('aria-pressed', String(on));
+  var name = b.textContent.trim();
+  b.title = (on ? 'Hide ' : 'Show ') + name;
+});
+</script>
+</body>
+</html>
