@@ -258,7 +258,7 @@ JP_Immigration_Dashboard/
 │   │   │   ├── OriginChoroplethChart.tsx         # Bklit choropleth; resident count by country, log scale
 │   │   │   ├── NationalityMoversChart.tsx        # Diverging bar; biggest gains/losses between range endpoints
 │   │   │   ├── sunburstHint.ts                   # Pointer-aware hint text for the two sunburst views
-│   │   │   └── __tests__/                        # Chart tests (markers, tap behaviour, efficiency rows)
+│   │   │   └── __tests__/                        # Chart tests (markers, tap behaviour, efficiency rows, outcome colors)
 │   │   │
 │   │   ├── common/
 │   │   │   ├── ChartComponents.tsx    # Chart registry: key, icon, filters, ranges, data table per chart

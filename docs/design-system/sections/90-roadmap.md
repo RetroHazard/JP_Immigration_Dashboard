@@ -46,17 +46,19 @@ The order matters: repairs first because readers see them today, then the compon
    | Pending / carried over | `chart-1` (tile badge and bars) |
    | Received | `chart-2` |
    | Processed | `chart-3` |
-   | Granted | `chart-3` |
-   | Denied | `chart-8` (tile badge and sankey node) |
-   | Other / withdrawn | `chart-4` |
+   | Granted | `chart-3` (done, v1.6.5) |
+   | Denied | `chart-8` (tile badge and sankey node, done v1.6.5) |
+   | Other / withdrawn | `chart-4` (done, v1.6.5) |
    | Approval rate | `chart-7` (tile badge and line) |
    | Total applications | neutral badge (`muted` / `muted-foreground`) |
-   | Application types, ACQ to PR | `chart-mix-1` to `chart-mix-6` in every view, after step 22 |
+   | Application types, ACQ to PR | `chart-mix-1` to `chart-mix-6` in every view: Category Mix and Outcomes (v1.6.5) now, Application Types after step 22 |
    | World regions | `chart-1` to `chart-6`, `chart-8` for Stateless (unchanged) |
    | Purpose-of-stay groups | `chart-mix-1` to `chart-mix-6` (unchanged) |
    | Ranked nationalities | `chart-1` to `chart-8` in rank order, never `chart-mix` |
 
-   Granted and Processed share `chart-3` on purpose: they never appear in the same chart, and granted is most of what is processed. Pass `getNodeColor` to the Outcomes sankey instead of relying on its positional cycle, and list legends in this canonical order in every view.
+   Granted and Processed share `chart-3` on purpose: they never appear in the same chart, and granted is most of what is processed. List legends in this canonical order in every view.
+
+   The Outcomes sankey shipped in v1.6.5: it passes `getNodeColor` to SankeyNode and SankeyLink instead of relying on the positional cycle, and the Denied badge is `chart-8`. Its types took `chart-mix` ahead of step 22 because the alternatives put a type on an outcome's color in the same chart: `chart-1` to `chart-6` gives Change of Status Granted's `chart-3` and Permission for Activities Other's `chart-4`. Every sankey node is labelled directly, so the palette's CVD weakness (C2) costs less there than it would on six unlabelled lines; step 22 lifts it with no code change.
 
 8. **One segmented control (B2).** Standardize on the dataset switch's pill: `radius-full`, 12px text, 12 × 6px padding; selected is a `primary` fill with `primary-foreground`, unselected a `border` outline in `secondary-foreground` that fills with `muted` on hover. Build it on the vendored ToggleGroup (`type="single"`) for roving focus, and use it for the three in-chart view toggles. Full-width option rows stay for lists of choices in the settings drawer.
 
