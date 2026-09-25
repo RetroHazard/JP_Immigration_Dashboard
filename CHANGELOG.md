@@ -36,6 +36,11 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.6.4**: Secondary text, error text and form outlines are easier to see —
+  - Chart descriptions, captions, footnotes and other secondary text fell below the WCAG AA contrast minimum in the light theme when v1.6.3 darkened the page background: 4.2:1 against the page, where 4.5:1 is the floor. They are a shade darker now, at 4.9:1 on the page and 5.3:1 on cards
+  - Red error text, including the estimator's "Possibly past due" notice, now meets the same minimum on the page and on the notice's own tinted box, where it read 4.0:1
+  - The outlines of the filter dropdowns, the time-range picker and the application date field were close to invisible, at 1.3:1 against their card. They now reach the 3:1 minimum for control borders in both themes
+
 - **v1.6.1**: Hovering a policy marker now reads the month underneath it, exactly as hovering the bar does —
   - The marker sits directly over the column it annotates, and pointing at it made the tooltip disappear rather than describe that month, leaving a dead spot on the one place a reader is most likely to aim
   - Pointing at the marker's icon read the wrong month entirely — the first period on the chart rather than its own

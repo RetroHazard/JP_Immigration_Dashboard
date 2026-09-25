@@ -1,0 +1,81 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Civic Glass</title>
+<style>
+  html, body { margin:0; height:100%; }
+  body { background:var(--background); color:var(--foreground); font-family:var(--font-sans); overflow:hidden; }
+  .cover { position:relative; width:960px; height:288px; overflow:hidden; }
+  .art { position:absolute; top:0; left:480px; width:480px; height:288px; overflow:hidden; }
+  .art svg { display:block; width:480px; height:288px; }
+  .slab { fill:var(--primary); rx:var(--radius-xl); }
+  .c1 { fill:var(--chart-1); }
+  .c2 { fill:var(--chart-2); }
+  .bar { rx:var(--radius-default); }
+  .disc { fill:var(--hinomaru); }
+  .cut { fill:var(--background); }
+  .words { position:absolute; left:24px; bottom:24px; max-width:440px; }
+  .name { margin:0; font-size:104px; line-height:.95; font-weight:600; letter-spacing:-.02em; color:var(--foreground); }
+  .tag { margin:8px 0 0 4px; font-size:14px; line-height:20px; color:var(--muted-foreground); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 480 288" width="480" height="288">
+<!--
+  blocks      primary slab 144x280 bled off the top (the one accent, the largest block) · chart-1 under chart-2 stacked columns 40 wide, heights 96 to 208 (the Intake & Processing bars) · hinomaru disc 72 across, three-fifths of a 120 hoist (the mark) · about 30% of 960x288
+  arrangement one tall slab, then a stepped strip of stacked columns on one baseline space-6 above the edge with space-4 gutters, the last bleeding off the right edge; the disc rides above the short columns as the mark sits beside the header title
+  pattern     dot grid, from the README's charts-first, gridded data UI (chart-grid under every plot): background-colored dots cut into the slab at a space-6 pitch, 25 of them
+  scales      columns and gaps in space-2 multiples (40, 16, 4); baseline space-6; slab corners radius-xl (the card radius); column corners radius-default; disc 2 x 36
+-->
+<rect class="slab" x="16" y="-16" width="144" height="280" rx="16"/>
+<rect class="c2 bar" x="184" y="168" width="40" height="52" rx="4"/>
+<rect class="c1 bar" x="184" y="224" width="40" height="40" rx="4"/>
+<rect class="c2 bar" x="240" y="128" width="40" height="76" rx="4"/>
+<rect class="c1 bar" x="240" y="208" width="40" height="56" rx="4"/>
+<rect class="c2 bar" x="296" y="144" width="40" height="60" rx="4"/>
+<rect class="c1 bar" x="296" y="208" width="40" height="56" rx="4"/>
+<rect class="c2 bar" x="352" y="88" width="40" height="92" rx="4"/>
+<rect class="c1 bar" x="352" y="184" width="40" height="80" rx="4"/>
+<rect class="c2 bar" x="408" y="56" width="40" height="116" rx="4"/>
+<rect class="c1 bar" x="408" y="176" width="40" height="88" rx="4"/>
+<rect class="c2 bar" x="464" y="104" width="40" height="84" rx="4"/>
+<rect class="c1 bar" x="464" y="192" width="40" height="72" rx="4"/>
+<circle class="cut" cx="40" cy="144" r="2.5"/>
+<circle class="cut" cx="64" cy="144" r="2.5"/>
+<circle class="cut" cx="88" cy="144" r="2.5"/>
+<circle class="cut" cx="112" cy="144" r="2.5"/>
+<circle class="cut" cx="136" cy="144" r="2.5"/>
+<circle class="cut" cx="40" cy="168" r="2.5"/>
+<circle class="cut" cx="64" cy="168" r="2.5"/>
+<circle class="cut" cx="88" cy="168" r="2.5"/>
+<circle class="cut" cx="112" cy="168" r="2.5"/>
+<circle class="cut" cx="136" cy="168" r="2.5"/>
+<circle class="cut" cx="40" cy="192" r="2.5"/>
+<circle class="cut" cx="64" cy="192" r="2.5"/>
+<circle class="cut" cx="88" cy="192" r="2.5"/>
+<circle class="cut" cx="112" cy="192" r="2.5"/>
+<circle class="cut" cx="136" cy="192" r="2.5"/>
+<circle class="cut" cx="40" cy="216" r="2.5"/>
+<circle class="cut" cx="64" cy="216" r="2.5"/>
+<circle class="cut" cx="88" cy="216" r="2.5"/>
+<circle class="cut" cx="112" cy="216" r="2.5"/>
+<circle class="cut" cx="136" cy="216" r="2.5"/>
+<circle class="cut" cx="40" cy="240" r="2.5"/>
+<circle class="cut" cx="64" cy="240" r="2.5"/>
+<circle class="cut" cx="88" cy="240" r="2.5"/>
+<circle class="cut" cx="112" cy="240" r="2.5"/>
+<circle class="cut" cx="136" cy="240" r="2.5"/>
+<circle class="disc" cx="232" cy="72" r="36"/>
+</svg>
+</div>
+<div class="words">
+<h1 class="name">Civic<br>Glass</h1>
+<p class="tag">Calm, exact, and legible in twelve languages.</p>
+</div>
+</div>
+</body>
+</html>
