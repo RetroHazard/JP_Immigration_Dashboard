@@ -4,11 +4,12 @@
 // for the same selection alongside.
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type React from 'react';
 import useMeasure from 'react-use-measure';
 
+import { applicationTypeColor } from '../../constants/applicationOptions';
 import { STATUS_CODES } from '../../constants/statusCodes';
 import { useLocale } from '../../i18n/LocaleContext';
 import { useApplicationOptions } from '../../i18n/useDomainLabels';
@@ -21,11 +22,28 @@ import { SankeyNode } from '../bklit/charts/sankey/sankey-node';
 import { SankeyTooltip } from '../bklit/charts/sankey/sankey-tooltip';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
+// Each outcome wears its metric's color, from the design system's canonical
+// map that the stat tiles share. Left to the vendored sankey, a node's color
+// came from its position in the node list, which drew Denied in Granted's green.
 const OUTCOMES = [
-  { labelKey: 'metric.granted', compactKey: 'metric.granted', status: STATUS_CODES.GRANTED },
-  { labelKey: 'metric.denied', compactKey: 'metric.denied', status: STATUS_CODES.DENIED },
-  { labelKey: 'chart.outcomes.otherWithdrawn', compactKey: 'metric.other', status: STATUS_CODES.OTHER },
+  { labelKey: 'metric.granted', compactKey: 'metric.granted', status: STATUS_CODES.GRANTED, color: 'var(--chart-3)' },
+  { labelKey: 'metric.denied', compactKey: 'metric.denied', status: STATUS_CODES.DENIED, color: 'var(--chart-8)' },
+  {
+    labelKey: 'chart.outcomes.otherWithdrawn',
+    compactKey: 'metric.other',
+    status: STATUS_CODES.OTHER,
+    color: 'var(--chart-4)',
+  },
 ] as const;
+
+/**
+ * Every node's fill, in the order the nodes are built: each type's own hue,
+ * then each outcome's. Exported for the tests.
+ */
+export const outcomesNodeColors = (typeCodes: readonly string[]): string[] => [
+  ...typeCodes.map((code) => applicationTypeColor(code)),
+  ...OUTCOMES.map((outcome) => outcome.color),
+];
 
 // Bklit's Sankey reserves fixed 180px label margins per side, so a narrow
 // container collapses the drawing area (and below ~360px it inverts). On
@@ -47,7 +65,7 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
     [t]
   );
 
-  const { sankeyData, approvalRate, processed } = useMemo(() => {
+  const { sankeyData, nodeColors, approvalRate, processed } = useMemo(() => {
     const months = monthsForRange(getAllMonths(data), range);
     // Both the flows and the gauge respect the active type filter, so e.g.
     // Permanent Residence shows its own (much lower) approval rate instead
@@ -84,10 +102,15 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
 
     return {
       sankeyData: { nodes, links },
+      nodeColors: outcomesNodeColors(activeTypes.map((type) => type.value)),
       approvalRate: totalProcessed > 0 ? (granted / totalProcessed) * 100 : 0,
       processed: totalProcessed,
     };
   }, [data, filters.bureau, filters.type, range, isNarrow, types, outcomes]);
+
+  // SankeyNode fills the bars and SankeyLink blends each ribbon between its two
+  // ends; either one left without this falls back to the positional cycle.
+  const nodeColor = useCallback((_node: unknown, index: number) => nodeColors[index] ?? 'var(--chart-1)', [nodeColors]);
 
   // Node labels are real translated strings (bureau/application-type/outcome
   // names), not fixed English words — a German compound noun or a longer
@@ -146,8 +169,12 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
               margin={sankeyMargin}
               nodePadding={isNarrow ? 16 : 24}
             >
-              <SankeyLink />
-              <SankeyNode valueUnit={t('chart.outcomes.valueUnit')} showValueLabels={!isNarrow} />
+              <SankeyLink getNodeColor={nodeColor} />
+              <SankeyNode
+                valueUnit={t('chart.outcomes.valueUnit')}
+                showValueLabels={!isNarrow}
+                getNodeColor={nodeColor}
+              />
               <SankeyTooltip
                 valueLabel={t('chart.outcomes.tooltipValueLabel')}
                 linkLabel={t('chart.outcomes.tooltipFlowLabel')}

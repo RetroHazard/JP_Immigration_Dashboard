@@ -5,7 +5,7 @@
 // the `mixByBureau` table builder in utils/chartTables.ts — the table reads the
 // tree rather than re-deriving it, so it cannot disagree with the chart above
 // it.
-import { applicationOptions } from '../constants/applicationOptions';
+import { applicationOptions, applicationTypeColor } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
 import { STATUS_CODES } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
@@ -51,7 +51,7 @@ export const buildCategoryMixTree = (
 
   const categories = applicationOptions
     .filter((option) => option.value !== 'all')
-    .map((option, typeIndex) => {
+    .map((option) => {
       const children = bureauOptions
         .filter((bureau) => bureau.value !== 'all')
         .map((bureau) => ({
@@ -66,7 +66,7 @@ export const buildCategoryMixTree = (
 
       return {
         key: option.value,
-        color: `var(--chart-mix-${typeIndex + 1})`,
+        color: applicationTypeColor(option.value),
         value: children.reduce((sum, leaf) => sum + leaf.value, 0),
         children,
       };

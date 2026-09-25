@@ -33,7 +33,7 @@ Flow and count views take the range selector (6, 12, 24, 36 months or all; 3, 5,
 
 ### Hierarchies: `chart-mix-1` to `chart-mix-6`
 
-- One hue per top-level group (application types in Category Mix, purpose-of-stay groups in the residence views). Children are `color-mix` tints of their parent toward the card, so a bureau inside Extension of Stay stays recognizably "extension".
+- One hue per top-level group (application types in Category Mix and Outcomes, purpose-of-stay groups in the residence views). Children are `color-mix` tints of their parent toward the card, so a bureau inside Extension of Stay stays recognizably "extension".
 - Label hierarchy segments directly. The palette is not safe for color-vision deficiency on its own (see the table below), and `chart-mix-2` is the same value as `primary`.
 
 ### Regional identity: `bureau-*`
@@ -57,6 +57,10 @@ Minimum CIEDE2000 distance between any two colors of a set, after simulating eac
 | `chart-1..8`, dark | 14.1 | 3.5 | 1.9 | 5.5 | blue / violet (`chart-1` / `chart-7`, protan) |
 | `chart-mix`, light | 9.9 | 1.6 | 1.4 | 5.4 | teal / magenta (family / residency, deutan) |
 | `chart-mix`, dark | 9.3 | 1.1 | 1.2 | 3.9 | teal / magenta (deutan) |
+| Outcomes (`chart-3`, `chart-8`, `chart-4`), light | 37.1 | 12.7 | 15.2 | 17.6 | green / red (Granted / Denied, deutan) |
+| Outcomes, dark | 31.9 | 11.4 | 7.7 | 7.6 | red / amber (Denied / Other, tritan); green / red is 7.7 (protan) |
+
+The Outcomes pairs under 10 are large nodes with a name label each, so a reader never has to tell them apart by color.
 
 ## Chart chrome
 

@@ -23,8 +23,8 @@ What the codebase does measured against the rules in this system, audited at v1.
 
 **B1. A metric or category changes color between views.** No shared map exists, so each chart picks its own:
 - Pending is `chart-1` blue in Intake & Processing (IntakeProcessingBarChart.tsx:58) and a `chart-4` yellow badge on its tile (StatCard.tsx:15). The approval rate is a `chart-7` line and a gray tile.
-- The Outcomes sankey colors nodes by position, cycling five colors (sankey-node.tsx:402). With all types shown, Granted comes out `chart-2` orange and Denied `chart-3` aqua, while their tiles use an aqua badge for Granted and a red one for Denied. Permanent Residence wraps round to `chart-1`, the same blue as Status Acquisition.
-- An application type has three assignments: `chart-1` to `chart-6` in Application Types, the positional cycle in Outcomes, and `chart-mix-1` to `chart-mix-6` in Category Mix.
+- **Fixed in v1.6.5:** the Outcomes sankey colored nodes by position, cycling five colors (sankey-node.tsx:402), so Granted came out `chart-2` orange and Denied `chart-3` aqua beside an aqua Granted badge and a red Denied one, and with all types shown Permanent Residence wrapped round to Status Acquisition's `chart-1`. It now passes `getNodeColor` to its nodes and links: Granted `chart-3`, Denied `chart-8`, Other `chart-4`, and each type its `chart-mix` hue. The Denied badge moved from `destructive` to `chart-8` to match.
+- An application type has two assignments: `chart-1` to `chart-6` in Application Types, and `chart-mix-1` to `chart-mix-6` in Category Mix and Outcomes (`applicationTypeColor`, applicationOptions.ts).
 - The Granted tile pairs a `chart-3` aqua badge with a `success` green delta.
 
 **B2. Three segmented controls.** The dataset switch is a bordered pill, rounded-full, 12px with 12 × 6px padding (DashboardShell.tsx:541). The in-chart view toggles are borderless, `radius-md`, 8 × 4px padding (PopulationGrowthChart.tsx:136, NationalityTrendChart.tsx:131, NationalityMoversChart.tsx:107). The settings drawer's theme choice is a pair of tinted option rows (DashboardShell.tsx:367). The vendored ToggleGroup is unused.

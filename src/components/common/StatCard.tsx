@@ -11,12 +11,13 @@ import { useCountUp } from '../../lib/motion';
 type StatBadgeColor = 'blue' | 'yellow' | 'green' | 'red' | 'gray';
 
 // Tailwind needs complete class names at build time, so badge colors are a
-// static map onto the chart/status tokens.
+// static map onto the chart tokens. Red is the Denied series' chart-8, not
+// `destructive`, so the badge matches Denied's node in the Outcomes sankey.
 const BADGE_CLASSES: Record<StatBadgeColor, string> = {
   blue: 'bg-chart-1/15 text-chart-1',
   yellow: 'bg-chart-4/15 text-chart-4',
   green: 'bg-chart-3/15 text-chart-3',
-  red: 'bg-destructive/15 text-destructive',
+  red: 'bg-chart-8/15 text-chart-8',
   gray: 'bg-muted text-muted-foreground',
 };
 

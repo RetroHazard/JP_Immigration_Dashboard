@@ -16,3 +16,12 @@ export const applicationOptions: ApplicationOption[] = [
   { value: '50' },
   { value: '60' },
 ];
+
+const TYPE_CODES = applicationOptions.filter((option) => option.value !== 'all').map((option) => option.value);
+
+/**
+ * A type's hue in the charts that color by type (Category Mix, Outcomes):
+ * `--chart-mix-1` to `-6` in catalogue order, ACQ to PR. Keyed on the code,
+ * not on a position among the types shown, so filtering never repaints one.
+ */
+export const applicationTypeColor = (value: string): string => `var(--chart-mix-${TYPE_CODES.indexOf(value) + 1})`;

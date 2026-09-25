@@ -36,6 +36,11 @@ All notable user-facing changes to the Japan Immigration Bureaus Statistics Dash
 
 ### Fixed
 
+- **v1.6.5**: **Outcomes** now colors each outcome the way the stat cards above it do —
+  - Granted was drawn orange and Denied green, the green of the Granted card. The chart took each node's color from its place in the list rather than from what the node stands for. Granted now takes the Granted card's green and Denied the Denied card's red, in both themes; Other / Withdrawn stays amber
+  - An application type keeps one color, the one it has in **Category Mix**, whether it is shown on its own or with the other five. Until now a type shown on its own was always blue, and with all six shown, Permanent Residence shared Status Acquisition's blue
+  - The Denied card's icon is now the same red as Denied in the chart. It used the red kept for error messages, a shade darker in the light theme
+
 - **v1.6.4**: Secondary text, error text and form outlines are easier to see —
   - Chart descriptions, captions, footnotes and other secondary text fell below the WCAG AA contrast minimum in the light theme when v1.6.3 darkened the page background: 4.2:1 against the page, where 4.5:1 is the floor. They are a shade darker now, at 4.9:1 on the page and 5.3:1 on cards
   - Red error text, including the estimator's "Possibly past due" notice, now meets the same minimum on the page and on the notice's own tinted box, where it read 4.0:1
