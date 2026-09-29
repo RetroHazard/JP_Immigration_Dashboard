@@ -130,11 +130,9 @@ function tryAppendArea(child: ReactElement, lines: LineConfig[]): boolean {
   return true;
 }
 
-// NOTE: `Children.forEach` flattens arrays but not Fragments, and a Fragment's
-// type is a symbol that `getChildComponentName` reads as "". A `SeriesBar`
-// wrapped in <>…</> would still render, but register no dataKey, no stack, no
-// domain contribution and no tooltip row — so series must be direct children
-// or a flat array.
+// Series must be direct children or a flat array: `Children.forEach` doesn't
+// flatten Fragments, so a `SeriesBar` in <>…</> renders but registers no
+// dataKey, stack, domain contribution or tooltip row.
 function extractComposedSeries(children: ReactNode): {
   lines: LineConfig[];
   barDataKeys: string[];
@@ -182,9 +180,7 @@ export function computeComposedYScaleDomainMax(
         continue;
       }
       // LOCAL MODIFICATION: this is the *primary* axis's max, so a series on a
-      // secondary axis must not raise it. Upstream folds in every line, which
-      // is only harmless while no chart uses a second axis.
-      // (Re-apply after a re-vendor.)
+      // secondary axis must not raise it. (Re-apply after a re-vendor.)
       if (normalizeYAxisId(line.yAxisId) !== DEFAULT_Y_AXIS_ID) {
         continue;
       }
@@ -330,9 +326,8 @@ export function ComposedChart({
   formatDateLabel,
 }: ComposedChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  // LOCAL MODIFICATION: see line-chart.tsx — size the y-axis margin from the
-  // current locale's real label width instead of a flat 40px. Re-apply after
-  // a re-vendor.
+  // LOCAL MODIFICATION: locale-sized y-axis margin, as in line-chart.tsx.
+  // (Re-apply after a re-vendor.)
   const margin = { ...DEFAULT_MARGIN, left: estimateAxisMarginLeft(), ...marginProp };
 
   return (

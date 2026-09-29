@@ -1,16 +1,13 @@
-// src/components/charts/ResidentFlowsSankeyChart.tsx
 // Origins → Status Categories on Bklit's Sankey, in three tiers: world
-// region → country → purpose-of-stay group. The nationality × status
-// cross-tabulation this cube uniquely offers, keyed to geography. Selecting
-// a region narrows the left column to it; selecting a nationality collapses
-// the chart into that country's profile; selecting a category narrows the
-// right column.
+// region → country → purpose-of-stay group. Selecting a region narrows the
+// left column to it; a nationality collapses the chart into that country's
+// profile; a category narrows the right column.
 //
 // A stock figure: the flows describe the single snapshot the period picker
 // chooses, and the header says which one.
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type React from 'react';
 import useMeasure from 'react-use-measure';
@@ -107,9 +104,8 @@ export const ResidentFlowsSankeyChart: React.FC<ResidentChartData> = ({ data, fi
     return { sankeyData: { nodes, links }, nodeColors };
   }, [flows, nationalityLabel, regionLabel, groupLabel, t]);
 
-  // Measured label margins, same as OutcomesSankeyChart: region and category
-  // names vary wildly across the twelve locales and would otherwise clip.
-  // The middle tier needs no margin — its labels sit inside the plot.
+  // Measured label margins, as in OutcomesSankeyChart, so translated names
+  // don't clip. The middle tier needs none; its labels sit inside the plot.
   const sankeyMargin = useMemo(() => {
     const nodeLabelFont =
       '500 13px -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic UI", sans-serif';
@@ -136,6 +132,9 @@ export const ResidentFlowsSankeyChart: React.FC<ResidentChartData> = ({ data, fi
     };
   }, [sankeyData, isNarrow]);
 
+  // Shared by nodes and links so each ribbon takes its endpoints' colours.
+  const nodeColor = useCallback((_node: unknown, index: number) => nodeColors[index] ?? 'var(--chart-1)', [nodeColors]);
+
   if (sankeyData.links.length === 0) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
@@ -159,12 +158,12 @@ export const ResidentFlowsSankeyChart: React.FC<ResidentChartData> = ({ data, fi
             margin={sankeyMargin}
             nodePadding={isNarrow ? 8 : 12}
           >
-            <SankeyLink />
+            <SankeyLink getNodeColor={nodeColor} />
             <SankeyNode
               valueUnit={t('residents.flowsValueUnit')}
               showValueLabels={!isNarrow}
               showMiddleLabels={!isNarrow}
-              getNodeColor={(_node, index) => nodeColors[index] ?? 'var(--chart-1)'}
+              getNodeColor={nodeColor}
             />
             <SankeyTooltip
               valueLabel={t('residents.flowsTooltipValueLabel')}

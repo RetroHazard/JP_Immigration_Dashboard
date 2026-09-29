@@ -1,29 +1,20 @@
 #!/usr/bin/env node
 /**
- * Simplifies public/static/japan.topo.json in place, the same "generated asset
- * committed to the repo" model scripts/vendor-world-topology.mjs follows.
+ * Simplifies public/static/japan.topo.json in place, a generated asset committed
+ * to the repo like the output of scripts/vendor-world-topology.mjs. The source's
+ * ~59.5k vertices are far finer than a pixel at the size the Regional Map
+ * renders, yet the browser projects and rasterises every one.
  *
- * Why: the source topology carries ~59.5k vertices across 1,019 rings for 47
- * prefectures — roughly 13-19x finer than a single screen pixel at the size the
- * Regional Map actually renders (and ~19x on a 360px phone). That detail is
- * invisible but the browser still projects, serialises and rasterises every
- * point of it, which is what made the prefectural map sluggish.
+ * Visvalingam-Whyatt runs on the topology's shared arcs, never on decoded rings,
+ * so neighbouring prefecture borders stay welded. Arc endpoints are junctions
+ * and are always kept.
  *
- * How: Visvalingam-Whyatt on the topology's *shared arcs*, never on decoded
- * rings. Arcs are precisely the mechanism that keeps neighbouring prefecture
- * borders welded together; simplifying each ring independently would tear the
- * shared seams open. Arc endpoints are junctions between arcs and are always
- * preserved, so the topology stays consistent by construction.
- *
- * The threshold is expressed in screen pixels rather than degrees so it tracks
- * how the map is actually drawn: GeographicDistributionChart uses
+ * The threshold is in screen pixels: GeographicDistributionChart uses
  * `scale={(innerWidth) => innerWidth * 1.55}`, so a ~900px-wide map projects at
- * a Mercator scale of ~1395. We keep detail down to 0.25px^2 at 4x zoom, which
- * is visually lossless at the default view and holds up when zoomed in.
+ * a Mercator scale of ~1395. Detail is kept down to 0.25px^2 at 4x zoom.
  *
- * Idempotency: the output records a `simplified` metadata block and the script
- * refuses to run against an already-simplified file, so it can never be applied
- * twice. To regenerate from the pristine source, restore it first:
+ * The output records a `simplified` block and the script refuses to run on an
+ * already-simplified file. To regenerate, restore the pristine source first:
  *
  *   git show 307dd13:public/static/japan.topo.json > public/static/japan.topo.json
  *   node scripts/simplify-japan-topology.mjs

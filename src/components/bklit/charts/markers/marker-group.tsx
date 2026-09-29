@@ -95,13 +95,10 @@ export interface MarkerGroupProps {
    */
   isMuted?: boolean;
   /**
-   * LOCAL MODIFICATION: allow the fan to be turned off entirely, so a group of
-   * several markers stays a single circle with its count badge. On a dense
-   * monthly axis the 50px fan arc reaches straight through the neighbouring
-   * markers, and the icons it throws carry no label to say where they lead.
-   * Callers that suppress it need somewhere else to read the group — the
-   * crosshair tooltip lists every marker on the date regardless.
-   * Default `true`, so an un-patched caller behaves exactly as before.
+   * LOCAL MODIFICATION: `false` keeps a multi-marker group a single badged
+   * circle; on a dense monthly axis the 50px fan arc reaches through the
+   * neighbouring markers. Callers that pass it need another way to read the
+   * group, such as the crosshair tooltip. Default `true`.
    * (Re-apply after a re-vendor.)
    */
   fan?: boolean;
@@ -200,10 +197,9 @@ export function MarkerGroup({
   };
 
   /**
-   * LOCAL MODIFICATION: on touch the fan opens on tap and closes on the next
-   * one. The mouse handlers are left off there so the events synthesized after
-   * a tap can't immediately re-close it — and, as with the hover path, the
-   * event is stopped so the chart underneath doesn't also move its crosshair.
+   * LOCAL MODIFICATION: on touch the fan toggles on tap, with no mouse handlers
+   * attached so the synthesized mouse events can't re-close it. Stopped, as on
+   * the hover path, so the chart's crosshair doesn't move too.
    * (Re-apply after a re-vendor.)
    */
   const handleTap = (e: React.MouseEvent) => {
@@ -215,17 +211,12 @@ export function MarkerGroup({
   };
 
   /**
-   * LOCAL MODIFICATION: a group that cannot fan does not intercept the pointer.
-   * Interception exists only to hold the crosshair still while a fan is open,
-   * so with `fan={false}` it buys nothing and costs the reader the month: the
-   * marker sits directly over the column it annotates, and swallowing the move
-   * left a dead spot there. Attaching nothing lets the event bubble to the
-   * chart's own handlers — these markers render inside the very `<g>` that
-   * carries them — so hovering a marker resolves the same tooltip as hovering
-   * its bar, through the same code path, and a tap pins it the same way.
-   * The shapes stay: at y = -8 nothing else is under the cursor, so
-   * `pointer-events: none` would drop the event entirely rather than pass it
-   * down. (Re-apply after a re-vendor.)
+   * LOCAL MODIFICATION: a group that cannot fan attaches no handlers, so the
+   * event bubbles to the chart's own `<g>` and hovering or tapping a marker
+   * resolves the same tooltip as its bar. Interception only exists to hold the
+   * crosshair still while a fan is open. The shapes keep pointer events: at
+   * y = -8 nothing else is under the cursor, so `pointer-events: none` would
+   * drop the event instead of passing it down. (Re-apply after a re-vendor.)
    */
   const hitProps = !fan
     ? {}
@@ -486,10 +477,8 @@ function MarkerCircle({
         strokeWidth={borderWidth}
       />
       {/* LOCAL MODIFICATION: the icon is not a pointer target. `localPoint`
-          mis-resolves an event whose target is HTML inside a foreignObject,
-          reporting an x near the axis origin, so a hover over the icon read
-          the wrong period entirely. Letting it fall through to the `circle`
-          below keeps every part of the marker resolving the same month.
+          mis-resolves events targeting HTML inside a foreignObject (x near
+          the axis origin), so they fall through to the `circle` below.
           (Re-apply after a re-vendor.) */}
       <foreignObject
         height={size - inset * 2}

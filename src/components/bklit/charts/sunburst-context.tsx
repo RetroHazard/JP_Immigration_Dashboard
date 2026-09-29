@@ -51,10 +51,8 @@ export interface SunburstHoverContextValue {
   hoveredArc: ArcDatum | null;
   setHoveredArc: (arc: ArcDatum | null) => void;
   /**
-   * LOCAL MODIFICATION: on touch a segment is inspected by tapping it and
-   * zoomed by tapping it again, since a single-tap zoom moved the segment out
-   * from under the finger before it could be read. Null on hover devices.
-   * (Re-apply after a re-vendor.)
+   * LOCAL MODIFICATION: on touch a segment is inspected by one tap and zoomed
+   * by a second. Null on hover devices. (Re-apply after a re-vendor.)
    */
   tapMode?: ChartTapMode | null;
 }

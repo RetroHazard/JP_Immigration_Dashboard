@@ -1,7 +1,6 @@
-// Pure tests over the breakdown builder. Deliberately no rendering: the point
-// is the LaTeX and the dependency ordering, and `EstimationCard` cannot mount
-// under jsdom anyway - its share button calls `useRouter`, and nothing in the
-// repo stands up an App Router context.
+// Pure tests over the breakdown builder, with no rendering: `EstimationCard`
+// cannot mount under jsdom because its share button calls `useRouter`, and no
+// test stands up an App Router context.
 import katex from 'katex';
 import { describe, expect, it } from 'vitest';
 
@@ -86,8 +85,8 @@ describe('buildFormulaSteps ordering', () => {
         );
 
         // The reverse: a symbol on screen with no glossary entry behind it.
-        // Restricted to symbols long enough to match unambiguously - `a` and
-        // `d_m` are substrings of half the LaTeX in the file.
+        // Only symbols long enough to match unambiguously; `a` and `d_m` are
+        // substrings of much of the LaTeX.
         (Object.keys(SYMBOLS) as (keyof typeof SYMBOLS)[])
           .filter((id) => SYMBOLS[id].length >= 6 && step.math.includes(SYMBOLS[id]))
           .forEach((id) => expect(listed, `step ${step.step} shows ${id} unexplained`).toContain(id));
@@ -114,9 +113,8 @@ describe('buildFormulaSteps LaTeX', () => {
     return { n: (v: number) => escapeNumber(number(Math.round(v))), rate: (v: number) => escapeNumber(decimal(v, 2)) };
   };
 
-  // strict:'error' is the point of this test. Left at the default 'warn', a
-  // separator KaTeX cannot typeset - fr-FR's U+202F - degrades to a console
-  // message and a zero-width box in the reader's browser, and passes here.
+  // strict:'error' is required: at the default 'warn', a separator KaTeX cannot
+  // typeset (fr-FR's U+202F) passes here and renders as a zero-width box.
   it.each(LOCALE_CODES.flatMap((code) => COMBINATIONS.map((b) => [code, label(b), b] as const)))(
     'compiles under KaTeX in %s (%s)',
     (code, _name, branches) => {
@@ -128,11 +126,9 @@ describe('buildFormulaSteps LaTeX', () => {
     }
   );
 
-  // KaTeX draws a stretchy delimiter as an SVG path, and neither `throwOnError`
-  // nor `strict: 'error'` looks at what it emitted. Asked to grow around an
-  // underbraced term, 0.16.28 writes a `\rceil` path with a doubled moveto
-  // (`MM319 602 ...`); the browser rejects it as invalid SVG and logs an error
-  // for every affected formula. Fixed-size delimiters avoid it entirely.
+  // Neither `throwOnError` nor `strict: 'error'` checks the SVG paths KaTeX
+  // emits for stretchy delimiters. Stretched around an underbraced term, a
+  // `\rceil` path gets a doubled moveto that the browser rejects as invalid SVG.
   it.each(LOCALE_CODES.flatMap((code) => COMBINATIONS.map((b) => [code, label(b), b] as const)))(
     'emits no malformed SVG path in %s (%s)',
     (code, _name, branches) => {
@@ -158,10 +154,9 @@ describe('buildFormulaSteps LaTeX', () => {
   });
 
   it('keeps a negative value under its own brace instead of flipping the operator', () => {
-    // E_proc goes negative whenever the published months already account for
-    // more than the average rate predicted, and S_proc follows it down. The
-    // sign belongs to the variable, so it stays under the brace - turning the
-    // sum into a subtraction would report E_proc as a positive number.
+    // E_proc goes negative when the published months exceed what the average
+    // rate predicted, and S_proc follows. The sign stays under the brace; a
+    // subtraction would report E_proc as positive.
     const negative: ModelVariables = { ...BASE, E_proc: -20146, S_proc: -16430, Q_pos: 32098 };
     const steps = buildFormulaSteps(negative, COMBINATIONS[0], formattersFor('en'));
 
@@ -192,10 +187,8 @@ describe('buildFormulaSteps LaTeX', () => {
   });
 
   it('prints application counts whole and rates with their decimals', () => {
-    // Counts round for display — the panel is narrow, and decimals made large
-    // queue figures read even longer. A ⌊·⌉ row's visible operands can
-    // therefore read one off the printed result (the notation says the *sum*
-    // is rounded); that trade is deliberate. Rates stay two-decimal.
+    // Rounding is display-only, so a ⌊·⌉ row's operands can sum to one off its
+    // printed result (see buildFormulaSteps).
     const steps = buildFormulaSteps(BASE, COMBINATIONS[0], PLAIN);
 
     // Step 3: C_proc = 3715.53 and E_proc = 561.71 in the model, whole on
@@ -225,8 +218,7 @@ describe('buildFormulaSteps LaTeX', () => {
 
 describe('escapeNumber', () => {
   it('turns separators KaTeX cannot typeset into a thin space', () => {
-    // fr-FR groups with U+202F, pt-PT with U+00A0. KaTeX has a symbol for
-    // neither and raises "Unrecognized Unicode character" on both.
+    // fr-FR groups with U+202F, pt-PT with U+00A0; KaTeX rejects both.
     expect(escapeNumber(createFormatters('fr-FR').number(12345))).toBe('12\\,345');
     expect(escapeNumber(createFormatters('pt-PT').number(12345))).toBe('12\\,345');
   });

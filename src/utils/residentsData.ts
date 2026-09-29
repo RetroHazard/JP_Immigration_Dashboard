@@ -1,4 +1,3 @@
-// src/utils/residentsData.ts
 // Shared shape of the pre-transformed Foreign Residents file the client loads.
 // Same idea as dashboardData.ts — index tables plus flat value tuples — but a
 // stride of 4 over a different cube (period x status x nationality), and a

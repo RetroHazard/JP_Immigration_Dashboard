@@ -80,9 +80,7 @@ export interface TooltipData {
   xPositions?: Record<string, number>;
   /**
    * LOCAL MODIFICATION: y of the tap that pinned this tooltip, in container
-   * pixels, set only on a coarse pointer. The panel is placed above it so it
-   * doesn't sit under the finger that opened it. Absent on hover devices,
-   * where the panel keeps its vendored position at the top of the plot.
+   * pixels, set only on a coarse pointer; the panel is placed above it.
    * (Re-apply after a re-vendor.)
    */
   tapY?: number;

@@ -47,9 +47,8 @@ const PROCESSED_PER_MONTH: Record<string, number> = {
   '2025-04': 3300,
   '2025-05': 3200,
   '2025-06': 3400,
-  // Deliberately well below the other months, to model a real slow
-  // processing month (holiday closures, staffing, etc.) landing right as it
-  // is first published.
+  // Well below the other months: a slow processing month (holiday closures,
+  // staffing) landing right as it is first published.
   '2025-07': 1400,
 };
 
@@ -83,13 +82,9 @@ describe('calculateEstimatedDate month-boundary sensitivity', () => {
     const daysBefore = before?.details.modelVariables.D_rem ?? 0;
     const daysAfter = after?.details.modelVariables.D_rem ?? 0;
 
-    // This is expected, legitimate movement: once July's real (slower)
-    // throughput is known, both the 6-month rolling processing rate and the
-    // actual carryover correctly reflect it, in place of a same simulated
-    // estimate. The swing itself isn't a bug - see
-    // correctBureauAggregates.test.ts for the actual defect (a branch-lag
-    // bug that used to make aggregate bureaus like Osaka look artificially
-    // fast for a day before silently correcting itself).
+    // Legitimate movement: July's real, slower throughput replaces the
+    // simulated estimate in both the rolling rate and the carry-over. The
+    // branch-lag defect is a separate case, in correctBureauAggregates.test.ts.
     expect(daysAfter).toBeGreaterThan(daysBefore);
   });
 });
@@ -104,10 +99,9 @@ describe('calculateEstimatedDate timezone pinning', () => {
 
   it('computes the same estimate whatever the viewer timezone', () => {
     // The model runs on Japan's calendar (UTC+9); the viewer's timezone must
-    // not move a figure. Before the JST pin, a viewer west of UTC had a
-    // 1st-of-month application attributed to the previous month (A_day = 31)
-    // and the carry-over simulation rolled one month too far, with the wrong
-    // month lengths.
+    // not move a figure. Unpinned, a viewer west of UTC gets a 1st-of-month
+    // application in the previous month (A_day = 31) and a carry-over rolled one
+    // month too far.
     const run = () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date('2025-09-20T12:00:00Z'));
@@ -149,10 +143,8 @@ describe('calculateEstimatedDate timezone pinning', () => {
 });
 
 /**
- * The "Show the math" breakdown claims a specific arithmetic relationship for
- * every variable it renders. These pin those claims to the code, so a change
- * to one without the other fails here rather than shipping a formula that
- * disagrees with the number printed beside it.
+ * Pins the arithmetic the "Show the math" breakdown claims for each variable
+ * to the code, so a formula on screen can't disagree with the number beside it.
  */
 describe('calculateEstimatedDate model variables', () => {
   afterEach(() => {
@@ -189,9 +181,8 @@ describe('calculateEstimatedDate model variables', () => {
   });
 
   it('rounds the two processed-since terms together, not one by one', () => {
-    // The breakdown used to subtract C_proc and E_proc from Q_app separately,
-    // each rounded on its own, while the code rounded their sum - so the
-    // subtraction on screen could miss the result beside it by one.
+    // The code rounds the sum. Subtracting C_proc and E_proc rounded one by one
+    // can miss the result on screen by one.
     const { modelVariables: v } = at('2025-08-15', MONTHS, '2025-07-31');
 
     expect(v.Q_pos).toBe(v.Q_app - Math.round(v.C_proc + v.E_proc));

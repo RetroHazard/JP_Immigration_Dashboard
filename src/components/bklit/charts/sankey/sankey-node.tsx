@@ -61,10 +61,9 @@ export interface SankeyNodeProps {
 
 type TextAnchor = "start" | "middle" | "end";
 
-// LOCAL MODIFICATION: label side is derived from the node's column rather
-// than its x-position, so a three-column sankey gets 'middle' for its inner
-// tier instead of drawing its labels leftward over the incoming ribbons.
-// Two-column charts resolve to left/right exactly as before.
+// LOCAL MODIFICATION: label side comes from the node's column, not its
+// x-position, so a three-column sankey's inner tier gets 'middle' rather than
+// labels drawn leftward over the incoming ribbons.
 type LabelSide = "left" | "middle" | "right";
 
 interface NodeLabelLayout {
@@ -468,12 +467,10 @@ export function SankeyNode({
     [nodes]
   );
 
-  // LOCAL MODIFICATION: side labels on real-world data collide — a dominant
-  // node (Asia at 87% of the total) squeezes its column's remaining nodes
-  // into a few px each, while every label block still needs ~20-36px. Greedy
-  // vertical de-overlap per side: sweep top-down pushing blocks apart, then
-  // bottom-up to pull the chain back inside the plot. Labels shift away from
-  // their node's center only as far as the collision requires.
+  // LOCAL MODIFICATION: side labels collide when a dominant node (Asia, ~87%)
+  // squeezes the rest of its column to a few px each. Greedy de-overlap per
+  // side: sweep top-down pushing label blocks apart, then bottom-up to pull
+  // the chain back inside the plot.
   const labelCenterYByIndex = useMemo(() => {
     const result = new Map<number, number>();
     const sideOf = (node: (typeof nodes)[number]): LabelSide => {
@@ -520,9 +517,8 @@ export function SankeyNode({
 
         const isConnected = isNodeConnected(index);
         const isFaded = isAnyHovered && !isConnected;
-        // LOCAL MODIFICATION: side from the node's column, not its x-position
-        // (identical result for two-column charts). x-position stays the tie
-        // breaker when d3 reports no depth.
+        // LOCAL MODIFICATION: side from the node's column (see `LabelSide`),
+        // falling back to x-position when d3 reports no depth.
         const depth = node.depth;
         let labelSide: LabelSide;
         if (depth === undefined) {

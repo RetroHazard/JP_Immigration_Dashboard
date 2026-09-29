@@ -1,10 +1,7 @@
-// src/utils/categoryMixTree.ts
 // Shared hierarchy for the Category Mix views: all applications → application
 // type → bureau, built from new submissions in the selected window. Used by
-// the zoomable treemap (active), the sunburst (registry-ready alternate), and
-// the `mixByBureau` table builder in utils/chartTables.ts — the table reads the
-// tree rather than re-deriving it, so it cannot disagree with the chart above
-// it.
+// the treemap, the sunburst alternate, and the `mixByBureau` table builder in
+// utils/chartTables.ts, which reads the tree so it cannot disagree with the chart.
 import { applicationOptions, applicationTypeColor } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
 import { STATUS_CODES } from '../constants/statusCodes';
@@ -13,8 +10,8 @@ import type { ChartRange } from './selectors';
 import { breakdownScopeFromFilter, getAllMonths, monthsForRange, selectData } from './selectors';
 
 export interface MixLeaf {
-  /** Bureau code. The bureau's display name used to live here, which made the
-   *  treemap's animation keys change with the UI language. */
+  /** Bureau code, not display name, so the treemap's animation keys don't
+   *  change with the UI language. */
   code: string;
   value: number;
 }

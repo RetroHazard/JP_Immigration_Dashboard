@@ -187,9 +187,8 @@ const SankeyChartCore = memo(function SankeyChartCore({
 
   /**
    * LOCAL MODIFICATION: tap-to-pin on touch devices. The tooltip is positioned
-   * from `mousePos`, which only `handleMouseMove` used to set — so the tap
-   * position is recorded on `pointerdown`, which still reaches this element
-   * even though node and link taps stop their click from bubbling.
+   * from `mousePos`, so the tap position is recorded on `pointerdown`, which
+   * still bubbles here when node and link taps stop their click.
    * (Re-apply after a re-vendor.)
    */
   const coarsePointer = useCoarsePointer();

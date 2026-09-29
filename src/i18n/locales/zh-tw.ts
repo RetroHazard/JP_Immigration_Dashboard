@@ -1,34 +1,16 @@
-// src/i18n/locales/zh-tw.ts
-// Traditional Chinese (Taiwan/Hong Kong) catalogue — complete coverage of the
-// English source.
-//
-// Conventions, kept deliberately consistent so the file reads as one voice:
-//
-// - Concise, label-style phrasing for anything that names a control: buttons,
-//   tabs, filter labels, column headers, stat-tile titles. Fuller sentences
-//   for anything that speaks to the reader: explanatory prose, warnings,
-//   empty and error states.
-// - Japan's own immigration terminology, written in Traditional characters:
+// Traditional Chinese (Taiwan/Hong Kong) conventions:
+// - Concise label phrasing (buttons, tabs, filters, column headers, stat-tile
+//   titles); fuller sentences for text addressed to the reader (prose,
+//   warnings, empty and error states).
+// - Japan's own immigration terminology in Traditional characters:
 //   出入國在留管理廳, 出入國在留管理局, 在留資格, 分局 for a 支局. Application
 //   types keep the agency's own procedure names.
-// - Full-width punctuation for CJK prose (：（）、。), no space between a
-//   number and a Chinese unit.
-// - Chinese has a single CLDR plural category, so plural families define only
-//   their `_other` member. `Intl.PluralRules('zh-TW')` never selects anything
-//   else, and translate.ts falls back to `_other` regardless.
-//
-// A few values are intentionally identical to English: `nav.version` is a
-// version number, and `bureau.*.short` are IATA-style codes that stay Latin
-// in every language (see the note in en.ts). `map.areaValue` and
-// `map.densityValue` carry nothing but an SI unit symbol.
-//
-// Prefecture and bureau names are genuinely translated rather than
-// romanized: Japanese place names use the same or near-identical characters
-// in Traditional Chinese (北海道, 東京), so the convention is to use that
-// Traditional Chinese form directly rather than the English romanization —
-// e.g. 廣島, not "Hiroshima". Where Japanese shinjitai forms exist (広→廣,
-// 神奈川県 の 県→縣, 沖縄→沖繩), this file uses the Traditional Chinese form,
-// not a literal copy of the Japanese orthography.
+// - Prefecture and bureau place names in their Traditional Chinese form, not
+//   romanized and not copied from Japanese shinjitai: 廣島, not "Hiroshima";
+//   広→廣, 県→縣, 沖縄→沖繩.
+// - Full-width punctuation for CJK prose (：（）、。), and a space between a
+//   number and a Chinese unit: {count} 個月, 受理 {count} 件.
+// - One CLDR plural category, so plural families define only `_other`.
 import type { Dictionary } from '../types';
 
 export const zhTw: Dictionary = {
@@ -41,9 +23,7 @@ export const zhTw: Dictionary = {
   'app.retry': '重試',
 
   // ── Document metadata ────────────────────────────────────────────────────
-  // Read at module scope by src/app/layout.tsx. The static export prerenders
-  // one HTML document, so these can't vary per visitor — they live here to
-  // keep one source of truth, and to be ready for per-locale routes.
+  // Not rendered yet: the static export prerenders one English document.
   'meta.title': '日本入國管理統計儀表板',
   'meta.description':
     '簽證審查期間、各出入國管理局的工作量、在留外國人數的變化趨勢，以及針對您個人申請的排隊模型預估——根據出入國在留管理廳的官方統計資料建置，並隨 e-Stat 發布新資料更新。',
@@ -316,8 +296,8 @@ export const zhTw: Dictionary = {
   'policy.act2026.description': '2026年修訂法提高了在留許可手續費的法定上限。',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
-  // Compact per-type series names. Deliberately separate from
-  // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
+  // Series names for the wrapping legend, so these can be fuller than the
+  // Sankey's `appType.*.compact` forms.
   'chart.types.series.acquisition': '資格取得',
   'chart.types.series.extension': '期間更新',
   'chart.types.series.change': '資格變更',
@@ -365,8 +345,7 @@ export const zhTw: Dictionary = {
   'chart.efficiency.quadrantFallingBehind': '高受理量・處理進度落後',
 
   // ── Chart: Regional Map ──────────────────────────────────────────────────
-  // The bureau labels already end in 出入國在留管理局／分局, so these carry no
-  // suffix of their own — appending one would repeat the office type.
+  // Bureau names already end in 出入國在留管理局／分局, so these add no suffix.
   'map.bureauMarkerAria': '{bureau}',
   'map.airportMarkerAria': '{bureau}',
   'map.bureauSuffix': '{bureau}',
@@ -412,11 +391,9 @@ export const zhTw: Dictionary = {
   'footer.dataUpdated': '資料更新於 {date}',
 
   // ── Domain: immigration bureaus ──────────────────────────────────────────
-  // Full official office names, in Traditional Chinese: the eight regional
-  // 出入國在留管理局 plus seven branch offices (支局 → 分局). `.short` stays
-  // Latin (IATA codes). `.compact` is the place name alone, for the surfaces
-  // that measure in pixels — without it every Tokyo-family office truncates
-  // to the same 「東京出入國在留」.
+  // Full official office names. `.short` stays Latin (IATA codes). `.compact`
+  // is the place name alone for pixel-limited surfaces, where every
+  // Tokyo-family office would otherwise truncate to 「東京出入國在留」.
   'bureau.all': '全國',
   'bureau.all.short': 'ALL',
   'bureau.all.compact': '全國',
@@ -467,10 +444,9 @@ export const zhTw: Dictionary = {
   'bureau.101740.compact': '那霸',
 
   // ── Domain: application types ────────────────────────────────────────────
-  // The agency's own procedure names, in Traditional Chinese. `.short` uses
-  // two-character forms a Chinese reader can scan on a stat tile, rather than
-  // the Latin codes English uses, which would carry no meaning; `.compact` is
-  // the narrow Sankey's one-word form.
+  // The agency's own procedure names. `.short` is a two-to-three character form
+  // for the stat tile, where Latin codes would mean nothing to a Chinese
+  // reader; `.compact` is the narrow Sankey's one-word form.
   'appType.all': '所有類型',
   'appType.all.short': '全類型',
   'appType.all.compact': '全部',
@@ -494,11 +470,9 @@ export const zhTw: Dictionary = {
   'appType.60.compact': '永住',
 
   // ── Domain: prefectures ──────────────────────────────────────────────────
-  // Keyed by JIS prefecture code (1 Hokkaido … 47 Okinawa), written with the
-  // Traditional Chinese convention for Japanese prefectures: 都 for Tokyo,
-  // 府 for Kyoto and Osaka, 縣 (not the Japanese shinjitai 県) for the
-  // remaining prefectures, and no suffix for Hokkaido since 道 is already
-  // part of its name.
+  // Keyed by JIS prefecture code (1 Hokkaido … 47 Okinawa). Suffixes: 都 for
+  // Tokyo, 府 for Kyoto and Osaka, 縣 (not the Japanese 県) for the rest, and
+  // none for Hokkaido, whose 道 is part of its name.
   'prefecture.1': '北海道',
   'prefecture.2': '青森縣',
   'prefecture.3': '岩手縣',
@@ -549,17 +523,11 @@ export const zhTw: Dictionary = {
 
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.label': '資料集',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.aria': '選擇要查看的資料集',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing': '在留審查辦理',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing.compact': '審查辦理',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents': '在留外國人人口',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents.compact': '在留外國人',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': '目前無法載入在留外國人資料。',
   'charts.growth.label': '在留人口成長',
   'charts.growth.description': '按半年顯示外國居民總數,可依居留目的或世界區域堆疊。',

@@ -1,4 +1,3 @@
-// src/components/FilterPanel.tsx
 import { Plane, RotateCcw } from 'lucide-react';
 import type React from 'react';
 

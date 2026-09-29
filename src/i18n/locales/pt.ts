@@ -1,10 +1,5 @@
-// src/i18n/locales/pt.ts
-// Portuguese (European, pt-PT) overrides. Complete: every key English defines
-// has a translation here.
-//
-// Portuguese uses the CLDR `one` / `other` plural categories for pt-PT (only
-// the exact value 1 selects `one`), the same shape as English, so every
-// plural family below carries both members.
+// European Portuguese (pt-PT). Plural families carry both `_one` and
+// `_other`, as in English: only exactly 1 selects `one`.
 import type { Dictionary } from '../types';
 
 export const pt: Dictionary = {
@@ -18,9 +13,7 @@ export const pt: Dictionary = {
   'app.retry': 'Tentar novamente',
 
   // ── Document metadata ────────────────────────────────────────────────────
-  // Read at module scope by src/app/layout.tsx. The static export prerenders
-  // one HTML document, so these can't vary per visitor — they live here to
-  // keep one source of truth, and to be ready for per-locale routes.
+  // Not rendered yet: the static export prerenders one English document.
   'meta.title': 'Painel de Estatísticas de Imigração do Japão',
   'meta.description':
     'Tempos de processamento de vistos, carga de trabalho dos gabinetes, evolução da população residente estrangeira e um estimador baseado num modelo de fila para a sua candidatura - construído com estatísticas oficiais da Agência de Serviços de Imigração, atualizado à medida que o e-Stat publica novos dados.',
@@ -322,8 +315,8 @@ export const pt: Dictionary = {
   'policy.act2026.description': 'A revisão de 2026 aumentou o limite legal das taxas de residência.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
-  // Compact per-type series names. Deliberately separate from
-  // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
+  // Series names for the wrapping legend, so these can be fuller than the
+  // Sankey's `appType.*.compact` forms.
   'chart.types.series.acquisition': 'Aquisição',
   'chart.types.series.extension': 'Prorrogação',
   'chart.types.series.change': 'Mudança de Estatuto',
@@ -416,8 +409,7 @@ export const pt: Dictionary = {
   'footer.dataUpdated': 'dados atualizados em {date}',
 
   // ── Domain: immigration bureaus ──────────────────────────────────────────
-  // Keyed by e-Stat bureau code. `.short` is the terminal-style abbreviation
-  // shown on the stat tiles; leave it as the Latin code in most languages.
+  // Keyed by e-Stat bureau code. `.short` stays Latin (IATA-style codes).
   'bureau.all': 'Nacional',
   'bureau.all.short': 'TODOS',
   'bureau.all.compact': 'Nacional',
@@ -544,17 +536,11 @@ export const pt: Dictionary = {
 
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.label': 'Conjunto de dados',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.aria': 'Escolha o conjunto de dados a explorar',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing': 'Tratamento de pedidos',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing.compact': 'Tratamento',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents': 'População estrangeira residente',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents.compact': 'Residentes',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': 'Os dados da população estrangeira residente não estão disponíveis de momento.',
   'charts.growth.label': 'Crescimento da População',
   'charts.growth.description':

@@ -1,22 +1,13 @@
-// The row builder carries all of this chart's arithmetic. It is tested on its
-// own because visx sizes itself from a real layout, which jsdom cannot give it
-// — a rendered chart proves nothing about the numbers (see the note at the top
-// of CategoryMixTreemap.tap.test.tsx).
+// The row builder carries all of this chart's arithmetic, so it is tested on
+// its own: a rendered chart proves nothing about the numbers (see the note at
+// the top of CategoryMixTreemap.tap.test.tsx). Expected labels are read from
+// the English catalogue, so rewording a string doesn't break the test.
 //
-// Expected label text is read out of the English catalogue rather than
-// repeated, so rewording a string doesn't break the test — only removing the
-// key does.
-//
-// Policy markers are positioned by `xScale(date)` with no clamping and sit
-// outside the reveal clip, so an event outside the plotted window would draw
-// over the axis gutter or past the right edge. The window filter is therefore
-// the behaviour worth pinning down, along with markers staying free of links.
-//
-// The chart's SVG never renders here: ParentSize measures 0x0 under jsdom and
-// the shell bails out below 10x10, so there are no marker circles to query.
-// The event list is built from the same filtered array the markers are, which
-// makes it the assertable projection of that array; the marker objects
-// themselves are checked through the hook. The circles are a browser check.
+// Policy markers are placed by `xScale(date)` unclamped and outside the reveal
+// clip, so an out-of-window event would draw over the axis gutter; the window
+// filter is what these tests pin. The SVG never renders under jsdom (ParentSize
+// measures 0x0), so the event list, built from the same filtered array, stands
+// in for the circles, and the marker objects are checked through the hook.
 import { describe, expect, it } from 'vitest';
 import { fireEvent } from '@testing-library/react';
 
@@ -121,8 +112,8 @@ describe('buildIntakeRows', () => {
     expect(rows[0]?.approvalRate).toBe(50);
   });
 
-  // NaN and Infinity are both `typeof "number"`, so Line would place either at
-  // pixel 0 — a spike to the top of the plot rather than a gap.
+  // NaN and Infinity pass a `typeof` check, and Line plots either at pixel 0:
+  // a spike to the top of the plot rather than a gap.
   it('reports a finite zero rate for a month with nothing processed', () => {
     const rows = rowsFor(month('2025-05', { pending: 100, received: 50, processed: 0, granted: 0, denied: 0, other: 0 }));
     expect(rows[0]?.approvalRate).toBe(0);
@@ -242,11 +233,9 @@ const MarkerProbe: React.FC<{ events: readonly PolicyEvent[]; periods: string[] 
 };
 
 describe('marker links', () => {
-  // Markers are annotation, not navigation. Making only the unshared ones
-  // clickable meant two identical circles behaved differently with nothing to
-  // say which was which, so none of them link now — and because the tooltip
-  // derives its clickable arrow from `onClick || href`, keeping href off is
-  // also what stops that arrow coming back.
+  // Markers are annotation, not navigation: none link, so identical circles
+  // behave alike. The tooltip derives its clickable arrow from
+  // `onClick || href`, so keeping href off also keeps that arrow away.
   it.each([
     ['processing', POLICY_EVENTS, MONTHS],
     ['residents', RESIDENT_EVENTS, RESIDENT_PERIODS],
@@ -287,9 +276,8 @@ describe('event data', () => {
   it('never puts more events on one period than the tooltip can list', () => {
     // With fan={false} on both charts the crosshair tooltip is the only
     // in-chart reading of a shared month, and it lists two markers
-    // (MAX_TOOLTIP_MARKERS in bklit/charts/markers/chart-markers.tsx) before
-    // truncating to a non-interactive '+N more…' with nothing behind it. A
-    // third event on one period needs that limit raised in the same change.
+    // (MAX_TOOLTIP_MARKERS in bklit/charts/markers/chart-markers.tsx) before a
+    // bare '+N more…'. A third event on one period needs that limit raised.
     for (const events of [POLICY_EVENTS, RESIDENT_EVENTS]) {
       const byPeriod = new Map<string, number>();
       for (const event of events) byPeriod.set(event.period, (byPeriod.get(event.period) ?? 0) + 1);

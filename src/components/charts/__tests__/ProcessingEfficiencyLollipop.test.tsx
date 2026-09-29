@@ -1,6 +1,6 @@
 // The lollipop's rows are focusable, so a mouse click focuses one as well as
-// hovering it. That made an unconditional `onFocus` yank the hover card from
-// the cursor to the row's top edge on every click — the behaviour under test.
+// hovering it. An unconditional `onFocus` would yank the hover card from the
+// cursor to the row's top edge on every click; that is what's under test.
 import { afterEach, describe, expect, it } from 'vitest';
 import { fireEvent } from '@testing-library/react';
 
@@ -54,8 +54,8 @@ describe('hover devices keep the card on the cursor', () => {
   });
 
   it('does not re-anchor when a click focuses the row', () => {
-    // Regression: onFocus used to fire for a mouse click too, moving the card
-    // to the row's top edge — which jsdom reports as 0, clamped to 96.
+    // A re-anchor would move the card to the row's top edge, which jsdom
+    // reports as 0, clamped to 96.
     renderChart(false);
     fireEvent.pointerMove(row('Shinagawa'), { clientX: 250, clientY: 300 });
     expect(card()?.style.top).toBe('300px');

@@ -1,6 +1,5 @@
-// Bar width and reveal-clip padding for ComposedChart's SeriesBar. Both are
-// pure and both feed geometry that is otherwise only observable in a real
-// browser layout, which is what makes them worth pinning here.
+// Bar width and reveal-clip padding for ComposedChart's SeriesBar, pinned here
+// because the geometry they feed is otherwise only observable in a browser.
 import { describe, expect, it } from 'vitest';
 
 import { computeSeriesBarRevealClipPadding, computeSeriesBarWidth } from '../series-bar-layout';

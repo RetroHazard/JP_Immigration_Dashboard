@@ -1,20 +1,18 @@
-// src/constants/residenceStatuses.ts
 // Identity-only table for the e-Stat `cat01` (在留資格) dimension of the
 // Foreign Residents table (0004019020). Display names live in the catalogue
-// under `status.<value>` and are joined in by `useResidenceStatusOptions`
-// (src/i18n/useDomainLabels.ts), same as every other domain constant here.
+// under `status.<value>`, joined in by `useResidenceStatusOptions`
+// (src/i18n/useDomainLabels.ts).
 //
-// The hierarchy below is CORRECTED, not copied from the payload's
+// The hierarchy below is corrected, not copied from the payload's
 // `@parentCode` metadata, which is wrong in two ways:
 //
 //   1. 技能実習 1号イ…3号ロ (1300-1350) are published with
 //      `@parentCode: '1260'` (特定技能合計). Their real parent is 1290
-//      (技能実習合計). Taking e-Stat at its word puts the Technical Intern
-//      Training sub-statuses inside Specified Skilled Worker, which roughly
-//      triples that category and empties the other.
+//      (技能実習合計); taken as published, they would land inside Specified
+//      Skilled Worker.
 //   2. 永住者 / 日本人の配偶者等 / 永住者の配偶者等 / 定住者 / 特別永住者
-//      (1430-1470) carry no `@parentCode` at all, though they are level-2
-//      members of 総数 like every other top-level status.
+//      (1430-1470) carry no `@parentCode`, though they are level-2 members of
+//      総数 like every other top-level status.
 
 export type StatusGroup = 'work' | 'training' | 'study' | 'family' | 'residency' | 'other';
 
@@ -31,13 +29,6 @@ export interface ResidenceStatus {
   isAggregate?: boolean;
   /** Coarse family used as the middle ring of the status-mix hierarchy. */
   group: StatusGroup;
-  /**
-   * Statuses that were abolished or merged partway through the 2012-2025
-   * span, so their series legitimately stops rather than going to zero:
-   * 投資・経営 became 経営・管理, and 技術 + 人文知識・国際業務 merged into
-   * 技術・人文知識・国際業務, both in 2015.
-   */
-  legacy?: boolean;
 }
 
 /** The 総数 row. Derivable from the leaves, so it is never shipped. */
@@ -54,14 +45,14 @@ export const residenceStatuses: ResidenceStatus[] = [
   { value: '1100', parent: '1080', group: 'work' }, // 高度専門職1号ロ
   { value: '1110', parent: '1080', group: 'work' }, // 高度専門職1号ハ
   { value: '1120', parent: '1080', group: 'work' }, // 高度専門職2号
-  { value: '1130', parent: '1010', group: 'work', legacy: true }, // 投資・経営 (→ 経営・管理, 2015)
+  { value: '1130', parent: '1010', group: 'work' }, // 投資・経営 (→ 経営・管理, 2015)
   { value: '1140', parent: '1010', group: 'work' }, // 経営・管理
   { value: '1150', parent: '1010', group: 'work' }, // 法律・会計業務
   { value: '1160', parent: '1010', group: 'work' }, // 医療
   { value: '1170', parent: '1010', group: 'work' }, // 研究
   { value: '1180', parent: '1010', group: 'work' }, // 教育
-  { value: '1190', parent: '1010', group: 'work', legacy: true }, // 技術 (→ 技術・人文知識・国際業務, 2015)
-  { value: '1200', parent: '1010', group: 'work', legacy: true }, // 人文知識・国際業務 (同上)
+  { value: '1190', parent: '1010', group: 'work' }, // 技術 (→ 技術・人文知識・国際業務, 2015)
+  { value: '1200', parent: '1010', group: 'work' }, // 人文知識・国際業務 (同上)
   { value: '1210', parent: '1010', group: 'work' }, // 技術・人文知識・国際業務
   { value: '1220', parent: '1010', group: 'work' }, // 企業内転勤
   { value: '1230', parent: '1010', group: 'work' }, // 介護

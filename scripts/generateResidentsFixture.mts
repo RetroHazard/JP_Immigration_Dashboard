@@ -1,16 +1,10 @@
-// scripts/generateResidentsFixture.mts
 // Deterministic e-Stat-shaped fixture for the Foreign Residents table
 // (0004019020), so local dev and forked CI can build without ESTAT_APP_ID.
 //
-// Unlike scripts/generate-fixture.mjs — which inlines its bureau codes — this
-// one imports the real code lists from src/constants. There are 245 of them
-// across the two axes, and a fixture that drifted from the constants would
-// exercise a hierarchy the transform never actually sees.
-//
-// It mirrors e-Stat's semantics rather than only the leaves it ships: the
-// rollup rows (総数 and the three 合計) and the nested 「うち」 rows are all
-// emitted and are exactly consistent with the leaves, which is what lets
-// verifyResidentTotals do real work against the fixture.
+// Imports the real code lists from src/constants rather than inlining them, so
+// the fixture exercises the hierarchy the transform actually sees. The rollup
+// rows (総数 and the three 合計) and nested 「うち」 rows are emitted exactly
+// consistent with the leaves, so verifyResidentTotals has real work to do.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
@@ -72,8 +66,7 @@ const STATUS_SCALE: Record<string, number> = {
 
 /**
  * When a status or nationality series runs, as [firstPeriod, lastPeriod]
- * indices into PERIODS. This is what gives the fixture the same
- * discontinuities the real table has, so charts get exercised against them.
+ * indices into PERIODS, so charts meet the real table's discontinuities.
  */
 const SPLIT_2015 = periodIndex({ year: 2015, month: 12 });
 const RANGES: Record<string, [number, number]> = {
@@ -83,7 +76,7 @@ const RANGES: Record<string, [number, number]> = {
   '1200': [0, SPLIT_2015 - 1],
   '1140': [SPLIT_2015, PERIODS.length - 1],
   '1210': [SPLIT_2015, PERIODS.length - 1],
-  // 介護 (2017), 特定技能 (2019), 高度専門職 (2015-ish).
+  // 介護 (2017), 特定技能1号 (2019), 特定技能2号 (2021).
   '1230': [periodIndex({ year: 2017, month: 6 }), PERIODS.length - 1],
   '1270': [periodIndex({ year: 2019, month: 6 }), PERIODS.length - 1],
   '1280': [periodIndex({ year: 2021, month: 12 }), PERIODS.length - 1],

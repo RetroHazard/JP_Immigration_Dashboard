@@ -216,9 +216,11 @@ text children, and a `no-restricted-syntax` rule catches string literals in
 
 563 keys, covering the whole interface, in twelve languages all marked
 `complete`. English, French, German, Italian, Portuguese, Spanish, and
-Tagalog (`fil-PH`) all inflect for plural count, so they cover the full 563
-— Tagalog's CLDR `one` rule matches a count of 0 as well as 1, unlike the
-others' "exactly 1." Japanese, Korean, Chinese (`zh-CN` and `zh-TW`), and
+Tagalog (`fil-PH`) all inflect for plural count, so they cover the full 563.
+The `one` rules differ: English, German, Italian, Portuguese and Spanish select
+it for exactly 1, French for 0 and 1, and Tagalog for every count not ending in
+4, 6 or 9 (so 2, 3, 5, 11… too), which is why Tagalog's `_one` strings have to
+read naturally for any count. Japanese, Korean, Chinese (`zh-CN` and `zh-TW`), and
 Vietnamese have a single CLDR plural category and owe only the `_other`
 member of each pair, 557 keys.
 

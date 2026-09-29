@@ -1,11 +1,7 @@
-// src/i18n/useDomainLabels.ts
-// Joins the identity-only domain constants to their catalogue text.
-//
-// The constants deliberately carry no display strings: `t()` is bound to the
-// provider, so a module-level array can't call it, and keeping a second copy
-// of the names next to the codes is how the app ended up with three divergent
-// spellings of the application types. These hooks are the one place the two
-// halves meet.
+// Joins the identity-only domain constants to their catalogue text. The
+// constants carry no display strings: `t()` is bound to the provider, so a
+// module-level array can't call it, and a second copy of the names beside the
+// codes drifts. These hooks are the one place the two halves meet.
 'use client';
 
 import { useMemo } from 'react';
@@ -58,7 +54,7 @@ export interface LabeledResidenceStatus extends ResidenceStatus {
  * into one shape the shell could no longer narrow.
  */
 export type LabeledChart = ChartDefinition & {
-  /** Canonical display name, used by the tab AND the card header. */
+  /** Canonical display name, used by the tab and the card header. */
   label: string;
   /** One sentence: what question this chart answers. */
   description: string;
@@ -122,7 +118,7 @@ export const useBureauLabel = (): ((code: string) => string) => {
 };
 
 /**
- * `(code) => short name`, for the surfaces that measure in pixels rather than
+ * `(code) => compact name`, for the surfaces that measure in pixels rather than
  * words: the efficiency chart's label column, the ring-chart legend, and the
  * treemap's on-tile label. Same fallback as `useBureauLabel`.
  */
@@ -178,13 +174,11 @@ export const usePrefectureById = (): ((id: number) => LabeledPrefecture | undefi
   }, [prefectures]);
 };
 
-
 // ── Foreign Residents dataset ──────────────────────────────────────────────
-// Country and continent names come from ICU rather than the catalogue. There
-// are 202 of them across twelve locales, and every one is a name the platform
-// already knows how to render — hand-maintaining 2,400 strings would be worse
-// translations, not better ones. Only the rows with no ISO/M49 identity
-// (朝鮮, 韓国・朝鮮, the dissolved states, 無国籍) carry a catalogue key.
+// Country names come from ICU, which already renders all ~200 of them in every
+// locale; hand-maintained copies would be worse translations. Only the rows
+// with no ISO identity (朝鮮, 韓国・朝鮮, the dissolved states, 無国籍) and the
+// continent rollups (see `useRegionLabel`) carry a catalogue key.
 
 /**
  * A locale-bound `Intl.DisplayNames`, or null when the runtime cannot build
@@ -243,8 +237,8 @@ export const useNationalityOptions = (): LabeledNationality[] => {
 
 /**
  * `(code) => continent name`. The six continent rollups map to UN M49 codes,
- * which ICU localizes exactly like country codes; 無国籍 has no M49 equivalent
- * and comes from the catalogue.
+ * tried in ICU first; Chrome and Edge have no names for them, so the catalogue
+ * names every continent (see `region.*` in en.ts). 無国籍 has no M49 code.
  */
 export const useRegionLabel = (): ((code: string) => string) => {
   const { t } = useLocale();

@@ -1,4 +1,3 @@
-// src/utils/dataTransform.ts
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { type EStatData, type EStatValue, makeCorrectedAccessor } from './correctBureauAggregates';
 
@@ -27,15 +26,11 @@ function normalizeValues(rawData: RawData) {
 }
 
 /**
- * Validates and parses the @time field from e-Stat data
- * Expected format: YYYYMMDD (e.g., "20250707")
- * Returns: YYYY-MM format (e.g., "2025-07")
- *
- * Exported because the Foreign Residents table encodes @time the same way
- * (`2025001212` -> `2025-12`) and reuses this rather than restating it.
+ * Validates and parses an e-Stat @time code: `2025000707` -> `2025-07` (year
+ * from characters 0-3, month from 8-9). Exported because the Foreign Residents
+ * table encodes @time the same way (`2025001212` -> `2025-12`).
  */
 export function validateAndParseMonth(timeStr: string): string {
-  // Validate format and length
   if (!timeStr || timeStr.length < 10) {
     throw new Error(`Invalid @time format: "${timeStr}" (expected YYYYMMDD with at least 10 characters)`);
   }
@@ -43,12 +38,10 @@ export function validateAndParseMonth(timeStr: string): string {
   const year = timeStr.substring(0, 4);
   const month = timeStr.substring(8, 10);
 
-  // Validate year and month are numeric
   if (!/^\d{4}$/.test(year) || !/^\d{2}$/.test(month)) {
     throw new Error(`Invalid @time components: year="${year}", month="${month}" (expected numeric values)`);
   }
 
-  // Validate month range (01-12)
   const monthNum = parseInt(month, 10);
   if (monthNum < 1 || monthNum > 12) {
     throw new Error(`Invalid month: ${month} (must be 01-12)`);
@@ -68,10 +61,9 @@ export const transformData = (rawData: RawData): ImmigrationData[] => {
   const result: ImmigrationData[] = [];
 
   for (const entry of values) {
-    // Validate and parse month with proper error handling
     const month = validateAndParseMonth(entry['@time']);
 
-    // IMPORTANT: include ALL '@' attrs present on the entry (e.g., '@tab', '@cat01', '@cat02', '@cat03', '@time', etc.)
+    // Include every '@' attribute ('@tab' too): the accessor keys its lookup on all of them.
     const coord: Partial<EStatValue> = {};
     Object.keys(entry).forEach((k) => {
       if (k.startsWith('@') && k !== '@unit') {
@@ -81,13 +73,9 @@ export const transformData = (rawData: RawData): ImmigrationData[] => {
     });
 
     if (isBranchDataIncomplete(coord)) {
-      // This is an aggregate bureau (e.g. Osaka) for a period where a branch
-      // office (e.g. Kobe) hasn't published its own figures yet. The parent
-      // total still includes the branch's applications, so it can't be
-      // safely deaggregated. Skip it for now rather than showing an inflated
-      // value that would silently drop once the branch catches up -
-      // downstream consumers already treat "no data for this month" as
-      // pending/estimate-only.
+      // An aggregate bureau (e.g. Osaka) whose branch office (e.g. Kobe) hasn't
+      // published this period cannot be deaggregated yet. Skip it rather than
+      // ship an inflated value; consumers already treat a missing month as pending.
       console.warn(
         `⚠️  Skipping aggregate bureau entry pending branch data`,
         `\n  Month: ${month}`,
@@ -101,7 +89,6 @@ export const transformData = (rawData: RawData): ImmigrationData[] => {
     const corrected = getCorrectedValue(coord);
     const original = parseInt(entry['$']);
 
-    // Track NaN fallbacks for monitoring
     let finalValue: number;
     if (Number.isNaN(corrected)) {
       console.warn(

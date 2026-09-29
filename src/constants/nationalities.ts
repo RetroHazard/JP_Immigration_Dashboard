@@ -1,13 +1,10 @@
-// src/constants/nationalities.ts
 // Identity-only table for the e-Stat `cat02` (国籍・地域) dimension of the
-// Foreign Residents table (0004019020). Display names deliberately live
-// elsewhere, same as applicationOptions/bureauOptions: `useNationalityLabel`
-// (src/i18n/useDomainLabels.ts) resolves `iso2` through Intl.DisplayNames so
-// all 13 locales get country names for free, and falls back to the
-// `nationality.<value>` catalogue key for the handful of rows below that have
-// no ISO identity.
+// Foreign Residents table (0004019020). Display names come from
+// `useNationalityLabel` (src/i18n/useDomainLabels.ts): `iso2` through
+// Intl.DisplayNames, falling back to the `nationality.<value>` catalogue key
+// for rows with no ISO identity.
 //
-// The `@parentCode`/`@level` metadata in the payload is NOT used to build this
+// The payload's `@parentCode`/`@level` metadata is not used to build this
 // table — see `isSubset` below for why.
 
 export interface Nationality {
@@ -24,20 +21,11 @@ export interface Nationality {
   /** Continent grouping (`region.<code>` in the catalogue). */
   region: string;
   /**
-   * True for rows CONTAINED IN another row, which would double-count if
+   * True for rows contained in another row, which would double-count if
    * summed: うち中国〔香港〕/〔その他〕 sit inside 中国, and うち英国〔香港〕
-   * inside 英国. Verified numerically — with these three excluded the leaves
-   * sum to the published 総数 exactly, and including them overshoots it.
+   * inside 英国. Without these three the leaves sum to the published 総数.
    */
   isSubset?: boolean;
-  /**
-   * A series that stops (or starts) partway through the 2012-2025 span
-   * because the reporting category changed. 韓国・朝鮮 is the pre-2015 combined
-   * Korea series: it runs 2012-12 to 2015-06, and 韓国 + 朝鮮 take over from
-   * 2015-12. The two never overlap, so this is a discontinuity for charts to
-   * render as a gap — NOT a subset to exclude from sums.
-   */
-  legacy?: boolean;
 }
 
 /** The nationwide 総数 row. Derivable from the leaves, so it is never shipped. */
@@ -60,23 +48,20 @@ export const NATIONALITY_ROLLUP_REGIONS = [
 export const STATELESS = '7000';
 
 /**
- * Buckets the UI groups nationalities into. Same as the rollups above plus
- * 無国籍, which e-Stat publishes at region level but with no members — it is a
- * leaf carrying its own figure, not a sum of anything, so it must be kept.
+ * Buckets the UI groups nationalities into: the rollups plus 無国籍, a leaf
+ * carrying its own figure rather than a sum, so it must be kept.
  */
 export const NATIONALITY_REGIONS = [...NATIONALITY_ROLLUP_REGIONS, STATELESS] as const;
 
 /**
- * UN M49 codes for the continent rollups, including e-Stat's 北アメリカ, which
- * spans Central America and the Caribbean and so is M49 003 (the continent)
- * rather than 021 (Northern America). 無国籍 has no M49 equivalent at all.
+ * UN M49 codes for the continent rollups. e-Stat's 北アメリカ spans Central
+ * America and the Caribbean, so it is M49 003 (the continent), not 021
+ * (Northern America). 無国籍 has no M49 equivalent.
  *
- * `useRegionLabel` tries these through Intl.DisplayNames first, but they are
- * not a substitute for catalogue entries: Chrome and Edge ship no display
- * names for M49 macro-regions, so `.of('142')` hands back '142' instead of
- * "Asia" and the label falls through to `region.*`. Node and Firefox do
- * resolve them, which is why this only ever showed up in the browser. Every
- * region therefore has a catalogue entry in all thirteen locales.
+ * `useRegionLabel` tries these through Intl.DisplayNames first, but every
+ * region still needs a `region.*` catalogue entry: Chrome and Edge ship no
+ * names for M49 macro-regions (`.of('142')` returns '142'), though Node and
+ * Firefox do.
  */
 export const REGION_M49: Record<string, string> = {
   '1000': '142', // Asia
@@ -100,7 +85,7 @@ export const nationalities: Nationality[] = [
   { value: '1100', iso2: 'QA', iso3n: 634, region: '1000' }, // カタール
   { value: '1110', iso2: 'KR', iso3n: 410, region: '1000' }, // 韓国
   { value: '1120', iso2: null, iso3n: null, region: '1000' }, // 朝鮮
-  { value: '1130', iso2: null, iso3n: null, region: '1000', legacy: true }, // 韓国・朝鮮 (→ 韓国 + 朝鮮, 2015)
+  { value: '1130', iso2: null, iso3n: null, region: '1000' }, // 韓国・朝鮮 (→ 韓国 + 朝鮮, 2015)
   { value: '1140', iso2: 'KH', iso3n: 116, region: '1000' }, // カンボジア
   { value: '1150', iso2: 'CY', iso3n: 196, region: '1000' }, // キプロス
   { value: '1160', iso2: 'KW', iso3n: 414, region: '1000' }, // クウェート
@@ -179,7 +164,7 @@ export const nationalities: Nationality[] = [
   { value: '2470', iso2: 'MC', iso3n: 492, region: '2000' }, // モナコ
   { value: '2480', iso2: 'MD', iso3n: 498, region: '2000' }, // モルドバ
   { value: '2490', iso2: 'ME', iso3n: 499, region: '2000' }, // モンテネグロ
-  { value: '2500', iso2: null, iso3n: null, region: '2000', legacy: true }, // ユーゴスラヴィア
+  { value: '2500', iso2: null, iso3n: null, region: '2000' }, // ユーゴスラヴィア
   { value: '2510', iso2: 'LV', iso3n: 428, region: '2000' }, // ラトビア
   { value: '2520', iso2: 'LT', iso3n: 440, region: '2000' }, // リトアニア
   { value: '2530', iso2: 'LI', iso3n: 438, region: '2000' }, // リヒテンシュタイン
@@ -303,12 +288,10 @@ export const summableNationalities = nationalities.filter((nationality) => !nati
  * Codes that are the later half of a series that changed identity mid-history,
  * mapped to the code the series ran under before.
  *
- * 韓国・朝鮮 (1130) is published up to 2015-06; from 2015-12 the same
- * population is split into 韓国 (1110) and 朝鮮 (1120). Charts that plot across
- * that boundary have to fold the three back into one series — the alternative
- * is a line that appears to collapse to zero in 2015 and another that appears
- * from nowhere, neither of which happened. Views of a single period leave the
- * codes alone, since only one of them exists in any given period anyway.
+ * 韓国・朝鮮 (1130) is published up to 2015-06; from 2015-12 it is split into
+ * 韓国 (1110) and 朝鮮 (1120). Charts that plot across that boundary fold the
+ * three into one series, so no line falsely drops to zero or appears from
+ * nowhere. Single-period views leave the codes alone.
  */
 export const NATIONALITY_SERIES_KEY: Record<string, string> = {
   '1110': '1130', // 韓国 → 韓国・朝鮮

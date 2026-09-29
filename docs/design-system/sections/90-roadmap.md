@@ -124,7 +124,7 @@ The order matters: repairs first because readers see them today, then the compon
 
 27. **Tables for the residents views (C7).** Give each Resident Population view a table model and CSV, as the processing views have: period by group or region, period by nationality, region and country by group, status by count, country by residents, nationality by change.
 
-28. **Remove dead weight (C8).** Delete the 35 unused `@utility` classes and `.floating-tooltip`. Adopt ToggleGroup (step 8) and the Button icon sizes (step 11), then decide on Badge, Card, Label, Separator, Skeleton and Toggle: use them or remove them. Drop the `tailwindConfig` line from `.prettierrc`; `tailwindStylesheet` already points at src/index.css.
+28. **Remove dead weight (C8).** The 35 unused `@utility` classes and `.floating-tooltip` are deleted (done, v1.6.6). Adopt ToggleGroup (step 8) and the Button icon sizes (step 11), then decide on Badge, Card, Label, Separator, Skeleton and Toggle: use them or remove them. Drop the `tailwindConfig` line from `.prettierrc`; `tailwindStylesheet` already points at src/index.css.
 
 29. **Latent fixes (C9, C10).** Use `text-destructive-foreground` in the Button and Badge destructive variants, and change the gauge label's `text-[length:…]` classes to color classes. Both are vendored files, so record each change in the vendoring ledger.
 

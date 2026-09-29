@@ -186,13 +186,9 @@ type Box = { x0: number; x1: number; y0: number; y1: number };
 
 /**
  * Where the map has ink, as a coarse grid over the content box: for every cell,
- * the centre of the nearest cell that any geometry passes through.
- *
- * Bounding boxes can't answer this. Japan's box is a diagonal rectangle that is
- * mostly sea, and so is the box of an island prefecture like Nagasaki — zoomed
- * in you can sit well inside either and see nothing but water. The grid is
- * built from the projected coastline itself, so "is there map near here" costs
- * one array read.
+ * the centre of the nearest cell that any geometry passes through. A bounding
+ * box can't answer this: Japan's (or Nagasaki's) is mostly sea, so zoomed in
+ * you can sit well inside it and see only water.
  */
 type Occupancy = {
   x0: number;
@@ -211,25 +207,18 @@ type ContentBounds = { outer: Box; occupancy: Occupancy | null };
 
 /**
  * Fraction of the map (or of the viewport, whichever is smaller) that has to
- * stay on screen along each axis.
- *
- * Not an edge lock: the Japan projection deliberately leaves a gap at the top
- * and overflows the bottom, so "content must cover the viewport" is already
- * false at rest and would snap the map on the first drag. Measured across
- * 320-1400px viewports, both charts sit at 0.76 or better when untouched, so
- * 0.6 binds a runaway pan without ever moving a view the user hasn't moved.
+ * stay on screen along each axis. Not an edge lock: the Japan projection leaves
+ * a gap at the top at rest, so a lock would snap the map on the first drag.
+ * Untouched views sit at 0.76 or better (320-1400px), so 0.6 never moves a view
+ * the user hasn't moved.
  */
 const PAN_MIN_VISIBLE = 0.6;
 
 /**
- * How far off-centre the nearest feature is allowed to sit, as a fraction of
- * the viewport. At 0.25 the closest feature always reaches at least a quarter
- * of the way in from an edge, so there is something to look at wherever the
- * view lands.
- *
- * Measured against the viewport in *user* space, so it is slack at low zoom
- * (where the whole map is on screen anyway and the outer box does the work) and
- * only starts to bind once you are zoomed in far enough to lose the map.
+ * How far off-centre the nearest feature may sit, as a fraction of the
+ * viewport: at 0.25 it always reaches at least a quarter of the way in from an
+ * edge. Measured in user space, so it only binds once zoomed in far enough to
+ * lose the map; at low zoom the outer box does the work.
  */
 const CENTER_SLACK = 0.25;
 
@@ -301,12 +290,9 @@ function ringArea(ring: Ring): number {
 }
 
 /**
- * The outer ring of each feature's largest polygon — its main landmass.
- *
- * Anchoring to *any* geometry is too weak: Tokyo owns islets 1,700km out in the
- * Pacific, so "there is map nearby" can be satisfied by a speck too small to
- * see, and the card still reads as empty. One landmass per feature keeps every
- * prefecture reachable while making a view of open sea unreachable.
+ * The outer ring of each feature's largest polygon — its main landmass. Any
+ * geometry would be too weak an anchor: Tokyo owns islets 1,700km out in the
+ * Pacific, too small to see, so a view of open sea would still count as map.
  */
 function mainLandmasses(
   features: FeatureCollection<Geometry, ChoroplethFeatureProperties>["features"],
@@ -403,9 +389,8 @@ function buildOccupancy(
     }
   }
 
-  // ...and the interior, by scanline. Without this a big island is a hollow
-  // outline, and zoomed in far enough the middle of Hokkaido counts as "no map
-  // nearby" — the one place you would most want to be able to look at.
+  // ...and the interior, by scanline, or zoomed in far enough the middle of
+  // Hokkaido counts as "no map nearby".
   const crossings: number[][] = Array.from({ length: rows }, () => []);
   for (const ring of rings) {
     for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
@@ -540,8 +525,7 @@ function makeConstrain(
     }
 
     // ...then hold the map itself inside the box. The two rules bind at
-    // opposite ends of the zoom range, so whichever isn't doing the work here
-    // passes its input straight through.
+    // opposite ends of the zoom range, so one is always a pass-through.
     return {
       ...next,
       translateX: clampTranslate(
@@ -670,8 +654,8 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
   } = useChoroplethInteraction();
   const svgRef = useRef<SVGSVGElement>(null);
 
-  // Native listeners below fire outside React's render cycle, so they read the
-  // live zoom instance from a ref rather than a captured closure.
+  // Native listeners below read the live zoom instance through refs, not a
+  // stale closure.
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
   const constrainRef = useRef(constrain);
@@ -711,11 +695,10 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
       return;
     }
 
-    // The running matrix for the current gesture. Several touchmove events can
-    // land between two React renders, so `zoom.transformMatrix` (a render-time
-    // snapshot) goes stale mid-gesture and each move would compose against the
-    // same base, the later one clobbering the earlier. Composing against our
-    // own accumulator keeps the gesture independent of render timing.
+    // The running matrix for the current gesture. Several touchmoves can land
+    // between renders, so `zoom.transformMatrix` (a render-time snapshot) goes
+    // stale mid-gesture; composing against our own accumulator stops each move
+    // clobbering the last.
     let pinch: {
       distance: number;
       midpoint: { x: number; y: number };
@@ -733,8 +716,7 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
     };
 
     const onTouchStart = (event: TouchEvent) => {
-      // One finger belongs to the page: `touch-action: pan-y` lets the
-      // dashboard scroll straight through the map. Only two fingers drive it.
+      // One finger scrolls the page (`touch-action: pan-y`); two drive the map.
       const instance = zoomRef.current;
       if (!instance || event.touches.length < 2) {
         pinch = null;
@@ -768,10 +750,9 @@ const ChoroplethSvg = memo(function ChoroplethSvg({
         zoomMin,
         zoomMax
       );
-      // Store what the chart will actually commit, not what we asked for: past
-      // the pan bound the two diverge, and an accumulator that kept running off
-      // into the clamped region would leave the reverse pan dead until it caught
-      // back up.
+      // Store what the chart commits, not what we asked for: past the pan bound
+      // they diverge, and an accumulator running on into the clamped region
+      // would leave the reverse pan dead until it caught up.
       const matrix = constrainRef.current?.(proposed, pinch.matrix) ?? proposed;
       instance.setTransformMatrix(matrix);
       pinch = { distance, midpoint, matrix };
@@ -852,11 +833,9 @@ const ChoroplethMercatorContent = memo(function ChoroplethMercatorContent({
   zoomMax,
   initialZoom,
 }: ChoroplethMercatorContentProps) {
-  // Projecting every vertex is by far the most expensive thing this chart does
-  // (the Japan topology is ~21k points across 47 features). It depends only on
-  // the projection and the data — never on the zoom transform, which is applied
-  // as an SVG transform on a wrapper <g> below. Keeping this above <Zoom> is
-  // what stops it from re-running on every pan/pinch frame.
+  // Projecting every vertex is this chart's most expensive work. It depends only
+  // on projection and data (zoom is an SVG transform on a wrapper <g>), so it
+  // stays above <Zoom> and never re-runs per pan/pinch frame.
   const featurePaths = useMemo(
     () =>
       data.features.map((feature) => mercator.path(feature) ?? null) as (
@@ -866,8 +845,8 @@ const ChoroplethMercatorContent = memo(function ChoroplethMercatorContent({
     [data, mercator]
   );
 
-  // Where the projected geometry actually sits, which is what the pan bound is
-  // measured against — the drawn map rarely fills the canvas exactly.
+  // The pan bound is measured against where the projected geometry sits; the
+  // drawn map rarely fills the canvas.
   const contentBounds = useMemo<ContentBounds | null>(() => {
     const measure = mercator.path.bounds;
     if (typeof measure !== "function") {
@@ -887,8 +866,7 @@ const ChoroplethMercatorContent = memo(function ChoroplethMercatorContent({
 
     const outer = boxOf(data);
     if (!outer) {
-      // An empty or degenerate collection has no bounds to speak of; the chart
-      // falls back to visx's scale-only constraint.
+      // Empty or degenerate: fall back to visx's scale-only constraint.
       return null;
     }
     return {
@@ -965,11 +943,10 @@ const ChoroplethMercatorContent = memo(function ChoroplethMercatorContent({
     ]
   );
 
-  // <Zoom> lives *below* the provider on purpose: its transform changes on
-  // every gesture frame, and anything rendered above it is spared that churn.
-  // The feature layer sits in `svgChildren`, whose element identities never
-  // change here, so React skips it entirely while panning — only the <g>
-  // transform, and the zoom-context consumers (tooltip, markers), update.
+  // <Zoom> sits below the stable provider so its per-frame transform re-renders
+  // nothing above it. The feature layer is in `svgChildren`, whose element
+  // identities never change, so while panning only the <g> transform and
+  // zoom-context consumers (tooltip, markers) update.
   const canvas = (zoom: ZoomInstance<SVGSVGElement> | null) => (
     <ChoroplethZoomProvider zoom={zoom}>
       <ChoroplethSvg

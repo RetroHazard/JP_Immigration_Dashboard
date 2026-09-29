@@ -1,14 +1,9 @@
-// src/utils/residentsFlows.ts
 // Flow builder for the three-tier Origins sankey: world region → country →
-// status category, in a single period. The nationality × status
-// cross-tabulation is the one thing in this cube no other view shows; the
-// region tier keys it to geography.
-//
-// A stock figure, so the snapshot picker chooses which period to draw —
-// never a window to sum. Every surviving record feeds exactly one
-// region→country link and one country→group link, so the three tiers and
-// both link sets all conserve the same total, and no link ever skips a tier
-// (which is what keeps d3-sankey's center alignment producing clean columns).
+// status category, in a single period (a stock figure, so the snapshot picker
+// chooses a period; never a window to sum). Every record feeds exactly one
+// region→country and one country→group link, so every tier conserves the same
+// total and no link skips a tier, which keeps d3-sankey's center alignment in
+// clean columns.
 import { nationalityByCode, STATELESS } from '../constants/nationalities';
 import { residenceStatusByCode, STATUS_GROUPS, type StatusGroup } from '../constants/residenceStatuses';
 import type { ResidentRecord } from './residentsData';

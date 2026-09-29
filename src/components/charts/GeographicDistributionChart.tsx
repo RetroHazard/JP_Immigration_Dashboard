@@ -1,8 +1,7 @@
-// src/components/charts/GeographicDistributionChart.tsx
-// Regional Map on Bklit's ChoroplethChart: prefectures shaded by population
-// density on the sequential scale tokens (with a legend - the old map had
-// none), bureau HQ / airport-office markers as constant-size HTML overlay
-// pins, built-in zoom/pan, and a proper tooltip for both layers.
+// Regional Map on Bklit's ChoroplethChart: prefectures in their service
+// bureau's color at a density-driven intensity, bureau HQ / airport-office
+// markers as constant-size HTML overlay pins, built-in zoom/pan, and a tooltip
+// for both layers.
 'use client';
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -47,9 +46,8 @@ const DENSITY_ALPHAS = [0.3, 0.45, 0.6, 0.78, 0.92];
 const bureauByCode = new Map(bureauOptions.map((bureau) => [bureau.value, bureau]));
 
 /**
- * The TopoJSON carries the JIS prefecture code as `properties.id`, which is
- * what we join on — matching on the English `properties.name` would break as
- * soon as prefecture names come from the catalogue.
+ * Joins on the JIS prefecture code the TopoJSON carries as `properties.id`;
+ * its English `properties.name` doesn't match the catalogue's names.
  */
 const prefectureIdOf = (geoFeature: ChoroplethFeature) => Number(geoFeature.properties?.id);
 
@@ -78,9 +76,9 @@ const MARKER_GEOMETRY = bureauOptions
   });
 
 /** Bureau/airport pins: HTML overlay so they stay constant-size across zoom. */
-// Subscribes to the stable and zoom contexts only — never the interaction one.
-// `useChoropleth()` spreads both, which made every prefecture hover re-render
-// and re-project all nine pins.
+// Subscribes to the stable and zoom contexts only. `useChoropleth()` also
+// spreads the interaction one, so every prefecture hover would re-render and
+// re-project all nine pins.
 const BureauMarkers: React.FC = memo(() => {
   const { projectPoint, width, height } = useChoroplethStable();
   const { zoom } = useChoroplethZoom();

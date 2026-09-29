@@ -1,17 +1,8 @@
-// src/utils/estatPayload.ts
-// Is this raw e-Stat payload the whole table?
-//
-// `getStatsData` caps a response at 100,000 rows and reports the continuation
-// offset as RESULT_INF.NEXT_KEY. A short read is not an error condition: it
-// arrives as HTTP 200, valid JSON, complete metadata, every field in place —
-// just missing rows. scripts/fetch-estat-data.mjs pages past the cap and
-// asserts the merged count, but a payload placed by hand never goes through it,
-// and the transform downstream cannot tell "this category is empty" from "these
-// rows were never sent". It reports the shortfall as a reconciliation failure
-// against a hierarchy that is in fact correct, which sends the reader to
-// exactly the wrong file.
-//
-// So the completeness question gets asked here, first and explicitly.
+// Is this raw e-Stat payload the whole table? `getStatsData` caps a response at
+// 100,000 rows (continuation in RESULT_INF.NEXT_KEY), and a short read is a
+// normal HTTP 200 with complete metadata, just missing rows. A payload placed by
+// hand skips scripts/fetch-estat-data.mjs's paging, and the transform can't tell
+// an empty category from unsent rows: it would blame a hierarchy that is correct.
 
 /** A dimension's members, as CLASS_INF declares them. */
 interface ClassEntry {
@@ -54,12 +45,9 @@ const asArray = <T>(value: T | T[] | undefined): T[] =>
 
 /**
  * Reports every way the payload looks incomplete. Empty means it looks whole.
- *
- * Three signals rather than one, because they fail independently: RESULT_INF is
- * conclusive but can be absent depending on the request flags, and the CLASS_INF
- * comparison needs only `metaGetFlg=Y`. On the capture that prompted this, the
- * coverage signal is the one that names the problem outright — cat01 carries 23
- * of the 43 residence statuses the metadata declares.
+ * Three signals because they fail independently: RESULT_INF is conclusive but
+ * can be absent depending on the request flags, while the CLASS_INF comparison
+ * needs only `metaGetFlg=Y`.
  */
 export const checkPayloadComplete = (raw: RawEStatPayload): PayloadProblem[] => {
   const data = raw?.GET_STATS_DATA?.STATISTICAL_DATA;
@@ -87,17 +75,14 @@ export const checkPayloadComplete = (raw: RawEStatPayload): PayloadProblem[] => 
     });
   }
 
-  // When RESULT_INF both exists and agrees, the API has already accounted for
-  // every row and there is nothing left to infer. Checking coverage anyway
-  // would turn a genuinely empty code into a build failure — a code with no
-  // rows is unusual, since e-Stat emits a row per combination including the
-  // zeros, but it is not by itself evidence of a short read.
+  // A RESULT_INF that exists and agrees accounts for every row. Checking
+  // coverage anyway would fail the build on a code with no rows, which is
+  // unusual (e-Stat emits the zeros) but not by itself evidence of a short read.
   const rowCountVerified = problems.length === 0 && typeof totalNumber === 'number';
   if (rowCountVerified) return problems;
 
-  // Otherwise CLASS_INF is the signal that survives: it needs only
-  // `metaGetFlg=Y`, so it works on a payload whose RESULT_INF is absent, and it
-  // names the dimension that is short rather than just the row count.
+  // Otherwise fall back to CLASS_INF, which works without RESULT_INF and names
+  // the dimension that is short rather than just the row count.
   for (const classObj of asArray(data.CLASS_INF?.CLASS_OBJ)) {
     const declared = new Set(asArray(classObj.CLASS).map((entry) => entry['@code']));
     if (declared.size === 0) continue;

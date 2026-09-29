@@ -12,6 +12,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useState,
 } from "react";
@@ -174,13 +175,9 @@ export interface TimeSeriesChartInnerProps {
   onPhaseChange?: (phase: ChartPhase) => void;
   /**
    * LOCAL MODIFICATION: caller-supplied x tick/ticker label format. The
-   * default (shortDateFmt, month + day) collapses half-yearly data to two
-   * distinct labels — every point is a Jun 1 or a Dec 1 — and the axis's
-   * label dedup then drops all but two ticks, none of them carrying a year.
-   * Half-yearly charts pass a month+year formatter instead. Feeds both the
-   * x-axis labels and the tooltip DateTicker, which read the same array.
-   * (scripts/vendor-bklit.mjs would overwrite this file — re-apply after a
-   * re-vendor.)
+   * default (month + day) leaves half-yearly data two distinct labels, neither
+   * with a year, so those charts pass a month+year formatter. Feeds both the
+   * x-axis labels and the tooltip DateTicker. (Re-apply after a re-vendor.)
    */
   formatDateLabel?: (date: Date) => string;
 }
@@ -226,16 +223,15 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
   onPhaseChange,
   formatDateLabel,
 }: TimeSeriesChartInnerProps) {
+  // Unique per instance — shared clipPath ids crop later charts (#226).
+  const uniqueClipPathId = `${clipPathId}-${useId().replace(/:/g, "")}`;
   const staticPreview = useStaticChartPreview();
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
-  // LOCAL MODIFICATION: upstream only honours `yScaleDomainMax` when every
-  // series shares the default axis, so adding a second axis silently dropped
-  // the stacked-bar total and rescaled the primary axis to the tallest single
-  // segment — stacked bars then overflowed the plot. The total describes the
-  // primary axis specifically, so key it on `axisId` instead of on how many
-  // axes exist. (Re-apply after a re-vendor.)
+  // LOCAL MODIFICATION: `yScaleDomainMax` (the stacked-bar total) applies to
+  // the default axis by id. Upstream drops it whenever a second axis exists,
+  // and the stacked bars overflow the plot. (Re-apply after a re-vendor.)
   const resolveYDomain = useCallback(
     (
       sourceData: Record<string, unknown>[],
@@ -371,11 +367,9 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       return base;
     }
     const merged: Record<string, [number, number]> = { ...base };
-    // LOCAL MODIFICATION: a pinned axis stays pinned — widening it to fit a
-    // projection would undo what the caller asked for. Keys are compared
-    // normalized: computeYDomainsByAxis normalizes the pin's key, so a raw
-    // lookup here would let the projection widen a domain the caller pinned
-    // under a non-canonical id. (Re-apply after a re-vendor.)
+    // LOCAL MODIFICATION: a projection never widens a pinned axis. Keys are
+    // compared normalized, as computeYDomainsByAxis stores them.
+    // (Re-apply after a re-vendor.)
     const pinnedIds = new Set(
       Object.keys(yAxisDomains ?? {}).map((key) => normalizeYAxisId(key))
     );
@@ -693,10 +687,9 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       value={referenceAreaRegistration}
     >
       <ChartProvider value={contextValue}>
-        {/* LOCAL MODIFICATION: `touch-action` is declared here rather than on
-            the interaction <g> below — support for it on nested SVG elements is
-            patchy, and on the <g> it made the whole plot area a page-scroll
-            dead zone on phones. (Re-apply after a re-vendor.) */}
+        {/* LOCAL MODIFICATION: `touch-action` goes here, not on the interaction
+            <g> below: support on nested SVG elements is patchy.
+            (Re-apply after a re-vendor.) */}
         <svg
           aria-hidden="true"
           height={height}
@@ -708,7 +701,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
             {useClipReveal ? (
               <ChartRevealClip
                 animating={isRevealAnimating || isRevealConcealing}
-                clipPathId={clipPathId}
+                clipPathId={uniqueClipPathId}
                 enterTransition={effectiveEnterTransition}
                 height={innerHeight + 20}
                 mode={isRevealConcealing ? "conceal" : "reveal"}
@@ -750,7 +743,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
             {clipExcludedChildren}
             {underlayChildren}
             {useClipReveal ? (
-              <g clipPath={`url(#${clipPathId})`}>{preOverlayChildren}</g>
+              <g clipPath={`url(#${uniqueClipPathId})`}>{preOverlayChildren}</g>
             ) : (
               preOverlayChildren
             )}

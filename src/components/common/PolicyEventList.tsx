@@ -1,12 +1,8 @@
-// src/components/common/PolicyEventList.tsx
-// The two halves of the policy-event annotation layer, shared by Intake &
-// Processing and Population Growth: turning a curated event list into the
-// chart's markers, and the collapsible list of sources underneath it.
-//
-// The list is not a nicety. A marker circle is an SVG shape reachable by
-// pointer only, and its icon says which *kind* of change it is but not which
-// change, so on its own it can't tell a reader where it leads. The list gives
-// every event a labelled link, untruncated text, and a keyboard path.
+// The policy-event annotation layer shared by Intake & Processing and
+// Population Growth: markers built from a curated event list, and the
+// collapsible list of sources under the chart. The list is the accessible
+// path: a marker is pointer-only and its icon names the kind of change, not
+// which one, so the list gives each event a labelled link and keyboard access.
 'use client';
 
 import { useId, useMemo, useState } from 'react';
@@ -20,7 +16,7 @@ import { periodToDate } from '../../utils/residentPeriod';
 import type { ChartMarker } from '../bklit/charts/markers';
 
 /** The icon is all that separates one kind of event from another on the plot,
- *  so the four stay visually distinct rather than four shades of "document". */
+ *  so the four stay visually distinct. */
 export const CATEGORY_ICON: Record<PolicyEventCategory, React.ReactNode> = {
   legislation: <Scale className="size-3.5" aria-hidden="true" />,
   fees: <Banknote className="size-3.5" aria-hidden="true" />,
@@ -29,21 +25,16 @@ export const CATEGORY_ICON: Record<PolicyEventCategory, React.ReactNode> = {
 };
 
 /**
- * Selects the events a chart can actually draw and builds their markers.
+ * Selects the events a chart can draw and builds their markers.
  *
- * `plotted` is the set of periods on the axis right now. Filtering against it
- * is required, not cosmetic: `ChartMarkers` positions by `xScale(date)` with no
- * clamping and renders outside the reveal clip, so an event beyond the window
- * would draw over the axis gutter or past the right edge.
+ * `plotted` is the set of periods on the axis. The filter is required:
+ * `ChartMarkers` positions by `xScale(date)` unclamped and outside the reveal
+ * clip, so an event beyond the window would draw over the axis gutter.
  *
- * Markers are never links. A circle shared by two events cannot lead to two
- * sources, and making the lone ones clickable bought an inconsistency nobody
- * could see until they clicked: two identical circles, one of which did
- * something. Sources belong in the list below, where they are labelled.
- *
- * Leaving `href` off is also what keeps the tooltip honest — the clickable ↗ in
- * `MarkerTooltipContent` is derived from `onClick || href`, so it stops
- * appearing on its own rather than needing to be suppressed.
+ * Markers are never links: a shared circle can't lead to two sources, and
+ * identical circles should behave alike. Sources live in the list. Leaving
+ * `href` off also keeps the clickable ↗ in `MarkerTooltipContent`, derived from
+ * `onClick || href`, from appearing.
  */
 export const usePolicyMarkers = (
   events: readonly PolicyEvent[],
@@ -71,9 +62,8 @@ export const usePolicyMarkers = (
 };
 
 /**
- * Sources for the events currently on the plot. Collapsed by default — it is
- * reference material, not something to read on the way past — and mirrors the
- * disclosure `ChartDataTable` uses directly below it.
+ * Sources for the events currently on the plot. Collapsed by default, like the
+ * `ChartDataTable` disclosure directly below it.
  */
 export const PolicyEventList: React.FC<{ events: readonly PolicyEvent[] }> = ({ events }) => {
   const { t, formatters } = useLocale();

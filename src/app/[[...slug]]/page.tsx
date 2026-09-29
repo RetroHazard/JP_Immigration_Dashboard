@@ -1,4 +1,3 @@
-// src/app/[[...slug]]/page.tsx
 import { ClientWrapper } from './client';
 
 export function generateStaticParams() {

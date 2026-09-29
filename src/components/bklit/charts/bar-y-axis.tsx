@@ -8,12 +8,9 @@ import { useChart, useChartStable } from "./chart-context";
 import { measureLabelWidth } from "./chart-formatters";
 
 const LABEL_FONT = '13px -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic UI", sans-serif';
-// LOCAL MODIFICATION (not upstream Bklit): the vendored default was a flat
-// 70px, sized for short English category names ("Kanto", "Kyushu"). Even
-// English gets close to that at 12px ("Activity Permission", "Permanent
-// Residence"), and a longer translation would lose more. Not wired into any
-// current chart (confirmed unused across the app), but sized correctly now
-// rather than left as a trap for whichever chart adopts it next.
+// LOCAL MODIFICATION: label width measured from the text (70-140px) rather
+// than upstream's flat 70px, which only fits short English names. No chart
+// uses BarYAxis yet.
 const LABEL_MAX_WIDTH_MIN = 70;
 const LABEL_MAX_WIDTH_CAP = 140;
 

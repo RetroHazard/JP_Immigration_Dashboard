@@ -14,9 +14,8 @@ export interface ChartMarkersProps {
   /** Whether to animate markers on entrance. Default: true */
   animate?: boolean;
   /**
-   * LOCAL MODIFICATION: forwarded to `MarkerGroup.fan`. Set false to keep a
-   * multi-marker date as one badged circle instead of a fan-out arc, on a dense
-   * axis where the arc would reach through its neighbours. Default true.
+   * LOCAL MODIFICATION: forwarded to `MarkerGroup.fan`; false keeps a
+   * multi-marker date one badged circle. Default true.
    * (Re-apply after a re-vendor.)
    */
   fan?: boolean;

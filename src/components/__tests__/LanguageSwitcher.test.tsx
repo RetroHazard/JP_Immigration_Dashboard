@@ -1,13 +1,8 @@
-// src/components/__tests__/LanguageSwitcher.test.tsx
 // The switcher's enabled half: every registered locale offered, the active one
-// marked, and a click that both switches and persists. The flag is mocked on
-// rather than read, so this keeps testing the control itself even as the
-// shipped default changes; the gated-off half is LanguageSwitcherGate.test.tsx.
-//
-// The default variant is a compact popover trigger (a 475px-wide row of all
-// seven native names was crowding the header before it, see
-// DashboardShell.tsx) — so these tests open it before asserting on the
-// locale list, the same way a visitor would.
+// marked, and a click that both switches and persists. The flag is mocked on so
+// this tests the control whatever the shipped default; the gated-off half is
+// LanguageSwitcherGate.test.tsx. The default variant is a popover trigger, so
+// these tests open it before asserting on the locale list.
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent } from '@testing-library/react';
 

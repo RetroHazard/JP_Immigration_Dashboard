@@ -1,4 +1,3 @@
-// src/utils/urlApplicationDetails.ts
 import { applicationOptions } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
 import { AIRPORT_BUREAU_CODES } from './getBureauData';
@@ -17,9 +16,9 @@ export const ESTIMATOR_PARAM_NAMES: Record<keyof ApplicationDetails, string> = {
   applicationDate: 'estDate',
 };
 
-// Pre-rename permalinks reused the filter param names directly. Keep reading
-// them - keyed off ?applicationDate=, which only old estimator links carry -
-// so links shared before the rename still restore the estimate.
+// Older permalinks used the filter param names unprefixed. Still read them,
+// keyed off ?applicationDate= (which only those links carry), so links already
+// shared keep restoring the estimate.
 const LEGACY_DATE_PARAM = 'applicationDate';
 
 // Validation is identity-only, so it stays a plain module function rather than

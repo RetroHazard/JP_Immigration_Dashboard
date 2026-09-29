@@ -1,9 +1,6 @@
-// src/utils/__tests__/getBureauData.test.ts
-// The airport branch offices used to be identified by testing the English
-// label for 'airport'. They now carry an explicit `isAirport` flag, and this
-// pins the resulting set: it gates the global airport toggle, the bureau
-// dropdown, and URL-state validation, so a wrong answer here is a silently
-// wrong nationwide total.
+// Pins the airport branch-office set derived from the `isAirport` flag. It gates
+// the global airport toggle, the bureau dropdown, and URL-state validation, so a
+// wrong answer here is a silently wrong nationwide total.
 import { describe, expect, it } from 'vitest';
 
 import { bureauOptions } from '../../constants/bureauOptions';

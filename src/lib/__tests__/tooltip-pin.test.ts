@@ -1,6 +1,5 @@
-// Covers the tap-to-pin registry, which holds all the ordering rules that have
-// no visual feedback loop to catch them: one pin at a time, and the four ways a
-// pin gets dismissed from outside the chart that opened it.
+// Covers the tap-to-pin registry: one pin at a time, and the four ways a pin
+// gets dismissed from outside the chart that opened it.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { acquirePin, closeActivePin, getPinnedId, PIN_SCROLL_DISMISS_PX, PIN_SCROLL_GRACE_MS, releasePin, resetPinRegistry } from '../tooltip-pin';

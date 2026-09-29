@@ -1,16 +1,13 @@
-// src/components/charts/ProcessingEfficiencyQuadrantChart.tsx
 // Processing Efficiency as a quadrant scatter: completion rate against intake
-// volume per bureau, bubble size carrying processed volume, with median
-// guides splitting the plot so high-volume bureaus falling behind stand out
-// spatially. Purpose-built SVG on the design tokens (Bklit's ScatterChart is
-// time-x with a fixed 0-100 y-domain, so it can't express this); the clip
-// reveal, crosshair, and hover card follow the Bklit visual language, and the
-// rate axis zooms to the data (dot marks tolerate a non-zero baseline — the
-// tick labels make the floor explicit).
+// volume per bureau, bubble size carrying processed volume, with median guides
+// so high-volume bureaus falling behind stand out. Purpose-built SVG because
+// Bklit's ScatterChart is time-x with a fixed 0-100 y-domain; the reveal,
+// crosshair and hover card follow Bklit's visual language. The rate axis zooms
+// to the data: dot marks tolerate a non-zero baseline, and the ticks show it.
 //
-// NOT currently registered — the ranked lollipop is the live Processing
-// Efficiency view. Same data and props contract; swap the `efficiency` entry
-// in ChartComponents.tsx to switch over.
+// Not registered: the ranked lollipop is the live Processing Efficiency view.
+// Same data and props contract; swap the `efficiency` entry in
+// ChartComponents.tsx to switch over.
 'use client';
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';

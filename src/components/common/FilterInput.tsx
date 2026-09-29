@@ -1,4 +1,3 @@
-// components/common/FilterInput.tsx
 import { useId, useMemo } from 'react';
 
 import type React from 'react';

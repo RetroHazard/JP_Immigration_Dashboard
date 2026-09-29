@@ -1,19 +1,13 @@
-// Driven through the hook rather than a rendered chart, for the same reason as
-// use-chart-interaction.test.tsx: visx lays out from real measurements jsdom
-// can't produce, and the interesting logic is all in here anyway.
+// Driven through the hook rather than a rendered chart: visx lays out from real
+// measurements jsdom can't produce. Under test are two animations at once: a
+// filter change swaps the data (a path morph) and moves the y-domain (a tween
+// that hands every series a new y-scale each frame), and the path must keep
+// tracking the scale throughout.
 //
-// What is under test is two animations running at once. Changing a filter swaps
-// the data (starting a path morph) *and* moves the y-domain (starting a tween
-// that hands every series a new y-scale on each frame). The path has to keep
-// tracking the scale while that happens; when it stopped doing so, the line was
-// left drawn against the domain the chart had before the change, while its
-// tooltip dot — which is recomputed live — moved to the right place.
-//
-// `motion` is mocked because neither of its inputs is reachable otherwise: it
-// caches reduced-motion at import (and this suite defaults it on, which
-// short-circuits the branch under test), and its frame loop doesn't tick
-// usefully in jsdom. Driving `onUpdate` by hand is also what makes "a frame
-// ran, then the scale moved" expressible as a test at all.
+// `motion` is mocked: it caches reduced-motion at import (this suite defaults it
+// on, which short-circuits the branch under test) and its frame loop doesn't
+// tick in jsdom. Driving `onUpdate` by hand lets a test say "a frame ran, then
+// the scale moved".
 import { curveLinear } from '@visx/curve';
 import { scaleLinear, scaleTime } from '@visx/scale';
 import { act, renderHook } from '@testing-library/react';
@@ -128,12 +122,10 @@ describe('useAnimatedSeriesPath', () => {
     expect(motionState.animations).toHaveLength(1);
   });
 
-  // The morph itself, observed mid-flight. Asserting only at progress 1 (or
-  // after onComplete) proves nothing about the transition — the interpolator
-  // returns the target verbatim there, so a hook that snapped straight to the
-  // new path would pass every end-state test. This is also what pins the
-  // from-snapshot: the resync effect used to overwrite it with the new target
-  // in the same commit, interpolating the new path onto itself.
+  // Observed mid-flight: at progress 1 the interpolator returns the target
+  // verbatim, so a hook that snapped to the new path would pass any end-state
+  // test. Also pins the from-snapshot, which the resync effect must not
+  // overwrite with the new target in the same commit.
   it('morphs through the frames rather than snapping to the target', () => {
     const big = scaleTo(1000);
     const { result, rerender } = setup({ renderData: BEFORE, yScale: big });
@@ -150,9 +142,8 @@ describe('useAnimatedSeriesPath', () => {
     expect(result.current.pathD).not.toBe(expectedPath(AFTER, big));
   });
 
-  // The regression, stated directly: a y-domain tween must not tear down the
-  // path morph. It used to, and because a teardown skips `onComplete` the path
-  // was then left holding pixels from the old scale for good.
+  // A y-domain tween must not tear down the path morph: a teardown skips
+  // `onComplete`, leaving the path holding pixels from the old scale for good.
   it('survives the y-scale changing mid-transition', () => {
     const { rerender } = setup({ renderData: BEFORE, yScale: scaleTo(1000) });
     rerender({ renderData: AFTER, yScale: scaleTo(1000) });

@@ -1,28 +1,13 @@
-// src/i18n/locales/zh-cn.ts
-// Simplified Chinese catalogue — complete coverage of the English source.
-//
-// Conventions, kept deliberately consistent so the file reads as one voice:
-//
-// - Verb-final, noun-phrase labels for anything that labels a control:
-//   buttons, tabs, filter labels, column headers, stat-tile titles. Full
-//   sentences for anything that speaks to the reader: explanatory prose,
-//   warnings, empty and error states.
-// - Official 出入国在留管理厅 terminology for the domain nouns, translated into
-//   Simplified Chinese characters rather than left in Japanese kanji or
-//   romanized: application types use the agency's own procedure names
-//   (在留资格取得许可申请 and so on), and bureaus their full office names
-//   including 支局 (branch office) status.
-// - Full-width punctuation for parentheses and the enumeration comma （、）,
-//   half-width for the colon and percent sign commonly set that way in
-//   Chinese UI text, and no space between a number and its unit —
-//   12,345件, 6个月, 1,234平方公里.
-// - Chinese has a single CLDR plural category, so plural families define only
-//   their `_other` member. `Intl.PluralRules('zh-CN')` never selects
-//   anything else, and translate.ts falls back to `_other` regardless.
-//
-// A few values are intentionally identical to English: `nav.version` is a
-// version number, and `bureau.*.short` are IATA-style codes that stay Latin in
-// every language (see the note in en.ts).
+// Simplified Chinese conventions:
+// - Short verb-object or noun phrases for labels (重置筛选条件, 批准率: buttons,
+//   tabs, filters, column headers, stat-tile titles); full sentences for text
+//   addressed to the reader (prose, warnings, empty and error states).
+// - Official 出入国在留管理厅 terminology in Simplified characters, not Japanese
+//   kanji or romanization: the agency's procedure names for application types
+//   (在留资格取得许可申请 and so on), and full office names including 支局.
+// - Full-width punctuation （）、：。, a half-width percent sign, and no space
+//   between a number and its unit: 12,345件, 6个月, 1,234km².
+// - One CLDR plural category, so plural families define only `_other`.
 import type { Dictionary } from '../types';
 
 export const zhCn: Dictionary = {
@@ -35,8 +20,7 @@ export const zhCn: Dictionary = {
   'app.retry': '重试',
 
   // ── Document metadata ────────────────────────────────────────────────────
-  // Not yet reachable: the static export prerenders one English document (see
-  // src/i18n/README.md). Translated so it is ready when per-locale routes are.
+  // Not rendered yet: the static export prerenders one English document.
   'meta.title': '日本在留审查统计仪表盘',
   'meta.description':
     '在留资格审查处理时间、各出入国在留管理局的处理情况、在留外国人数的变化趋势，以及针对您自己申请的排队模型完成时间预估——基于出入国在留管理厅的官方统计数据，随e-Stat发布新数据同步更新。',
@@ -352,8 +336,7 @@ export const zhCn: Dictionary = {
   'chart.efficiency.quadrantFallingBehind': '高受理量 · 处理滞后',
 
   // ── Chart: Regional Map ──────────────────────────────────────────────────
-  // The bureau labels already end in 出入国在留管理局 / 支局, so these carry no
-  // suffix of their own — appending one would repeat the office type.
+  // Bureau names already end in 出入国在留管理局 / 支局, so these add no suffix.
   'map.bureauMarkerAria': '{bureau}',
   'map.airportMarkerAria': '{bureau}',
   'map.bureauSuffix': '{bureau}',
@@ -399,12 +382,10 @@ export const zhCn: Dictionary = {
   'footer.dataUpdated': '数据更新于{date}',
 
   // ── Domain: immigration bureaus ──────────────────────────────────────────
-  // Full official office names, including 支局 (branch office) status: the
-  // eight regional 地方出入国在留管理局 plus seven branch offices, translated
-  // into Simplified Chinese characters (机场 for 空港, 滨/户/冈/霸 for the
-  // Japanese shinjitai forms 浜/戸/岡/覇). `.short` stays Latin (IATA codes).
-  // `.compact` is the place name alone, for the surfaces that measure in
-  // pixels — without it every 东京-family office truncates to the same prefix.
+  // Full official office names in Simplified characters (机场 for 空港;
+  // 滨/户/冈/霸 for 浜/戸/岡/覇). `.short` stays Latin (IATA codes). `.compact`
+  // is the place name alone for pixel-limited surfaces, where every 东京-family
+  // office would otherwise truncate to the same prefix.
   'bureau.all': '全国',
   'bureau.all.short': 'ALL',
   'bureau.all.compact': '全国',
@@ -455,10 +436,9 @@ export const zhCn: Dictionary = {
   'bureau.101740.compact': '那霸',
 
   // ── Domain: application types ────────────────────────────────────────────
-  // The agency's own procedure names, translated into Simplified Chinese.
-  // `.short` uses the two-to-three character forms already familiar from
-  // Chinese-language guides for residents of Japan; `.compact` is the narrow
-  // Sankey's one-word form.
+  // The agency's own procedure names. `.short` uses the two-to-three character
+  // forms familiar from Chinese-language guides for residents of Japan;
+  // `.compact` is the narrow Sankey's one-word form.
   'appType.all': '所有类型',
   'appType.all.short': 'ALL',
   'appType.all.compact': '全部',
@@ -482,11 +462,9 @@ export const zhCn: Dictionary = {
   'appType.60.compact': '永住',
 
   // ── Domain: prefectures ──────────────────────────────────────────────────
-  // Keyed by JIS prefecture code, using the Chinese hanzi form conventional in
-  // Chinese-language references (e.g. Chinese Wikipedia), converted to
-  // Simplified characters where the Japanese kanji form differs — 岡→冈,
-  // 廣/広→广, 榮 and others follow the same substitution — and carrying the
-  // 都・道・府・县 suffix (県 becomes 县, not the Japanese shinjitai).
+  // Keyed by JIS prefecture code, in the hanzi form Chinese references use,
+  // converted to Simplified characters where the Japanese kanji differ (岡→冈,
+  // 広→广), with the 都・道・府・县 suffix (县, not the Japanese 県).
   'prefecture.1': '北海道',
   'prefecture.2': '青森县',
   'prefecture.3': '岩手县',
@@ -537,17 +515,11 @@ export const zhCn: Dictionary = {
 
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.label': '数据集',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.aria': '选择要查看的数据集',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing': '在留审查办理',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing.compact': '审查办理',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents': '在留外国人人口',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents.compact': '在留外国人',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': '目前无法加载在留外国人数据。',
   'charts.growth.label': '在留人口增长',
   'charts.growth.description': '按半年展示外国居民总数,可按居留目的或世界区域堆叠。',

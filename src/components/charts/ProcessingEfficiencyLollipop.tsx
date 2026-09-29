@@ -1,9 +1,6 @@
-// src/components/charts/ProcessingEfficiencyLollipop.tsx
 // Processing Efficiency as a ranked lollipop: bureaus sorted by completion
-// rate, stem weight carrying intake volume, with a dashed guide at the
-// official nationwide completion rate. Rate = processed / received, so the
-// scatter's bubble-size channel is redundant here — the ranking is the
-// message, and labelled rows reflow cleanly at any screen width.
+// rate (processed / received), stem weight carrying intake volume, with a
+// dashed guide at the official nationwide completion rate.
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -34,17 +31,14 @@ interface Hover {
 
 /**
  * Rows are `tabIndex={0}`, so a mouse click focuses one as well as hovering it.
- * `:focus-visible` is the browser's own answer to "did this focus come from the
- * keyboard": a Tab matches it, a click does not.
+ * `:focus-visible` tells the two apart: a Tab matches it, a click does not.
  */
 const isKeyboardFocus = (element: HTMLElement): boolean => {
   try {
     return element.matches(':focus-visible');
   } catch {
-    // A selector engine that doesn't implement the pseudo-class at all: fall
-    // back to the old unconditional behaviour rather than losing the
-    // keyboard affordance. (jsdom implements it and answers false, so tests
-    // exercise the pointer branch, not this one.)
+    // Engine without the pseudo-class: treat it as keyboard focus rather than
+    // lose the keyboard affordance. (jsdom implements it and answers false.)
     return true;
   }
 };
@@ -111,9 +105,8 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
     );
   }
 
-  // Anchoring at the row rather than the pointer, which is what the keyboard
-  // path already does: on touch the pointer is a finger sitting on top of the
-  // row the card is describing.
+  // Anchored at the row, not the pointer: on touch the pointer is a finger
+  // covering the row the card describes.
   const showAtRow = (point: EfficiencyPoint, element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
     setHovered({ point, x: rect.left + rect.width / 2, y: rect.top });
@@ -145,10 +138,9 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
           onPointerMove: (e: React.PointerEvent) => setHovered({ point, x: e.clientX, y: e.clientY }),
           onPointerLeave: () => setHovered(null),
         }),
-    // Kept on both: this is the keyboard path, and it is unaffected by pointer
-    // type. It is gated on `:focus-visible` because clicking a row focuses it
-    // too, and re-anchoring there would tear the card away from the cursor for
-    // no reason the person clicking asked for.
+    // The keyboard path, for every pointer type. Gated on `:focus-visible`
+    // because clicking a row focuses it too, and re-anchoring would pull the
+    // card away from the cursor.
     onFocus: (e: React.FocusEvent<HTMLElement>) => {
       if (!isKeyboardFocus(e.currentTarget)) return;
       focusShownRef.current = true;
@@ -193,10 +185,9 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
                 className={`${ROW_GRID} min-h-[27px] items-center rounded-[8px] px-1.5 py-1 outline-none hover:bg-accent focus-visible:bg-accent`}
                 {...hoverProps(point)}
               >
-                {/* The compact name, not `point.label`: this cell is 92px and
-                    truncates, and the full official names of a region's offices
-                    share a long prefix. The aria-label above keeps the full
-                    name, so nothing is lost to a screen reader. */}
+                {/* The compact name, not `point.label`: this 92px cell truncates,
+                    and a region's full office names share a long prefix. The
+                    aria-label above keeps the full name. */}
                 <div className="truncate text-xs font-semibold" style={{ color: 'var(--chart-label)' }}>
                   {bureauCompact(point.code)}
                   {point.isAirport && (

@@ -1,12 +1,11 @@
-// src/components/charts/CategoryMixSunburst.tsx
 // Category Mix on Bklit's SunburstChart: all applications at the root, one
 // ring of application types, one ring of bureaus. Drill-down zoom, the
 // breadcrumb, and segment animation come from the component; we supply the
 // hierarchy and the --chart-mix-* palette (bureaus as tints of their type).
 //
-// NOT currently registered — the zoomable treemap is the live Category Mix
-// view. Same data and props contract; swap the `mix` entry in
-// ChartComponents.tsx to switch back.
+// Not registered: the zoomable treemap is the live Category Mix view. Same
+// data and props contract; swap the `mix` entry in ChartComponents.tsx to
+// switch back.
 'use client';
 
 import { useCallback, useMemo } from 'react';

@@ -1,15 +1,11 @@
-// src/hooks/useTapPin.ts
 // Per-chart half of tap-to-pin. The registry in `@/lib/tooltip-pin` knows which
 // *chart* owns the page's single pin; this hook remembers which *datapoint*
-// inside that chart is pinned, which is what makes "tap the same point again to
-// close" work.
+// inside that chart is pinned, so tapping the same point again closes it.
 //
-// The interaction is built on `onClick`, not on touch/pointer bookkeeping. The
-// browser already tells a tap apart from a drag or a scroll — with the right
-// slop for each platform — and withholds the click when the gesture turns into
-// a scroll. It also means hover handlers can simply be left off on touch
-// devices, which is what stops the synthesized mouse events a browser fires
-// after `touchend` from re-opening or clearing a pinned tooltip.
+// Built on `onClick`, not touch/pointer bookkeeping: the browser already tells
+// a tap from a drag or scroll and withholds the click on a scroll. Hover
+// handlers are left off on touch devices so the synthesized mouse events after
+// `touchend` can't reopen or clear a pinned tooltip.
 'use client';
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
@@ -108,10 +104,8 @@ type ActivationProps = {
 };
 
 /**
- * The one-line swap that turns hover into tap at each call site. On a hover
- * device it returns the usual enter/leave pair; on a touch device it returns
- * only `onClick`, so the compatibility mouse events fired after a tap have
- * nothing to land on.
+ * Swaps hover for tap at each call site: the enter/leave pair on a hover
+ * device, only `onClick` on a touch device.
  */
 export function activationProps(tapMode: ChartTapMode | null, key: string, activate: () => void, deactivate: () => void): ActivationProps {
   if (!tapMode) {

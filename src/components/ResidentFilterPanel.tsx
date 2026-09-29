@@ -1,12 +1,8 @@
-// src/components/ResidentFilterPanel.tsx
-// The residents dataset's filter bar. The processing FilterPanel's controls
-// (bureau, application type, compare, airports) have no counterpart in this
-// cube, so this is a sibling rather than a conditional branch inside it.
-//
+// The residents dataset's filter bar: a sibling of FilterPanel rather than a
+// branch inside it, since none of that panel's controls apply to this cube.
 // Region and Nationality cascade: the country list narrows to the selected
-// region, and changing region clears a nationality that falls outside it.
-// The status filter offers the six purpose-of-stay categories rather than
-// all 39 individual designations — the sunburst is where that detail lives.
+// region. The status filter offers the six purpose-of-stay categories; the
+// sunburst shows the individual statuses.
 import { RotateCcw } from 'lucide-react';
 import type React from 'react';
 
@@ -35,9 +31,8 @@ export const ResidentFilterPanel: React.FC<ResidentFilterPanelProps> = ({
   const isPristine = filters.region === 'all' && filters.nationality === 'all' && filters.group === 'all';
 
   const regionOptions = [{ value: 'all', label: t('filters.allRegions') }, ...regions];
-  // Sorted by localized name in useNationalityOptions, so the list reorders
-  // with the language rather than sitting in e-Stat's Japanese kana order.
-  // Narrowed to the selected region's countries when one is chosen.
+  // Sorted by localized name in useNationalityOptions (not e-Stat's kana
+  // order), and narrowed to the selected region's countries.
   const nationalityOptions = [
     { value: 'all', label: t('filters.allNationalities') },
     ...nationalities

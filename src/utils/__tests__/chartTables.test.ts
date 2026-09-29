@@ -1,8 +1,5 @@
-// src/utils/__tests__/chartTables.test.ts
-// The tables under the Application Processing charts used to be one hardcoded
-// month x status pivot rendered under all seven, which described only `intake`.
-// These assertions pin each builder to the projection its own chart draws —
-// the `typesByMonth` case below is the one that reproduces the original report.
+// Pins each table builder to the projection its own chart draws, rather than
+// one month x status pivot that describes only `intake`.
 import { describe, expect, it } from 'vitest';
 
 import { PROCESSING_CHARTS } from '../../components/common/ChartComponents';

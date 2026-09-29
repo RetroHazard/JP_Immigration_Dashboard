@@ -4,14 +4,9 @@ import NumberFlow from "@number-flow/react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
-// LOCAL MODIFICATION: upstream formats with `undefined` (the browser locale),
-// which disagrees with every other number on the page once the app's own
-// locale differs from the browser's. Reads the same module state as
-// chart-formatters.ts. Applied in two places — the static fallback below and
-// the NumberFlow branch it hands over to, which otherwise reformatted the
-// number the moment the animation library loaded. pie-center and ring-center
-// both route through this component, so they are covered by the same change.
-// Re-apply after a re-vendor.
+// LOCAL MODIFICATION: format in the app's locale (chart-formatters.ts), not
+// the browser's, in both the static fallback and the NumberFlow branch.
+// pie-center and ring-center route through here. (Re-apply after a re-vendor.)
 import { chartFormatterLocale } from "./chart-formatters";
 
 /** Subset of `Intl.NumberFormatOptions` supported by NumberFlow */
@@ -113,11 +108,8 @@ export function ChartStatFlow({
       ) : null}
       <span className={cn("text-foreground tabular-nums", valueClassName)}>
         {numberFlowReady ? (
-          /* `locales` mirrors the static branch below, which formats through
-             chartFormatterLocale(). Without it NumberFlow falls back to the
-             browser locale, so the number silently reformatted the moment the
-             animation library finished loading — a ja reader on an en browser
-             watched 1.2万 flip to 12K mid-paint. */
+          /* `locales` mirrors the static branch; without it NumberFlow uses
+             the browser locale and reformats the number once it loads. */
           <NumberFlow
             format={formatOptions}
             isolate

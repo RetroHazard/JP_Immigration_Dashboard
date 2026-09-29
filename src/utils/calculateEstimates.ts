@@ -1,4 +1,3 @@
-// src/utils/calculateEstimates.ts
 import { STATUS_CODES } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { logger } from './logger';
@@ -10,9 +9,8 @@ interface ApplicationDetails {
 }
 
 /**
- * Which code path produced each branch-dependent variable. The "Show the math"
- * breakdown renders only the branch that actually ran, so it has to be told
- * which one that was.
+ * Which code path produced each branch-dependent variable, so the "Show the
+ * math" breakdown can render only the branch that ran.
  */
 export interface ModelBranches {
   /** `C_prev`: reported by the previous month, simulated forward from the last month with data, or absent entirely. */
@@ -99,25 +97,17 @@ export const calculateEstimatedDate = (
   data: ImmigrationData[],
   details: ApplicationDetails
 ): EstimatedDateResult | null => {
-  // --------------------------------------------
-  // Input Validation & Early Exit
-  // --------------------------------------------
   if (!data || !details.bureau || !details.type || !details.applicationDate) {
     return null;
   }
 
-  // --------------------------------------------
-  // Data Filtering and Preparation
-  // --------------------------------------------
   const { bureau, type, applicationDate } = details;
   const filteredData = data.filter((entry) => entry.bureau === bureau && entry.type === type);
   if (filteredData.length === 0) return null;
 
-  // Get sorted unique months from filtered data
   const months = [...new Set(filteredData.map((entry) => entry.month))].sort();
   const lastAvailableMonth = months[months.length - 1];
 
-  // Data quality validation: require minimum 3 months, optimal is 6
   const MIN_MONTHS_REQUIRED = 3;
   const OPTIMAL_MONTHS = 6;
 
@@ -133,15 +123,8 @@ export const calculateEstimatedDate = (
     return null;
   }
 
-  // Use the most recent data available (up to 6 months)
   const selectedMonths = months.slice(-OPTIMAL_MONTHS);
 
-  // Data quality will be determined later based on application date context
-  // (whether we have actual data for the application period)
-
-  // --------------------------------------------
-  // Helper Functions
-  // --------------------------------------------
   const sumByStatus = (status: string, monthCondition: (month: string) => boolean) =>
     filteredData
       .filter((entry) => entry.status === status && monthCondition(entry.month))
@@ -158,16 +141,12 @@ export const calculateEstimatedDate = (
     return Math.ceil((utcEnd - utcStart) / (1000 * 60 * 60 * 24));
   };
 
-  // --------------------------------------------
-  // Calendar, pinned to JST
-  // --------------------------------------------
-  // Applications are filed, processed and published on Japan's calendar, so
-  // the model computes on that calendar for every viewer. Date-only strings
-  // are taken apart numerically — `new Date('YYYY-MM-DD')` reads them as UTC
-  // and then hands back local-time fields, which shifted a viewer west of UTC
-  // onto the previous day — months step as integer indexes, and "today" is
-  // today's date in Asia/Tokyo. JST is fixed UTC+9 with no DST, so the offset
-  // is a constant.
+  // Calendar pinned to JST: applications are filed, processed and published on
+  // Japan's calendar, so the model computes on it for every viewer. Date-only
+  // strings are split numerically (`new Date('YYYY-MM-DD')` parses as UTC but
+  // reads back local fields, a day early west of UTC), months step as integer
+  // indexes, and "today" is today's date in Asia/Tokyo. JST is a fixed UTC+9
+  // with no DST, so the offset is a constant.
   const monthIndexOf = (monthStr: string) => {
     const [year, month] = monthStr.split('-').map(Number);
     return year * 12 + (month - 1);
@@ -179,10 +158,6 @@ export const calculateEstimatedDate = (
   // arithmetic below reads the same date in every timezone.
   const todayJst = new Date(nowShifted.getUTCFullYear(), nowShifted.getUTCMonth(), nowShifted.getUTCDate());
 
-  // --------------------------------------------
-  // Core Rate Calculations
-  // --------------------------------------------
-  // Calculate daily processing rates
   const totalNew = sumByStatus(STATUS_CODES.NEW_APPLICATIONS, (m) => selectedMonths.includes(m));
   const totalProcessed = sumByStatus(STATUS_CODES.PROCESSED, (m) => selectedMonths.includes(m));
   const totalDays = selectedMonths.reduce((sum, month) => sum + getDaysInMonth(month), 0);
@@ -191,30 +166,19 @@ export const calculateEstimatedDate = (
   const dailyNew = totalNew / totalDays;
   const processingRate = dailyProcessed;
 
-  // --------------------------------------------
-  // Application Date Analysis
-  // --------------------------------------------
   const [appYear, appMonthNumber, appDay] = applicationDate.split('-').map(Number);
   const appDate = new Date(appYear, appMonthNumber - 1, appDay);
   const applicationMonth = applicationDate.slice(0, 7);
 
-  // Previous month calculation
   const prevMonth = monthFromIndex(monthIndexOf(applicationMonth) - 1);
 
-  // --------------------------------------------
-  // Available Data Detection & Quality Assessment
-  // --------------------------------------------
   const hasActualAppMonth = months.includes(applicationMonth);
   const hasActualPrevMonth = months.includes(prevMonth);
 
-  // Calculate how far we're estimating beyond available data
   const monthsBeyondData = hasActualAppMonth
     ? 0
     : Math.max(0, monthIndexOf(applicationMonth) - monthIndexOf(lastAvailableMonth));
 
-  // Determine data quality based on application date context
-  // - 'high': Application date has actual data (within our dataset)
-  // - 'low': Application date is beyond available data (requires simulation)
   const dataQuality = hasActualAppMonth && monthsBeyondData === 0
     ? 'high'
     : 'low';
@@ -235,16 +199,11 @@ export const calculateEstimatedDate = (
     );
   }
 
-  // --------------------------------------------
-  // Queue Position Calculations
-  // --------------------------------------------
-  // Current queue state calculations
   const [lastYear, lastMonthNumber] = lastAvailableMonth.split('-').map(Number);
   // Day 0 of the following month: the last day of the last published month.
   const lastAvailableDateEnd = new Date(lastYear, lastMonthNumber, 0);
   const predictionDays = getDaysBetweenDates(lastAvailableDateEnd, todayJst);
 
-  // Processed applications estimation
   const daysInApplicationMonth = getDaysInMonth(applicationMonth);
   const processedInAppMonth = hasActualAppMonth ? dailyProcessed * (daysInApplicationMonth - appDay) : 0;
 
@@ -253,9 +212,6 @@ export const calculateEstimatedDate = (
   const processedAfterAppMonth = sumByStatus(STATUS_CODES.PROCESSED, (m) => m > applicationMonth);
   const confirmedProcessed = processedAfterAppMonth + processedInAppMonth;
 
-  // --------------------------------------------
-  // Predictive Calculations
-  // --------------------------------------------
   const daysSinceApplication = getDaysBetweenDates(appDate, todayJst);
   const isBeyondPublishedData = applicationDate > lastAvailableMonth;
   const estimatedProcessed = isBeyondPublishedData
@@ -264,15 +220,9 @@ export const calculateEstimatedDate = (
 
   const totalProcessedSinceApp = Math.round(confirmedProcessed + estimatedProcessed);
 
-  // --------------------------------------------
-  // Queue at Application Date Calculation
-  // --------------------------------------------
   const getMonthData = (month: string, status: string) =>
     filteredData.find((entry) => entry.month === month && entry.status === status)?.value || 0;
 
-  // --------------------------------------------
-  // Carryover calculations
-  // --------------------------------------------
   let carriedOver = 0;
   let reportedPrevTotal: number | undefined;
   let reportedPrevProcessed: number | undefined;
@@ -287,25 +237,22 @@ export const calculateEstimatedDate = (
     if (availableMonths.length) {
       const lastAvailableMonth = availableMonths.slice(-1)[0];
 
-      // Calculate initial carriedOver from the last available month
       let simulatedCarriedOver =
         getMonthData(lastAvailableMonth, STATUS_CODES.TOTAL_APPLICATIONS) - getMonthData(lastAvailableMonth, STATUS_CODES.PROCESSED);
       carrySeed = simulatedCarriedOver;
 
-      // Roll each full month between the last available month and the
-      // application month, as integer month indexes — calendar arithmetic,
-      // nothing for a viewer's timezone to move.
+      // Roll forward each full month between the last available month and the
+      // application month.
       const appMonthIndex = monthIndexOf(applicationMonth);
-      let currentMonthIndex = monthIndexOf(lastAvailableMonth) + 1; // Start from next month
+      let currentMonthIndex = monthIndexOf(lastAvailableMonth) + 1;
 
-      // Infinite loop protection: maximum 5 years of simulation
+      // More than five years to roll forward suggests a bad date; give up instead.
       const MAX_MONTHS_TO_SIMULATE = 60;
       let monthsSimulated = 0;
 
       while (currentMonthIndex < appMonthIndex) {
         monthsSimulated++;
 
-        // Safety check to prevent infinite loops
         if (monthsSimulated > MAX_MONTHS_TO_SIMULATE) {
           logger.error(
             `⚠️  Carryover simulation exceeded maximum iterations`,
@@ -332,7 +279,6 @@ export const calculateEstimatedDate = (
     }
   }
 
-  // Received/processed by application date
   let receivedByAppDate: number, processedByAppDate: number;
   let reportedMonthNew: number | undefined;
   let reportedMonthProcessed: number | undefined;
@@ -347,9 +293,6 @@ export const calculateEstimatedDate = (
     processedByAppDate = dailyProcessed * appDay;
   }
 
-  // --------------------------------------------
-  // Final Estimation
-  // --------------------------------------------
   if (processingRate <= 0) return null;
 
   // Anchored to JST's today (already local midnight), so the completion date
@@ -362,12 +305,9 @@ export const calculateEstimatedDate = (
 
   estimatedDate.setDate(estimatedDate.getDate() + estimatedDays);
 
-  // --------------------------------------------
-  // Uncertainty Band
-  // --------------------------------------------
-  // First-order error propagation on D = Q / R: a spread of sigma in the
-  // daily processing rate widens the estimate by |D| * (sigma / R), where
-  // sigma is the month-to-month standard deviation over the sampled window.
+  // Uncertainty band, by first-order error propagation on D = Q / R: a spread
+  // of sigma in the daily processing rate widens the estimate by |D| * (sigma / R),
+  // sigma being the month-to-month standard deviation over the sampled window.
   const monthlyRates = selectedMonths.map(
     (month) => sumByStatus(STATUS_CODES.PROCESSED, (m) => m === month) / getDaysInMonth(month)
   );
@@ -377,9 +317,6 @@ export const calculateEstimatedDate = (
   );
   const uncertaintyDays = meanRate > 0 ? Math.round(Math.abs(daysRemaining) * (rateStdDev / meanRate)) : 0;
 
-  // --------------------------------------------
-  // Result Compilation
-  // --------------------------------------------
   const calculationDetails: CalculationDetails = {
     queueAtApplication,
     queuePosition,
@@ -437,7 +374,6 @@ export const calculateEstimatedDate = (
   };
 
   return {
-    // Already midnight either way: the JST anchor above carries no time of day.
     estimatedDate,
     details: calculationDetails,
   };

@@ -183,9 +183,7 @@ const SunburstChartCore = memo(function SunburstChartCore({
 
   /**
    * LOCAL MODIFICATION: tap-to-pin on touch devices. A segment tap inspects and
-   * a second tap on the same segment zooms — a single-tap zoom moved the
-   * segment out from under the finger before its trail could be read.
-   * (Re-apply after a re-vendor.)
+   * a second tap zooms (see sunburst-segment.tsx). (Re-apply after a re-vendor.)
    */
   const coarsePointer = useCoarsePointer();
   const dismiss = useCallback(() => {

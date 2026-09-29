@@ -1,15 +1,13 @@
-// src/components/charts/ResidenceStatusMixChart.tsx
 // Residence Status Mix on the shared MixTreemap: purpose-of-stay groups at the
 // root, individual statuses nested inside. Click a group to zoom into it.
 //
-// NOT currently registered — ResidenceStatusSunburst is the live Residence
-// Status Mix view. Same data and props contract; swap the `statuses` entry in
+// Not registered: ResidenceStatusSunburst is the live Residence Status Mix
+// view. Same data and props contract; swap the `statuses` entry in
 // ChartComponents.tsx to switch back.
 //
-// This is a stock figure, so the range picker chooses which snapshot to show
-// rather than a window to sum: adding several half-years together would count
-// the same resident once per period. buildResidenceStatusTree therefore reads
-// the most recent period in the range, and the header says which one.
+// A stock figure: summing half-years would count each resident once per
+// period, so it draws the single snapshot the period picker chooses, and the
+// header says which.
 'use client';
 
 import { useMemo } from 'react';
@@ -43,8 +41,7 @@ export const ResidenceStatusMixChart: React.FC<ResidentChartData> = ({ data, fil
         ? t('residents.mixRoot')
         : nationalityLabel(filters.nationality),
     scopeAll: t('residents.mixScopeAll'),
-    // The group key is a StatusGroup, not a code — the cast is safe because
-    // buildResidenceStatusTree only ever emits members of STATUS_GROUPS.
+    // Safe cast: buildResidenceStatusTree only emits STATUS_GROUPS members.
     categoryLabel: (key) => groupLabel(key as StatusGroup),
     categoryShort: (key) => groupLabel(key as StatusGroup),
     leafLabel: statusLabel,

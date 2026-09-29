@@ -1,8 +1,6 @@
-// src/utils/residentsSelectors.ts
 // Selection API for the Foreign Residents cube, mirroring selectors.ts for the
-// processing cube. Kept separate rather than generalised: the two cubes share
-// no dimension, and a union-typed selector would have to be re-narrowed at
-// every call site anyway.
+// processing cube. Kept separate rather than generalised: the cubes share no
+// dimension, and a union-typed selector would need re-narrowing at every call site.
 import { useMemo } from 'react';
 
 import { NATIONALITY_SERIES_KEY,nationalityByCode } from '../constants/nationalities';
@@ -10,9 +8,8 @@ import { residenceStatusByCode, type StatusGroup } from '../constants/residenceS
 import type { ResidentRecord } from './residentsData';
 
 /**
- * Half-year windows. The processing charts count months, but this table
- * publishes twice a year, so `'12'` would read as "12 months" and mean six
- * years. The ranges are named in years to remove the ambiguity.
+ * Half-year windows, named in years: the table publishes twice a year, so a
+ * month-style `'12'` would mean six years.
  */
 export type ResidentRange = 'latest' | '3y' | '5y' | '10y' | 'all';
 
@@ -125,10 +122,9 @@ export const mergeContinuedSeries = (rows: ResidentRecord[]): ResidentRecord[] =
   });
 
 /**
- * The N codes with the largest total over the window, which is what keeps a
- * 200-country series list plottable. Ranked on the whole window rather than
- * the latest period so a series does not appear and disappear as the range
- * changes.
+ * The N codes with the largest total over the window, to keep a 200-country
+ * series list plottable. Ranked on the whole window rather than the latest
+ * period so series don't appear and disappear as the range changes.
  */
 export const topCodesBy = (
   rows: ResidentRecord[],

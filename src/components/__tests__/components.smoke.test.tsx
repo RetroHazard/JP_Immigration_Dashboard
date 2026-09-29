@@ -1,7 +1,6 @@
-// Smoke tests for redesigned components (jsdom).
-// Assertions read their expected text out of the English catalogue rather than
-// repeating it, so extracting or rewording a string doesn't quietly break the
-// test — only removing the key does.
+// Smoke tests for components (jsdom). Assertions read expected text from the
+// English catalogue, so rewording a string doesn't break a test; only removing
+// the key does.
 import { FileStack } from 'lucide-react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent } from '@testing-library/react';
@@ -85,10 +84,8 @@ describe('ChartDataTable', () => {
   });
 
   it('renders the translated text under the Japanese locale', () => {
-    // The catalogue reaches this component through the provider rather than a
-    // prop, so this is what proves a locale switch actually lands in the DOM.
-    // (The English-fallback path a partial locale depends on is covered
-    // directly, with synthetic dictionaries, in i18n/__tests__/translate.test.ts.)
+    // Proves a locale switch reaches the DOM through the provider. The English
+    // fallback is covered in i18n/__tests__/translate.test.ts.
     renderWithProviders(
       <ChartDataTable
         table="intakeByMonth"
@@ -105,8 +102,8 @@ describe('ChartDataTable', () => {
   });
 
   it('follows the active chart rather than always showing intake', () => {
-    // The reported bug, at the DOM: under Application Types the columns are
-    // application types, and none of the intake statuses is among them.
+    // Under Application Types the columns are application types, not the
+    // intake statuses.
     renderWithProviders(
       <ChartDataTable
         table="typesByMonth"
@@ -171,14 +168,12 @@ describe('ChartDataTable', () => {
   });
 
   it('downloads a file named for the chart, not one shared by every tab', () => {
-    // jsdom implements neither, and the export used to produce a filename
-    // identical across all seven charts.
+    // jsdom implements neither createObjectURL nor revokeObjectURL.
     const downloads: string[] = [];
     const createObjectURL = vi.fn(() => 'blob:test');
     const revokeObjectURL = vi.fn();
-    // A distinct subclass, not Object.assign(URL, …): assigning onto the real
-    // constructor mutates the global itself, and unstubAllGlobals would then
-    // "restore" the already-mutated object, leaking the two mocks forever.
+    // A distinct subclass, not Object.assign(URL, …): mutating the real
+    // constructor would survive unstubAllGlobals and leak the mocks.
     const StubURL = class extends URL {};
     Object.assign(StubURL, { createObjectURL, revokeObjectURL });
     vi.stubGlobal('URL', StubURL);

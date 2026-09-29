@@ -1,7 +1,6 @@
-// src/components/common/SnapshotPeriodSelector.tsx
 // The as-of picker for stock views. A stock figure describes one period, so
-// a window selector would be a lie there — the flows sankey, status
-// sunburst, and world map instead choose which half-year snapshot to draw.
+// the flows sankey, status sunburst and world map choose which half-year
+// snapshot to draw rather than a window.
 'use client';
 
 import type React from 'react';

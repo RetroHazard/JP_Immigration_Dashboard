@@ -1,6 +1,5 @@
-// src/lib/motion.ts
-// The single Anime.js v4 integration point. Every animation in the app goes
-// through here so prefers-reduced-motion is honored in exactly one place.
+// Anime.js helpers. Every animation honors prefers-reduced-motion through
+// `prefersReducedMotion()` or `useAnimeScope`.
 'use client';
 
 import { useEffect, useRef } from 'react';

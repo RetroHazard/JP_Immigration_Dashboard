@@ -1,4 +1,3 @@
-// src/hooks/useResidentsData.ts
 import { useEffect, useState } from 'react';
 
 import type { DictionaryKey } from '../i18n/types';
@@ -11,9 +10,8 @@ export type ResidentsMeta = ResidentsDataFile['meta'];
 
 /**
  * Companion to useImmigrationData for the Foreign Residents dataset. A failure
- * here is not fatal to the page — the shell disables the Residents half of the
- * switcher and the processing dashboard carries on — so the error is reported
- * as a catalogue key the caller may or may not choose to surface.
+ * here is not fatal (the shell disables the Residents half of the switcher), so
+ * the error is a catalogue key the caller may choose to surface.
  */
 export const useResidentsData = () => {
   const [data, setData] = useState<ResidentRecord[] | null>(null);
