@@ -46,15 +46,11 @@ export function useAnimatedSeriesPath({
   const displayedPointsRef = useRef<SeriesPathPoint[] | null>(null);
   const animatingRef = useRef(false);
 
-  // LOCAL MODIFICATION: the transition reads its inputs through this ref rather
-  // than closing over them. `xScale` / `yScale` change identity on every
-  // y-domain tween frame, and having them in the effect's deps tore the
-  // animation down mid-flight — the body then early-returned on the unchanged
-  // signature, so `onComplete` never ran and `animatedPoints` was stranded
-  // holding pixels from the scale the chart had before the change. Reading them
-  // live is also what recomputing the target every frame was always for: the
-  // path morph and the domain tween compose, so the line follows the axis as it
-  // rescales instead of racing it. (Re-apply after a re-vendor.)
+  // LOCAL MODIFICATION: inputs are read through this ref, not the effect's deps.
+  // The scales change identity on every y-domain tween frame; as deps they tore
+  // the animation down before `onComplete` could release the snapshot. Read
+  // live, the path morph and the domain tween compose.
+  // (Re-apply after a re-vendor.)
   const latestRef = useRef({ renderData, xAccessor, xScale, yScale, dataKey });
   latestRef.current = { renderData, xAccessor, xScale, yScale, dataKey };
 
@@ -96,14 +92,11 @@ export function useAnimatedSeriesPath({
   const prevTransitionSignatureRef = useRef(transitionSignature);
 
   useEffect(() => {
-    // LOCAL MODIFICATION: resync only while the signature is unchanged — i.e.
-    // the scale moved but the data did not, so no transition is coming. This
-    // effect runs before the animation effect in the same commit, and without
-    // the guard a data change had the new target written over the previous
-    // frame's points before the transition read them as its starting snapshot:
-    // the "morph" then interpolated the new path onto itself, a snap. The
-    // animation effect updates prevTransitionSignatureRef, so the guard opens
-    // again once the transition has started. (Re-apply after a re-vendor.)
+    // LOCAL MODIFICATION: resync only while the signature is unchanged (the
+    // scale moved, the data did not). This effect runs before the animation
+    // effect in the same commit; on a data change it would overwrite the
+    // transition's starting snapshot with the new target, and the morph would
+    // snap. (Re-apply after a re-vendor.)
     if (
       !animatingRef.current &&
       prevTransitionSignatureRef.current === transitionSignature
@@ -164,16 +157,12 @@ export function useAnimatedSeriesPath({
     return () => {
       control.stop();
       animatingRef.current = false;
-      // Stopping skips `onComplete`, which is the only other place the snapshot
-      // is released. Without this, an interrupted animation pins the path to
-      // pixels from a scale that has since moved.
+      // Stopping skips `onComplete`, the only other place the snapshot is
+      // released; otherwise the path stays pinned to a stale scale's pixels.
       setAnimatedPoints(null);
     };
-    // LOCAL MODIFICATION: deps match the guard the body already applies — the
-    // signature is what decides whether there is work to do. Listing the scales
-    // and data here re-ran (and so tore down) the animation on every tween
-    // frame; they are read live through `latestRef` instead.
-    // (Re-apply after a re-vendor.)
+    // LOCAL MODIFICATION: deps match the body's guard (the signature); scales
+    // and data are read live through `latestRef`. (Re-apply after a re-vendor.)
   }, [
     transitionSignature,
     chartPhase,

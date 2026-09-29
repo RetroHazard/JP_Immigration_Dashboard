@@ -239,11 +239,9 @@ export function LineChart({
   children,
 }: LineChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  // LOCAL MODIFICATION: the vendored default reserves a flat 40px for the
-  // y-axis label strip, sized for English compact-number widths ("1.2M").
-  // Estimate it from the current locale's actual rendered width instead —
-  // an explicit `marginProp.left` still wins via the spread order below.
-  // Re-apply after a re-vendor.
+  // LOCAL MODIFICATION: size the y-axis label strip from the current locale's
+  // rendered width, not upstream's flat 40px (sized for English "1.2M"). An
+  // explicit `marginProp.left` still wins. (Re-apply after a re-vendor.)
   const margin = { ...DEFAULT_MARGIN, left: estimateAxisMarginLeft(), ...marginProp };
   const [chartPhase, setChartPhase] = useState<ChartPhase>(() =>
     resolveRestingChartPhase(status)

@@ -40,9 +40,8 @@ function formatLabel(
   if (formatValue) {
     return formatValue(value);
   }
-  // LOCAL MODIFICATION: upstream hardcodes a `${n / 1000}k` suffix and an
-  // ungrouped String(value), both of which are English-only. Uses the shared
-  // locale-bound formatters instead. Re-apply after a re-vendor.
+  // LOCAL MODIFICATION: locale-bound formatters, not upstream's English-only
+  // `${n / 1000}k` and ungrouped String(value). (Re-apply after a re-vendor.)
   if (formatLargeNumbers && value >= 1000) {
     return compactFmt(value);
   }
@@ -156,13 +155,10 @@ const YAxisInner = memo(function YAxisInner({
                 : { left: 0, justifyContent: "flex-start", paddingLeft: 8 }),
             }}
           >
-            {/* LOCAL MODIFICATION: whitespace-nowrap. The label strip is only
-                as wide as margin.left (40px, less 8px padding), which fits the
-                Latin forms upstream assumes — "1.2M", "800K". A ja-JP tick
-                reads 100万 at almost exactly that width and broke across two
-                lines, dropping 万 onto its own row. Overflowing left into the
-                card's padding is the right trade: a numeric axis label should
-                never wrap in any language. Re-apply after a re-vendor. */}
+            {/* LOCAL MODIFICATION: whitespace-nowrap. A numeric tick should
+                overflow into the card's padding rather than wrap; ja-JP 100万
+                fills the label strip and would drop 万 onto its own row.
+                (Re-apply after a re-vendor.) */}
             <span
               className="whitespace-nowrap text-chart-label text-xs"
               style={tick.labelColor ? { color: tick.labelColor } : undefined}

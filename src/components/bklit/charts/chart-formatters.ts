@@ -1,18 +1,8 @@
-// LOCAL MODIFICATION to the vendored Bklit library.
-//
-// Upstream these are four Intl singletons hardcoded to "en-US", imported
-// directly by around ten chart files — so they drive every axis tick and
-// tooltip date in the app, and would ignore a locale switch entirely.
-//
-// The export shape is unchanged (`shortDateFmt.format(...)`, `intFmt(...)`),
-// so no Bklit consumer needs touching: the exported objects are stable and
-// only the Intl instance behind them is swapped. LocaleProvider calls
+// LOCAL MODIFICATION: upstream hardcodes these formatters to "en-US". The
+// exports keep their shape and identity and only the Intl instance behind them
+// is swapped, so no Bklit consumer changes. LocaleProvider calls
 // `setChartFormatterLocale` during render, ahead of any chart, so the first
-// paint after a switch is already correct.
-//
-// `scripts/vendor-bklit.mjs` would overwrite this file — re-apply the change
-// after a re-vendor. That script is manual and runs in neither CI nor the
-// build, so nothing reverts it silently.
+// paint after a switch is already correct. (Re-apply after a re-vendor.)
 const DATE_OPTIONS = { month: "short", day: "numeric" } as const;
 const WEEKDAY_OPTIONS = { weekday: "short", month: "short", day: "numeric" } as const;
 const TIME_OPTIONS = {
@@ -64,9 +54,8 @@ export const hmsTimeFmt = {
 export const intFmt = (value: number) => integer.format(value);
 
 /**
- * Scale + suffix used only when the ICU compact formatter fails to abbreviate
- * at all (see `compactFmt` below) — deliberately plain ASCII, since this path
- * only runs when the locale's own abbreviation is unavailable.
+ * Plain-ASCII scale + suffix, used only when ICU compact notation fails to
+ * abbreviate at all (see `compactFmt`).
  */
 const FALLBACK_ABBREVIATIONS: readonly [threshold: number, suffix: string][] = [
   [1_000_000_000, "B"],
@@ -82,16 +71,11 @@ const abbreviateFallback = (value: number): string => {
 
 /**
  * Abbreviated form for cramped axis labels — "200K" in English, "20万" in
- * Japanese. Some ICU builds (observed: it-IT on an older bundled Chromium)
- * silently fail to abbreviate values in the low hundred-thousands even with
- * notation:'compact', returning the exact same string as fully-grouped
- * standard notation ("200.000", not "200K"/"2 hlk"/etc). That's wide enough
- * to defeat the axis margin no matter how generously it's sized below, so
- * when the compact and standard forms are identical for a value that should
- * have been abbreviated, fall back to a hand-scaled form rather than trust
- * the broken ICU output for that one value. Locales whose compact notation
- * works correctly (the common case) are completely unaffected — the compact
- * and standard forms only coincide when compact notation had zero effect.
+ * Japanese. Some ICU builds (it-IT on an older Chromium) return plain standard
+ * notation ("200.000") for low hundred-thousands despite notation:'compact',
+ * too wide for any axis margin. When the compact and standard forms coincide
+ * for a value that should abbreviate, fall back to a hand-scaled form; working
+ * locales never reach it.
  */
 export const compactFmt = (value: number): string => {
   const primary = compact.format(value);
@@ -105,15 +89,10 @@ export const compactFmt = (value: number): string => {
 export const chartFormatterLocale = (): string => locale;
 
 // ─────────────────────── Locale-aware axis margin ───────────────────────
-// LOCAL ADDITION (not upstream Bklit): the vendored y-axis strip reserves a
-// fixed pixel width for its tick labels, sized against English forms like
-// "1.2M". Non-English compact notation is often wider — de-DE "1,2 Mio.",
-// it-IT "1,2 Mln", pt-PT/es-ES "1,2 mil" — and a fixed 40px margin either
-// clips those (if the surrounding overflow isn't visible) or crowds them
-// against the plot area. Rather than hand-tune a per-locale constant, measure
-// the actual rendered width of the widest plausible tick for the *current*
-// locale and size the margin to fit it, falling back to the original 40px
-// for anything narrower. Re-apply after a re-vendor.
+// LOCAL ADDITION: upstream reserves a fixed 40px for y-axis tick labels, sized
+// for English "1.2M". Other locales' compact forms are wider (de-DE "1,2 Mio."),
+// so measure the widest plausible tick in the current locale, with 40px as the
+// floor. (Re-apply after a re-vendor.)
 const AXIS_LABEL_FONT =
   '12px -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic UI", sans-serif';
 const AXIS_MARGIN_MIN = 40; // the original fixed value; also the floor
@@ -151,7 +130,7 @@ export const estimateAxisMarginLeft = (): number => {
   return value;
 };
 
-/** Exported for other chart surfaces (e.g. the Sankey's node-label margins) that need to size themselves against real translated text rather than a guessed constant. */
+/** Rendered text width, for surfaces sized against translated text (e.g. Sankey node labels). */
 export const measureLabelWidth = (text: string, font?: string): number => {
   if (typeof document === "undefined") return text.length * 7;
   measureCanvas ??= document.createElement("canvas");

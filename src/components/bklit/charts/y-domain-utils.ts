@@ -80,18 +80,15 @@ export function computeYDomainsByAxis({
   pinnedDomains,
 }: {
   lines: LineConfig[];
-  // LOCAL MODIFICATION: `axisId` is passed through so a caller can resolve a
-  // domain per axis rather than per key set — a chart with a percentage axis
-  // alongside a count axis needs to treat the two differently.
-  // (Re-apply after a re-vendor.)
+  // LOCAL MODIFICATION: `axisId` lets a caller resolve per axis, e.g. a
+  // percentage axis beside a count axis. (Re-apply after a re-vendor.)
   resolveDomain: (dataKeys: string[], axisId: string) => YDomain;
   /**
-   * LOCAL MODIFICATION: axes held at a fixed domain. Used verbatim — `nice()`
-   * would move the endpoints a caller pinned deliberately. Axes listed here
-   * keep a *domain* even with no series on them; note the scale layer
-   * (`buildYScalesFromDomains`) still builds scales from the series list, so a
-   * pinned axis whose last series is removed has a domain but no scale of its
-   * own and falls back to the primary. (Re-apply after a re-vendor.)
+   * LOCAL MODIFICATION: axes held at a fixed domain, used verbatim (`nice()`
+   * would move the pinned endpoints). A pinned axis keeps its domain with no
+   * series on it, but `buildYScalesFromDomains` builds scales from the series
+   * list, so it then has no scale and falls back to the primary.
+   * (Re-apply after a re-vendor.)
    */
   pinnedDomains?: Record<string, YDomain>;
 }): Record<string, YDomain> {

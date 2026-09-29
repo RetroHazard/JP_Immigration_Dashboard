@@ -1,7 +1,6 @@
-// Per-axis y-domain resolution. Two things are load-bearing here: an axis a
-// caller pinned must arrive at the scale untouched, and the stacked-bar total
-// must keep describing the primary axis once a second axis exists — the case
-// that silently regressed before.
+// Per-axis y-domain resolution. A pinned axis must reach the scale untouched,
+// and the stacked-bar total must keep describing the primary axis once a
+// second axis exists.
 import { describe, expect, it } from 'vitest';
 
 import type { LineConfig } from '../chart-context';
