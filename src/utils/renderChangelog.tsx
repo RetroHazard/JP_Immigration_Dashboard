@@ -1,4 +1,3 @@
-// src/utils/renderChangelog.tsx
 import { ChevronRight } from 'lucide-react';
 import type React from 'react';
 

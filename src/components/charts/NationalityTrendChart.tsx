@@ -1,14 +1,11 @@
-// src/components/charts/NationalityTrendChart.tsx
 // The largest nationalities across every half-year the table covers, on
-// Bklit's LineChart. Legend entries toggle their series.
+// Bklit's LineChart. Legend entries toggle their series. Series are ranked over
+// the whole visible window, not the latest period, so a nationality doesn't
+// appear and disappear as the range changes.
 //
-// Series are ranked over the whole visible window rather than the latest
-// period, so a nationality does not appear and disappear as the range changes.
-//
-// Two modes: absolute counts, and indexed (= 100 at each series' first
-// period in the window). Absolute answers "who is largest"; indexed answers
-// "who is growing" — Vietnam's ×13 and Myanmar's ×22 are invisible under
-// China's 900,000-person line until the series are re-based.
+// Two modes: absolute counts ("who is largest") and indexed, = 100 at each
+// series' first period in the window ("who is growing": Vietnam's ×13 is
+// invisible under China's 900,000-person line until re-based).
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -59,10 +56,9 @@ export const NationalityTrendChart: React.FC<ResidentChartData> = ({ data, filte
 
   const { chartData, series } = useMemo(() => {
     const periods = periodsForRange(getAllPeriods(data), range);
-    // Folded before ranking: 韓国 and 朝鮮 would otherwise each rank on their
-    // post-2015 figures alone, and both would draw a line that starts partway
-    // across the chart. The region filter re-ranks the top 8 within that
-    // region, and the category filter within that purpose of stay.
+    // Folded before ranking: otherwise 韓国 and 朝鮮 each rank on their
+    // post-2015 figures alone and draw lines that start partway across. The
+    // region and category filters re-rank the top 8 within their slice.
     const rows = mergeContinuedSeries(
       selectResidents(data, { periods, region: filters.region, group: filters.group })
     );
@@ -156,12 +152,10 @@ export const NationalityTrendChart: React.FC<ResidentChartData> = ({ data, filte
         </div>
       ) : (
         <div className="chart-container" role="img" aria-label={t('charts.origins.aria')}>
-          {/* Keyed on mode AND filters: a unit switch or a region/category
-              change can move the y-domain by two orders of magnitude, which
-              the vendored domain tween mishandles (lines render on a stale
-              scale). A remount replays the enter reveal on a fresh scale.
-              Range changes stay un-keyed — their modest domain shifts tween
-              correctly. */}
+          {/* Keyed on mode and filters: a unit switch or region/category change
+              can move the y-domain by two orders of magnitude, which the
+              vendored domain tween mishandles (lines render on a stale scale).
+              Range changes tween correctly and stay un-keyed. */}
           <LineChart
             key={`${mode}-${filters.region}-${filters.group}`}
             data={displayData}

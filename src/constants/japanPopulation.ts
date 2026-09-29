@@ -1,14 +1,12 @@
-// src/constants/japanPopulation.ts
 // Japan's total population (Japanese nationals + foreign residents), from the
 // Statistics Bureau's official Population Estimates (総務省統計局「人口推計」,
 // e-Stat table 0003448232 and the annual 人口推計 reports): the October 1
 // figure for each year, rounded to the nearest thousand. 2025 carries the
 // provisional monthly estimate.
 //
-// The residents cube has no total-population dimension of its own — these
-// values exist so the stat tiles can express the foreign-resident stock as a
-// share of the country. They are a denominator, not chart data: update the
-// table once a year when the Bureau publishes the new estimate.
+// The denominator for the stat tiles' foreign-resident share, since the
+// residents cube has no total population. Update once a year when the Bureau
+// publishes the new estimate.
 
 /** Total population by calendar year, persons. */
 const JAPAN_POPULATION: Record<number, number> = {
@@ -35,9 +33,8 @@ const MAX_YEAR = Math.max(...YEARS);
 /**
  * The population estimate matching a residents period ('YYYY-06' | 'YYYY-12').
  * Population moves ~0.4% a year, so the calendar-year figure is precise
- * enough for a share readout. A period outside the table (a new data release
- * before the table's annual update, say) clamps to the nearest known year
- * rather than losing the tile.
+ * enough for a share readout. A period outside the table clamps to the nearest
+ * known year rather than losing the tile.
  */
 export const japanPopulationForPeriod = (period: string): number => {
   const year = Number(period.slice(0, 4));

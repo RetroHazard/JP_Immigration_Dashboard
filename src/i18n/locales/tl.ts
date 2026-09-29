@@ -1,10 +1,6 @@
-// src/i18n/locales/tl.ts
-// Tagalog (Filipino) overrides. A complete translation: every key English
-// defines has a Tagalog counterpart, including both members of every plural
-// family Tagalog needs (`_one` and `_other` — Filipino, like English, resolves
-// counts to one of those two CLDR categories, though its `one` rule matches a
-// count of 0 as well as 1, so each `_one` string is phrased to read naturally
-// for both).
+// Tagalog plural families carry both `_one` and `_other`, but Filipino CLDR
+// `one` covers every count not ending in 4, 6 or 9 (0, 1, 2, 3, 5 …), so a
+// `_one` string must read naturally for any count.
 import type { Dictionary } from '../types';
 
 export const tl: Dictionary = {
@@ -17,9 +13,7 @@ export const tl: Dictionary = {
   'app.retry': 'Subukan Muli',
 
   // ── Document metadata ────────────────────────────────────────────────────
-  // Read at module scope by src/app/layout.tsx. The static export prerenders
-  // one HTML document, so these can't vary per visitor — they live here to
-  // keep one source of truth, and to be ready for per-locale routes.
+  // Not rendered yet: the static export prerenders one English document.
   'meta.title': 'Dashboard ng Estadistika ng Imigrasyon sa Japan',
   'meta.description':
     'Mga oras ng pagproseso ng visa, dami ng trabaho ng mga tanggapan, takbo ng populasyon ng mga dayuhang residente, at isang queue-model na tagatantiya para sa iyong sariling aplikasyon - batay sa opisyal na estadistika ng Immigration Services Agency, ina-update kapag naglabas ng bagong datos ang e-Stat.',
@@ -325,8 +319,8 @@ export const tl: Dictionary = {
   'policy.act2026.description': 'Itinaas ng rebisyon noong 2026 ang legal na limitasyon ng mga bayarin.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
-  // Compact per-type series names. Deliberately separate from
-  // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
+  // Series names for the wrapping legend, so these can be fuller than the
+  // Sankey's `appType.*.compact` forms.
   'chart.types.series.acquisition': 'Pagkuha',
   'chart.types.series.extension': 'Ekstensyon',
   'chart.types.series.change': 'Pagbabago ng Katayuan',
@@ -419,16 +413,10 @@ export const tl: Dictionary = {
   'footer.dataUpdated': 'na-update ang datos noong {date}',
 
   // ── Domain: immigration bureaus ──────────────────────────────────────────
-  // Keyed by e-Stat bureau code, in three widths — the same shape the
-  // application types use.
-  //
-  // `.short` is the terminal-style abbreviation; left as the Latin code, as in
-  // every other Latin-script locale. `.compact` is the form the
-  // width-constrained surfaces use: the efficiency chart's 92px label column,
-  // the ring-chart legend, and the treemap's on-tile label. City-only bureaus
-  // mirror the English/romanized city name, same as fr/es/de/it/pt — "Sapporo"
-  // is "Sapporo" in Tagalog too. The four airport bureaus get a real Tagalog
-  // phrase since it genuinely differs from English.
+  // Keyed by e-Stat bureau code. `.short` stays Latin (IATA-style codes).
+  // `.compact` fits the ~92px efficiency-chart label column, the ring-chart
+  // legend, and the treemap tile. City-only names romanize as in English; the
+  // four airport bureaus get a Tagalog phrase.
   'bureau.all': 'Buong Bansa',
   'bureau.all.short': 'ALL',
   'bureau.all.compact': 'Buong Bansa',
@@ -480,9 +468,9 @@ export const tl: Dictionary = {
 
   // ── Domain: application types ────────────────────────────────────────────
   // Keyed by e-Stat application type code. `.short` is the stat-tile
-  // abbreviation, left as the Latin code. `.compact` is the one-word form the
-  // narrow Sankey uses — kept deliberately short here, since Filipino affixing
-  // tends to run longer than English and the Sankey does not truncate.
+  // abbreviation, left as the Latin code; `.compact` is the one-word form the
+  // narrow Sankey uses. The Sankey does not truncate and Filipino affixes run
+  // long, so `.compact` keeps to short forms.
   'appType.all': 'Lahat ng Uri',
   'appType.all.short': 'ALL',
   'appType.all.compact': 'Lahat',
@@ -506,9 +494,8 @@ export const tl: Dictionary = {
   'appType.60.compact': 'Permanente',
 
   // ── Domain: prefectures ──────────────────────────────────────────────────
-  // Keyed by JIS prefecture code (1 Hokkaido … 47 Okinawa). Japanese proper
-  // nouns romanize the same way in Tagalog as in English — "Hokkaido" stays
-  // "Hokkaido" — matching how every other Latin-script locale handles them.
+  // Keyed by JIS prefecture code (1 Hokkaido … 47 Okinawa), romanized as in
+  // English.
   'prefecture.1': 'Hokkaido',
   'prefecture.2': 'Aomori',
   'prefecture.3': 'Iwate',

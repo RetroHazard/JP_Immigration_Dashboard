@@ -1,9 +1,6 @@
-// src/i18n/T.tsx
 // Renders a catalogue string whose placeholders are React nodes rather than
-// text — the footer's e-Stat link, for instance. Splitting those sentences
-// into "before" and "after" keys would strand translators with fragments they
-// can't reorder, and a general rich-text/markdown renderer is far more
-// machinery than the handful of cases here justify.
+// text, such as the footer's e-Stat link. The sentence stays one key so
+// translators can reorder around the node.
 'use client';
 
 import { Fragment, type ReactNode } from 'react';
@@ -21,8 +18,7 @@ interface TProps {
 }
 
 export const T = ({ k, values }: TProps) => {
-  // Called without params, `t` leaves the placeholders in place — which is
-  // exactly the template this needs to split.
+  // Called without params, `t` leaves the placeholders in place to split on.
   const template = useLocale().t(k);
   const parts: ReactNode[] = [];
   const pattern = new RegExp(PLACEHOLDER.source, 'g');

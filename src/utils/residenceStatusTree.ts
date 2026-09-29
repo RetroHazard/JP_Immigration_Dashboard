@@ -1,14 +1,9 @@
-// src/utils/residenceStatusTree.ts
 // Hierarchy for the Residence Status Mix view: all residents → status group
-// (work, training, study, family, residency, other) → individual status.
-// The direct analogue of categoryMixTree.ts, and deliberately the same
-// MixTree/MixCategory/MixLeaf shape so the treemap and sunburst components
-// render either without knowing which dataset they are looking at.
-//
-// Rollups are summed from the leaves rather than read from the payload: the
-// build prunes 総数 and the three 合計 rows precisely because they are
-// derivable, and the leaves that remain use the corrected parentage in
-// constants/residenceStatuses.ts.
+// (work, training, study, family, residency, other) → individual status. The
+// same MixTree shape as categoryMixTree.ts, so the treemap and sunburst render
+// either dataset without knowing which. Rollups are summed from the leaves: the
+// build prunes 総数 and the three 合計 rows, and the remaining leaves use the
+// corrected parentage in constants/residenceStatuses.ts.
 import { residenceStatuses, STATUS_GROUPS, type StatusGroup } from '../constants/residenceStatuses';
 import type { MixCategory, MixTree } from './categoryMixTree';
 import type { ResidentRecord } from './residentsData';
@@ -35,9 +30,8 @@ export const buildResidenceStatusTree = (
   filters: { nationality: string; region: string },
   period: string | null
 ): MixTree => {
-  // A stock figure, not a flow: summing several half-years would count the
-  // same person once per period. The view therefore draws exactly one
-  // snapshot — the explicitly requested period, or the latest one.
+  // A stock figure, not a flow: summing half-years would count a person once
+  // per period, so the view draws one snapshot (the requested period, or the latest).
   const resolved = resolvePeriod(data, period);
   if (!resolved) return { total: 0, categories: [] };
 

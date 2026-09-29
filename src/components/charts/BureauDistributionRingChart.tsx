@@ -1,7 +1,6 @@
-// src/components/charts/BureauDistributionRingChart.tsx
 // Bureau Share on Bklit's PieChart as a donut: top bureaus by intake volume
-// plus an explicit "Other" fold (the categorical palette carries 8 slots;
-// past that, more slices would stop being distinguishable anyway).
+// plus an explicit "Other" fold (the categorical palette carries 8 slots, and
+// past that slices stop being distinguishable).
 'use client';
 
 import { useCallback, useMemo, useRef, useState } from 'react';

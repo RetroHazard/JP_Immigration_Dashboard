@@ -1,20 +1,10 @@
-// src/utils/chartTables.ts
-// What each Application Processing chart's data table actually contains.
-//
-// The table used to be a single hardcoded month x status pivot rendered under
-// every chart, which was true of `intake` alone: the Application Types chart
-// plots six application types and got a table with no type axis at all, and
-// Bureau Share plots a per-bureau breakdown and got the nationwide aggregate
-// row. A table that describes a different projection of the cube than the
-// chart above it is not a text alternative to that chart.
-//
-// So the row axis varies here (month / application type / bureau / prefecture),
-// and each builder reads its numbers from the same helper the chart does —
-// `buildCategoryMixTree` for the treemap, `computeBureauVolumes` for the
-// lollipop, the ring chart's own status pair for the donut — so the two can
-// never drift apart. The registry names a builder by id; the math lives here
-// rather than in ChartComponents.tsx so the selector graph stays out of the
-// chart registry's imports.
+// What each Application Processing chart's data table contains. A table must
+// describe the same projection of the cube as the chart above it, so the row
+// axis varies (month / application type / bureau / prefecture) and each builder
+// reads its numbers from the helper the chart uses (`buildCategoryMixTree`,
+// `computeBureauVolumes`, …) so the two cannot drift. The registry names a
+// builder by id; the math lives here to keep the selector graph out of
+// ChartComponents.tsx's imports.
 import { applicationOptions } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
 import { japanPrefectures } from '../constants/japanPrefectures';
@@ -30,9 +20,8 @@ import { bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from 
 /**
  * Display text named by identity rather than by value. The DOM resolves a ref
  * with the locale-bound `t`; the CSV writer resolves the same ref against
- * English. That is what keeps the export English-only by construction now that
- * rows and cells carry names and not just `YYYY-MM` months — see
- * `chartTableCsv.ts`. A bare string is a language-neutral literal.
+ * English, which keeps exports English-only (`chartTableCsv.ts`). A bare string
+ * is a language-neutral literal.
  */
 export type LabelRef = string | { key: DictionaryKey; params?: Record<string, string | number | LabelRef> };
 
@@ -58,16 +47,14 @@ export interface TableColumn {
    */
   format: 'count' | 'percent' | 'label';
   /**
-   * Wraps the formatted number for the on-screen cell only, e.g. `map.areaValue`
-   * renders "377,975 km²". Units are a reading affordance; the CSV writes the
-   * bare number so a spreadsheet still sees a number.
+   * Wraps the on-screen cell only, e.g. `map.areaValue` renders "377,975 km²".
+   * The CSV writes the bare number so a spreadsheet still sees a number.
    */
   unitKey?: DictionaryKey;
   /**
-   * The unit's bare form for the CSV header — `km²` becomes `Area (km²)`,
-   * mirroring how a percent column takes ` (%)`. Declared beside `unitKey`
-   * because the two describe the same unit: a column with one and not the
-   * other shows a unit on screen the export then drops, or vice versa.
+   * The unit's bare form for the CSV header (`km²` gives `Area (km²)`, as a
+   * percent column takes ` (%)`). Set it with `unitKey`, or the unit shows on
+   * screen but not in the export.
    */
   csvUnit?: string;
 }
@@ -89,10 +76,7 @@ export interface TableModel {
   rows: TableRow[];
   /** One source for the sr-only `<caption>` and the CSV's leading `#` line. */
   caption: LabelRef;
-  /**
-   * Download filename stem. English names rather than e-Stat codes, and
-   * already reduced to lowercase `[a-z0-9_-]` — see `bureauName` / `typeName`.
-   */
+  /** Download filename stem: English names, not e-Stat codes, in lowercase `[a-z0-9_-]`. */
   csvStem: string;
   /** Second `#` line: a language-neutral echo of what produced this table. */
   csvSelection: string;
@@ -121,20 +105,9 @@ const bureauRef = (code: string): LabelRef => ({ key: `bureau.${code}` as Dictio
 const typeRef = (code: string): LabelRef => ({ key: `appType.${code}` as DictionaryKey });
 
 /**
- * The filename carries names, not codes: `101720` and `20` are e-Stat's
- * identifiers and mean nothing to whoever opens the download. The bureau takes
- * its full English name and the application type its abbreviation — the same
- * `EXT`/`PR` forms the interface shows — which keeps a stem readable at a
- * glance without running to the width of "Permission-for-Activities".
- *
- * Resolved through `englishOnly` rather than the active locale, matching the
- * file's contents: an export is pinned to English so a spreadsheet or script
- * built against it keeps parsing, and a localized name on an English file
- * would be the one part that moved.
- *
- * Lowercased along with the rest of the stem — the prefix, chart key and range
- * are already lowercase, so folding the two resolved names is what makes the
- * whole filename one case rather than `..._Narita-Airport_PR_all`.
+ * Lowercase, filename-safe English name. Names rather than e-Stat codes keep the
+ * download readable; `englishOnly` because exports are English whatever the UI
+ * language.
  */
 const fileSafe = (label: string): string =>
   label
@@ -145,9 +118,8 @@ const bureauName = (code: string): string => fileSafe(englishOnly(`bureau.${code
 const typeName = (code: string): string => fileSafe(englishOnly(`appType.${code}.short` as DictionaryKey));
 
 /**
- * "Showing Bureau Share for Nationwide, Permanent Residence" — the same
- * sentence the shell announces the chart with (DashboardShell.tsx:443), which
- * is exactly what a caption for that chart's text alternative should say.
+ * "Showing Bureau Share for Nationwide, Permanent Residence": the same sentence
+ * DashboardShell announces the chart with.
  */
 const caption = ({ chartKey, filters }: TableInput): LabelRef =>
   filters.type === 'all'
@@ -187,12 +159,10 @@ const STATUS_COLUMNS: { id: string; labelKey: DictionaryKey; status: string }[] 
 ];
 
 /**
- * The table that was already right, extended once: a month x status pivot — a
- * superset of the volume series the bar chart plots, and the closest thing the
- * app offers to a raw dump, so it keeps all six status columns rather than
- * being narrowed to what the chart draws. The trailing percent column is the
- * chart's approval-rate line (granted out of processed, per month), added when
- * that line was — the one series a status pivot alone couldn't carry.
+ * Month x status pivot: a superset of the bar chart's volume series and the
+ * closest thing the app offers to a raw dump, so it keeps all six status
+ * columns. The trailing percent column is the chart's approval-rate line
+ * (granted out of processed, per month).
  */
 const intakeByMonth: TableBuilder = (input) => {
   const { data, filters, range } = input;
@@ -227,15 +197,11 @@ const intakeByMonth: TableBuilder = (input) => {
 // ── types ──────────────────────────────────────────────────────────────────
 
 /**
- * The reported bug. Mirrors CategorySubmissionsLineChart's own memo: status
- * pinned to new applications, summed per `entry.type`. `filters.type` is
- * deliberately not applied — the registry marks this chart `appType: false`,
- * so the type dimension is the chart's subject, not a filter on it.
- *
- * Columns take the canonical `appType.<code>` names rather than the chart's
- * width-fitted `chart.types.series.*` legend text: a table column has room for
- * "Permission for Activities", and deriving them from `applicationOptions`
- * rather than copying the chart's SERIES map is what removes the drift.
+ * Mirrors CategorySubmissionsLineChart: new applications summed per
+ * `entry.type`. `filters.type` is not applied; the registry marks this chart
+ * `appType: false` because the type dimension is its subject. Columns take the
+ * full `appType.<code>` names from `applicationOptions`, not the chart's
+ * width-fitted legend text.
  */
 const typesByMonth: TableBuilder = (input) => {
   const { data, filters, range } = input;
@@ -272,9 +238,8 @@ const OUTCOME_COLUMNS: { id: string; labelKey: DictionaryKey; status: string }[]
 ];
 
 /**
- * One row per source node, one column per outcome node: the cross-tab that the
- * Sankey's links *are*, which no month x status pivot could express. The
- * trailing percent column is the approval-rate gauge beside it.
+ * One row per Sankey source node, one column per outcome node: the cross-tab
+ * of the Sankey's links. The trailing percent column is the approval-rate gauge.
  */
 const outcomesByType: TableBuilder = (input) => {
   const { data, filters, range } = input;
@@ -303,9 +268,8 @@ const outcomesByType: TableBuilder = (input) => {
         label: typeRef(code),
         values: valuesFor((entry) => entry.type === code),
       })),
-      // Summed from the source rows rather than from the six rows above, so it
-      // reproduces the gauge even if the cube ever carries a type code outside
-      // `applicationOptions`. Redundant when a single type is selected.
+      // Summed from the source rows, not the rows above, so it matches the gauge
+      // even if the cube carries a type code outside `applicationOptions`.
       ...(filters.type === 'all'
         ? [{ id: 'all', label: typeRef('all'), values: valuesFor(() => true) }]
         : []),
@@ -319,15 +283,10 @@ const outcomesByType: TableBuilder = (input) => {
 // ── share ──────────────────────────────────────────────────────────────────
 
 /**
- * The donut's own math (BureauDistributionRingChart): every per-bureau row in
- * range, aggregate row excluded, carried-over plus newly received.
- *
- * Deliberately a superset of the chart: the donut folds everything past the
- * seventh bureau into one "Other (n)" slice because the categorical palette
- * carries eight slots, and the table is where those bureaus become readable
- * again. The share denominator is the sum of the bureau rows — the donut's
- * total — not the official nationwide aggregate row, which is a separate row
- * in the source data and need not agree.
+ * The donut's math (BureauDistributionRingChart): per-bureau rows in range,
+ * carried over plus received. Lists every bureau, including those the donut
+ * folds into "Other (n)". The share denominator is the sum of the bureau rows
+ * (the donut's total), not the nationwide aggregate row, which need not agree.
  */
 const shareByBureau: TableBuilder = (input) => {
   const { data, filters, range } = input;
@@ -369,12 +328,10 @@ const shareByBureau: TableBuilder = (input) => {
 // ── mix ────────────────────────────────────────────────────────────────────
 
 /**
- * The treemap flattened: its `application type -> bureau` hierarchy transposed
- * into a bureau x type matrix, which carries every leaf value in the tree
- * without needing a two-level row axis. Built from `buildCategoryMixTree` so
- * the scope semantics and the new-applications status pin come from the chart
- * itself. Columns stay in canonical code order rather than the tree's
- * value-descending order, so they do not reshuffle as filters change.
+ * The treemap's `application type -> bureau` hierarchy transposed into a
+ * bureau x type matrix, built from `buildCategoryMixTree` so scope and the
+ * new-applications status pin come from the chart. Columns stay in canonical
+ * code order, not the tree's value order, so they don't reshuffle with filters.
  */
 const mixByBureau: TableBuilder = (input) => {
   const { data, filters, range } = input;
@@ -414,10 +371,9 @@ const mixByBureau: TableBuilder = (input) => {
 // ── efficiency ─────────────────────────────────────────────────────────────
 
 /**
- * The lollipop's ranking, in its own order: the same `computeBureauVolumes`
- * the chart plots, sorted by completion rate descending. The trailing row is
- * the dashed nationwide guide, which comes from the official aggregate row
- * rather than from summing the bureaus above it.
+ * The lollipop's ranking: `computeBureauVolumes`, by completion rate descending.
+ * The trailing row is the dashed nationwide guide, taken from the official
+ * aggregate row rather than summed from the bureaus above.
  */
 const efficiencyByBureau: TableBuilder = (input) => {
   const { data, filters, range } = input;
@@ -465,13 +421,9 @@ const efficiencyByBureau: TableBuilder = (input) => {
 // ── map ────────────────────────────────────────────────────────────────────
 
 /**
- * The Regional Map is the one processing chart that reads no immigration data
- * — it shades prefectures by population density and pins bureau locations — so
- * its table is the reference geography behind it, not a slice of the cube. No
- * filter or range applies, which is why the filename carries neither.
- *
- * This is also the only table with a text column, and therefore the one that
- * makes CSV quoting load-bearing rather than theoretical.
+ * The Regional Map reads no immigration data (it shades prefectures by density
+ * and pins bureaus), so its table is that reference geography. No filter or
+ * range applies, so the filename carries neither.
  */
 const prefectures: TableBuilder = () => ({
   rowHeaderKey: 'table.prefecture',
@@ -500,10 +452,9 @@ const prefectures: TableBuilder = () => ({
 // ── registry ───────────────────────────────────────────────────────────────
 
 /**
- * Which text alternative a chart renders. Keyed separately from the chart key
- * so the registry's swap-ready alternates — CategoryMixSunburst for the
- * treemap, ProcessingEfficiencyQuadrantChart for the lollipop — inherit their
- * table without touching this module.
+ * Which table a chart renders. Keyed apart from the chart key so the registry's
+ * alternates (CategoryMixSunburst, ProcessingEfficiencyQuadrantChart) inherit
+ * their table without touching this module.
  */
 export type ProcessingTableId =
   | 'intakeByMonth'

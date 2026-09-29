@@ -1,10 +1,7 @@
-// src/utils/bureauColors.ts
 // Helpers for the bureau flag palette. The flag colors in bureauOptions are
-// single light-mode values; like every other color in the design system they
-// need per-theme steps ("dark mode is a selection, not an inversion"), so
-// visibleBureauColor keeps each hue but clamps its luminance into a band
-// that stays readable against the active theme's surfaces (Naha's black and
-// Sapporo's near-black navy vanish on dark cards otherwise).
+// single light-mode values, so visibleBureauColor keeps each hue but clamps its
+// luminance into a band readable on the active theme's surfaces (Naha's black
+// and Sapporo's near-black navy vanish on dark cards otherwise).
 
 const parseRgb = (rgba: string): [number, number, number] | null => {
   const match = /rgba?\(([^)]+)\)/.exec(rgba);

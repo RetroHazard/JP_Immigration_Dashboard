@@ -1,19 +1,14 @@
 name: Deploy
 
 on:
-  # Auto-redeploy when something that actually reaches the built site lands on
-  # main. Documentation-only commits (README, ARCHITECTURE, DEVELOPMENT,
-  # CONTRIBUTING, LICENSE, issue templates) deliberately do not deploy.
+  # Redeploy when something that reaches the built site lands on main.
+  # Documentation-only commits do not deploy.
   push:
     branches: [main]
     paths:
       - 'src/**'
-      # ...except the docs that live inside it. src/i18n/README.md is the
-      # contributor guide to the catalogue, not site content, and `src/**`
-      # was quietly deploying on it. Patterns are evaluated in order and the
-      # last match wins, so this has to follow the rule it narrows. Root
-      # CHANGELOG.md is unaffected — it is listed below and does deploy,
-      # because sync-changelog.js copies it into the built site.
+      # ...except docs inside it, such as src/i18n/README.md. The last matching
+      # pattern wins, so this must follow the rule it narrows.
       - '!src/**/*.md'
       - 'public/**'
       # Also covers scripts/datasets.mjs, so registering a dataset redeploys.
@@ -57,8 +52,8 @@ jobs:
     if: ${{ !inputs.skip-verify }}
     uses: ./.github/workflows/verify.yaml
     with:
-      # The deploy job below builds against the real cached payloads, so
-      # building the fixture here as well would be wasted work.
+      # The deploy job builds against the real cached payloads, so a fixture
+      # build here would be wasted work.
       skip-build: true
       # Lockfile dev flags do not affect the built output, so drift should
       # block a pull request, not a publish.
@@ -66,19 +61,18 @@ jobs:
 
   deploy:
     needs: verify
-    # `needs` on a skipped job resolves to 'skipped', which is not success, so
-    # the default `needs` gate would skip this too. Publish when verify passed
-    # or was deliberately turned off; never when it failed.
+    # A skipped `needs` job resolves to 'skipped', which the default gate treats
+    # as not-success. Publish when verify passed or was turned off; never when
+    # it failed.
     if: always() && (needs.verify.result == 'success' || needs.verify.result == 'skipped')
     runs-on: ubuntu-latest
     # Headroom for the fetch's worst-case retry budget on top of install, build
     # and publish, so a legitimate retry is never cut short by the job timeout.
     timeout-minutes: 30
 
-    # Serialise deployments without cancelling one that is already publishing —
-    # interrupting actions/deploy-pages can leave the site partially updated.
-    # Declared at job level so it applies identically on push, dispatch and
-    # workflow_call.
+    # Serialise deployments without cancelling one mid-publish, which can leave
+    # the site partially updated. Job-level so it applies on push, dispatch and
+    # workflow_call alike.
     concurrency:
       group: pages
       cancel-in-progress: false
@@ -101,11 +95,9 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      # Read-only: watcher.yaml owns writing this cache. The primary key is
-      # deliberately unique so it always misses and falls through to the
-      # restore-key prefix, which resolves to the most recently saved payload.
-      # One entry covers the whole datastore, so a deploy can never pair a fresh
-      # copy of one table with a stale copy of another.
+      # Read-only: watcher.yaml owns writing this cache. The primary key never
+      # matches, so the restore-key prefix resolves to the most recent entry.
+      # One entry covers the whole datastore, so tables are never mixed.
       - name: Restore e-Stat data
         uses: actions/cache/restore@v6
         with:
@@ -114,9 +106,8 @@ jobs:
           restore-keys: |
             estat-data-
 
-      # Downloads only what the cache did not supply; anything already present is
-      # validated and kept. Every dataset in scripts/datasets.mjs, so this step
-      # never needs editing.
+      # Downloads only what the cache did not supply; present files are
+      # validated and kept.
       - name: Ensure e-Stat data
         env:
           ESTAT_APP_ID: ${{ secrets.ESTAT_APP_ID }}

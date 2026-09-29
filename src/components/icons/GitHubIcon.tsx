@@ -1,8 +1,6 @@
-// src/components/icons/GitHubIcon.tsx
-// lucide dropped brand glyphs before 1.x, so the GitHub mark is vendored from
-// Iconify's simple-icons set (CC0) rather than adding a second icon library.
-// The props mirror how lucide icons are used here — a `size-*` class and
-// currentColor — so it drops into the header alongside them.
+// lucide has no brand glyphs, so the GitHub mark is vendored from Iconify's
+// simple-icons set (CC0). Like the lucide icons beside it, it takes a `size-*`
+// class and draws in currentColor.
 
 export function GitHubIcon({ className }: { className?: string }) {
   return (

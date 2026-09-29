@@ -1,4 +1,3 @@
-// src/components/ResidentsStatsSummary.tsx
 // Stat tiles for the residents dataset. The processing tiles count events over
 // a month; these read a stock at a point in time, so the delta is half-over-
 // half rather than month-over-month and the sparkline walks periods.
@@ -67,9 +66,9 @@ export const ResidentsStatsSummary: React.FC<ResidentsStatsSummaryProps> = ({ da
           ? { percent: ((total - previousTotal) / previousTotal) * 100, direction: 'neutral' as const }
           : null,
       spark: sparkTotals,
-      // The selection as a share of the whole country. The denominator moves
-      // with each period's own estimate, so the sparkline shows the share
-      // genuinely rising rather than just the numerator growing.
+      // The selection as a share of the whole country. The denominator is each
+      // period's own estimate, so the sparkline tracks the share, not just the
+      // numerator.
       population,
       populationShare: (total / population) * 100,
       populationShareSpark: sparkPeriods.map(

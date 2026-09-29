@@ -1,8 +1,6 @@
-// src/i18n/locales/index.ts
-// The locale registry. Adding a language is: drop `<code>.ts` in this folder,
-// import it, and add one entry below. Nothing else in the app needs to change
-// — the switcher, the `?lang=` parser, and the catalogue tests all read from
-// this registry.
+// The locale registry. Adding a language means adding `<code>.ts` here,
+// importing it, and adding one entry below; the switcher, the `?lang=` parser,
+// and the catalogue tests all read from this registry.
 import type { Dictionary } from '../types';
 import { de } from './de';
 import { en } from './en';

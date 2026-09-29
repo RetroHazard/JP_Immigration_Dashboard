@@ -1,12 +1,10 @@
-// src/constants/japanPrefectures.ts
 // noinspection SpellCheckingInspection
 
 export interface Prefecture {
   /**
-   * JIS prefecture code (1 Hokkaido … 47 Okinawa). This is the join key
-   * against `public/static/japan.topo.json`, which carries the same code as
-   * `properties.id`. The English `name` used to serve that role, which stops
-   * working the moment names are translated.
+   * JIS prefecture code (1 Hokkaido … 47 Okinawa). The join key against
+   * `public/static/japan.topo.json`'s `properties.id`; names can't be, since
+   * they are translated.
    */
   id: number;
   bureau: string;
@@ -16,9 +14,8 @@ export interface Prefecture {
   density: number;
 }
 
-// The English name stays here as a readability anchor for the data — the
-// name actually rendered comes from the catalogue key `prefecture.<id>`,
-// asserted against this list in __tests__/japanPrefectures.test.ts.
+// The English name is only a readability anchor for the data; the rendered
+// name comes from the catalogue key `prefecture.<id>`.
 const createPrefecture = (
   _name: string,
   bureau: string,
@@ -33,8 +30,8 @@ const createPrefecture = (
   },
 });
 
-// Listed in JIS order, so the array index carries the code — asserted against
-// the TopoJSON in __tests__/japanPrefectures.test.ts rather than left to trust.
+// Listed in JIS order, so the array index carries the code (checked against
+// the TopoJSON in __tests__/japanPrefectures.test.ts).
 export const japanPrefectures: Prefecture[] = ([
   createPrefecture('Hokkaido', '101010', 5038741, 83422),
   createPrefecture('Aomori', '101090', 1163739, 9645),

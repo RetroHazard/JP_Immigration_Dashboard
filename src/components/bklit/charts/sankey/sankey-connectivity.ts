@@ -1,14 +1,10 @@
-// LOCAL ADDITION: not part of the vendored Bklit registry (vendor-bklit.mjs
-// will not overwrite it, but the imports in sankey-node.tsx/sankey-link.tsx
-// that reference it are LOCAL MODIFICATIONS and would need re-applying after
-// a re-vendor).
+// LOCAL ADDITION: not in the Bklit registry, so a re-vendor keeps this file
+// but drops its imports in sankey-node.tsx and sankey-link.tsx (re-apply those).
 //
-// Transitive connectivity for multi-tier sankeys. The stock hover logic is
-// 1-hop, which reads as broken on a three-column chart: hovering a region
-// would dim the very status groups its residents flow into. This walks the
-// link graph strictly downstream and strictly upstream from a node — never
-// re-reversing direction, so a region does not reach its sibling regions
-// through a shared middle node.
+// Transitive hover connectivity for multi-tier sankeys; the stock 1-hop hover
+// dims the status groups a hovered region's residents flow into. Walks strictly
+// downstream and strictly upstream, never re-reversing, so a region doesn't
+// reach its sibling regions through a shared middle node.
 import type { SankeyLink as SankeyLinkType, SankeyNode as SankeyNodeType } from "d3-sankey";
 import type { SankeyLinkDatum, SankeyNodeDatum } from "./sankey-context";
 

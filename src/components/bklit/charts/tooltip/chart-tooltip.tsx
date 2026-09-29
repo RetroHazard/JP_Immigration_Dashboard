@@ -31,10 +31,9 @@ export interface ChartTooltipProps {
   showDots?: boolean;
   /**
    * LOCAL MODIFICATION: restrict the dot layer to these dataKeys. ComposedChart
-   * registers a zero-width LineConfig per SeriesBar, and those dots are placed
-   * from the raw value rather than the stacked segment top, so stacked charts
-   * point this at their real lines only. Omit for the default (a dot per
-   * registered line). (Re-apply after a re-vendor.)
+   * registers a zero-width line per SeriesBar whose dot sits at the raw value,
+   * not the stacked segment top, so stacked charts list their real lines only.
+   * Omit for a dot per registered line. (Re-apply after a re-vendor.)
    */
   dotKeys?: readonly string[];
   /** Dot style: filled circle or transparent ring. Default: "dot" */
@@ -343,10 +342,8 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
       )}
 
       {/* Tooltip Box */}
-      {/* LOCAL MODIFICATION: a tooltip opened by a tap carries the y of the
-          touch, and is placed above it rather than pinned to the top of the
-          plot — where, on a phone, it covers the data and the date axis. The
-          vendored `top` override has to come off for that, or it would win.
+      {/* LOCAL MODIFICATION: a tapped tooltip is placed above the touch, so
+          the vendored `top` override comes off or it would win.
           (Re-apply after a re-vendor.) */}
       <TooltipBox
         anchorAboveY={touchAnchorY}

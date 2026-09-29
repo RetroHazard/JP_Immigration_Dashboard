@@ -1,10 +1,5 @@
-// src/i18n/locales/vi.ts
-// Vietnamese overrides. Full coverage of the English catalogue.
-//
-// Vietnamese has a single CLDR plural category (`other`) — `Intl.PluralRules
-// ('vi-VN').resolvedOptions().pluralCategories` returns only `['other']` — so
-// the five plural families in the catalogue owe just their `_other` member;
-// the `_one` lines stay commented out, same as Japanese and Korean.
+// Vietnamese has one CLDR plural category, so plural families define only
+// `_other`; the `_one` lines stay commented out.
 import type { Dictionary } from '../types';
 
 export const vi: Dictionary = {
@@ -17,9 +12,7 @@ export const vi: Dictionary = {
   'app.retry': 'Thử lại',
 
   // ── Document metadata ────────────────────────────────────────────────────
-  // Read at module scope by src/app/layout.tsx. The static export prerenders
-  // one HTML document, so these can't vary per visitor — they live here to
-  // keep one source of truth, and to be ready for per-locale routes.
+  // Not rendered yet: the static export prerenders one English document.
   'meta.title': 'Bảng Điều Khiển Thống Kê Xuất Nhập Cảnh Nhật Bản',
   'meta.description':
     'Thời gian xử lý visa, khối lượng công việc của các cục quản lý, diễn biến dân số người nước ngoài cư trú, và công cụ ước tính theo mô hình hàng đợi cho hồ sơ của bạn - xây dựng dựa trên số liệu thống kê chính thức của Cục Quản lý Xuất nhập cảnh và Lưu trú, cập nhật khi e-Stat công bố dữ liệu mới.',
@@ -313,8 +306,8 @@ export const vi: Dictionary = {
   'policy.act2026.description': 'Lần sửa đổi năm 2026 đã nâng trần pháp định của lệ phí cư trú.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
-  // Compact per-type series names. Deliberately separate from
-  // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
+  // Series names for the wrapping legend, so these can be fuller than the
+  // Sankey's `appType.*.compact` forms.
   'chart.types.series.acquisition': 'Xin cấp tư cách lưu trú',
   'chart.types.series.extension': 'Gia hạn lưu trú',
   'chart.types.series.change': 'Thay đổi tư cách lưu trú',
@@ -407,23 +400,11 @@ export const vi: Dictionary = {
   'footer.dataUpdated': 'dữ liệu cập nhật {date}',
 
   // ── Domain: immigration bureaus ──────────────────────────────────────────
-  // Keyed by e-Stat bureau code, in three widths — the same shape the
-  // application types use.
-  //
-  // `.short` is the terminal-style abbreviation; leave it as the Latin code in
-  // most languages. `.compact` is the form the width-constrained surfaces use:
-  // the efficiency chart's 92px label column, the ring-chart legend, and the
-  // treemap's on-tile label. English says the same thing at both widths, but a
-  // language whose official office names run long — Japanese writes Yokohama as
-  // 東京出入国在留管理局横浜支局 — needs somewhere to put the short form, or every
-  // office in a region truncates to the same prefix and they stop being
-  // distinguishable.
-  //
-  // Vietnamese is Latin-script, so city-only bureau names romanize the same
-  // way English does (Sapporo, Yokohama, Nagoya, ...) — a genuine translation,
-  // not a leftover. The four airport bureaus get a real Vietnamese phrase for
-  // `.label`, with `.compact` trimmed back to the bare place name so the
-  // "Sân bay " prefix doesn't crowd out the ~92px column.
+  // Keyed by e-Stat bureau code. `.short` stays Latin (IATA-style codes).
+  // `.compact` fits the ~92px efficiency-chart label column, the ring-chart
+  // legend, and the treemap tile. City-only names romanize as in English; the
+  // four airport bureaus get a Vietnamese phrase, with `.compact` trimmed to
+  // the bare place name so "Sân bay " doesn't crowd the column.
   'bureau.all': 'Toàn quốc',
   'bureau.all.short': 'ALL',
   'bureau.all.compact': 'Toàn quốc',
@@ -475,11 +456,8 @@ export const vi: Dictionary = {
 
   // ── Domain: application types ────────────────────────────────────────────
   // Keyed by e-Stat application type code. `.short` is the stat-tile
-  // abbreviation; `.compact` is the one-word form the narrow Sankey uses.
-  //
-  // `.compact` here is the real width risk for Vietnamese: the Sankey's
-  // narrow layout does not truncate, so these are kept to short, familiar
-  // abbreviations rather than full precise phrasing.
+  // abbreviation; `.compact` is the one-word form the narrow Sankey uses. The
+  // Sankey does not truncate, so `.compact` keeps to short, familiar forms.
   'appType.all': 'Tất cả loại hồ sơ',
   'appType.all.short': 'ALL',
   'appType.all.compact': 'Tất cả',
@@ -503,9 +481,8 @@ export const vi: Dictionary = {
   'appType.60.compact': 'Thường trú',
 
   // ── Domain: prefectures ──────────────────────────────────────────────────
-  // Keyed by JIS prefecture code (1 Hokkaido … 47 Okinawa). Vietnamese is
-  // Latin-script, so these romanize the same way English does, matching the
-  // precedent set by fr/de/es/it/pt.
+  // Keyed by JIS prefecture code (1 Hokkaido … 47 Okinawa), romanized as in
+  // English.
   'prefecture.1': 'Hokkaido',
   'prefecture.2': 'Aomori',
   'prefecture.3': 'Iwate',

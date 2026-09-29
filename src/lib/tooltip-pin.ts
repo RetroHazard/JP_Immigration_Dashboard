@@ -1,12 +1,10 @@
-// src/lib/tooltip-pin.ts
 // Enforces "at most one pinned chart tooltip on the page" and owns the ways a
 // pin gets dismissed from outside the chart that opened it.
 //
-// A module singleton rather than a React context: the invariant is
-// document-scoped and so are the listeners, so a provider would only wrap this
-// same state while imposing a mounting requirement on every vendored chart and
-// on every test wrapper. Vitest gives each test file a fresh module registry;
-// `resetPinRegistry()` covers isolation within a file.
+// A module singleton rather than a React context: the invariant and listeners
+// are document-scoped, and a provider would impose a mounting requirement on
+// every vendored chart and test wrapper. `resetPinRegistry()` isolates tests
+// within a file.
 'use client';
 
 export interface PinRegistration {
@@ -19,10 +17,9 @@ export interface PinRegistration {
 }
 
 /**
- * iOS fires `scroll` from URL-bar collapse and rubber-band settle in the
- * moments after a tap near the viewport edge. Without a grace window and a
- * minimum distance, a tooltip pinned near the bottom of the page would appear
- * never to open at all.
+ * iOS fires `scroll` from URL-bar collapse and rubber-band settle just after a
+ * tap near the viewport edge. Without a grace window and a minimum distance, a
+ * tooltip pinned near the bottom of the page would close at once.
  */
 export const PIN_SCROLL_GRACE_MS = 150;
 export const PIN_SCROLL_DISMISS_PX = 24;

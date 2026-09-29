@@ -1,15 +1,12 @@
-// src/hooks/useCoarsePointer.ts
 // The single place the app asks "is this a touch device?". Charts use it to
 // switch tooltips from hover to tap-to-pin.
 //
-// The query is about the *pointer*, not the viewport: a desktop window dragged
-// narrow still has a mouse and should keep hover tooltips, while a large tablet
-// has no hover at all. `(hover: none)` alone would catch some stylus setups, so
-// it is paired with `(pointer: coarse)` to mean "primary input is a finger".
+// The query is about the *pointer*, not the viewport: a narrow desktop window
+// keeps hover tooltips, while a large tablet has no hover. `(hover: none)`
+// alone would catch some stylus setups, so it is paired with `(pointer: coarse)`.
 //
-// Known limitation: a touchscreen laptop reports false here and stays in hover
-// mode. That is the pre-existing behaviour, and there is no media query that
-// distinguishes "has a touchscreen" from "is being touched right now".
+// Known limitation: a touchscreen laptop reports false and stays in hover mode;
+// no media query distinguishes "has a touchscreen" from "is being touched".
 'use client';
 
 import { useSyncExternalStore } from 'react';

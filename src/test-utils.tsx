@@ -1,8 +1,6 @@
-// src/test-utils.tsx
-// Render helper for component tests. Anything that calls `useLocale()` throws
-// outside a provider, so tests go through this rather than RTL's bare
-// `render`. `locale` lets a test assert on a specific catalogue; it defaults
-// to English, which is what the assertions in the smoke tests read from.
+// Render helper for component tests: `useLocale()` throws outside a provider,
+// so tests use this rather than RTL's bare `render`. `locale` defaults to
+// English, which the smoke tests' assertions read from.
 import type { ReactElement, ReactNode } from 'react';
 import { render, type RenderOptions, type RenderResult } from '@testing-library/react';
 
@@ -29,9 +27,8 @@ interface ProviderOptions extends Omit<RenderOptions, 'wrapper'> {
 }
 
 /**
- * The provider reads `?lang=` from `window.location` on mount, which is also
- * the cleanest way for a test to pin a locale without exporting test-only
- * setters from the provider itself.
+ * The provider reads `?lang=` from `window.location` on mount, so tests pin a
+ * locale there rather than through a test-only setter.
  */
 const pinLocale = (locale: Locale) => {
   const url = new URL(window.location.href);

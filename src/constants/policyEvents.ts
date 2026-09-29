@@ -1,37 +1,11 @@
-// src/constants/policyEvents.ts
-// The policy changes worth pinning to a chart's timeline: law revisions, new and
-// retired residence statuses, fee changes, border measures, and the operational
-// shifts that change how an application is filed.
-//
-// Three rules govern what goes in here.
-//
-// A date is the period whose figures the change moved, which is the
-// commencement date far more often than the announcement — a fee rise shows up
-// as a rush to file in the weeks before it bites, not on the day it was
-// published. Where enactment and commencement are both worth seeing, they are
-// two entries, not one.
-//
-// An entry has to be a change, not a publication. If the most you can say about
-// it is that a document was issued or revised, it is news about policy rather
-// than policy, and it does not belong here: a consultation that opened, a
-// guideline that was restated. The test is whether the title and description can
-// state what actually became different, in our own words.
-//
-// That wording is ours and stays ours. These strings describe the change; they
-// are never a rendition of the linked page's own headline. An external title we
-// paraphrased would be a title we had to re-check, and re-translate into twelve
-// languages, every time the ministry reworded its page — and the catalogue is for
-// this site's own data and interface, not for mirroring someone else's.
-//
-// Every entry carries the government page that establishes its date, because a
-// marker asserting a policy date on a statistics dashboard has to be checkable.
-// Nothing goes in here on the strength of a secondary summary. Border measures
-// were the Foreign Ministry's to announce and residence procedure the
-// Immigration Services Agency's, so both hosts appear.
-//
-// Entries outside the loaded window cost nothing — each chart filters them
-// against the periods it actually plots — so history is kept against the day a
-// table's coverage reaches further back than it does today.
+// Policy changes pinned to chart timelines. Inclusion rules:
+// - Date an entry by the period whose figures it moved, usually commencement rather than
+//   announcement. List enactment and commencement separately when both matter.
+// - Only actual changes, not publications (a consultation opening, a restated guideline).
+// - Titles and descriptions are our own wording, never the linked page's headline, so a
+//   ministry rewording its page doesn't force a re-check and re-translation.
+// - Every entry links the government page that establishes its date.
+// Each chart filters entries to the periods it plots, so older entries can stay.
 import type { DictionaryKey } from '../i18n/types';
 
 /** Drives the marker icon only; no user-visible text of its own. */
@@ -54,7 +28,7 @@ export interface PolicyEvent {
 
 /**
  * Application Processing — monthly. The table's coverage begins 2020-11;
- * earlier entries are kept and simply filtered out.
+ * earlier entries are filtered out.
  */
 export const POLICY_EVENTS = [
   {
@@ -106,8 +80,8 @@ export const POLICY_EVENTS = [
     href: 'https://www.mofa.go.jp/mofaj/ca/cp/page22_003380.html',
   },
   {
-    // ISA notice of 2022-10-07 on certificate validity. Deliberately shares a
-    // month with the reopening above: the pair is what the count badge is for.
+    // ISA notice of 2022-10-07 on certificate validity. Shares its month with
+    // the reopening above, so the marker shows a count badge.
     period: '2022-10',
     category: 'operations',
     titleKey: 'policy.covidCoe.title',
@@ -199,14 +173,10 @@ export const POLICY_EVENTS = [
 ] as const satisfies readonly PolicyEvent[];
 
 /**
- * Resident Population — half-yearly, so every period here is a June or December
- * key that the table actually publishes. An event is pinned to the first
- * snapshot that could show it: the October 2022 reopening lands on 2022-12,
- * because December is when the count next reflects people arriving.
- *
- * Kept sparser than the processing list on purpose. Twenty-seven half-years
- * across the plot leaves roughly a marker's width between neighbouring periods,
- * so a dense list here would collide where the monthly one has room.
+ * Resident Population — half-yearly, so every period is a June or December key
+ * the table publishes. An event is pinned to the first snapshot that could show
+ * it (the October 2022 reopening lands on 2022-12). Kept sparser than the
+ * processing list: neighbouring half-years sit about a marker's width apart.
  */
 export const RESIDENT_EVENTS = [
   {

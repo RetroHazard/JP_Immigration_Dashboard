@@ -1,4 +1,3 @@
-// src/hooks/useImmigrationData.ts
 import { useEffect, useState } from 'react';
 
 import type { DictionaryKey } from '../i18n/types';
@@ -35,9 +34,8 @@ export const useImmigrationData = () => {
           setError('errors.noData');
         }
       } catch (error: unknown) {
-        // The underlying message ("HTTP 404", a JSON parse failure) is
-        // diagnostic rather than actionable, and can't be translated — it goes
-        // to the log, and the user gets a sentence they can read.
+        // The raw message ("HTTP 404", a JSON parse failure) can't be
+        // translated, so it goes to the log and the user gets a catalogue key.
         logger.error('Error loading dashboard data:', error);
         setError('errors.unknown');
       } finally {

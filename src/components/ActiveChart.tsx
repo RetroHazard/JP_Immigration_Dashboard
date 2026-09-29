@@ -1,4 +1,3 @@
-// src/components/ActiveChart.tsx
 import { memo } from 'react';
 
 import type React from 'react';
@@ -25,10 +24,7 @@ interface ActiveChartProps {
   period: string | null;
 }
 
-/**
- * Memoized component that renders the currently active chart.
- * Prevents unnecessary re-renders when unrelated state changes.
- */
+/** Memoized so unrelated shell state doesn't re-render the chart. */
 export const ActiveChart = memo<ActiveChartProps>(
   ({ chart, processingData, residentsData, filters, residentFilters, range, period }) => {
     if (chart.dataset === 'residents') {

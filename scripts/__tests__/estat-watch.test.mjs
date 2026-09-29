@@ -1,11 +1,7 @@
-// scripts/__tests__/estat-watch.test.mjs
-// `decide` is the rule that determines whether the site publishes. It runs once
-// a day, unattended, and both of its failure modes are silent: never deploying
-// (a stale dashboard behind a green check) or deploying every day (a rebuild
-// loop). Neither shows up in a build log, so the rule is pinned here.
-//
-// It is a pure function of the restored baseline and the probe results, so none
-// of this touches the network.
+// `decide` determines whether the site publishes, and both of its failure modes
+// are silent: never deploying (a stale dashboard behind a green check) or
+// deploying every day (a rebuild loop). It is pure, so nothing here touches the
+// network.
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -79,8 +75,7 @@ describe('decide', () => {
 
   it('compares by value, not by type', () => {
     // e-Stat returns SURVEY_DATE as a number for some tables and a string for
-    // others; a baseline written before that was normalised must not read as a
-    // change every single day.
+    // others, so a numeric baseline must not read as a change every day.
     const { changed } = decide({ processing: 202510 }, [probe('processing', '202510')]);
 
     expect(changed).toBe(false);
@@ -104,9 +99,8 @@ describe('readBaseline', () => {
   });
 
   it('re-baselines rather than throwing on a corrupt entry', () => {
-    // Failing here would wedge the watcher permanently: the run would die before
-    // the cache save, so the bad entry would never be replaced and every later
-    // run would fail identically.
+    // Throwing would stop the run before the cache save, so the bad entry would
+    // never be replaced.
     withTempDir((dir) => {
       const path = join(dir, 'corrupt.json');
       writeFileSync(path, '{ not json');

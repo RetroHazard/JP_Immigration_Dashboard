@@ -26,10 +26,9 @@ try {
   const geometries = topology.objects.countries.geometries;
 
   // Natural Earth ships Kosovo, Northern Cyprus and Somaliland without an ISO
-  // numeric code, since none has one. Kosovo is the only one e-Stat counts, so
-  // it gets the 926 code that is conventionally used for it — matching
-  // `iso3n` in src/constants/nationalities.ts. Without this the map silently
-  // leaves Kosovo unshaded while the figure exists in the data.
+  // numeric code, since none has one. e-Stat counts only Kosovo, so it gets the
+  // conventional 926, matching `iso3n` in src/constants/nationalities.ts;
+  // otherwise the map leaves it unshaded.
   const kosovo = geometries.find((geometry) => geometry.id == null && geometry.properties?.name === 'Kosovo');
   if (!kosovo) throw new Error('Kosovo feature not found — has the upstream topology changed?');
   kosovo.id = '926';

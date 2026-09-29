@@ -1,23 +1,14 @@
-// src/utils/residentsTransform.ts
 // Build-time flattening of the e-Stat Foreign Residents table (0004019020)
-// into the records the client filters.
-//
-// Two-thirds of the raw payload is redundant, so it is dropped here rather
-// than shipped to every visitor:
-//
-//   - Rollup rows. Every 合計/総数 row on either axis is the sum of its own
-//     children, so the client recomputes them from the leaves instead. The
-//     hierarchy used is the CORRECTED one in constants/residenceStatuses.ts,
-//     not the payload's own (which misparents the 技能実習 sub-statuses).
-//   - Nested 「うち」 rows. うち中国〔香港〕/〔その他〕 and うち英国〔香港〕 sit
-//     inside their parent country's figure; keeping them would double-count.
-//     Note that 韓国・朝鮮 is NOT one of these — it is the pre-2015 combined
-//     Korea series and its periods do not overlap 韓国/朝鮮, so it stays.
-//   - Zero rows. e-Stat emits a row per (status, nationality) pair whether or
-//     not anyone holds that combination; ~60% of the leaves are zeros.
-//
-// What survives is exactly the set that sums to the published totals, which
-// `verifyResidentTotals` asserts against the payload's own 総数 row.
+// into the records the client filters. Redundant rows are dropped here:
+//   - Rollups. Every 合計/総数 row is the sum of its children, which the client
+//     recomputes on the corrected hierarchy in constants/residenceStatuses.ts
+//     (the payload misparents the 技能実習 sub-statuses).
+//   - Nested 「うち」 rows (うち中国〔香港〕/〔その他〕, うち英国〔香港〕) sit inside
+//     their parent country's figure and would double-count. 韓国・朝鮮 is not
+//     one: it is the pre-2015 combined Korea series, whose periods do not
+//     overlap 韓国/朝鮮.
+//   - Zero rows. e-Stat emits every (status, nationality) pair; ~60% are zero.
+// What survives sums to the published totals, which `verifyResidentTotals` asserts.
 import {
   NATIONALITY_ROLLUP_REGIONS,
   NATIONALITY_SUBSET_CODES,
@@ -58,10 +49,9 @@ const normalizeValues = (raw: RawResidentsData): RawResidentEntry[] => {
 };
 
 /**
- * `2025001212` -> `2025-12`. The year/month extraction is the same rule the
- * processing table uses, so it is shared; the half-year constraint on top is
- * specific to this table's 半期 cycle and is what would catch e-Stat switching
- * this series to a different cadence.
+ * `2025001212` -> `2025-12`, by the processing table's month rule. Only -06 and
+ * -12 pass: the table is half-yearly (半期), so any other month means e-Stat
+ * changed the series' cadence.
  */
 export const parseResidentPeriod = (timeStr: string): string => {
   const period = validateAndParseMonth(timeStr);
@@ -98,10 +88,8 @@ export const transformResidentsData = (raw: RawResidentsData): ResidentRecord[] 
 export interface TotalsMismatch {
   period: string;
   /**
-   * Which table `code` belongs to. Named explicitly because the two are easy to
-   * confuse and the codes overlap numerically: 1010 is 総数 as a status and
-   * アフガニスタン as a nationality, so a mismatch reported without this reads
-   * as pointing at the opposite dimension from the one it means.
+   * Which dimension `code` belongs to. The codes overlap: 1010 is 総数 as a
+   * status and アフガニスタン as a nationality.
    */
   keyDimension: 'nationality' | 'status';
   code: string;
@@ -114,22 +102,14 @@ export interface TotalsMismatch {
 const STATUS_TOTAL_ROW = '1010';
 
 /**
- * Cross-checks the leaves we kept against the payload's own published totals,
- * on both axes:
- *
- *   - for each (period, status), the 総数 nationality row must equal the sum of
- *     that status's nationality leaves. Catches a region or a 「うち」 subset
- *     being misclassified.
- *   - for each (period, nationality), the 総数 status row must equal the sum of
- *     that nationality's status leaves. Catches a rollup being treated as a
- *     leaf, or a leaf being pruned as a rollup.
- *
- * Either kind of drift produces a chart that looks entirely plausible and is
- * quietly wrong, so the build fails on a mismatch rather than warning.
- *
- * This runs only after checkPayloadComplete (src/utils/estatPayload.ts) has
- * passed. A truncated payload fails every one of these checks, for a reason
- * that has nothing to do with the classification they are testing.
+ * Cross-checks the kept leaves against the payload's published totals on both axes:
+ *   - per (period, status), the 総数 nationality row must equal the sum of that
+ *     status's nationality leaves (catches a misclassified region or 「うち」 subset);
+ *   - per (period, nationality), the 総数 status row must equal the sum of that
+ *     nationality's status leaves (catches a rollup kept as a leaf, or vice versa).
+ * Drift gives a plausible but wrong chart, so the build fails on any mismatch.
+ * Run only after checkPayloadComplete (estatPayload.ts): a truncated payload
+ * fails every check for an unrelated reason.
  */
 export const verifyResidentTotals = (raw: RawResidentsData, records: ResidentRecord[]): TotalsMismatch[] => {
   const publishedByStatus = new Map<string, number>();
@@ -170,7 +150,6 @@ export const verifyResidentTotals = (raw: RawResidentsData, records: ResidentRec
     });
 
   return [
-    // Keyed by status code, summed across nationalities — and vice versa.
     ...compare('status', 'nationality', publishedByStatus, leavesByStatus),
     ...compare('nationality', 'status', publishedByNationality, leavesByNationality),
   ].sort((a, b) => a.period.localeCompare(b.period) || a.code.localeCompare(b.code));

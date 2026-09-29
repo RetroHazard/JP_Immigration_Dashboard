@@ -29,13 +29,10 @@ const xScale = scaleTime<number>({ domain: [data[0].date, data[4].date], range: 
 const yScale = scaleLinear<number>({ domain: [0, 50], range: [200, 0] });
 
 /**
- * `getChartX` runs visx's `localPoint`, which bails unless the object is a real
- * Event or carries a real `nativeEvent`. jsdom has no `createSVGPoint`, so visx
- * takes its bounding-box fallback — and jsdom reports a zero rect, which makes
- * the local x equal `clientX`. That is exactly what these assertions assume.
- *
- * The underlying event type is immaterial: these tests invoke the handlers
- * directly, so one object stands in for a click, a move or a press.
+ * `getChartX` runs visx's `localPoint`, which bails unless given a real Event or
+ * `nativeEvent`. jsdom has no `createSVGPoint` and reports a zero rect, so the
+ * bounding-box fallback makes the local x equal `clientX`, as these assertions
+ * assume. Handlers are invoked directly, so one object serves as any event.
  */
 const mouseAt = (clientX: number) => {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -114,8 +111,8 @@ describe('hover devices are unaffected', () => {
 
 describe('clicking a hover chart leaves its tooltip alone', () => {
   it('survives a press and release that never travels', async () => {
-    // Regression: mousedown used to clear outright, on the assumption that
-    // every press was the start of a range drag.
+    // Guards against mousedown clearing outright, as if every press began a
+    // range drag.
     const { result } = mount(false);
 
     act(() => result.current.interactionHandlers.onMouseMove?.(mouseAt(205)));

@@ -1,10 +1,8 @@
-// src/components/icons/JapanFlagIcon.tsx
-// The site's own mark — the hinomaru the favicon, PWA icons and og image
-// already use — drawn inline so the header doesn't fetch a raster for a
-// 36px glyph. The rounded field and its hairline border live inside the
-// SVG: rounding the <svg> box with CSS wouldn't clip the painted field,
-// and the flag keeps its real colors in both themes (a flag doesn't
-// re-tint for dark mode), so only the outline reads from the theme.
+// The site's mark, the hinomaru the favicon, PWA icons and og image use,
+// drawn inline so the header doesn't fetch a raster. The rounded field and
+// hairline border live inside the SVG, since rounding the <svg> box with CSS
+// wouldn't clip the painted field. The flag keeps its colors in both themes;
+// only the outline reads from the theme.
 
 export function JapanFlagIcon({ className }: { className?: string }) {
   return (

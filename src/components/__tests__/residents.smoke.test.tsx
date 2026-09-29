@@ -1,7 +1,5 @@
-// Smoke tests for the residents dataset's chrome (jsdom).
-// Same convention as components.smoke.test.tsx: expected text is read out of
-// the English catalogue rather than repeated, so rewording a string doesn't
-// quietly break the test.
+// Smoke tests for the residents dataset's chrome (jsdom). Expected text is read
+// from the English catalogue, as in components.smoke.test.tsx.
 import { describe, expect, it } from 'vitest';
 import { fireEvent } from '@testing-library/react';
 
@@ -58,16 +56,16 @@ describe('chart registry', () => {
   });
 
   it('names the residents ranges in years, not months', () => {
-    // '12' would read as twelve months and mean six years on a half-yearly
-    // table — the ambiguity this naming exists to remove.
+    // '12' would read as twelve months but mean six years on a half-yearly
+    // table.
     const numeric = RESIDENT_CHARTS.flatMap((chart) => chart.ranges).filter((range) => /\d/.test(range));
     expect(numeric.every((range) => range.endsWith('y'))).toBe(true);
   });
 
   it('gives snapshot charts an empty range list', () => {
-    // A snapshot chart draws one period, so offering range windows would be
-    // a lie. (A range chart may also have empty ranges — growth and origins
-    // always show the full timeline and render no picker.)
+    // A snapshot chart draws one period, so it offers no range windows. (Range
+    // charts can have none too: growth and origins always show the full
+    // timeline.)
     for (const chart of RESIDENT_CHARTS) {
       if (chart.timeControl === 'snapshot') expect(chart.ranges).toHaveLength(0);
     }

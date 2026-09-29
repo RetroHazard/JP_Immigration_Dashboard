@@ -1,7 +1,6 @@
-// scripts/localeTemplate.ts
-// The transform behind `npm run i18n:template`, kept apart from the CLI so the
-// catalogue tests can import it and assert the committed template is current.
-// See scripts/generate-locale-template.mts for the command itself.
+// The transform behind `npm run i18n:template`, kept apart from the CLI
+// (generate-locale-template.mts) so the catalogue tests can import it and
+// assert the committed template is current.
 
 /** Paths the template pipeline reads and writes, relative to the repo root. */
 export const EN_RELATIVE = 'src/i18n/locales/en.ts';

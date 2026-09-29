@@ -1,21 +1,17 @@
 /**
  * Every e-Stat table this project publishes, in one place.
  *
- * This file is the single source of truth for the pipeline. Adding a table here
- * is the whole job: the fetch script, the watcher, the build transform and both
- * workflows all read it, and none of them name a dataset directly. Nothing in
- * `.github/` needs to change to add a third.
+ * The single source of truth for the pipeline: the fetch script, the watcher,
+ * the build transform and both workflows read it and never name a dataset
+ * directly, so adding a table here needs no change under `.github/`.
  *
- * Deliberately plain data with no imports, so bare `node` can load it — the
- * watcher's check-updates job runs without `npm ci`, and `scripts/datasets.mjs`
- * is the one module it has to be able to read. Anything a dataset needs that
- * cannot be expressed as data — its fixture writer, transform, packer and
- * verifier — is keyed by `id` in the handler table in scripts/transform-data.mts,
- * which runs under tsx and can hold functions.
+ * Plain data with no imports, so bare `node` can load it: the watcher's
+ * check-updates job runs without `npm ci`. Per-dataset code (fixture writer,
+ * transform, packer, verifier) is keyed by `id` in the handler table in
+ * scripts/transform-data.mts.
  *
- * It lives under scripts/ rather than a new top-level directory so that it is
- * already inside deploy.yaml's `paths:` allowlist (`scripts/**`): registering a
- * dataset redeploys the site without anyone remembering to widen the filter.
+ * Lives under scripts/ so it is inside deploy.yaml's `paths:` filter
+ * (`scripts/**`): registering a dataset redeploys the site.
  *
  * @typedef {object} Dataset
  * @property {string} id           Stable key. Names the handler in transform-data.mts
@@ -23,9 +19,8 @@
  *                                 forms the ESTAT_RAW_<ID> path override.
  * @property {string} statsDataId  e-Stat `statsDataId` for getStatsData.
  * @property {string} raw          Where the raw payload is written. Must stay under
- *                                 public/datastore/ — that directory is what gets
- *                                 cached, and strip-raw-data.mjs removes it from the
- *                                 export so the verbose payload never ships.
+ *                                 public/datastore/: that directory is cached, and
+ *                                 strip-raw-data.mjs removes it from the export.
  * @property {string} out          The compact file the client fetches.
  * @property {string} label        Human name, used in logs and run summaries.
  */
@@ -53,9 +48,8 @@ export const DATASTORE_DIR = 'public/datastore';
 
 /**
  * The watcher's record of what it last saw, kept inside DATASTORE_DIR so it
- * shares one cache entry with the payloads it describes. A baseline that could
- * be restored without its data, or the reverse, would let the watcher compare
- * against something that was never published.
+ * shares one cache entry with the payloads it describes and is never restored
+ * without them.
  */
 export const BASELINE_PATH = `${DATASTORE_DIR}/.estat-baseline.json`;
 

@@ -1,12 +1,9 @@
-// src/components/EstimationCard.tsx
-// The Processing Time Estimator, promoted to a first-class, always-visible
-// panel. State is controlled by the shell so the desktop sidebar and the
-// mobile sheet share one set of inputs.
+// The Processing Time Estimator. State is controlled by the shell so the
+// desktop sidebar and the mobile sheet share one set of inputs.
 //
-// Opening "Show the math" folds the entry area away: five steps of derivation
-// outrun the 360px rail on their own, and a reader studying one is not editing
-// the form. A summary row takes its place, naming the bureau, type and date the
-// derivation belongs to and doubling as the way back to the inputs.
+// Opening "Show the math" folds the entry area away, since the derivation
+// outgrows the 360px rail. A summary row naming the bureau, type and date takes
+// its place and doubles as the way back to the inputs.
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -52,15 +49,9 @@ interface EstimationCardProps {
 
 /**
  * The date input's `YYYY-MM-DD` value, read in the viewer's own zone.
- *
- * `new Date('2025-06-15')` is a date-only ISO string, which the spec parses as
- * UTC midnight; formatting that locally renders the day *before* anywhere west
- * of UTC. The summary row exists to say which date is in the field, so it is
- * the one place that must not disagree with it. Same fix as `periodToDate` in
- * utils/residentPeriod.ts: build from components, never parse the string.
- *
- * Exported so the zone behaviour can be asserted directly — a rendered card
- * proves nothing here, and a UTC test runner cannot tell the two parses apart.
+ * `new Date('2025-06-15')` parses as UTC midnight, which formats as the day
+ * before anywhere west of UTC, so build from components (as `periodToDate` in
+ * utils/residentPeriod.ts does). Exported so the zone behaviour can be tested.
  */
 export const localDateFromInput = (value: string): Date => {
   const [year, month, day] = value.split('-').map(Number);
@@ -79,9 +70,7 @@ const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails 
     const mutableParams = new URLSearchParams(searchParams.toString());
 
     // The estimator's params are namespaced (est*) so a shared estimate never
-    // overwrites the chart's ?bureau=/?type= filters. Only params with a
-    // selected value are kept, so sharing a partially-filled form doesn't
-    // leave empty params in the URL.
+    // overwrites the chart's ?bureau=/?type= filters. Empty fields are dropped.
     (Object.keys(ESTIMATOR_PARAM_NAMES) as Array<keyof ApplicationDetails>).forEach((key) => {
       const value = appDetails[key];
       if (value) {
@@ -90,7 +79,7 @@ const ShareButton: React.FC<{ appDetails: ApplicationDetails }> = ({ appDetails 
         mutableParams.delete(ESTIMATOR_PARAM_NAMES[key]);
       }
     });
-    // Drop the pre-rename estimator date param if the visitor arrived on one.
+    // Drop the legacy estimator date param if the visitor arrived on one.
     mutableParams.delete('applicationDate');
 
     const newRelativePath = `${pathname}?${mutableParams.toString()}`;
@@ -152,9 +141,9 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
     };
   }, [estimatedDate]);
 
-  // The disclosure only renders alongside an estimate, but `showMath` outlives
-  // one - Reset empties the details, and so can a permalink. Left stale, it
-  // would hold the entry area closed with nothing on screen to reopen it.
+  // `showMath` can outlive the estimate (Reset or a permalink can empty the
+  // details). Left stale, it would hold the entry area closed with nothing on
+  // screen to reopen it.
   const mathOpen = showMath && estimatedDate !== null;
   useEffect(() => {
     if (!estimatedDate) setShowMath(false);
@@ -189,7 +178,6 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
     };
   }, [queue]);
 
-  // Valid range for the application date input
   const dateRange = useMemo(() => {
     if (!data || data.length === 0) return { min: '', max: '' };
     const dates = [...new Set(data.map((entry) => entry.month))].sort();
@@ -202,9 +190,8 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
 
   const vars = estimatedDate?.details.modelVariables;
 
-  // Stands in for the inputs while they are folded away. Application types take
-  // their one-word `compact` name rather than the full label, which does not fit
-  // beside a bureau and a date in the rail.
+  // Stands in for the inputs while they are folded away. Types use their
+  // one-word `compact` name; the full label doesn't fit in the rail.
   const selectionSummary = useMemo(
     () =>
       t('estimator.selectionSummary', {
@@ -235,12 +222,9 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
   return (
     <section aria-label={t('estimator.title')} className="estimator-container">
       <div className="flex items-start justify-between gap-2 border-b border-border p-2">
-        {/* Sized explicitly (not section-title): the sidebar is 360px wide at
-            lg, where section-title's lg:text-lg would truncate this heading.
-            Longer translations ("Estimateur de délai de traitement",
-            "Estimador de tiempo de tramitación") still don't fit that column
-            on one line even at the widest tested viewport, so this wraps to
-            a second line instead of losing words to an ellipsis. */}
+        {/* Sized explicitly: section-title's lg:text-lg would truncate this
+            heading in the 360px sidebar. Long translations wrap to a second
+            line rather than lose words to an ellipsis. */}
         <h2 className="min-w-0 text-sm font-semibold leading-snug md:text-base xl:text-lg">{t('estimator.title')}</h2>
         <div className="flex shrink-0 items-center gap-1">
           <IconTooltip label={t('estimator.reset')}>
@@ -279,18 +263,16 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
         </div>
       </div>
       <div className="card-content-padded flex-1">
-        {/* Both halves live under one wrapper: they are mutually exclusive, and
-            as direct children of `card-content`'s space-y-4 the collapsed one
-            would still collect a gap around its zero height. Each animates, so
-            the panel does not grow before it shrinks on the way in. */}
+        {/* One wrapper for both halves: as direct children of `card-content`'s
+            space-y-4, the collapsed one would still collect a gap around its
+            zero height. */}
         <div>
           <Collapsible open={mathOpen}>
             <CollapsibleContent>
               <button
                 onClick={() => setShowMath(false)}
-                // The visible summary leads the name (WCAG 2.5.3): voice
-                // control matches what's on screen, and a screen reader hears
-                // which selection the derivation belongs to before the action.
+                // The visible summary leads the name (WCAG 2.5.3) so voice
+                // control matches what's on screen.
                 aria-label={`${selectionSummary} — ${t('estimator.editDetails')}`}
                 className="flex w-full items-center justify-between gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-left text-xs text-secondary-foreground transition-colors hover:bg-muted"
               >

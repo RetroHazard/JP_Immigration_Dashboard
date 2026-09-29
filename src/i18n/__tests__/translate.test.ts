@@ -1,11 +1,9 @@
-// src/i18n/__tests__/translate.test.ts
 import { describe, expect, it } from 'vitest';
 
 import { interpolate, lookup, translate, translatePlural } from '../translate';
 import type { Dictionary, DictionaryKey } from '../types';
 
-// A synthetic catalogue keeps these tests independent of the real strings,
-// which change constantly as extraction proceeds.
+// A synthetic catalogue keeps these tests independent of the real strings.
 const dict = (entries: Record<string, string>) => entries as Dictionary;
 const key = (name: string) => name as DictionaryKey;
 

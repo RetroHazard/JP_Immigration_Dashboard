@@ -1,11 +1,10 @@
-// src/components/charts/ResidenceStatusSunburst.tsx
 // Residence Status Mix on Bklit's SunburstChart: all residents at the center,
 // one ring of purpose-of-stay groups, one ring of individual statuses. Click
-// a group to zoom into it; the breadcrumb climbs back out. Replaces the
-// custom treemap view (ResidenceStatusMixChart, kept unregistered) with the
-// same buildResidenceStatusTree hierarchy and the same --chart-mix-* palette.
+// a group to zoom into it; the breadcrumb climbs back out. The unregistered
+// ResidenceStatusMixChart draws the same buildResidenceStatusTree hierarchy
+// and --chart-mix-* palette as a treemap.
 //
-// A stock figure, so the range picker chooses which snapshot to show rather
+// A stock figure, so the period picker chooses which snapshot to show rather
 // than a window to sum, and the header says which period is drawn.
 'use client';
 

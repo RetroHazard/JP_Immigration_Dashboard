@@ -1,19 +1,9 @@
-// src/components/charts/IntakeProcessingBarChart.tsx
 // Intake & Processing on Bklit's ComposedChart: stacked bars for the
-// applications in the system each month (carried over + newly received)
-// with the completed volume as a line on the SAME axis - the old dual
-// synced y-axes were always one scale pretending to be two.
-//
-// The approval rate is the one series that earns a second axis, pinned to
-// 0-100%: a percentage against a count is a different unit, not the same
-// scale twice. Its components (granted / denied / other) are deliberately
-// not plotted - they are two-percent slivers of a bar that is itself a
-// fraction of the column. The data table below the chart carries them.
-//
-// Policy event markers annotate the months a rule changed - a fee revision, a
-// new residence status, a law taking effect - so a step in the intake has a
-// visible cause rather than looking like noise. The list itself lives in
-// src/constants/policyEvents.ts.
+// applications in the system each month (carried over + newly received), with
+// the completed volume as a line on the same axis. Only the approval rate, a
+// different unit, gets a second axis (0-100%); its granted / denied / other
+// components are too thin to plot, so the data table carries them. Policy
+// markers (src/constants/policyEvents.ts) annotate the months a rule changed.
 'use client';
 
 import { useMemo } from 'react';
@@ -42,18 +32,14 @@ import { SeriesLegend } from '../common/SeriesLegend';
 /** Not a status row — derived below, and the only series on the right axis. */
 const RATE_ID = 'approvalRate';
 
-// Hoisted rather than inlined: this is a dependency of both y-domain memos in
-// the chart shell, so a fresh object here re-renders every series on every
-// render of this component.
+// Hoisted: both y-domain memos in the chart shell depend on it, so a fresh
+// object would re-render every series on every render.
 const RATE_AXIS_DOMAIN: Record<string, [number, number]> = { right: [0, 100] };
 
-// `id` is the data-row property and the chart's dataKey; `label` is display
-// text only. They used to be the same string, which made the plotted data
-// shape depend on the UI language.
-//
-// Order matters twice over and must match the child order below: stacking runs
-// in child order, and the tooltip resolves a line's dot colour by its position
-// in that same list (see resolveDotColor in chart-tooltip.tsx).
+// `id` is the data-row property and dataKey; the label is display text only,
+// so the data shape doesn't depend on the UI language. Order must match the
+// child order below: stacking runs in child order, and the tooltip resolves a
+// line's dot colour by its position (see resolveDotColor in chart-tooltip.tsx).
 const SERIES: { id: string; labelKey: DictionaryKey; color: string; shape: 'square' | 'line' }[] = [
   { id: 'pending', labelKey: 'metric.pending', color: 'var(--chart-1)', shape: 'square' },
   { id: 'received', labelKey: 'metric.received', color: 'var(--chart-2)', shape: 'square' },
@@ -69,9 +55,9 @@ const STATUS_BY_ID: Record<string, string> = {
 };
 
 /**
- * One chart row per month in range. Exported so the arithmetic can be tested
- * on its own — visx sizes itself from a real layout, which jsdom cannot give
- * it, so a rendered chart proves nothing about these numbers.
+ * One chart row per month in range. Exported for tests: visx sizes itself from
+ * a real layout, which jsdom can't give it, so a rendered chart proves nothing
+ * about these numbers.
  */
 export const buildIntakeRows = (
   data: ImmigrationChartData['data'],
@@ -90,10 +76,9 @@ export const buildIntakeRows = (
       monthData.reduce((sum, entry) => (entry.status === status ? sum + entry.value : sum), 0);
     const row: Record<string, unknown> = { date: new Date(`${month}-01T00:00:00`) };
     for (const [id, status] of Object.entries(STATUS_BY_ID)) row[id] = sumOf(status);
-    // Denominator is the published 300000 row rather than the three outcome
-    // rows added back up, matching the Outcomes gauge and the stats cards.
-    // Guard the divisor, not the result: NaN and Infinity are both `typeof
-    // "number"`, and Line would place either at pixel 0 — the top of the plot.
+    // Denominator is the published 300000 row, not the outcome rows summed,
+    // matching the Outcomes gauge and the stats cards. Guard the divisor, not
+    // the result: Line plots NaN or Infinity at pixel 0, the top of the plot.
     const processed = Number(row.processed);
     row[RATE_ID] = processed > 0 ? (sumOf(STATUS_CODES.GRANTED) / processed) * 100 : 0;
     return row;
@@ -111,15 +96,12 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
   const { bureau, type } = filters;
   const series = useMemo(() => SERIES.map((entry) => ({ ...entry, label: t(entry.labelKey) })), [t]);
   const months = useMemo(() => monthsForRange(getAllMonths(data), range), [data, range]);
-  // Keyed on the filter values rather than the object, which is rebuilt on
-  // every parent render — ActiveChart's own memo compares them the same way.
+  // Keyed on the filter values, not the object, which is rebuilt on every
+  // parent render (ActiveChart's memo compares them the same way).
   const chartData = useMemo(() => buildIntakeRows(data, { bureau, type }, range), [data, bureau, type, range]);
-  // Only the left axis gets a locale-measured margin (estimateAxisMarginLeft);
-  // the right one is a flat 40px, of which y-axis.tsx's own 8px padding leaves
-  // 32 for text. "100%" barely fits that and fr/de's "100 %" does not, and
-  // `whitespace-nowrap` means it overflows toward the card edge rather than
-  // wrapping. Measure it instead — the same trick, and it does not take more
-  // width off the plot than the labels actually need.
+  // The right axis defaults to a flat 40px, leaving 32px of text after
+  // y-axis.tsx's padding: too narrow for fr/de "100 %", which can't wrap and
+  // overflows the card. Measure it, as estimateAxisMarginLeft does on the left.
   const rateAxisMargin = useMemo(
     () => Math.max(40, Math.ceil(measureLabelWidth(formatters.percent(100, 0))) + 16),
     [formatters]
@@ -171,12 +153,10 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
               neighbouring markers on a monthly axis. A shared month stays one
               badged circle, and the tooltip below lists both events. */}
           <ChartMarkers items={markers} size={months.length > 48 ? 18 : 24} fan={false} />
-          {/* Rows are named explicitly: the tooltip would otherwise show the
-              raw series ids now that those are no longer display text. They
-              stay in child order because the dot layer looks a line's colour
-              up by its index here. Only the two real lines get a dot — a
-              stacked bar's dot is placed at its raw axis value, which is
-              nowhere near its segment. */}
+          {/* Rows are named explicitly, or the tooltip shows raw series ids.
+              They stay in child order: the dot layer looks a line's colour up
+              by index. Only the two lines get a dot; a stacked bar's dot sits
+              at its raw axis value, nowhere near its segment. */}
           <ChartTooltip
             dotKeys={['processed', RATE_ID]}
             titleFormat={(date) => formatters.monthYear(date)}

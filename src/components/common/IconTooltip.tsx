@@ -1,6 +1,4 @@
-// src/components/common/IconTooltip.tsx
-// Thin wrapper over the shadcn/Radix Tooltip (replaces a bespoke Floating UI
-// implementation; keyboard focus support comes for free).
+// Thin wrapper over the shadcn/Radix Tooltip, which handles keyboard focus.
 'use client';
 
 import type React from 'react';

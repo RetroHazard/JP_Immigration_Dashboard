@@ -48,10 +48,8 @@ export interface TooltipBoxProps {
   backgroundColor?: string;
   /**
    * LOCAL MODIFICATION: container-relative y of the touch that opened the
-   * tooltip. When set, the panel is placed above it and horizontally centred
-   * on `x`, instead of beside `x` at the top of the plot. On a phone the plot
-   * is short enough that the vendored placement covers the data and the date
-   * axis, and the finger sits on top of whatever is left.
+   * tooltip. When set, the panel sits above it, centred on `x`, instead of
+   * beside `x` at the top of the plot, where on a phone it covers the data.
    * (Re-apply after a re-vendor.)
    */
   anchorAboveY?: number;
@@ -61,9 +59,8 @@ export interface TooltipBoxProps {
 const VIEWPORT_MARGIN = 8;
 
 // Local extension: after the horizontal flip, clamp the panel inside the
-// container on both axes. Upstream only flips X and clamps Y, so an anchor
-// near (or, under zoom/pan, beyond) the container edge pushed the panel into
-// the clipping card corner.
+// container on both axes. Upstream only clamps Y, so an anchor near or (under
+// zoom/pan) beyond the container edge pushed the panel into the card corner.
 function placeTooltip(
   x: number,
   y: number,
@@ -83,13 +80,10 @@ function placeTooltip(
 }
 
 /**
- * LOCAL MODIFICATION: the touch placement — above the finger, centred on it.
- * It is clamped to the viewport rather than to the container, because the
- * container is only the plot area: on a phone that is ~170px tall against a
- * ~116px panel, so there is no room inside it and every ancestor up to the
- * card is `overflow: visible` anyway. If the finger is too near the top of
- * the screen for the panel to fit above it, it goes below instead — still off
- * the finger, which is the point. (Re-apply after a re-vendor.)
+ * LOCAL MODIFICATION: the touch placement — above the finger, centred on it,
+ * or below when too near the top of the screen. Clamped to the viewport, not
+ * the container: a phone's ~170px plot has no room for the panel, and every
+ * ancestor up to the card is `overflow: visible`. (Re-apply after a re-vendor.)
  */
 function placeAboveTouch(
   x: number,
@@ -202,10 +196,8 @@ function TooltipBoxInner({
     }
     const w2 = tooltipWidthRef.current;
     const h2 = tooltipHeightRef.current;
-    // LOCAL MODIFICATION: this second pass is the one that matters for the
-    // touch placement — the first ran against the 180x80 defaults, and where
-    // the panel goes depends on how tall it actually turned out to be.
-    // (Re-apply after a re-vendor.)
+    // LOCAL MODIFICATION: the touch placement depends on the measured height;
+    // the first pass used the 180x80 defaults. (Re-apply after a re-vendor.)
     const { left: tx, top: ty } =
       anchorAboveY === undefined
         ? placeTooltip(x, y, w2, h2, containerWidth, containerHeight, offset)
@@ -262,10 +254,8 @@ function TooltipBoxInner({
   );
   const panelStyleResolved = {
     transformOrigin,
-    // LOCAL MODIFICATION: the panel has a 140px floor and no ceiling, so on a
-    // ~360px phone a long bureau or nationality name could render it wider than
-    // its own container and push it past the card's clipped edge. Capping it to
-    // the container guarantees `placeTooltip` always has somewhere to put it.
+    // LOCAL MODIFICATION: cap the width to the container, or on a ~360px phone
+    // a long name can outgrow it and leave `placeTooltip` nowhere to put it.
     // (Re-apply after a re-vendor.)
     maxWidth: Math.max(140, containerWidth - offset * 2),
     ...(panelStyle?.backgroundColor === undefined && {

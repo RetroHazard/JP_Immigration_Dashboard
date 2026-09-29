@@ -1,4 +1,3 @@
-// src/utils/residentsGrowth.ts
 // Series builders for the Population Growth view: one row per half-year, the
 // total split into either status groups (why people are here) or world
 // regions (where they are from). Each row is a snapshot of one period — the
@@ -109,11 +108,10 @@ export const GROWTH_OTHER = 'other';
 const TOP_N = 7;
 
 /**
- * Total per half-year split by nationality — what the region breakdown
- * becomes once a region filter narrows it to one region, where a single
- * full-height stripe would say nothing. Top countries ranked over the whole
- * window (so the stack's membership doesn't churn with the range), the rest
- * folded into Other; Korea folded onto its pre-2015 combined code so the
+ * Total per half-year split by nationality: what the region breakdown becomes
+ * once a region filter narrows it to one region, where a single full-height
+ * stripe would say nothing. Top countries are ranked over the whole window, the
+ * rest fold into Other, and Korea folds onto its pre-2015 combined code so the
  * stack reads as one population across the reporting split.
  */
 export const buildNationalitySeries = (
@@ -150,15 +148,10 @@ export const buildNationalitySeries = (
 };
 
 /**
- * Re-bases each series to 100 at the first period where it has a value, so a
- * 52,000 → 681,000 series (Vietnam) and a 650,000 → 930,000 one (China) are
- * comparable as growth multiples rather than the smaller being squashed
- * against the axis.
- *
- * A period before the series starts stays undefined — a gap, not a zero — and
- * a series whose base is 0 or missing is left undefined throughout rather
- * than dividing by zero (a status introduced mid-window has no base to index
- * against until its first period).
+ * Re-bases each series to 100 at its first period with a positive value, so a
+ * 52,000 → 681,000 series (Vietnam) and a 650,000 → 930,000 one (China) compare
+ * as growth multiples. Periods before a series starts stay undefined (a gap,
+ * not a zero); a series with no positive value is undefined throughout.
  */
 export const indexSeries = (
   rows: readonly Record<string, unknown>[],

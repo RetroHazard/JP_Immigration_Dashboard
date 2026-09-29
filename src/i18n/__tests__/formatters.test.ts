@@ -1,4 +1,3 @@
-// src/i18n/__tests__/formatters.test.ts
 import { describe, expect, it } from 'vitest';
 
 import { compactFmt, intFmt, setChartFormatterLocale, shortDateFmt } from '../../components/bklit/charts/chart-formatters';
@@ -19,9 +18,8 @@ describe('createFormatters', () => {
     expect(createFormatters('en-US').decimal(112.706)).toBe('112.71');
     expect(createFormatters('de-DE').decimal(112.706)).toBe('112,71');
     expect(createFormatters('en-US').decimal(112.7, 0)).toBe('113');
-    // fr-FR's group separator is ICU-version-dependent: U+00A0 before ICU 72,
-    // U+202F after. Either is correct output; pinning one failed good code on
-    // a Node built against an older system ICU.
+    // fr-FR's group separator depends on the ICU version (U+00A0 before ICU 72,
+    // U+202F after), so accept either.
     expect(createFormatters('fr-FR').decimal(1007.654)).toMatch(/^1[\u00a0\u202f]007,65$/);
   });
 
@@ -31,7 +29,7 @@ describe('createFormatters', () => {
   });
 
   it('abbreviates with each locale’s own convention', () => {
-    // The hardcoded "k" this replaced is English-only; Japanese counts in 万.
+    // Japanese abbreviates in 万, not thousands.
     expect(en.compactNumber(12000)).toBe('12K');
     expect(ja.compactNumber(12000)).toBe('1.2万');
   });
@@ -63,7 +61,7 @@ describe('vendored chart formatters', () => {
   it('abbreviates y-axis ticks per locale, replacing the hardcoded "k" suffix', () => {
     setChartFormatterLocale('en-US');
     expect(compactFmt(200000)).toBe('200K');
-    // The old `${n / 1000}k` rendered this as the awkward "1000k".
+    // Rolls over to M rather than reading "1000k".
     expect(compactFmt(1000000)).toBe('1M');
     expect(intFmt(1234)).toBe('1,234');
     setChartFormatterLocale('ja-JP');

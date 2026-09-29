@@ -1,5 +1,3 @@
-// eslint.config.mjs — ESLint 9 flat config (replaces .eslintrc.js and the
-// duplicate eslintConfig block that used to live in package.json).
 import prettier from 'eslint-config-prettier';
 import react from 'eslint-plugin-react';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
@@ -60,17 +58,12 @@ export default [
     },
   },
   {
-    // Keeps hardcoded UI text from creeping back in after the i18n
-    // extraction. Two narrow rules rather than one broad one:
-    //
-    // - jsx-no-literals covers JSX *text children* only. ignoreProps is on
-    //   deliberately: without it the rule flags every className and every
-    //   aria-hidden="true", and would be switched off inside a week.
-    // - the no-restricted-syntax rule covers the half jsx-no-literals can't
-    //   see, and the half that gets forgotten: user-visible text hiding in
-    //   accessibility attributes.
-    //
-    // Vendored trees (bklit, ui) are already excluded globally.
+    // Keeps hardcoded UI text out of components:
+    // - jsx-no-literals covers JSX text children only. ignoreProps is on, or the
+    //   rule would flag every className and aria-hidden="true".
+    // - no-restricted-syntax covers user-visible text in accessibility
+    //   attributes, which jsx-no-literals can't see.
+    // Vendored trees (bklit, ui) are excluded globally.
     files: ['src/components/**/*.tsx', 'src/App.tsx', 'src/app/**/*.tsx'],
     rules: {
       'react/jsx-no-literals': [

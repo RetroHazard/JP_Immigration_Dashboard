@@ -1,14 +1,10 @@
-// src/constants/bureauOptions.ts
-
 export interface BureauOption {
   /** e-Stat bureau code — the stable identifier, and the catalogue key suffix. */
   value: string;
   /**
    * Whether this is a port-of-entry branch office rather than a regional
-   * bureau. Stated explicitly rather than sniffed out of the label, which is
-   * about to become translatable — an English substring test for 'airport'
-   * would quietly classify every office as a bureau in any other language,
-   * taking the global airport filter down with it.
+   * bureau. Stated explicitly because labels are translated, so an English
+   * 'airport' substring test would break the airport filter in other languages.
    */
   isAirport: boolean;
   coordinates?: [number, number];

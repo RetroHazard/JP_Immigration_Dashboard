@@ -33,8 +33,7 @@ export const template: Dictionary = {
 
   // ── Document metadata ────────────────────────────────────────────────────
   // Read at module scope by src/app/layout.tsx. The static export prerenders
-  // one HTML document, so these can't vary per visitor — they live here to
-  // keep one source of truth, and to be ready for per-locale routes.
+  // one HTML document, so these can't vary per visitor without per-locale routes.
   // 'meta.title': 'Japan Immigration Statistics Dashboard',
   // 'meta.description':
   //   'Visa processing times, bureau workloads, foreign resident population trends, and a queue-model estimator for your own application - built on official Immigration Services Agency statistics, updated as new data is published on e-Stat.',
@@ -92,10 +91,8 @@ export const template: Dictionary = {
   // 'stats.momDelta': '{delta} MoM',
 
   // ── Shared vocabulary ────────────────────────────────────────────────────
-  // Metric names reused across the data tables, chart legends, and hover cards
-  // — and written verbatim as CSV column headers, in English whatever the
-  // interface language (utils/chartTableCsv.ts), so rewording one changes the
-  // header of an export someone may be parsing.
+  // Also written verbatim as English CSV column headers (utils/chartTableCsv.ts),
+  // so rewording one changes the header of an export someone may be parsing.
   // 'metric.carriedOver': 'Carried over',
   // 'metric.pending': 'Pending (carried over)',
   // 'metric.received': 'Received',
@@ -112,10 +109,9 @@ export const template: Dictionary = {
   // 'common.noDataForFilters': 'No data for this combination of filters.',
 
   // ── Data table ───────────────────────────────────────────────────────────
-  // The table's own chrome and its row headers — one per row axis, since each
-  // chart's table has its own shape (utils/chartTables.ts). Column headers and
-  // row labels come from the shared sections instead: metric.*, appType.*,
-  // bureau.*, prefecture.*, map.*, filters.*.
+  // The table's chrome and one row header per row axis (utils/chartTables.ts).
+  // Column headers and row labels come from metric.*, appType.*, bureau.*,
+  // prefecture.*, map.*, and filters.*.
   // 'table.view': 'View data table',
   // 'table.hide': 'Hide data table',
   // 'table.downloadCsv': 'Download CSV',
@@ -299,9 +295,8 @@ export const template: Dictionary = {
   // 'chart.allSeriesHidden': 'All series hidden — click a legend entry to show one.',
 
   // ── Chart: Intake & Processing — policy event markers ────────────────────
-  // Pinned to the month whose intake the change actually moved, which is the
-  // commencement date far more often than the announcement. Sources live
-  // beside the dates in src/constants/policyEvents.ts.
+  // Pinned to the month whose intake the change moved, usually commencement
+  // rather than announcement. Dates and sources: src/constants/policyEvents.ts.
   // 'policy.eventsShow': 'Show policy events',
   // 'policy.eventsHide': 'Hide policy events',
   // 'policy.ssw2019.title': 'Specified Skilled Worker created',
@@ -343,8 +338,8 @@ export const template: Dictionary = {
   // 'policy.act2026.description': 'The 2026 revision lifted the statutory cap on residence permit fees.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
-  // Compact per-type series names. Deliberately separate from
-  // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
+  // Compact per-type series names, separate from the shorter
+  // `appType.*.compact` (the Sankey's one-word forms).
   // 'chart.types.series.acquisition': 'Acquisition',
   // 'chart.types.series.extension': 'Extension',
   // 'chart.types.series.change': 'Change of Status',
@@ -378,8 +373,8 @@ export const template: Dictionary = {
   // 'chart.mix.tooltipValue': '{count} applications · {percent} of {scope}',
   // 'chart.mix.scopeAll': 'all applications',
   // 'chart.mix.sunburstHint': '{trail} — {count} applications ({percent} of total)',
-  // Shown under any sunburst when nothing is selected. Bklit's own fallback
-  // for this is hardcoded English, so the charts pass these in instead.
+  // Shown under any sunburst when nothing is selected, in place of Bklit's
+  // hardcoded English fallback.
   // 'chart.sunburst.hintClick': 'Click a segment to zoom in · hover to inspect',
   // 'chart.sunburst.hintTap': 'Tap a segment to inspect it, tap again to zoom in',
   // 'chart.sunburst.zoomOutClick': 'Click the center to zoom out',
@@ -429,11 +424,9 @@ export const template: Dictionary = {
   // 'errors.changelogUnavailable': 'Unable to load the changelog.',
 
   // ── Chart announcement ───────────────────────────────────────────────────
-  // Three jobs, not one: the live region reads this on a view change, the data
-  // table uses it as its (sr-only) caption, and it is the first line of every
-  // CSV export — where it is pinned to English like the rest of the file
-  // (utils/chartTableCsv.ts). So it is not screen-reader-only any more: this
-  // sentence ships inside files people open in a spreadsheet.
+  // Read by the live region on a view change, used as the data table's sr-only
+  // caption, and written in English as the first line of every CSV export
+  // (utils/chartTableCsv.ts).
   // 'a11y.showingChart': 'Showing {chart} for {bureau}',
   // 'a11y.showingChartWithType': 'Showing {chart} for {bureau}, {type}',
   // 'a11y.policyEvents': 'Policy events shown on this chart',
@@ -446,17 +439,13 @@ export const template: Dictionary = {
   // 'footer.dataUpdated': 'data updated {date}',
 
   // ── Domain: immigration bureaus ──────────────────────────────────────────
-  // Keyed by e-Stat bureau code, in three widths — the same shape the
-  // application types use.
-  //
-  // `.short` is the terminal-style abbreviation; leave it as the Latin code in
-  // most languages. `.compact` is the form the width-constrained surfaces use:
-  // the efficiency chart's 92px label column, the ring-chart legend, and the
-  // treemap's on-tile label. English says the same thing at both widths, but a
-  // language whose official office names run long — Japanese writes Yokohama as
-  // 東京出入国在留管理局横浜支局 — needs somewhere to put the short form, or every
-  // office in a region truncates to the same prefix and they stop being
-  // distinguishable.
+  // Keyed by e-Stat bureau code, in three widths like the application types.
+  // `.short` is an IATA-style code; leave it in Latin script. `.compact` is for
+  // the width-constrained surfaces: the efficiency chart's 92px label column,
+  // the ring-chart legend, and the treemap's on-tile label. English repeats the
+  // full name there, but where official names run long (Japanese writes
+  // Yokohama as 東京出入国在留管理局横浜支局) give a short form, or a region's
+  // offices all truncate to the same prefix.
   // 'bureau.all': 'Nationwide',
   // 'bureau.all.short': 'ALL',
   // 'bureau.all.compact': 'Nationwide',
@@ -582,13 +571,9 @@ export const template: Dictionary = {
   // 'prefecture.47': 'Okinawa',
 
   // ── Resident population dataset ──────────────────────────────────────────
-  // Nationality names are NOT here: they come from Intl.DisplayNames via the
-  // ISO codes in constants/nationalities.ts, so all thirteen locales get them
-  // without a catalogue entry apiece. Only the handful of rows with no ISO
-  // identity are listed under `nationality.*`.
-  // The `region.*` continents ARE all listed: ICU is still tried first via
-  // REGION_M49, but Chrome ships no display names for M49 macro-regions, so
-  // the catalogue has to be able to name every one of them. See below.
+  // Nationality names come from Intl.DisplayNames via the ISO codes in
+  // constants/nationalities.ts. Only the continents and the rows with no ISO
+  // identity are listed here (`region.*` and `nationality.*`, below).
   // 'dataset.label': 'Dataset',
   // 'dataset.aria': 'Choose which dataset to explore',
   // 'dataset.processing': 'Application Processing',
@@ -699,10 +684,10 @@ export const template: Dictionary = {
   // 'statusGroup.other': 'Other',
 
   // Every continent rollup: `Intl.DisplayNames` is tried first, but Chrome and
-  // Edge ship no names for UN M49 macro-regions (`.of('142')` gives back '142',
-  // not "Asia"), so these are what actually renders there. 4000 is M49 003 —
-  // e-Stat's 北アメリカ spans Central America and the Caribbean, so it is
-  // "North America", not 021's "Northern America". 7000 has no M49 code at all.
+  // Edge ship no names for UN M49 macro-regions (`.of('142')` returns '142'), so
+  // these are what renders there. 4000 is M49 003: e-Stat's 北アメリカ includes
+  // Central America and the Caribbean, so "North America", not 021's "Northern
+  // America". 7000 has no M49 code.
   // 'region.1000': 'Asia',
   // 'region.2000': 'Europe',
   // 'region.3000': 'Africa',

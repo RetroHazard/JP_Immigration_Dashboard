@@ -1,4 +1,3 @@
-/* index.css — Civic Glass design system */
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -9,14 +8,11 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ───────────────────────── Civic Glass tokens ─────────────────────────
-   Semantic palette: neutral ground, soft-depth white cards, one confident
-   indigo accent. Chart series colors are a colorblind-validated categorical
-   order (blue, orange, aqua, yellow, magenta); sequential scale is a single
-   blue ramp. Dark mode is a first-class selection, not an inversion. */
+   docs/design-system/tokens.json mirrors these with usage notes and contrast
+   ratios; change both together. Dark values are chosen, not inverted. */
 :root {
-  /* A step below pure white on both surfaces, so true-white artwork — the
-     header's hinomaru field — reads against them rather than dissolving.
-     Cards keep the same one-step lift over the ground as before. */
+  /* A step below pure white on both surfaces, so the header's white hinomaru
+     field reads against them. */
   --background: #eef0f4;
   --foreground: #191a1f;
   --card: #f8f9fc;
@@ -28,10 +24,8 @@
   --secondary: #eef0f4;
   --secondary-foreground: #4d5160;
   --muted: #edeff3;
-  /* muted-foreground and destructive are text colors that sit directly on
-     the ground as well as on cards. The darker ground above took both below
-     4.5:1 on it, so each steps down within its own hue: 4.9:1 on the ground
-     for both, and 4.6:1 for destructive on its own 10% notice tint. */
+  /* muted-foreground and destructive are text on the ground as well as on
+     cards, so both hold 4.5:1 there (destructive also on its 10% notice tint). */
   --muted-foreground: #62677a;
   --accent: #eceefb;
   --accent-foreground: #3a3f96;
@@ -65,9 +59,9 @@
   --chart-scale-05: #1c5cab;
   --chart-scale-pattern-color: #e8f0fc;
 
-  /* Category-mix hierarchy palette: indigo-anchored spread, one hue per
-     application type (indexed in applicationOptions order: ACQ, EXT, CHG,
-     ACT, RET, PR). Bureau children are derived as color-mix tints. */
+  /* Category-mix hierarchy palette: one hue per application type, indexed in
+     applicationOptions order (ACQ, EXT, CHG, ACT, RET, PR). Children are
+     derived as color-mix tints. */
   --chart-mix-1: #48819e;
   --chart-mix-2: #4f56d3;
   --chart-mix-3: #2e7bd6;
@@ -125,8 +119,7 @@
   --warning: #e0a83c;
   --border: #262834;
   /* Same 3:1 floor as light. The primitives also tint dark outline buttons,
-     select triggers and the active tab with input at 30%, which this lifts
-     from #1e2029 to #2e3039. */
+     select triggers and the active tab with input at 30%. */
   --input: #646775;
   --ring: #7b81e8;
 
@@ -184,11 +177,10 @@
   --font-sans: 'Inter Variable', 'Noto Sans JP Variable', system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans',
     'Yu Gothic UI', sans-serif;
 
-  /* Tailwind's default mono stack is Latin-only, so the treemap's `font-mono`
-     tooltip — which carries a translated sentence, not just figures — dropped
-     Japanese onto whatever the browser happened to pick. The JP faces are
-     appended rather than substituted: digits still get the monospace figures
-     the tooltip is aligned around, and only the kana/kanji fall through. */
+  /* Tailwind's default mono stack is Latin-only, and the treemap's `font-mono`
+     tooltip carries translated text. The JP faces are appended, not
+     substituted, so digits keep monospace figures and only kana/kanji fall
+     through. */
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Noto Sans JP Variable', 'Hiragino Sans',
     'Yu Gothic UI', monospace;
 
@@ -357,21 +349,12 @@
 }
 
 /**
- * Every chart component's root wrapper (`card-content` in the ~10
- * src/components/charts/*.tsx files). Deliberately NOT `card-content`: per
- * the CSS overflow spec, a `visible` value on one axis is computed as `auto`
- * whenever the other axis is non-visible — so `overflow-x-visible` on the
- * same element as `card-content`'s `overflow-y-auto` gets silently coerced
- * back to `auto` by the browser, no matter how it's authored. That was
- * clipping the y-axis's intentional left-overflow (see y-axis.tsx) for any
- * locale whose compact-number labels run wider than the chart's margin —
- * German, Portuguese, Spanish, Italian all hit this.
- *
- * No current chart needs vertical scroll inside its own card (each sizes
- * itself by `aspectRatio`, not a fixed max-height), so the real fix is to
- * simply not put a non-visible overflow-y on the chart's own wrapper at all
- * — leaving both axes at their default `visible` sidesteps the coupling
- * rule entirely, rather than fighting it.
+ * Root wrapper of every chart component, instead of `card-content`. Per the
+ * CSS overflow spec, `visible` on one axis computes to `auto` when the other
+ * axis is non-visible, so `card-content`'s `overflow-y-auto` would clip the
+ * y-axis labels' intentional left overflow (see y-axis.tsx) in locales with
+ * wide compact numbers. Charts size by `aspectRatio` and never scroll, so both
+ * axes stay `visible`.
  */
 @utility chart-card-content {
   @apply space-y-4;
@@ -436,9 +419,8 @@
 }
 
 @utility filter-select {
-  /* A native <select>'s closed-box text has no built-in overflow cue in every
-     browser — a translation longer than English (e.g. fr "Tous les types")
-     can lose trailing characters with no ellipsis to show it happened. */
+  /* A native <select>'s closed box has no overflow cue in every browser, so a
+     long translation (fr "Tous les types") would lose characters silently. */
   @apply w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs font-semibold rounded-md input-box-colors
         sm:text-sm
         md:text-base;
@@ -560,7 +542,7 @@
 }
 
 @layer utilities {
-  /* FloatingUI tooltip skin (legacy; replaced by shadcn Tooltip in redesign) */
+  /* Legacy FloatingUI tooltip skin */
   .floating-tooltip {
     @apply bg-foreground text-background text-xs px-2 py-1 shadow-md rounded-md;
     z-index: 999;

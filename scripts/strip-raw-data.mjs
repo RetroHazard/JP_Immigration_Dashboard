@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Removes the raw e-Stat payload from the static export output. The client
-// only needs public/data/dashboard.json; the verbose raw file stays a build
-// input (and Actions cache artifact) but should never ship to visitors.
+// Removes the raw e-Stat payloads from the static export. They are build inputs
+// (and the Actions cache) and never ship; the client loads the compact files in
+// public/data/.
 import { rmSync } from 'node:fs';
 
 rmSync('build/datastore', { recursive: true, force: true });

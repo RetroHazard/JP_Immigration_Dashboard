@@ -1,4 +1,3 @@
-// src/i18n/types.ts
 // Types shared across the i18n module. Everything keys off the English
 // catalogue, so adding a string there is what makes it addressable.
 import type { en } from './locales/en';

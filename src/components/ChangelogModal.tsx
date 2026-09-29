@@ -1,6 +1,3 @@
-// src/components/ChangelogModal.tsx
-// shadcn/Radix Dialog gives focus trapping, Escape handling, focus restore,
-// and scroll locking for free — the previous hand-rolled overlay had none.
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -25,21 +22,18 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
   const { t } = useLocale();
   const [markdown, setMarkdown] = useState<string | null>(null);
   const [error, setError] = useState<DictionaryKey | null>(null);
-  // null means untouched, which resolves to "newest month only" below. Keeping
-  // the default derived rather than seeded means it survives the markdown
-  // arriving after the dialog opens, and resetting is a single assignment.
+  // null means untouched, which resolves to "newest month only" below. Derived
+  // rather than seeded so it survives the markdown arriving after the dialog
+  // opens.
   const [openOverride, setOpenOverride] = useState<readonly string[] | null>(null);
 
   useEffect(() => {
     if (!isOpen || markdown !== null) return;
 
-    // Cache-busted on the build version. Every other asset the page loads is
-    // content-hashed by Next, so a deploy invalidates it automatically; this
-    // one is fetched at runtime from a stable URL, so without the query a
-    // browser (or any cache in front of Pages) keeps serving the changelog
-    // from the previous release even as the rest of the app updates. Keying it
-    // to the version rather than disabling caching keeps it cacheable between
-    // releases and refetches exactly once per deploy.
+    // Cache-busted on the build version: unlike Next's content-hashed assets,
+    // this is fetched from a stable URL, so a browser or CDN would keep serving
+    // the previous release's changelog. Keyed to the version, it stays
+    // cacheable between releases.
     fetch(`/CHANGELOG.md?v=${encodeURIComponent(buildInfo.buildVersion)}`)
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -52,9 +46,8 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
       });
   }, [isOpen, markdown]);
 
-  // The fetched markdown is cached for the session; where the reader had got to
-  // is not. Every open starts on the newest release rather than wherever they
-  // left off eight months back.
+  // The markdown stays cached for the session, but every open starts on the
+  // newest release.
   useEffect(() => {
     if (!isOpen) setOpenOverride(null);
   }, [isOpen]);
@@ -80,7 +73,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
         </DialogHeader>
         {/* Outside the scroll container so it stays reachable from the bottom
             of a long release. Collapsed months are unmounted, so this is also
-            the only way to get the whole document in front of a page search. */}
+            the only way to make the whole document page-searchable. */}
         {!error && months.length > 1 && (
           <div className="-mt-2 flex justify-end border-b border-border pb-2">
             <button

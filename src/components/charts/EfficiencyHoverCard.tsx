@@ -1,4 +1,3 @@
-// src/components/charts/EfficiencyHoverCard.tsx
 // Shared hover card for the Processing Efficiency views. Fixed-positioned so
 // it can follow both SVG marks and HTML rows from pointer coordinates
 // (mouse and touch alike), clamped to the viewport edges. Portaled to <body>

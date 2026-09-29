@@ -1,11 +1,6 @@
-// src/components/DashboardShell.tsx
-// The single responsive shell. Replaces the old always-both-mounted
-// DesktopLayout/MobileLayout pair with one layout tree:
-// - icon chart tabs, the active one expanding its label (real tablist semantics via Radix)
-// - global filter bar with visible "not used by this view" explanations
-// - the Processing Time Estimator as a permanent sidebar (desktop) or a
-//   bottom sheet (mobile) sharing the same controlled state
-// - chart tab, filters, and time range are all URL state (shareable links)
+// One responsive layout tree: chart tabs, the global filter bar, and the estimator as a desktop
+// sidebar or mobile bottom sheet sharing one controlled state. Chart, filters, and time range
+// live in the URL so views are shareable.
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -72,9 +67,9 @@ const NATIONALITY_VALUES = ['all', ...nationalities.map((nationality) => nationa
 const REGION_VALUES = ['all', ...NATIONALITY_REGIONS];
 const COMPARE_VALUES = bureauOptions.filter((option) => option.value !== 'all').map((option) => option.value);
 
-// ?status carries a status *category* now; the parser also accepts the
-// individual status codes older links carry, resolving them to their
-// category. ?period names the snapshot the stock views draw.
+// ?status carries a status category; the parser also accepts an individual
+// status code (from older links) and resolves it to its category. ?period
+// names the snapshot the stock views draw.
 const statusGroupParser = createParser({
   parse: parseStatusParam,
   serialize: (value: string) => value,
@@ -119,18 +114,15 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
   // The as-of snapshot for the stock views; null = latest period.
   const [periodParam, setPeriodParam] = useQueryState('period', periodParser);
 
-  // The dataset is DERIVED from ?chart=, not a param of its own: chart keys are
-  // unique across both registries, so there is no way to land on a dataset and
-  // a chart that disagree, and every link written before the residents dataset
-  // existed still resolves to exactly the view it named.
+  // The dataset is derived from ?chart=, not a param of its own: chart keys are
+  // unique across both registries, so the dataset and chart can never disagree.
   const residentsAvailable = residents !== null && residents.length > 0;
   const requestedDataset = datasetForChart(chartKey);
   const dataset: Dataset = requestedDataset === 'residents' && !residentsAvailable ? 'processing' : requestedDataset;
   const charts = useChartRegistry(dataset);
-  // Global airport toggle: when off, the airport branch offices drop out of
-  // every chart, stat, and cube-backed table (the estimator keeps the full
-  // dataset; the Regional Map's table is reference geography, not intake, so
-  // the toggle does not reach it).
+  // Airport toggle: when off, the airport branch offices drop out of every
+  // chart, stat, and cube-backed table (see chartData). The estimator keeps the
+  // full dataset.
   const [includeAirports, setIncludeAirports] = useQueryState('airports', parseAsBoolean.withDefault(true));
 
   const activeIndex = Math.max(
@@ -139,10 +131,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
   );
   const activeChart = charts[activeIndex];
 
-  // The single ?range= param applies to the active chart, clamped to what it
-  // offers. The two datasets use disjoint range vocabularies ('12' months vs
-  // '5y'), so a value carried over from the other one simply falls back to
-  // this chart's default rather than needing to be cleared.
+  // ?range= applies to the active chart, clamped to the ranges it offers. The
+  // datasets' range vocabularies are disjoint ('12' months vs '5y'), so a value
+  // from the other dataset falls back to this chart's default.
   const range: ChartRange | ResidentRange = (
     activeChart.ranges as readonly string[]
   ).includes(rangeParam ?? '')
@@ -150,12 +141,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
     : activeChart.defaultRange;
 
   // Filters the active chart doesn't support are neutralized so the chart, its
-  // data table, the stat badges, and the estimator always agree on what a
-  // filter value means. The table's caption and its CSV filename are built from
-  // these same neutralized values (utils/chartTables.ts), so a filter a chart
-  // ignores can never turn up in the name of a downloaded file.
-  // An airport bureau selection is likewise neutralized while airports are
-  // excluded (hand-edited URLs can still produce that combination).
+  // data table, and the stat badges agree. The table caption and CSV filename
+  // use these values too (utils/chartTables.ts), so an ignored filter never
+  // names a download. An airport bureau is also neutralized while airports are
+  // excluded (a hand-edited URL can pair them).
   const processingFilterConfig =
     activeChart.dataset === 'processing' ? activeChart.filters : { bureau: false, appType: false };
   const residentFilterConfig =
@@ -174,9 +163,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
 
   const effectiveResidentFilters = useMemo(() => {
     const effectiveRegion = residentFilterConfig.region ? region : 'all';
-    // Region wins when the two disagree (the panel clears nationality on a
-    // region change, but a hand-edited URL can still pair, say, ?region=2000
-    // with a Chinese nationality — which would otherwise empty every chart).
+    // Region wins when the two disagree: the panel clears nationality on a
+    // region change, but a hand-edited URL can pair ?region=2000 with a Chinese
+    // nationality, which would empty every chart.
     const inRegion =
       effectiveRegion === 'all' || nationality === 'all' || nationalityByCode(nationality)?.region === effectiveRegion;
     return {
@@ -198,16 +187,14 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
   // Options for the snapshot picker: every published half-year, newest first.
   const residentPeriodsNewestFirst = useMemo(() => getAllPeriods(residentsData).reverse(), [residentsData]);
 
-  // What the charts, stats, and the cube-backed data tables see; the airport
-  // branch offices are removed as rows AND subtracted from the nationwide
+  // Airport offices are removed as rows and subtracted from the nationwide
   // aggregate, so totals reflect only the visible bureaus (parents already
   // exclude their branches via the build-time deaggregation). The Regional
-  // Map's table is the one exception — reference geography rather than a slice
-  // of the cube, so this never reaches it.
+  // Map's table is reference geography, not a slice of the cube, so this never
+  // reaches it.
   const chartData = useMemo(() => (includeAirports ? data : excludeAirportData(data)), [data, includeAirports]);
 
-  // Data coverage, shown beside the period selector (moved out of the
-  // filter card to keep it a single row).
+  // Data coverage, shown beside the period selector.
   const coverage = useMemo(() => {
     if (dataset === 'residents') {
       const periods = getAllPeriods(residentsData);
@@ -226,9 +213,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
     return t('dashboard.coverageRange', { from: fmt(months[0]), to: fmt(months[months.length - 1]) });
   }, [data, dataset, residentsData, t, formatters]);
 
-  // Compare mode: a second bureau rendered as a side-by-side small multiple,
-  // on views that opt in via the registry (single-view charts like the
-  // treemap, sankey, and bubble plot already show every bureau at once).
+  // Compare mode: a second bureau as a side-by-side small multiple, on views
+  // that opt in via the registry (the treemap, sankey, and bubble plot already
+  // show every bureau).
   const compareEnabled = activeChart.dataset === 'processing' && activeChart.filters.bureau && activeChart.compare;
   const compareBureau =
     compareEnabled && compare && compare !== bureau && (includeAirports || !AIRPORT_BUREAU_CODES.has(compare))
@@ -239,9 +226,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
   const [estimatorDetails, setEstimatorDetails] = useState<ApplicationDetails>(() =>
     getApplicationDetailsFromParams(searchParams)
   );
-  // Auto-open the mobile sheet for estimator permalinks - but only below the
-  // desktop breakpoint, where the sidebar isn't visible (the sheet's portal
-  // is not constrained by its lg:hidden trigger bar).
+  // Auto-open the mobile sheet for estimator permalinks, but only below the
+  // desktop breakpoint (the sheet's portal ignores its lg:hidden trigger bar).
   const [isEstimatorSheetOpen, setIsEstimatorSheetOpen] = useState(
     () =>
       isEstimatorPermalink(searchParams) &&
@@ -258,7 +244,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
   };
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   // Mobile settings drawer: below sm the language, theme, and changelog
-  // controls collapse into it rather than vanishing.
+  // controls collapse into it.
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // One-time entrance: header cards cascade in.
@@ -302,8 +288,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
         <div className="marginals">
           <div className="flex h-16 items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              {/* The same hinomaru as the favicon and PWA icons, so the tab
-                  icon and the header agree on what the site's mark is. */}
+              {/* The same hinomaru as the favicon and PWA icons. */}
               <JapanFlagIcon className="h-6 w-9 shrink-0" />
               <div className="min-w-0">
                 <h1 className="truncate text-sm font-bold leading-tight md:text-base">{t('app.title')}</h1>
@@ -311,9 +296,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
-              {/* Renders nothing while LOCALE_SWITCHER_ENABLED is false — see
-                  src/i18n/config.ts. Every string is addressable now, but the
-                  switch stays hidden until a locale is actually translated. */}
+              {/* Renders nothing while LOCALE_SWITCHER_ENABLED (src/i18n/config.ts) is false. */}
               <LanguageSwitcher />
               <button
                 onClick={() => setIsChangelogOpen(true)}
@@ -340,7 +323,6 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
                 <Moon className="hidden size-4 dark:block" aria-hidden="true" />
               </button>
 
-              {/* Mobile: the controls above collapse into a settings drawer */}
               <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                 <SheetTrigger asChild>
                   <button
@@ -466,7 +448,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
           className={`grid gap-4 transition-[grid-template-columns] duration-300 lg:items-start ${
             dataset === 'residents'
               ? // The estimator models bureau throughput, which this dataset
-                // has no equivalent of, so the sidebar column collapses away.
+                // lacks, so the sidebar column collapses away.
                 'lg:grid-cols-[minmax(0,1fr)]'
               : isEstimatorCollapsed
                 ? 'lg:grid-cols-[minmax(0,1fr)_64px]'
@@ -475,7 +457,6 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
                   'lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]'
           }`}
         >
-          {/* Main column */}
           <div className="flex min-w-0 flex-col gap-4">
             <div data-animate="card">
             {dataset === 'residents' ? (
@@ -526,8 +507,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
             </div>
 
             {/* Dataset switcher. Selecting a dataset jumps to its first chart,
-                which is what actually changes the active registry — the
-                dataset itself is derived from ?chart=. */}
+                since the dataset is derived from ?chart=. */}
             <div className="flex items-center gap-1" role="group" aria-label={t('dataset.aria')}>
               {DATASETS.map((option) => {
                 const disabled = option === 'residents' && !residentsAvailable;
@@ -552,10 +532,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
             </div>
 
             <Tabs value={activeChart.key} onValueChange={(key) => void setChartKey(key)}>
-              {/* No horizontal scrolling at any width: inactive tabs collapse to
-                  their icons (title/sr-only keep the names), and only the active
-                  tab expands its label — hidden entirely below sm, where the
-                  chart card's own title carries the name */}
+              {/* No horizontal scrolling: inactive tabs collapse to icons
+                  (title/sr-only keep the names) and only the active tab shows
+                  its label, except below sm, where the card title carries it */}
               <TabsList className="max-sm:w-full sm:w-max">
                 {charts.map((chart) => (
                   <TabsTrigger key={chart.key} value={chart.key} className="group gap-0" title={chart.label}>
@@ -640,9 +619,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
                             </div>
                           )}
                         </div>
-                        {/* Narrowed on activeChart, not the `dataset` variable:
-                            that is what lets TypeScript reach `table` on the
-                            processing half of the registry union. */}
+                        {/* Narrowed on activeChart, not `dataset`, so TypeScript
+                            can reach `table` on the processing half of the
+                            registry union. */}
                         {activeChart.dataset === 'processing' && (
                           <ChartDataTable
                             table={activeChart.table}
@@ -700,8 +679,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
         </div>
       </main>
 
-      {/* Estimator: bottom sheet on mobile. Hidden on the residents dataset
-          for the same reason the sidebar is — it models bureau throughput. */}
+      {/* Estimator: bottom sheet on mobile, hidden on the residents dataset
+          like the sidebar. */}
       <div
         className={`sticky bottom-0 z-30 border-t border-border bg-card/95 p-3 backdrop-blur lg:hidden ${
           dataset === 'residents' ? 'hidden' : ''
@@ -737,9 +716,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
           <div className="footer-text">
             {t('footer.attribution')}
             <br />
-            {/* The link sits mid-sentence, so the sentence stays one catalogue
-                entry and <T> substitutes the anchor — splitting it into
-                before/after keys would leave translators unable to reorder. */}
+            {/* One catalogue entry with <T> substituting the anchor, so
+                translators can reorder the sentence around the link. */}
             <T
               k="footer.dataAcquisition"
               values={{

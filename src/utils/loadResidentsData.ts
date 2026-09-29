@@ -1,4 +1,3 @@
-// src/utils/loadResidentsData.ts
 // Loads the pre-transformed Foreign Residents file emitted at build time by
 // scripts/transform-data.mts and unpacks it into ResidentRecord[].
 import { logger } from './logger';

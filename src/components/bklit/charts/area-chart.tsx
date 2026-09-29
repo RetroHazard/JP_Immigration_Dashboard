@@ -206,9 +206,8 @@ export function AreaChart({
   children,
 }: AreaChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  // LOCAL MODIFICATION: see line-chart.tsx — size the y-axis margin from the
-  // current locale's real label width instead of a flat 40px. Re-apply after
-  // a re-vendor.
+  // LOCAL MODIFICATION: locale-sized y-axis margin, as in line-chart.tsx.
+  // (Re-apply after a re-vendor.)
   const margin = { ...DEFAULT_MARGIN, left: estimateAxisMarginLeft(), ...marginProp };
   const [chartPhase, setChartPhase] = useState<ChartPhase>(() =>
     resolveRestingChartPhase(status)

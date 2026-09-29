@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-// mergePages is the part of the fetch worth pinning down and it needs no
-// network, so it is imported straight from the build script (allowJs resolves
-// it) — the same precedent as the catalogue test importing scripts/localeTemplate.
+// mergePages needs no network, so it is imported straight from the build script
+// (allowJs resolves it), as the catalogue test imports scripts/localeTemplate.
 import { mergePages } from '../../../scripts/fetch-estat-data.mjs';
 import { checkPayloadComplete, describePayloadProblems, type RawEStatPayload } from '../estatPayload';
 

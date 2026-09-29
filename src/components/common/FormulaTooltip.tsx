@@ -1,9 +1,7 @@
-// components/common/FormulaTooltip.tsx
 // One step of the estimator's "Show the math" breakdown: a labeled card with
 // a numbered header and an inline help popover explaining the variables. The
-// popover is click/tap-toggled so it works on touch devices - exactly where
-// the estimator sheet lives. Keeping the trigger in the header row (instead
-// of overlaying the formula) also keeps it clear of the KaTeX block.
+// popover is click/tap-toggled so it works on touch, where the estimator sheet
+// lives, and its trigger sits in the header row, clear of the KaTeX block.
 'use client';
 
 import { useMemo } from 'react';

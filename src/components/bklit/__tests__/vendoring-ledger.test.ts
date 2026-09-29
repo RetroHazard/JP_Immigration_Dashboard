@@ -1,14 +1,7 @@
-// The vendored Bklit tree is overwritten wholesale by scripts/vendor-bklit.mjs,
-// so every local divergence has to be re-applied by hand afterwards. That only
-// works if the list of divergences is complete — a file that drifted out of
-// ARCHITECTURE.md is a change nobody knows to re-apply, and it comes back as a
-// silent regression rather than a build error.
-//
-// The marker comments in the source are the source of truth; this checks the
-// prose agrees with them. It caught two files that had gone undocumented, and
-// two miscounts made while reading the section by eye — which is the argument
-// for having it: the section names files inside `{a,b,c}.tsx` shorthand, so
-// grepping it for a filename gives the wrong answer.
+// scripts/vendor-bklit.mjs overwrites the vendored Bklit tree wholesale, so
+// every local divergence is re-applied by hand from ARCHITECTURE.md. A file
+// missing there is a change nobody knows to re-apply. The marker comments in
+// the source are the source of truth; this checks the prose names them all.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -40,14 +33,9 @@ const markedFiles = (): string[] =>
 
 /**
  * Every filename the ledger names, with `dir/{a,b}.tsx` shorthand expanded.
- *
- * Two passages are removed before matching:
- * - fenced code blocks, whose backtick runs desynchronise naive `…` pairing so
- *   the matches drift out of alignment;
- * - the "Deliberately **not** converted" sentence, which names files as ones
- *   that were *left alone*. Counting a negative claim as documentation would
- *   let a file be modified later and still look accounted for — which is
- *   exactly what this test found itself doing on `legend/legend-item.tsx`.
+ * Two passages are removed first: fenced code blocks, whose backtick runs
+ * desynchronise the `…` pairing, and the "Deliberately **not** converted"
+ * sentence, whose files were left alone and must not count as documented.
  */
 const namedInLedger = (): Set<string> => {
   const prose = readFileSync(join(ROOT, LEDGER), 'utf8')

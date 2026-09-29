@@ -1,12 +1,10 @@
-// src/components/charts/OriginChoroplethChart.tsx
 // World Origins on Bklit's ChoroplethChart: countries shaded by how many of
 // their nationals live in Japan, on a log scale (the range spans four orders
 // of magnitude, so a linear ramp would leave everything except China, Vietnam
 // and Korea indistinguishable from zero).
 //
-// Features join on ISO 3166-1 numeric, never on the English name in the
-// topology — the same rule GeographicDistributionChart follows for
-// prefectures, and what keeps the join working in all twelve locales.
+// Features join on ISO 3166-1 numeric, never the topology's English name, so
+// the join works in every locale.
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';

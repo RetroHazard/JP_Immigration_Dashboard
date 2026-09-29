@@ -14,9 +14,7 @@ type ScaleLinear = ReturnType<typeof scaleLinear<number>>;
 
 /**
  * LOCAL MODIFICATION: how far the cursor must travel with the button held
- * before the gesture counts as a range drag rather than a click. Without a
- * threshold, `mousedown` had to assume every press was a drag and clear the
- * tooltip immediately, so clicking a chart looked like it dismissed the
+ * before a press counts as a range drag, so a plain click doesn't dismiss the
  * tooltip. (Re-apply after a re-vendor.)
  */
 const DRAG_THRESHOLD_PX = 4;
@@ -65,10 +63,7 @@ interface ChartInteractionResult {
   interactionStyle: React.CSSProperties;
   /**
    * LOCAL MODIFICATION: true while a tap is holding the tooltip open, as
-   * opposed to it tracking a hovering cursor. Nothing renders differently for
-   * it today — the panel stays `pointer-events-none` so taps reach the
-   * datapoint underneath — but it is the one way to tell the two states apart.
-   * (Re-apply after a re-vendor.)
+   * opposed to it tracking a hovering cursor. (Re-apply after a re-vendor.)
    */
   pinned: boolean;
   /** LOCAL MODIFICATION: dismiss handler for taps on the chart's empty space. */
@@ -96,24 +91,20 @@ export function useChartInteraction({
     scheduleTooltip,
     commitTooltipNow,
     clearTooltip,
-    // LOCAL MODIFICATION: `resetTooltipDedupe` went unused when the two-finger
-    // selection branch was removed; `commitTooltipNow` covers the dedupe reset
-    // the tap path needs. (Re-apply after a re-vendor.)
+    // LOCAL MODIFICATION: `resetTooltipDedupe` is unused without the touch
+    // handlers; `commitTooltipNow` resets the dedupe for taps.
+    // (Re-apply after a re-vendor.)
   } = useScheduledTooltip<TooltipData>();
 
   const isDraggingRef = useRef(false);
-  // LOCAL MODIFICATION: the button is down but the gesture has not travelled
-  // far enough to be a drag yet, so it may still turn out to be a click.
-  // (Re-apply after a re-vendor.)
+  // LOCAL MODIFICATION: button down but not yet past the drag threshold, so
+  // it may still be a click. (Re-apply after a re-vendor.)
   const pendingDragRef = useRef(false);
   const dragStartXRef = useRef<number>(0);
   const lastHoveredXRef = useRef<number | null>(null);
 
-  // LOCAL MODIFICATION: tap-to-pin on touch devices. On a coarse pointer the
-  // mouse handlers below are never attached — the tooltip is driven entirely
-  // from `handleClick` — which is what keeps the compatibility mouse events a
-  // browser fires after `touchend` from re-opening or clearing a pinned
-  // tooltip. (Re-apply after a re-vendor.)
+  // LOCAL MODIFICATION: tap-to-pin on a coarse pointer; see `buildHandlers`.
+  // (Re-apply after a re-vendor.)
   const coarsePointer = useCoarsePointer();
   const dismissTooltip = useCallback(() => {
     lastHoveredXRef.current = null;
@@ -221,9 +212,8 @@ export function useChartInteraction({
   );
 
   /**
-   * LOCAL MODIFICATION: the tap's y in container pixels — `localPoint` is
-   * already relative to the svg, which fills the container, so no margin is
-   * subtracted the way `getChartX` does. Only the tap path needs it.
+   * LOCAL MODIFICATION: the tap's y in container pixels. The svg fills the
+   * container, so unlike `getChartX` no margin is subtracted.
    * (Re-apply after a re-vendor.)
    */
   const getTapY = useCallback((event: React.MouseEvent<SVGGElement>): number | undefined => {
@@ -237,11 +227,9 @@ export function useChartInteraction({
         return;
       }
 
-      // LOCAL MODIFICATION: a held button only becomes a drag once it has
-      // travelled far enough, and the tooltip is cleared at that moment rather
-      // than on `mousedown`. Below the threshold the hover path keeps running,
-      // so a plain click leaves the tooltip exactly as it found it.
-      // (Re-apply after a re-vendor.)
+      // LOCAL MODIFICATION: a held button becomes a drag, and clears the
+      // tooltip, only past the threshold; below it the hover path keeps
+      // running. (Re-apply after a re-vendor.)
       if (
         pendingDragRef.current &&
         !isDraggingRef.current &&
@@ -297,11 +285,9 @@ export function useChartInteraction({
       if (chartX === null) {
         return;
       }
-      // LOCAL MODIFICATION: this used to set `isDraggingRef` and call
-      // `clearTooltip()` outright, which dismissed the tooltip on every click
-      // because a press cannot yet be told apart from a drag. Both now happen
-      // in `handleMouseMove`, once the cursor has actually travelled.
-      // (Re-apply after a re-vendor.)
+      // LOCAL MODIFICATION: only arms the drag. A press can't yet be told from
+      // a click, so `handleMouseMove` sets `isDraggingRef` and clears the
+      // tooltip once the cursor travels. (Re-apply after a re-vendor.)
       pendingDragRef.current = true;
       dragStartXRef.current = chartX;
       setSelection(null);
@@ -319,22 +305,11 @@ export function useChartInteraction({
   }, []);
 
   /**
-   * LOCAL MODIFICATION: replaces the touch handlers, which showed a tooltip
-   * while a finger was held down and cleared it on `touchend`. A tap now pins
-   * the tooltip until it is tapped again, another datapoint is tapped, or the
-   * registry dismisses it.
-   *
-   * `click` rather than touch bookkeeping: the browser already tells a tap
-   * apart from a scroll or a drag, with the right slop per platform, and
-   * withholds the click entirely when the gesture becomes a scroll. The old
-   * `preventDefault()` calls were no-ops anyway — React registers
-   * `touchstart`/`touchmove` passively — which is why `touchAction: "none"`
-   * was needed, and why removing them costs nothing.
-   *
-   * The two-finger range selection is gone with them. It only ever set
-   * `selection`, which the mouse-drag path still sets on desktop, so the
-   * highlight band behaves exactly as before there.
-   * (Re-apply after a re-vendor.)
+   * LOCAL MODIFICATION: replaces the vendored touch handlers and their
+   * two-finger range selection. A tap pins the tooltip until it is tapped
+   * again, another datapoint is tapped, or the registry dismisses it. `click`
+   * rather than touch bookkeeping: the browser already tells a tap from a
+   * scroll or drag, with per-platform slop. (Re-apply after a re-vendor.)
    */
   const handleClick = useCallback(
     (event: React.MouseEvent<SVGGElement>) => {
@@ -353,8 +328,7 @@ export function useChartInteraction({
         return;
       }
       lastHoveredXRef.current = chartX;
-      // `tapY` rides along on the tooltip so the panel can sit above the
-      // finger; nothing else reads it, and the hover path never sets it.
+      // `tapY` lets the panel sit above the finger; the hover path never sets it.
       commitTooltipNow({ ...tooltip, tapY: getTapY(event) });
     },
     [
@@ -395,10 +369,9 @@ export function useChartInteraction({
   }, [canInteract, clearTooltip, resolveTooltipFromX, scheduleTooltip]);
 
   // LOCAL MODIFICATION: on a coarse pointer only `onClick` is attached. The
-  // mouse handlers are deliberately absent rather than guarded, so the
-  // synthesized mouse events a browser fires after a tap have nothing to land
-  // on — including `handleMouseDown`, which clears the tooltip and would
-  // otherwise eat the pin. (Re-apply after a re-vendor.)
+  // mouse handlers are absent rather than guarded, so the compatibility mouse
+  // events a browser fires after a tap can't re-open or clear the pin.
+  // (Re-apply after a re-vendor.)
   const buildHandlers = () => {
     if (!canInteract) {
       return {};
@@ -417,12 +390,9 @@ export function useChartInteraction({
 
   const interactionStyle: React.CSSProperties = {
     cursor: canInteract ? "crosshair" : "default",
-    // LOCAL MODIFICATION: `none` blanket-blocked page scrolling over the plot
-    // area, which on a phone makes these tall charts a scroll dead zone. It was
-    // only needed because the touch handlers wanted to preventDefault; with
-    // those gone, `manipulation` keeps vertical scroll working and still
-    // suppresses double-tap zoom on a quick pin/unpin. Hover devices keep the
-    // vendored default, which the mouse-drag selection relies on.
+    // LOCAL MODIFICATION: `manipulation` on touch, so the page still scrolls
+    // over these tall charts and double-tap zoom stays off. Hover devices keep
+    // the vendored `none`, which the mouse-drag selection relies on.
     // (Re-apply after a re-vendor.)
     touchAction: tapMode ? "manipulation" : "none",
   };

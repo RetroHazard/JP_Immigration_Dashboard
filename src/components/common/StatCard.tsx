@@ -1,4 +1,3 @@
-// src/components/common/StatCard.tsx
 import { memo } from 'react';
 
 import type { LucideIcon } from 'lucide-react';
@@ -41,8 +40,7 @@ interface StatCardProps {
   delta?: StatDelta;
   /**
    * Catalogue key wrapping the formatted delta. Defaults to the month-over-
-   * month phrasing the processing tiles use; the residents tiles compare
-   * half-years, where "MoM" would be simply wrong.
+   * month phrasing of the processing tiles; residents tiles compare half-years.
    */
   deltaKey?: DictionaryKey;
   spark?: number[];
@@ -122,23 +120,14 @@ const StatCardComponent: React.FC<StatCardProps> = ({
       } shadow-soft transition-shadow hover:shadow-soft-lg sm:p-3 lg:p-4 ${className ?? ''}`}
     >
       <div className="flex items-start justify-between gap-2">
-        {/* line-clamp rather than a hard single-line truncate: only Total and
-            Approval carry a shortTitle today, so Granted/Denied/Pending
-            always render their full translated title — fine for English's
-            "Granted"/"Denied", but Portuguese/Spanish equivalents ("Concedidas",
-            "PENDIENTES") are long enough to lose characters at the cramped
-            widths a 5-across card row hits before xl. Wrapping to a second
-            line costs a little vertical room; silently dropped text costs
-            more.
-            The clamp has to live on the span that actually holds the text —
-            `-webkit-line-clamp` on a wrapper around a nested <span> doesn't
-            reflow the child at all, it just measures one unbroken line and
-            clips whatever doesn't fit. */}
+        {/* line-clamp, not truncate: tiles without a shortTitle show the full
+            translated title, and long ones ("Concedidas", "PENDIENTES") would
+            lose characters in the cramped five-across row before xl. The clamp
+            sits on the span holding the text; `-webkit-line-clamp` on a
+            wrapper doesn't reflow a nested <span>, it just clips one line. */}
         <span className="min-w-0 text-xxs font-semibold uppercase tracking-wider text-muted-foreground sm:text-xs">
-          {/* break-words: line-clamp only wraps at a natural space, and a
-              single long translated word ("Concedidas", "PENDIENTES") has
-              none — without it the clamp has nowhere to break and just
-              clips the one line it's given instead of using the second. */}
+          {/* break-words: line-clamp only wraps at a space, so a single long
+              word would clip instead of using the second line. */}
           {shortTitle && <span className="line-clamp-2 break-words xl:hidden">{shortTitle}</span>}
           <span className={`break-words ${shortTitle ? 'hidden xl:line-clamp-2' : 'line-clamp-2'}`}>{title}</span>
         </span>

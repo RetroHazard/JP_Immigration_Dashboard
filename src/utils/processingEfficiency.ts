@@ -1,16 +1,8 @@
-// src/utils/processingEfficiency.ts
-// Shared derivation for the Processing Efficiency views (the registered ranked
-// lollipop and the swap-ready quadrant scatter), in two layers.
-//
-// `computeBureauVolumes` is the arithmetic alone: one row per bureau with
-// received/processed volume and completion rate over the selected period,
-// carrying no display text and no theme colors, so the chart's data table
-// (utils/chartTables.ts) can report exactly the numbers the chart plots without
-// dragging a locale or a theme into a pure module.
-//
-// `computeEfficiencyPoints` layers a caller-supplied label and the bureau flag
-// palette on top (matching the Regional Map; airport branch offices render as
-// tints of their parent region).
+// Shared derivation for the Processing Efficiency views (the ranked lollipop and
+// the swap-ready quadrant scatter), in two layers: `computeBureauVolumes` is the
+// arithmetic alone, and `computeEfficiencyPoints` layers a caller-supplied label
+// and the bureau flag palette on top (matching the Regional Map; airport branch
+// offices render as tints of their parent region).
 
 import { bureauOptions } from '../constants/bureauOptions';
 import { STATUS_CODES } from '../constants/statusCodes';
@@ -20,10 +12,9 @@ import type { ChartRange } from './selectors';
 import { breakdownScopeFromFilter, bureauScopeFromFilter, getAllMonths, monthsForRange, selectData } from './selectors';
 
 /**
- * The volume half of an efficiency point: bureau identity plus the raw
- * received/processed/rate figures, carrying no display text and no theme
- * colors. Split out so the chart's data table can report exactly the numbers
- * the lollipop plots without dragging a locale or a theme into a pure module.
+ * The volume half of an efficiency point, with no display text or theme colors,
+ * so the chart's data table (utils/chartTables.ts) can report exactly the
+ * numbers the lollipop plots without pulling a locale or theme into a pure module.
  */
 export interface BureauVolume {
   code: string;

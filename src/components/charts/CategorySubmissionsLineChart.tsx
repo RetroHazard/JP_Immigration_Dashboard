@@ -1,4 +1,3 @@
-// src/components/charts/CategorySubmissionsLineChart.tsx
 // Monthly new submissions per application type, on Bklit's LineChart.
 // Legend entries toggle their series; the y-domain tweens to the visible set.
 'use client';
@@ -20,9 +19,9 @@ import type { ImmigrationChartData } from '../common/ChartComponents';
 import { SeriesLegend } from '../common/SeriesLegend';
 
 // `id` is the data-row property, the chart's dataKey, and the hide/show
-// identity; `type` is the e-Stat application code the values come from;
-// `label` is display text only. All three used to be one string, so toggling a
-// series and plotting it both depended on the UI language.
+// identity; `type` is the e-Stat application code the values come from; the
+// label is display text only, so toggling and plotting never depend on the UI
+// language.
 const SERIES = [
   { id: 'acquisition', labelKey: 'chart.types.series.acquisition', type: '10', color: 'var(--chart-1)' },
   { id: 'extension', labelKey: 'chart.types.series.extension', type: '20', color: 'var(--chart-2)' },
@@ -105,8 +104,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
               />
             ))}
             <XAxis />
-            {/* Rows are named explicitly: the tooltip would otherwise show the
-                raw series ids now that those are no longer display text. */}
+            {/* Rows are named explicitly, or the tooltip shows raw series ids. */}
             <ChartTooltip
               titleFormat={(date) => formatters.monthYear(date)}
               rows={(point) =>

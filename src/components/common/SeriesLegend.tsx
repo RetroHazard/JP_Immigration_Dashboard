@@ -1,4 +1,3 @@
-// src/components/common/SeriesLegend.tsx
 // Small shared legend row for the Bklit-based charts. Identity is carried by
 // the color chip; the text stays in ink tokens. When `onToggle` is provided,
 // entries become show/hide buttons for their series (dimmed = hidden).

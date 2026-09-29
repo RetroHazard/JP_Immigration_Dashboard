@@ -69,16 +69,11 @@ function featureIndexFromEvent(event: React.SyntheticEvent): number | null {
 }
 
 /**
- * The paths themselves. Deliberately free of per-feature handlers and of any
- * hover-dependent prop, so this memo holds across hover and pan — the geometry
- * is the expensive part and it never needs to re-render for an interaction.
- *
- * `non-scaling-stroke` is what keeps borders hairline-thin at every zoom level.
- * The zoom transform sits on an ancestor <g>, and SVG scales stroke width along
- * with geometry, so a 0.75 border renders 12px wide at 16x. Dividing the width
- * by the live zoom scale instead would drag this layer into the zoom context and
- * re-render all 47 paths per gesture frame; a static attribute leaves the memo
- * intact and hands the work to the rasteriser.
+ * The paths themselves, free of handlers and hover-dependent props so this memo
+ * holds across hover and pan. `non-scaling-stroke` keeps borders hairline at
+ * every zoom level, since the zoom transform on an ancestor <g> scales stroke
+ * width too; dividing the width by the live scale instead would re-render all
+ * 47 paths per gesture frame.
  */
 const FeaturePaths = memo(function FeaturePaths({
   records,
@@ -390,8 +385,7 @@ export const ChoroplethFeature = memo(function ChoroplethFeature({
 
   /**
    * LOCAL MODIFICATION: the touch equivalent of enter/leave. A tap selects the
-   * prefecture; tapping the same one again dismisses it, which a plain
-   * select-on-click has no way to express. The pin also registers page-wide,
+   * prefecture and a second tap on it dismisses; the pin registers page-wide,
    * so opening a tooltip on another chart closes this one.
    * (Re-apply after a re-vendor.)
    */

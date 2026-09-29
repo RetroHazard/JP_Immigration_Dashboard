@@ -6,8 +6,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
-    // scripts/ as well as src/, so build- and CI-side logic can be tested beside
-    // its subject instead of reaching back into scripts/ from a src/ test.
+    // scripts/ too, so build and CI logic is tested beside its subject.
     include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.{ts,mts,mjs}'],
     setupFiles: ['./vitest.setup.ts'],
   },

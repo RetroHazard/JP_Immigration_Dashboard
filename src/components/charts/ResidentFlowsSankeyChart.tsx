@@ -1,10 +1,7 @@
-// src/components/charts/ResidentFlowsSankeyChart.tsx
 // Origins → Status Categories on Bklit's Sankey, in three tiers: world
-// region → country → purpose-of-stay group. The nationality × status
-// cross-tabulation this cube uniquely offers, keyed to geography. Selecting
-// a region narrows the left column to it; selecting a nationality collapses
-// the chart into that country's profile; selecting a category narrows the
-// right column.
+// region → country → purpose-of-stay group. Selecting a region narrows the
+// left column to it; a nationality collapses the chart into that country's
+// profile; a category narrows the right column.
 //
 // A stock figure: the flows describe the single snapshot the period picker
 // chooses, and the header says which one.
@@ -107,9 +104,8 @@ export const ResidentFlowsSankeyChart: React.FC<ResidentChartData> = ({ data, fi
     return { sankeyData: { nodes, links }, nodeColors };
   }, [flows, nationalityLabel, regionLabel, groupLabel, t]);
 
-  // Measured label margins, same as OutcomesSankeyChart: region and category
-  // names vary wildly across the twelve locales and would otherwise clip.
-  // The middle tier needs no margin — its labels sit inside the plot.
+  // Measured label margins, as in OutcomesSankeyChart, so translated names
+  // don't clip. The middle tier needs none; its labels sit inside the plot.
   const sankeyMargin = useMemo(() => {
     const nodeLabelFont =
       '500 13px -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Sans", "Yu Gothic UI", sans-serif';

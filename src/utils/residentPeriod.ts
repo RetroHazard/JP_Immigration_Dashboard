@@ -1,8 +1,6 @@
-// src/utils/residentPeriod.ts
 // `2025-12` is a half-year label, not a month: the figure is a snapshot taken
-// at the end of June or December. Formatting it through `formatters.monthYear`
-// is what keeps "Dec 2025" / "2025年12月" in the reader's own locale instead of
-// printing the raw key.
+// at the end of June or December. It is formatted through `formatters.monthYear`
+// ("Dec 2025" / "2025年12月") so it reads in the reader's locale, not as the raw key.
 import type { Formatters } from '../i18n/formatters';
 
 export const periodToDate = (period: string): Date => {

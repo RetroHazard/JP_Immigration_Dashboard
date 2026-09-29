@@ -1,8 +1,5 @@
-// src/utils/__tests__/chartTableCsv.test.ts
-// The CSV writer had no coverage at all before per-chart tables landed, and it
-// grew two properties worth pinning: it stays English whatever the interface
-// language, and it escapes fields now that cells carry names and not only
-// numbers.
+// Pins the CSV writer's two properties: it stays English whatever the interface
+// language, and it escapes fields, since cells carry names and not only numbers.
 import { describe, expect, it } from 'vitest';
 
 import type { ImmigrationData } from '../../hooks/useImmigrationData';
@@ -21,9 +18,8 @@ const model: TableModel = {
   ],
   rows: [
     { id: 'a', label: 'Osaka, Kansai', values: ['plain', 1234, 86.25] },
-    // No embedded newline in this fixture: a quoted field may legally contain
-    // one, which would make the line-count assertion below a lie. csvField
-    // covers that case directly instead.
+    // No embedded newline here: a quoted field may legally contain one, which
+    // would break the line-count assertion below. csvField covers that case.
     { id: 'b', label: 'He said "go"', values: ['plain', 0, 0] },
   ],
   caption: { key: 'a11y.showingChart', params: { chart: { key: 'charts.share.label' }, bureau: 'Nationwide' } },
@@ -110,9 +106,8 @@ describe('a real table', () => {
     { month: '2025-06', bureau: '100000', type: '60', status: '103000', value: 200 },
   ];
 
-  // "Showing {chart} for {bureau}, {type}" — the one line in the file that
-  // reliably carries a separator, and a spreadsheet reads a `#` opener as a
-  // data row, not a comment. Unquoted, the caption arrived as two cells.
+  // "Showing {chart} for {bureau}, {type}" reliably carries a separator, and a
+  // spreadsheet reads a `#` line as data. Unquoted, the caption splits into two cells.
   it('quotes the caption when a selected type puts a comma in it', () => {
     const caption = serializeTableCsv(
       buildProcessingTable('intakeByMonth', {

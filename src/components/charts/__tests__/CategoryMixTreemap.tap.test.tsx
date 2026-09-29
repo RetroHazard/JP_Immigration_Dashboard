@@ -1,9 +1,7 @@
-// The treemap is the one tap-mode chart that is plain HTML, which makes it the
-// practical place to test the interaction end to end: visx-based charts need
-// real measurements jsdom can't produce.
-//
-// It is also where tap has to serve two jobs a mouse kept apart — inspecting a
-// tile and drilling into it — so this is the conflict resolution under test.
+// The treemap is the one tap-mode chart that is plain HTML, so the interaction
+// is tested end to end here: visx-based charts need real measurements jsdom
+// can't produce. On touch one tap must both inspect a tile and drill into it;
+// that conflict is what's under test.
 import { afterEach, describe, expect, it } from 'vitest';
 import { fireEvent } from '@testing-library/react';
 

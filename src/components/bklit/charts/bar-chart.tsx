@@ -690,11 +690,9 @@ export function BarChart({
   status = "ready",
 }: BarChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  // LOCAL MODIFICATION: see line-chart.tsx — size the numeric y-axis margin
-  // from the current locale's real label width instead of a flat 40px.
-  // Horizontal bars use the left margin for category labels (BarYAxis), not
-  // numbers, so it keeps the vendored default there. Re-apply after a
-  // re-vendor.
+  // LOCAL MODIFICATION: locale-sized y-axis margin, as in line-chart.tsx.
+  // Horizontal bars keep the vendored default: their left margin holds
+  // category labels (BarYAxis), not numbers. (Re-apply after a re-vendor.)
   const margin = {
     ...DEFAULT_MARGIN,
     ...(orientation === "horizontal" ? null : { left: estimateAxisMarginLeft() }),

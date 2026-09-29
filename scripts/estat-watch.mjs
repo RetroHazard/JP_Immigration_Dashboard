@@ -2,25 +2,18 @@
 /**
  * Decides whether e-Stat has published anything new, and prepares the deploy if so.
  *
- * Runs daily from .github/workflows/watcher.yaml. The shape of a run:
+ * Runs daily from .github/workflows/watcher.yaml:
  *
- *   1. The Actions cache restores public/datastore/ — the raw payloads plus
- *      .estat-baseline.json, the record of the SURVEY_DATE each table had when it
- *      was last published.
- *   2. Every dataset in scripts/datasets.mjs is *probed* — a single-row request
- *      that returns TABLE_INF in a couple of kilobytes. On a normal day that is
- *      the whole run: two small requests, no download, no deploy.
- *   3. If any date moved, every payload is downloaded in full and the baseline is
- *      rewritten, so the cache entry the deploy reads is internally consistent.
+ *   1. The Actions cache restores public/datastore/: the raw payloads plus
+ *      .estat-baseline.json, the SURVEY_DATE each table had when last published.
+ *   2. Every dataset in scripts/datasets.mjs is probed with a single-row request.
+ *      On a normal day that is the whole run.
+ *   3. If any date moved, every payload is downloaded in full and the baseline
+ *      rewritten. One cache entry covers the whole datastore, so a deploy never
+ *      pairs a fresh copy of one table with a stale copy of another.
  *
- * Downloading *all* tables when *any* one moves is deliberate: one cache entry
- * covers the whole datastore, so a deploy can never pair a fresh copy of one
- * table with a stale copy of another.
- *
- * The run summary is written here rather than in a workflow step, including on
- * the failure path. A summary composed in YAML from a step output reports "no
- * changes" whenever the step that sets it never ran, which is exactly backwards
- * on a red run.
+ * The run summary is written here, including on failure. One composed in YAML
+ * from a step output reads "no changes" when the step that sets it never ran.
  *
  * Usage (locally): ESTAT_APP_ID=<app id> node scripts/estat-watch.mjs
  */
@@ -31,14 +24,10 @@ import { BASELINE_PATH, DATASETS, DATASTORE_DIR, rawPathOf } from './datasets.mj
 import { ensureDatasets, fail, notice, probeDataset, requireAppId, warn } from './fetch-estat-data.mjs';
 
 /**
- * Reads the previous run's survey dates.
- *
- * A missing file is the first run, an evicted cache, or the first run after this
- * script was introduced. A malformed one is a corrupted cache entry. Both are
- * treated the same way — as "no baseline" — because failing here would wedge the
- * watcher permanently: the run would die before the save below, so the bad entry
- * would never be replaced and every later run would fail identically. Re-
- * baselining costs one detection cycle and then self-heals.
+ * Reads the previous run's survey dates. A missing file (first run, evicted
+ * cache) and a malformed one (corrupted cache entry) both mean "no baseline":
+ * failing here would stop the run before the save, so the bad entry would never
+ * be replaced and every later run would fail the same way.
  */
 export const readBaseline = (path = BASELINE_PATH) => {
   if (!existsSync(path)) return {};
@@ -53,13 +42,10 @@ export const readBaseline = (path = BASELINE_PATH) => {
 };
 
 /**
- * The whole change-detection rule, as a pure function of what was recorded and
- * what was just probed. This decides whether the site publishes, so it is kept
- * free of I/O and tested directly in scripts/__tests__/estat-watch.test.mjs.
+ * The change-detection rule, kept free of I/O so it can be tested directly.
  *
- * `changed` triggers a deploy. `save` refreshes the cache — which is a superset,
- * since a table seen for the first time needs recording even though there is
- * nothing to compare it against and so nothing to publish.
+ * `changed` triggers a deploy. `save` refreshes the cache and is a superset: a
+ * table seen for the first time needs recording but has nothing to publish.
  *
  * @param {Record<string, string>} baseline  Survey dates from the previous run, keyed by dataset id.
  * @param {{id: string, label: string, surveyDate: string}[]} probes  What e-Stat reports now.
@@ -91,9 +77,8 @@ export const decide = (baseline, probes) => {
     reasons.push({ id, state: 'unchanged', detail: `${label}: unchanged (still ${surveyDate}).` });
   }
 
-  // A dataset removed from the manifest leaves a stale key behind. Harmless to
-  // compare against, but the baseline is rewritten from the probes on save, so
-  // it disappears on the next one.
+  // A dataset removed from the manifest leaves a stale key, which is never
+  // compared and drops out on the next save (the baseline is rebuilt from probes).
   return { changed, save, reasons };
 };
 
@@ -156,9 +141,6 @@ const main = async () => {
     return;
   }
 
-  // Something moved, or something has never been recorded. Either way the cache
-  // entry is about to be rewritten, so every payload is re-downloaded — a mixed
-  // entry is the one state the single-cache design exists to prevent.
   notice('Downloading every payload so the cache entry stays internally consistent.');
   await ensureDatasets({ appId, datasets: DATASETS, force: true });
 
@@ -188,9 +170,7 @@ const main = async () => {
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
   await main().catch((error) => {
     const message = error instanceof Error ? error.message : String(error);
-    // Written before exiting, so a failed run's summary says it failed. The
-    // previous implementation composed this in YAML from a step output and read
-    // an unset output as "no changes detected" on a red run.
+    // Written before exiting, so a failed run's summary says it failed.
     writeSummary(['### Check failed', '', 'No deploy was triggered.', '', '```', message, '```', '', checkedAt()]);
     fail(message);
   });

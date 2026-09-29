@@ -1,17 +1,10 @@
-// src/components/charts/CategoryMixTreemap.tsx
 // Zoomable hierarchical treemap: a total at the root, categories as blocks,
-// leaves nested inside. Click a category to zoom into its full breakdown;
-// click the background (or Esc) to zoom out.
-//
-// `MixTreemap` is the presentation half and knows nothing about which dataset
-// it is drawing — it takes a MixTree of codes plus the functions that turn
-// those codes into words. `CategoryMixTreemap` binds it to the processing
-// hierarchy (application type → bureau) and ResidenceStatusMixChart binds it
-// to the residents one (status group → residence status).
-//
-// CategoryMixSunburst renders the processing hierarchy (shared
-// buildCategoryMixTree, same props contract) as a sunburst — swapping the
-// `mix` entry in ChartComponents.tsx is all it takes to switch.
+// leaves nested inside. Click a category to zoom in; click the background (or
+// Esc) to zoom out. `MixTreemap` is dataset-agnostic (a MixTree of codes plus
+// label functions); `CategoryMixTreemap` binds it to application type → bureau
+// and ResidenceStatusMixChart to status group → residence status.
+// CategoryMixSunburst draws the same processing tree as a sunburst; swap the
+// `mix` entry in ChartComponents.tsx to switch.
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -28,9 +21,9 @@ import { buildCategoryMixTree, mixLeafColor } from '../../utils/categoryMixTree'
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
 /**
- * Everything the treemap needs in words. Passed in rather than looked up so
- * the component stays free of any one dataset's domain constants — and so the
- * tile keys that drive the zoom animation remain codes, never display text.
+ * Everything the treemap needs in words. Passed in so the component stays
+ * dataset-agnostic and the tile keys that drive the zoom animation stay codes,
+ * never display text.
  */
 export interface MixTreemapLabels {
   /** Breadcrumb root, e.g. "All applications". */
@@ -275,12 +268,10 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
   const tapMode = useTapPin({ enabled: coarsePointer, containerRef, onDismiss: hideTip });
 
   /**
-   * A tile tap has to serve two purposes that a mouse got to keep separate:
-   * inspecting and zooming. First tap shows the tooltip, second tap on the same
-   * tile drills in — so the tooltip is reachable at all on touch, where a
-   * single-tap zoom used to move the tile out from under the finger before it
-   * could be read. Leaves have nothing to drill into, so their second tap just
-   * closes.
+   * On touch one tap must both inspect and zoom: the first tap shows the
+   * tooltip, a second tap on the same tile drills in, so the tile doesn't move
+   * out from under the finger before the tooltip is read. Leaves have nothing
+   * to drill into, so their second tap just closes.
    */
   const tapTile = (event: React.MouseEvent, key: string, drillTo: string | null, name: string, color: string, detail: string) => {
     event.stopPropagation();
@@ -365,10 +356,8 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
         {tree.categories.map((category) => {
           const rect = layout['c:' + category.key];
           const compact = rect !== undefined && (rect.w < 150 || rect.h < 34);
-          // Slightly below the old 60/34 cutoff: a category block just under
-          // that size still had comfortable room for its name-only compact
-          // form (the percent chip is what needed the extra width), so it
-          // was going unlabeled for no reason tied to actual legibility.
+          // The name-only compact label still fits down to here; only the
+          // percent chip needs the `compact` width.
           const tiny = rect !== undefined && (rect.w < 46 || rect.h < 26);
           return (
             <button
@@ -442,10 +431,6 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
           return leaves.map(({ leaf, rank, rest }) => {
             const key = `b:${category.key}:${leaf.code}`;
             const rect = layout[key];
-            // Lowered from 74/30: a compact bureau label (single line, no
-            // value row — see below) fits comfortably smaller than that, so
-            // the old threshold was leaving more small tiles unlabeled than
-            // the label itself needed.
             const showLabel = rect !== undefined && rect.w > 60 && rect.h > 24;
             const showLeafValue = rect !== undefined && rect.w > 74 && rect.h > 30;
             return (
@@ -510,8 +495,7 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
               >
                 {showLabel && (
                   <span className="flex flex-col px-2 py-1 text-xs font-semibold leading-tight">
-                    {/* Compact on the tile — it only renders above 60px wide
-                        and ellipsizes. The tooltip above keeps the full name. */}
+                    {/* Compact name on the tile; the tooltip keeps the full one. */}
                     <span>{rest ? t('chart.mix.others') : leafCompact(leaf.code)}</span>
                     {!rest && showLeafValue && (
                       <span className="font-mono text-xxs font-medium opacity-75">

@@ -1,18 +1,14 @@
-// src/components/charts/NationalityMoversChart.tsx
 // Biggest Movers: the largest gains and losses between the two ends of the
 // selected range, as a diverging bar chart.
 //
-// Both ends are single snapshots rather than sums — the table reports a stock,
-// so "change over three years" means the 2022-12 figure subtracted from the
-// 2025-12 one, not the difference between two three-year totals.
+// Both ends are single snapshots, not sums: the table reports a stock, so a
+// three-year change is the 2025-12 figure minus the 2022-12 one. A series
+// missing at either end is dropped rather than treated as a move from zero
+// (韓国 appears in 2015-12 because 韓国・朝鮮 was split, not because 400,000
+// people arrived).
 //
-// A series that does not exist at both ends is dropped rather than treated as
-// a move from zero: 韓国 appears in 2015-12 because 韓国・朝鮮 was split, not
-// because 400,000 people arrived that half-year.
-//
-// Deliberately hand-rolled rather than Bklit: the vendored BarChart floors
-// its value domain at zero (`domain: [0, maxValue * 1.1]`, bar-chart.tsx), so
-// it cannot draw the negative half of a diverging bar.
+// Hand-rolled because the vendored BarChart floors its value domain at zero
+// (bar-chart.tsx), so it can't draw the negative half.
 'use client';
 
 import { useMemo, useState } from 'react';

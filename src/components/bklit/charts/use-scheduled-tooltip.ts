@@ -8,11 +8,9 @@ export interface ScheduledTooltipControls<T> {
   scheduleTooltip: (tooltip: T, dedupeKey?: string) => void;
   /**
    * LOCAL MODIFICATION: commit a tooltip immediately, bypassing the rAF batch
-   * and the dedupe check. Tap-to-pin needs this: the dedupe key survives a
-   * `setTooltipData(null)` that doesn't go through `clearTooltip`, which would
-   * otherwise leave a datapoint permanently unable to re-open once unpinned.
-   * A tap is also one discrete event, so there is nothing to coalesce.
-   * (Re-apply after a re-vendor.)
+   * and the dedupe check. The dedupe key survives a `setTooltipData(null)` that
+   * skips `clearTooltip`, so without this an unpinned datapoint could never be
+   * re-pinned. (Re-apply after a re-vendor.)
    */
   commitTooltipNow: (tooltip: T, dedupeKey?: string) => void;
   clearTooltip: () => void;

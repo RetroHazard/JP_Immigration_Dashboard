@@ -121,10 +121,8 @@ export const SunburstSegment = memo(function SunburstSegment({
 
   /**
    * LOCAL MODIFICATION: on touch the first tap inspects and a second tap on the
-   * same segment zooms. A single-tap zoom made inspection impossible there —
-   * the segment moved out from under the finger before its trail could be
-   * read — and pointerenter is not a hover on a touch device anyway.
-   * (Re-apply after a re-vendor.)
+   * same segment zooms; a single-tap zoom moves the segment out from under the
+   * finger before its trail can be read. (Re-apply after a re-vendor.)
    */
   const hitHandlers = tapMode
     ? {

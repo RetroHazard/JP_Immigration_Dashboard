@@ -1,16 +1,10 @@
-// src/components/EstimationFormula.tsx
-// The estimator's "Show the math" breakdown: five KaTeX cards walking from the
-// bureau's throughput to a completion offset, in dependency order - no symbol
-// appears in a formula before the step that defines it.
-//
-// The steps are built as data rather than JSX so that ordering rule is
-// testable: each step declares what it `defines` and what it `uses`, and
-// EstimationFormula.test.tsx checks every `uses` against the steps before it.
-//
-// Several model variables come from one of two code branches depending on
-// whether the dataset actually covers the application month. Only the branch
-// that ran is rendered - showing both would be twice the height and half of it
-// would be a lie about how the number on screen was reached.
+// The estimator's "Show the math" breakdown: five KaTeX cards from the bureau's
+// throughput to a completion offset, in dependency order - no symbol appears in
+// a formula before the step that defines it. Steps are data rather than JSX so
+// that rule is testable: each declares what it `defines` and `uses`, and
+// __tests__/EstimationFormula.test.ts checks every `uses` against earlier steps.
+// Where a variable comes from one of two branches (whether the dataset covers
+// the application month), only the branch that ran is rendered.
 'use client';
 
 import { useMemo } from 'react';
@@ -77,16 +71,14 @@ export interface MathFormatters {
 }
 
 /**
- * Escapes a locale-formatted number for math mode. Not every separator `Intl`
- * reaches for is typesettable: fr-FR groups with U+202F and pt-PT with U+00A0,
- * and KaTeX has a symbol for neither - both raise "Unrecognized Unicode
- * character" and render as a zero-width box. A comma needs `{,}` besides, or
- * TeX spaces it as sentence punctuation instead of as part of the number.
+ * Escapes a locale-formatted number for math mode. KaTeX has no symbol for
+ * U+202F (fr-FR grouping) or U+00A0 (pt-PT) and renders them as a zero-width
+ * box. A comma needs `{,}`, or TeX spaces it as sentence punctuation.
  */
 export const escapeNumber = (formatted: string): string =>
   formatted
-    // Commas first: the thin space substituted below is itself written `\,`,
-    // and a later comma pass would go on to mangle it into `\{,}`.
+    // Commas first: the thin space substituted below is written `\,`, which a
+    // later comma pass would mangle into `\{,}`.
     .replace(/,/g, '{,}')
     .replace(/[\u00a0\u202f\u2009\u2007]/g, '\\,')
     .replace(/\u2212/g, '-');
@@ -95,22 +87,17 @@ export const escapeNumber = (formatted: string): string =>
 const ROW = ' \\\\[2pt]\n';
 
 /**
- * `\underbrace{sym}_{value}` - the figure rides under its own symbol, so a
- * term can be read without tracking it across a second, substituted line.
- *
- * The sign rides with the value rather than flipping the operator: `E_proc`
- * goes negative whenever the published months already outrun the average
- * rate, and `+ \underbrace{E_proc}_{-20{,}146}` reports that honestly, where
- * turning it into a subtraction would hide it.
+ * `\underbrace{sym}_{value}` - the figure sits under its own symbol, so a term
+ * reads without a second, substituted line. The sign stays with the value
+ * rather than flipping the operator: `E_proc` goes negative when the published
+ * months outrun the average rate, and `+ \underbrace{E_proc}_{-20{,}146}`
+ * shows that where a subtraction would hide it.
  */
 const under = (id: VariableId, value: string): string => `\\underbrace{${SYMBOLS[id]}}_{${value}}`;
 
 const aligned = (rows: string[]): string => `\\begin{aligned}\n${rows.join(ROW)}\n\\end{aligned}`;
 
-/**
- * Builds the breakdown for one estimate. Pure, and exported for the ordering
- * test - the component only formats and renders what comes out of here.
- */
+/** Builds the breakdown for one estimate. Pure, and exported for the ordering test. */
 export const buildFormulaSteps = (
   vars: ModelVariables,
   branches: ModelBranches,
@@ -118,13 +105,9 @@ export const buildFormulaSteps = (
 ): FormulaStep[] => {
   const { n, rate } = fmt;
 
-  // Application counts print whole — the display is small, and decimals made
-  // large queue figures read even longer. The model's fractional intermediates
-  // are rounded for display only, so a ⌊·⌉ row's visible operands can read one
-  // off the printed result; the notation already says the *sum* is what gets
-  // rounded, and compactness wins (deliberate call — see the review branch).
-  // Rates keep their two decimals: `rate()` is what makes a per-day figure
-  // legible at all.
+  // Counts print whole; rates keep two decimals. Fractional intermediates are
+  // rounded for display only, so a ⌊·⌉ row's visible operands can sum to one
+  // off its printed result; the notation says the sum is what gets rounded.
 
   // ── 1. Throughput baseline ─────────────────────────────────────────────
   const throughput: FormulaStep = {
@@ -201,8 +184,8 @@ export const buildFormulaSteps = (
       `${SYMBOLS.cProc} &= ${under('pAfter', n(vars.P_after))} + ${under('rProc', rate(vars.R_proc))} \\cdot (${under('dMonth', n(vars.D_month))} - ${under('aDay', n(vars.A_day))}) = ${n(vars.C_proc)}`
     );
   } else {
-    // Nothing was processed inside the application month, because the dataset
-    // does not reach it - C_proc is the later months alone.
+    // The dataset does not reach the application month, so C_proc is the later
+    // months alone.
     sinceRows.push(`${SYMBOLS.cProc} &= ${SYMBOLS.pAfter} = ${n(vars.C_proc)}`);
   }
 
@@ -244,12 +227,9 @@ export const buildFormulaSteps = (
 
   // ── 5. Completion offset & spread ──────────────────────────────────────
   // Whole days are rounded away from zero, so a past-due estimate floors.
-  //
-  // Fixed-size delimiters, not `\left`/`\right`: asked to stretch around an
-  // underbraced term, KaTeX 0.16.28 emits a `\rceil` path with a doubled
-  // moveto (`MM319 602 ...`), which the browser rejects as invalid SVG. Sizing
-  // the bracket to the symbols also reads better - the brace underneath is an
-  // annotation, not part of the expression it encloses.
+  // Fixed-size delimiters, not `\left`/`\right`: stretched around an
+  // underbraced term, KaTeX (0.16.28) emits a `\rceil` path with a doubled
+  // moveto, which the browser rejects as invalid SVG.
   const [openWhole, closeWhole] =
     vars.D_rem >= 0 ? ['\\bigl\\lceil', '\\bigr\\rceil'] : ['\\bigl\\lfloor', '\\bigr\\rfloor'];
 
@@ -277,8 +257,8 @@ export const EstimationFormula: React.FC<EstimationFormulaProps> = ({ vars, bran
   const { t, formatters } = useLocale();
   const explanations = useVariableExplanations();
 
-  // Numbers keep the reader's own separators - they are formatted through the
-  // locale and then escaped for math mode, never wrapped in \text{}.
+  // Numbers keep the reader's locale separators: formatted through the locale,
+  // then escaped for math mode rather than wrapped in \text{}.
   const steps = useMemo(
     () =>
       buildFormulaSteps(vars, branches, {
