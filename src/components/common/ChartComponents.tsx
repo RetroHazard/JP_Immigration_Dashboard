@@ -31,9 +31,9 @@ import type { ResidentRange } from '../../utils/residentsSelectors';
 import type { ChartRange } from '../../utils/selectors';
 import { BureauDistributionRingChart } from '../charts/BureauDistributionRingChart';
 import { CategoryMixTreemap } from '../charts/CategoryMixTreemap';
-import { CategorySubmissionsLineChart } from '../charts/CategorySubmissionsLineChart';
+import { CategorySubmissionsLineChart, typesAxisMax } from '../charts/CategorySubmissionsLineChart';
 import { GeographicDistributionChart } from '../charts/GeographicDistributionChart';
-import { IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
+import { intakeAxisMax,IntakeProcessingBarChart } from '../charts/IntakeProcessingBarChart';
 import { NationalityMoversChart } from '../charts/NationalityMoversChart';
 import { NationalityTrendChart } from '../charts/NationalityTrendChart';
 import { OriginChoroplethChart } from '../charts/OriginChoroplethChart';
@@ -54,6 +54,18 @@ export interface ImmigrationChartData {
     type: string;
   };
   range: ChartRange;
+  /**
+   * Compare mode: the top of the count axis both panes must share so their bar
+   * heights and line positions are directly comparable. Undefined = each chart
+   * fits its own axis to its own data.
+   */
+  yMax?: number;
+  /**
+   * Compare mode: leave the policy-event list to the shell, which renders it
+   * once — the events are national, so both panes would list the same rows.
+   * Markers on the plot are unaffected.
+   */
+  hidePolicyList?: boolean;
 }
 
 export interface ResidentFilters {
@@ -105,6 +117,14 @@ export interface ProcessingChartDefinition extends BaseChartDefinition {
   table: ProcessingTableId;
   ranges: ChartRange[];
   defaultRange: ChartRange;
+  /**
+   * Largest value this chart puts on its count axis for one bureau. Compare
+   * mode takes the greater of the two panes' values and hands it back to both
+   * as `yMax`. Present only on charts whose axis is a count worth normalising.
+   */
+  /** Whether the chart annotates policy events; compare mode then lists them once. */
+  policyEvents?: boolean;
+  axisMax?: (data: ImmigrationData[], filters: ImmigrationChartData['filters'], range: ChartRange) => number;
 }
 
 export interface ResidentChartDefinition extends BaseChartDefinition {
@@ -132,6 +152,8 @@ export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
     component: IntakeProcessingBarChart,
     filters: { bureau: true, appType: true },
     table: 'intakeByMonth',
+    axisMax: intakeAxisMax,
+    policyEvents: true,
     compare: true,
     ranges: ['6', '12', '24', '36', 'all'],
     defaultRange: '12',
@@ -143,6 +165,7 @@ export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
     component: CategorySubmissionsLineChart,
     filters: { bureau: true, appType: false },
     table: 'typesByMonth',
+    axisMax: typesAxisMax,
     compare: true,
     ranges: ['6', '12', '24', '36', 'all'],
     defaultRange: '12',

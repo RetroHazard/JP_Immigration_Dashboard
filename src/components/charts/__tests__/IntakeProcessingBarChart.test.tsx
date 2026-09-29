@@ -18,7 +18,7 @@ import { en } from '../../../i18n/locales/en';
 import { renderWithProviders, screen } from '../../../test-utils';
 import type { ChartRange } from '../../../utils/selectors';
 import { usePolicyMarkers } from '../../common/PolicyEventList';
-import { buildIntakeRows, IntakeProcessingBarChart } from '../IntakeProcessingBarChart';
+import { buildIntakeRows, intakeAxisMax,IntakeProcessingBarChart } from '../IntakeProcessingBarChart';
 
 const NATIONWIDE = STATUS_CODES.NATIONWIDE_BUREAU;
 
@@ -52,6 +52,22 @@ const TWO_MONTHS = [
   ...month('2025-05', { pending: 400, received: 600, processed: 500, granted: 450, denied: 20, other: 30 }),
   ...month('2025-06', { pending: 500, received: 700, processed: 600, granted: 540, denied: 24, other: 36 }),
 ];
+
+describe('intakeAxisMax', () => {
+  it('takes the tallest stacked bar (carried over + received)', () => {
+    // Month two: 500 + 700 = 1200, above its own processed line (600).
+    expect(intakeAxisMax(TWO_MONTHS, FILTERS, 'all')).toBe(1200);
+  });
+
+  it('lets the processed line win when it outgrows the stack', () => {
+    const data = month('2025-05', { pending: 10, received: 20, processed: 900, granted: 0, denied: 0, other: 0 });
+    expect(intakeAxisMax(data, FILTERS, 'all')).toBe(900);
+  });
+
+  it('is zero for a bureau with no data, so it never raises a shared scale', () => {
+    expect(intakeAxisMax(TWO_MONTHS, { bureau: 'nowhere', type: '20' }, 'all')).toBe(0);
+  });
+});
 
 describe('buildIntakeRows', () => {
   it('emits one row per month in range, newest last', () => {

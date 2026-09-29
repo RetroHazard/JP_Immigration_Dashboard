@@ -19,8 +19,10 @@ import buildInfo from '../buildInfo';
 import { applicationOptions } from '../constants/applicationOptions';
 import { bureauOptions } from '../constants/bureauOptions';
 import { nationalities, NATIONALITY_REGIONS, nationalityByCode } from '../constants/nationalities';
+import { POLICY_EVENTS } from '../constants/policyEvents';
 import { useTheme } from '../contexts/ThemeContext';
 import type { DashboardMeta, ImmigrationData } from '../hooks/useImmigrationData';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useLocale } from '../i18n/LocaleContext';
 import { T } from '../i18n/T';
 import {
@@ -39,13 +41,14 @@ import type { ResidentRecord } from '../utils/residentsData';
 import type { ResidentRange } from '../utils/residentsSelectors';
 import { getAllPeriods } from '../utils/residentsSelectors';
 import { parsePeriodParam, parseStatusParam } from '../utils/residentUrlParams';
-import type { ChartRange } from '../utils/selectors';
+import { type ChartRange, getAllMonths, monthsForRange } from '../utils/selectors';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { getApplicationDetailsFromParams, isEstimatorPermalink } from '../utils/urlApplicationDetails';
 import type { Dataset } from './common/ChartComponents';
 import { CHART_KEYS, CHARTS_BY_DATASET, datasetForChart,DATASETS } from './common/ChartComponents';
 import { LanguageSwitcher } from './common/LanguageSwitcher';
 import { PeriodSelector } from './common/PeriodSelector';
+import { PolicyEventList } from './common/PolicyEventList';
 import { SnapshotPeriodSelector } from './common/SnapshotPeriodSelector';
 import { GitHubIcon } from './icons/GitHubIcon';
 import { JapanFlagIcon } from './icons/JapanFlagIcon';
@@ -221,6 +224,27 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
     compareEnabled && compare && compare !== bureau && (includeAirports || !AIRPORT_BUREAU_CODES.has(compare))
       ? compare
       : null;
+
+  // Both panes plot to one count axis so bar heights and line positions can be
+  // read across. The pane pair is only on screen from md up (Tailwind's 768px);
+  // below that the primary chart is alone and keeps its own scale.
+  const sideBySide = useMediaQuery('(min-width: 768px)');
+  const sharedYMax = useMemo(() => {
+    if (!compareBureau || !sideBySide || activeChart.dataset !== 'processing' || !activeChart.axisMax) return undefined;
+    const { axisMax } = activeChart;
+    const rangeArg = range as ChartRange;
+    const max = Math.max(
+      axisMax(chartData, effectiveFilters, rangeArg),
+      axisMax(chartData, { bureau: compareBureau, type: effectiveFilters.type }, rangeArg)
+    );
+    return max > 0 ? max : undefined;
+  }, [compareBureau, sideBySide, activeChart, chartData, effectiveFilters, range]);
+
+  // The events on the plot for the shared list; same rule the chart applies.
+  const compareEvents = useMemo(() => {
+    const periods = new Set(monthsForRange(getAllMonths(chartData), range as ChartRange));
+    return POLICY_EVENTS.filter((event) => periods.has(event.period));
+  }, [chartData, range]);
 
   // --- Estimator state, lifted so the sidebar and the mobile sheet share it ---
   const [estimatorDetails, setEstimatorDetails] = useState<ApplicationDetails>(() =>
@@ -595,6 +619,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
                               residentFilters={effectiveResidentFilters}
                               range={range}
                               period={effectivePeriod}
+                              yMax={sharedYMax}
+                              hidePolicyList={Boolean(compareBureau)}
                             />
                           </div>
                           {/* The comparison pane follows its control: both are
@@ -615,21 +641,47 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({ data, meta, resi
                                 residentFilters={effectiveResidentFilters}
                                 range={range}
                                 period={effectivePeriod}
+                                yMax={sharedYMax}
+                                hidePolicyList
                               />
                             </div>
                           )}
                         </div>
+                        {/* Policy events are national — the same for every bureau —
+                            so compare mode lists them once, full width, rather
+                            than once per pane. */}
+                        {compareBureau && activeChart.dataset === 'processing' && activeChart.policyEvents && (
+                          <PolicyEventList events={compareEvents} />
+                        )}
                         {/* Narrowed on activeChart, not `dataset`, so TypeScript
                             can reach `table` on the processing half of the
-                            registry union. */}
+                            registry union. One table per bureau when comparing,
+                            so each keeps its own CSV download. */}
                         {activeChart.dataset === 'processing' && (
-                          <ChartDataTable
-                            table={activeChart.table}
-                            chartKey={activeChart.key}
-                            data={chartData}
-                            filters={effectiveFilters}
-                            range={range as ChartRange}
-                          />
+                          <div className={compareBureau ? 'grid gap-x-4 md:grid-cols-2' : undefined}>
+                            <div className="min-w-0">
+                              <ChartDataTable
+                                table={activeChart.table}
+                                chartKey={activeChart.key}
+                                data={chartData}
+                                filters={effectiveFilters}
+                                range={range as ChartRange}
+                                label={compareBureau ? bureauLabel(effectiveFilters.bureau) : undefined}
+                              />
+                            </div>
+                            {compareBureau && (
+                              <div className="hidden min-w-0 md:block">
+                                <ChartDataTable
+                                  table={activeChart.table}
+                                  chartKey={activeChart.key}
+                                  data={chartData}
+                                  filters={{ bureau: compareBureau, type: effectiveFilters.type }}
+                                  range={range as ChartRange}
+                                  label={bureauLabel(compareBureau)}
+                                />
+                              </div>
+                            )}
+                          </div>
                         )}
                       </>
                     )}

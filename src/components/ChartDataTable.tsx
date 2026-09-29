@@ -24,12 +24,17 @@ interface ChartDataTableProps {
   data: ImmigrationData[];
   filters: { bureau: string; type: string };
   range: ChartRange;
+  /**
+   * Compare mode renders one table per bureau; this names whose, so the two
+   * identical "View data table" controls stay distinguishable to a screen reader.
+   */
+  label?: string;
 }
 
 /** Room for the row-label column plus each data column. */
 const minWidthFor = (columns: number): number => Math.max(560, 140 + columns * 84);
 
-export const ChartDataTable: React.FC<ChartDataTableProps> = ({ table, chartKey, data, filters, range }) => {
+export const ChartDataTable: React.FC<ChartDataTableProps> = ({ table, chartKey, data, filters, range, label }) => {
   const [open, setOpen] = useState(false);
   const { t, formatters } = useLocale();
 
@@ -65,6 +70,7 @@ export const ChartDataTable: React.FC<ChartDataTableProps> = ({ table, chartKey,
         <button
           onClick={() => setOpen(!open)}
           aria-expanded={open}
+          aria-label={label ? `${t(open ? 'table.hide' : 'table.view')} (${label})` : undefined}
           className="flex items-center gap-1 text-xs text-primary hover:opacity-80"
         >
           {open ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
@@ -73,6 +79,7 @@ export const ChartDataTable: React.FC<ChartDataTableProps> = ({ table, chartKey,
         {open && (
           <button
             onClick={downloadCsv}
+            aria-label={label ? `${t('table.downloadCsv')} (${label})` : undefined}
             className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs text-secondary-foreground hover:bg-muted"
           >
             <Download className="size-3.5" aria-hidden="true" />

@@ -15,6 +15,7 @@ import { Line, LineChart } from '../bklit/charts/line-chart';
 import { ChartTooltip } from '../bklit/charts/tooltip';
 import { XAxis } from '../bklit/charts/x-axis';
 import { YAxis } from '../bklit/charts/y-axis';
+import { niceYDomain } from '../bklit/charts/y-domain-utils';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { SeriesLegend } from '../common/SeriesLegend';
 
@@ -31,7 +32,42 @@ const SERIES = [
   { id: 'permanent', labelKey: 'chart.types.series.permanent', type: '60', color: 'var(--chart-6)' },
 ] as const;
 
-export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
+const buildTypeRows = (
+  data: ImmigrationChartData['data'],
+  filters: ImmigrationChartData['filters'],
+  range: ImmigrationChartData['range']
+): Record<string, unknown>[] =>
+  monthsForRange(getAllMonths(data), range).map((month) => {
+    // 'all' bureau = the official nationwide aggregate row
+    const monthData = selectData(data, {
+      month,
+      scope: bureauScopeFromFilter(filters.bureau),
+      status: STATUS_CODES.NEW_APPLICATIONS,
+    });
+    const row: Record<string, unknown> = { date: new Date(`${month}-01T00:00:00`) };
+    for (const series of SERIES) {
+      row[series.id] = monthData.reduce((sum, entry) => (entry.type === series.type ? sum + entry.value : sum), 0);
+    }
+    return row;
+  });
+
+/**
+ * The highest monthly value of any series. Compare mode shares the greater of
+ * the two bureaus' values so both panes draw to one scale. Ignores the legend's
+ * hidden series — that toggle is per pane, and a scale that moved when one pane
+ * hid a line would stop the two matching.
+ */
+export const typesAxisMax = (
+  data: ImmigrationChartData['data'],
+  filters: ImmigrationChartData['filters'],
+  range: ImmigrationChartData['range']
+): number =>
+  buildTypeRows(data, filters, range).reduce(
+    (max, row) => Math.max(max, ...SERIES.map((series) => Number(row[series.id]))),
+    0
+  );
+
+export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ data, filters, range, yMax }) => {
   const { t, formatters } = useLocale();
   const series = useMemo(() => SERIES.map((entry) => ({ ...entry, label: t(entry.labelKey) })), [t]);
   const [hiddenSeries, setHiddenSeries] = useState<ReadonlySet<string>>(() => new Set());
@@ -43,22 +79,16 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
     });
   const visibleSeries = series.filter((entry) => !hiddenSeries.has(entry.id));
 
-  const chartData = useMemo(() => {
-    const months = monthsForRange(getAllMonths(data), range);
-    return months.map((month) => {
-      // 'all' bureau = the official nationwide aggregate row
-      const monthData = selectData(data, {
-        month,
-        scope: bureauScopeFromFilter(filters.bureau),
-        status: STATUS_CODES.NEW_APPLICATIONS,
-      });
-      const row: Record<string, unknown> = { date: new Date(`${month}-01T00:00:00`) };
-      for (const series of SERIES) {
-        row[series.id] = monthData.reduce((sum, entry) => (entry.type === series.type ? sum + entry.value : sum), 0);
-      }
-      return row;
-    });
-  }, [data, filters.bureau, range]);
+  const chartData = useMemo(
+    () => buildTypeRows(data, { bureau: filters.bureau, type: filters.type }, range),
+    [data, filters.bureau, filters.type, range]
+  );
+  // Only when compare mode supplies a shared max; otherwise the domain keeps
+  // tweening to whichever series are visible.
+  const yAxisDomains = useMemo<Record<string, [number, number]> | undefined>(
+    () => (yMax && yMax > 0 ? { left: niceYDomain([0, yMax]) } : undefined),
+    [yMax]
+  );
 
   return (
     <div className="chart-card-content">
@@ -87,6 +117,7 @@ export const CategorySubmissionsLineChart: React.FC<ImmigrationChartData> = ({ d
           <LineChart
             data={chartData}
             aspectRatio="16 / 8"
+            yAxisDomains={yAxisDomains}
             // Monthly points are all on the 1st — the default month+day labels
             // drop the year, which is ambiguous across multi-year ranges.
             formatDateLabel={(date) => formatters.monthYear(date)}
