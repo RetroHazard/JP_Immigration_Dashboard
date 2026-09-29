@@ -26,13 +26,6 @@ export interface Nationality {
    * inside 英国. Without these three the leaves sum to the published 総数.
    */
   isSubset?: boolean;
-  /**
-   * A series that stops partway through because the reporting category
-   * changed: 韓国・朝鮮 runs 2012-12 to 2015-06, then 韓国 + 朝鮮 take over.
-   * They never overlap, so this is a discontinuity, not a subset to exclude
-   * from sums.
-   */
-  legacy?: boolean;
 }
 
 /** The nationwide 総数 row. Derivable from the leaves, so it is never shipped. */
@@ -92,7 +85,7 @@ export const nationalities: Nationality[] = [
   { value: '1100', iso2: 'QA', iso3n: 634, region: '1000' }, // カタール
   { value: '1110', iso2: 'KR', iso3n: 410, region: '1000' }, // 韓国
   { value: '1120', iso2: null, iso3n: null, region: '1000' }, // 朝鮮
-  { value: '1130', iso2: null, iso3n: null, region: '1000', legacy: true }, // 韓国・朝鮮 (→ 韓国 + 朝鮮, 2015)
+  { value: '1130', iso2: null, iso3n: null, region: '1000' }, // 韓国・朝鮮 (→ 韓国 + 朝鮮, 2015)
   { value: '1140', iso2: 'KH', iso3n: 116, region: '1000' }, // カンボジア
   { value: '1150', iso2: 'CY', iso3n: 196, region: '1000' }, // キプロス
   { value: '1160', iso2: 'KW', iso3n: 414, region: '1000' }, // クウェート
@@ -171,7 +164,7 @@ export const nationalities: Nationality[] = [
   { value: '2470', iso2: 'MC', iso3n: 492, region: '2000' }, // モナコ
   { value: '2480', iso2: 'MD', iso3n: 498, region: '2000' }, // モルドバ
   { value: '2490', iso2: 'ME', iso3n: 499, region: '2000' }, // モンテネグロ
-  { value: '2500', iso2: null, iso3n: null, region: '2000', legacy: true }, // ユーゴスラヴィア
+  { value: '2500', iso2: null, iso3n: null, region: '2000' }, // ユーゴスラヴィア
   { value: '2510', iso2: 'LV', iso3n: 428, region: '2000' }, // ラトビア
   { value: '2520', iso2: 'LT', iso3n: 440, region: '2000' }, // リトアニア
   { value: '2530', iso2: 'LI', iso3n: 438, region: '2000' }, // リヒテンシュタイン

@@ -12,6 +12,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useState,
 } from "react";
@@ -222,6 +223,8 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
   onPhaseChange,
   formatDateLabel,
 }: TimeSeriesChartInnerProps) {
+  // Unique per instance — shared clipPath ids crop later charts (#226).
+  const uniqueClipPathId = `${clipPathId}-${useId().replace(/:/g, "")}`;
   const staticPreview = useStaticChartPreview();
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -698,7 +701,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
             {useClipReveal ? (
               <ChartRevealClip
                 animating={isRevealAnimating || isRevealConcealing}
-                clipPathId={clipPathId}
+                clipPathId={uniqueClipPathId}
                 enterTransition={effectiveEnterTransition}
                 height={innerHeight + 20}
                 mode={isRevealConcealing ? "conceal" : "reveal"}
@@ -740,7 +743,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
             {clipExcludedChildren}
             {underlayChildren}
             {useClipReveal ? (
-              <g clipPath={`url(#${clipPathId})`}>{preOverlayChildren}</g>
+              <g clipPath={`url(#${uniqueClipPathId})`}>{preOverlayChildren}</g>
             ) : (
               preOverlayChildren
             )}

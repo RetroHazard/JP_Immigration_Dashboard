@@ -29,12 +29,6 @@ export interface ResidenceStatus {
   isAggregate?: boolean;
   /** Coarse family used as the middle ring of the status-mix hierarchy. */
   group: StatusGroup;
-  /**
-   * Statuses abolished or merged in 2015, whose series stops rather than going
-   * to zero: 投資・経営 became 経営・管理, and 技術 + 人文知識・国際業務 merged
-   * into 技術・人文知識・国際業務.
-   */
-  legacy?: boolean;
 }
 
 /** The 総数 row. Derivable from the leaves, so it is never shipped. */
@@ -51,14 +45,14 @@ export const residenceStatuses: ResidenceStatus[] = [
   { value: '1100', parent: '1080', group: 'work' }, // 高度専門職1号ロ
   { value: '1110', parent: '1080', group: 'work' }, // 高度専門職1号ハ
   { value: '1120', parent: '1080', group: 'work' }, // 高度専門職2号
-  { value: '1130', parent: '1010', group: 'work', legacy: true }, // 投資・経営 (→ 経営・管理, 2015)
+  { value: '1130', parent: '1010', group: 'work' }, // 投資・経営 (→ 経営・管理, 2015)
   { value: '1140', parent: '1010', group: 'work' }, // 経営・管理
   { value: '1150', parent: '1010', group: 'work' }, // 法律・会計業務
   { value: '1160', parent: '1010', group: 'work' }, // 医療
   { value: '1170', parent: '1010', group: 'work' }, // 研究
   { value: '1180', parent: '1010', group: 'work' }, // 教育
-  { value: '1190', parent: '1010', group: 'work', legacy: true }, // 技術 (→ 技術・人文知識・国際業務, 2015)
-  { value: '1200', parent: '1010', group: 'work', legacy: true }, // 人文知識・国際業務 (同上)
+  { value: '1190', parent: '1010', group: 'work' }, // 技術 (→ 技術・人文知識・国際業務, 2015)
+  { value: '1200', parent: '1010', group: 'work' }, // 人文知識・国際業務 (同上)
   { value: '1210', parent: '1010', group: 'work' }, // 技術・人文知識・国際業務
   { value: '1220', parent: '1010', group: 'work' }, // 企業内転勤
   { value: '1230', parent: '1010', group: 'work' }, // 介護

@@ -1053,8 +1053,8 @@ They must be reapplied — the map is unusable without them, especially on touch
 - **Projection above the zoom boundary** (`choropleth-chart.tsx`) — `<Zoom>` is rendered
   *below* the stable-context provider, and `featurePaths` is memoised on `[data, mercator]`.
   Upstream generates every SVG path string inside the component that re-renders on each
-  pan/pinch frame, so d3-geo re-projected the whole topology per frame (~60k vertices for
-  Japan). The zoom transform only ever needs to reach the wrapper `<g>`.
+  pan/pinch frame, so d3-geo re-projected the whole topology per frame (~21k vertices for
+  Japan, ~60k before simplification). The zoom transform only ever needs to reach the wrapper `<g>`.
 - **Structurally stable feature layer** (`choropleth-feature.tsx`) — one `<g>` plus an
   always-mounted highlight `<path>`, instead of upstream's branch between a `<g>` and a
   Fragment, which made React unmount and remount every feature path on hover in *and* out.

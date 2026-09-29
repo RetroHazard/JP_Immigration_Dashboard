@@ -80,7 +80,7 @@ The inverted UI tooltip (ui/tooltip.tsx) is a different role and can stay as it 
 
 **C7. Resident Population charts have no text alternative.** No data table or CSV (DashboardShell.tsx:646), where every processing chart has one.
 
-**C8. Dead weight.** Seven of the fifteen vendored primitives are unused (Badge, Card, Label, Separator, Skeleton, Toggle, ToggleGroup) while their jobs are hand-built. Thirty-five of the 52 legacy `@utility` classes in index.css have no user (the `stat-*`, `mobile-drawer-*`, `clip-*tapered*` and `theme-toggle*` families, among others), plus the `.floating-tooltip` layer class. Two swap-ready charts are not mounted. `.prettierrc` points `tailwindConfig` at a tailwind.config.ts that does not exist.
+**C8. Dead weight.** Seven of the fifteen vendored primitives are unused (Badge, Card, Label, Separator, Skeleton, Toggle, ToggleGroup) while their jobs are hand-built. **Fixed in v1.6.6:** thirty-five of the 52 legacy `@utility` classes in index.css had no user (the `stat-*`, `mobile-drawer-*`, `clip-*tapered*` and `theme-toggle*` families, among others), nor did the `.floating-tooltip` layer class; all are deleted. Two swap-ready charts are not mounted. `.prettierrc` points `tailwindConfig` at a tailwind.config.ts that does not exist.
 
 **C9. Latent: destructive variants ignore their token.** The vendored Button and Badge destructive variants use literal white text (3.23:1 on dark `destructive`) instead of `destructive-foreground` (ui/button.tsx, ui/badge.tsx). Unused in the app today.
 

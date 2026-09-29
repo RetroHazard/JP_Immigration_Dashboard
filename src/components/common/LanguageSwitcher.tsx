@@ -24,8 +24,6 @@ interface LanguageSwitcherProps {
    *  circular button; 'row' is a full-width trigger matching the other settings-drawer
    *  rows (Theme, About), showing the current language and opening the same list. */
   trigger?: 'icon' | 'row';
-  /** Called after a locale is picked — the popover variant uses this to close itself. */
-  onSelect?: () => void;
 }
 
 const LanguageRows: React.FC<{ onSelect?: () => void; showHeading?: boolean }> = ({

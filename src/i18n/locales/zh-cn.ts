@@ -1,13 +1,12 @@
 // Simplified Chinese conventions:
-// - Verb-final, noun-phrase labels (buttons, tabs, filters, column headers,
-//   stat-tile titles); full sentences for text addressed to the reader
-//   (prose, warnings, empty and error states).
+// - Short verb-object or noun phrases for labels (重置筛选条件, 批准率: buttons,
+//   tabs, filters, column headers, stat-tile titles); full sentences for text
+//   addressed to the reader (prose, warnings, empty and error states).
 // - Official 出入国在留管理厅 terminology in Simplified characters, not Japanese
 //   kanji or romanization: the agency's procedure names for application types
 //   (在留资格取得许可申请 and so on), and full office names including 支局.
-// - Full-width parentheses and enumeration comma （、）, half-width colon and
-//   percent sign, and no space between a number and its unit: 12,345件, 6个月,
-//   1,234平方公里.
+// - Full-width punctuation （）、：。, a half-width percent sign, and no space
+//   between a number and its unit: 12,345件, 6个月, 1,234km².
 // - One CLDR plural category, so plural families define only `_other`.
 import type { Dictionary } from '../types';
 
@@ -516,17 +515,11 @@ export const zhCn: Dictionary = {
 
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.label': '数据集',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.aria': '选择要查看的数据集',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing': '在留审查办理',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing.compact': '审查办理',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents': '在留外国人人口',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents.compact': '在留外国人',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': '目前无法加载在留外国人数据。',
   'charts.growth.label': '在留人口增长',
   'charts.growth.description': '按半年展示外国居民总数,可按居留目的或世界区域堆叠。',

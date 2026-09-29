@@ -528,17 +528,11 @@ export const ko: Dictionary = {
 
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.label': '데이터 세트',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.aria': '살펴볼 데이터 세트를 선택합니다',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing': '체류 심사 처리',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing.compact': '심사 처리',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents': '체류 외국인 인구',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents.compact': '체류 외국인',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': '체류 외국인 데이터를 지금은 불러올 수 없습니다.',
   'charts.growth.label': '체류자 수 추이',
   'charts.growth.description': '외국인 체류자 총수를 반기별로 체류 목적별 또는 지역별로 누적해 표시합니다.',

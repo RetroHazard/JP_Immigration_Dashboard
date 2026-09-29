@@ -522,17 +522,11 @@ export const ja: Dictionary = {
 
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.label': 'データセット',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.aria': '表示するデータセットを選択します',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing': '在留審査の処理状況',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing.compact': '審査処理',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents': '在留外国人の人口',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents.compact': '在留外国人',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': '在留外国人のデータを現在読み込めません。',
   'charts.growth.label': '在留者数の推移',
   'charts.growth.description': '外国人在留者の総数を半年ごとに、滞在目的別または地域別に積み上げて表示します。',
