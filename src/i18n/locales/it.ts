@@ -1,11 +1,4 @@
-// src/i18n/locales/it.ts
-// Italian overrides. Complete: every key English defines has an Italian
-// translation.
-//
-// Italian shares English's two CLDR cardinal plural categories (`one` for
-// exactly 1, `other` for everything else), so every plural family below
-// translates both members naturally rather than mechanically inflecting the
-// singular.
+// Italian plural families carry both `_one` and `_other`, as in English.
 import type { Dictionary } from '../types';
 
 export const it: Dictionary = {
@@ -19,9 +12,7 @@ export const it: Dictionary = {
   'app.retry': 'Riprova',
 
   // ── Document metadata ────────────────────────────────────────────────────
-  // Read at module scope by src/app/layout.tsx. The static export prerenders
-  // one HTML document, so these can't vary per visitor — they live here to
-  // keep one source of truth, and to be ready for per-locale routes.
+  // Not rendered yet: the static export prerenders one English document.
   'meta.title': "Dashboard delle statistiche sull'immigrazione in Giappone",
   'meta.description':
     "Tempi di elaborazione dei visti, carico di lavoro degli uffici, andamento della popolazione residente straniera e uno stimatore basato su modello di coda per la propria domanda, costruito sulle statistiche ufficiali dell'Agenzia per i Servizi dell'Immigrazione, aggiornato man mano che e-Stat pubblica nuovi dati.",
@@ -321,8 +312,8 @@ export const it: Dictionary = {
   'policy.act2026.description': 'La riforma del 2026 ha alzato il tetto legale delle tasse di soggiorno.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
-  // Compact per-type series names. Deliberately separate from
-  // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
+  // Series names for the wrapping legend, so these can be fuller than the
+  // Sankey's `appType.*.compact` forms.
   'chart.types.series.acquisition': 'Acquisizione',
   'chart.types.series.extension': 'Proroga',
   'chart.types.series.change': 'Cambio di status',
@@ -415,8 +406,7 @@ export const it: Dictionary = {
   'footer.dataUpdated': 'dati aggiornati al {date}',
 
   // ── Domain: immigration bureaus ──────────────────────────────────────────
-  // Keyed by e-Stat bureau code. `.short` is the terminal-style abbreviation
-  // shown on the stat tiles; kept as the Latin/IATA-style code.
+  // Keyed by e-Stat bureau code. `.short` stays Latin (IATA-style codes).
   'bureau.all': 'Nazionale',
   'bureau.all.short': 'ALL',
   'bureau.all.compact': 'Nazionale',
@@ -492,8 +482,8 @@ export const it: Dictionary = {
   'appType.60.compact': 'Permanente',
 
   // ── Domain: prefectures ──────────────────────────────────────────────────
-  // Keyed by JIS prefecture code (1 Hokkaido … 47 Okinawa). Prefecture names
-  // are romanized proper nouns and keep the same spelling in Italian.
+  // Keyed by JIS prefecture code (1 Hokkaido … 47 Okinawa), romanized as in
+  // English.
   'prefecture.1': 'Hokkaido',
   'prefecture.2': 'Aomori',
   'prefecture.3': 'Iwate',

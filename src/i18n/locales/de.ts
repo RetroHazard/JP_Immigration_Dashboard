@@ -1,10 +1,4 @@
-// src/i18n/locales/de.ts
-// German overrides. A complete translation: every key English defines has a
-// German counterpart, so `status: 'complete'` in the registry is enforced by
-// the catalogue tests.
-//
-// German uses the same CLDR plural categories as English (`one` / `other`),
-// so every plural family below carries both members.
+// German plural families carry both `_one` and `_other`, as in English.
 import type { Dictionary } from '../types';
 
 export const de: Dictionary = {
@@ -17,9 +11,7 @@ export const de: Dictionary = {
   'app.retry': 'Erneut versuchen',
 
   // ── Document metadata ────────────────────────────────────────────────────
-  // Read at module scope by src/app/layout.tsx. The static export prerenders
-  // one HTML document, so these can't vary per visitor — they live here to
-  // keep one source of truth, and to be ready for per-locale routes.
+  // Not rendered yet: the static export prerenders one English document.
   'meta.title': 'Dashboard für japanische Einwanderungsstatistik',
   'meta.description':
     'Bearbeitungszeiten für Visa, Arbeitsaufkommen der Ämter, Entwicklung der ausländischen Wohnbevölkerung und ein Warteschlangenmodell zur Schätzung für den eigenen Antrag – basierend auf offiziellen Statistiken der Einwanderungsbehörde, aktualisiert, sobald e-Stat neue Daten veröffentlicht.',
@@ -318,8 +310,8 @@ export const de: Dictionary = {
   'policy.act2026.description': 'Die Novelle von 2026 hob die gesetzliche Obergrenze für Gebühren an.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
-  // Compact per-type series names. Deliberately separate from
-  // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
+  // Series names for the wrapping legend, so these can be fuller than the
+  // Sankey's `appType.*.compact` forms.
   'chart.types.series.acquisition': 'Erwerb',
   'chart.types.series.extension': 'Verlängerung',
   'chart.types.series.change': 'Statusänderung',
@@ -413,8 +405,7 @@ export const de: Dictionary = {
   'footer.dataUpdated': 'Daten aktualisiert am {date}',
 
   // ── Domain: immigration bureaus ──────────────────────────────────────────
-  // Keyed by e-Stat bureau code. `.short` is the terminal-style abbreviation
-  // shown on the stat tiles; left as the Latin code, as in the source.
+  // Keyed by e-Stat bureau code. `.short` stays Latin (IATA-style codes).
   'bureau.all': 'Landesweit',
   'bureau.all.short': 'ALL',
   'bureau.all.compact': 'Landesweit',

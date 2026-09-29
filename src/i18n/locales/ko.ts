@@ -1,29 +1,14 @@
-// src/i18n/locales/ko.ts
-// Korean catalogue — complete coverage of the English source.
-//
-// Conventions, kept deliberately consistent so the file reads as one voice:
-//
-// - Noun-phrase endings (체언止め) for anything that labels a control: buttons,
-//   tabs, filter labels, column headers, stat-tile titles. Formal polite
-//   endings (-습니다/-입니다) for anything that speaks to the reader:
-//   explanatory prose, warnings, empty and error states.
-// - Institutional/official terminology is rendered with the Sino-Korean
-//   reading of Japan's own agency vocabulary — 出入国在留管理庁 as
-//   출입국재류관리청, 支局 as 지국 — the same way Korean news coverage refers to
-//   Japanese ministries and agencies. Application types use that same
-//   register: 재류자격 취득허가 신청, and so on.
-// - Place names (bureaus' city names, prefectures) are transliterated by sound
-//   per modern Korean convention (외래어 표기법), not by Sino-Korean Hanja
-//   reading — 東京 is 도쿄, not 동경; 大阪 is 오사카, not 대판 — matching how
-//   Korean atlases and news media render Japanese place names today.
-// - No space between a number and its unit — 12,345건, 6개월, 1,234km².
-// - Korean has a single CLDR plural category, so plural families define only
-//   their `_other` member. `Intl.PluralRules('ko-KR')` never selects anything
-//   else, and translate.ts falls back to `_other` regardless.
-//
-// A few values are intentionally identical to English: `nav.version` is a
-// version number, and `bureau.*.short` are IATA-style codes that stay Latin in
-// every language (see the note in en.ts).
+// Korean conventions:
+// - Noun-phrase endings (체언止め) for labels (buttons, tabs, filters, column
+//   headers, stat-tile titles); formal polite endings (-습니다/-입니다) for
+//   text addressed to the reader (prose, warnings, empty and error states).
+// - Agency terminology in its Sino-Korean reading, as Korean news renders
+//   Japanese agencies: 出入国在留管理庁 as 출입국재류관리청, 支局 as 지국, and
+//   application types in the same register (재류자격 취득허가 신청 and so on).
+// - Place names (bureau cities, prefectures) transliterated by sound per
+//   외래어 표기법, not read as Hanja: 東京 is 도쿄, not 동경; 大阪 is 오사카, not 대판.
+// - No space between a number and its unit: 12,345건, 6개월, 1,234km².
+// - One CLDR plural category, so plural families define only `_other`.
 import type { Dictionary } from '../types';
 
 export const ko: Dictionary = {
@@ -36,8 +21,7 @@ export const ko: Dictionary = {
   'app.retry': '다시 시도',
 
   // ── Document metadata ────────────────────────────────────────────────────
-  // Not yet reachable: the static export prerenders one English document (see
-  // src/i18n/README.md). Translated so it is ready when per-locale routes are.
+  // Not rendered yet: the static export prerenders one English document.
   'meta.title': '일본 출입국 통계 대시보드',
   'meta.description':
     '일본 출입국재류관리청의 공식 통계를 바탕으로 한 비자 처리 기간, 관리국별 업무량, 재류 외국인 수 추이, 그리고 본인의 신청에 맞춘 대기열 모델 완료 시점 추정 - e-Stat에 새 데이터가 공개될 때마다 갱신됩니다.',
@@ -318,8 +302,8 @@ export const ko: Dictionary = {
   'policy.act2026.description': '2026년 개정법이 체류허가 수수료의 법정 상한을 올렸습니다.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
-  // Compact per-type series names. Deliberately separate from
-  // `appType.*.compact` (the Sankey's one-word forms), which are shorter.
+  // Series names for the wrapping legend, so these can be fuller than the
+  // Sankey's `appType.*.compact` forms.
   'chart.types.series.acquisition': '자격취득',
   'chart.types.series.extension': '기간갱신',
   'chart.types.series.change': '자격변경',
@@ -412,11 +396,9 @@ export const ko: Dictionary = {
   'footer.dataUpdated': '데이터 갱신일 {date}',
 
   // ── Domain: immigration bureaus ──────────────────────────────────────────
-  // Full official office names, rendered with the Sino-Korean reading of the
-  // agency's own terminology (출입국재류관리국, 지국 for 支局), and city names
-  // transliterated by sound. `.short` stays Latin (IATA codes). `.compact` is
-  // the place name alone, for the surfaces that measure in pixels — without it
-  // every Tokyo-family office truncates to the same prefix.
+  // Full official office names. `.short` stays Latin (IATA codes). `.compact`
+  // is the place name alone for pixel-limited surfaces, where every
+  // Tokyo-family office would otherwise truncate to the same prefix.
   'bureau.all': '전국',
   'bureau.all.short': 'ALL',
   'bureau.all.compact': '전국',
@@ -467,10 +449,9 @@ export const ko: Dictionary = {
   'bureau.101740.compact': '나하',
 
   // ── Domain: application types ────────────────────────────────────────────
-  // The agency's own procedure names, in Sino-Korean reading. `.short` uses
-  // two-character forms a Korean reader can scan on a stat tile, where the
-  // Latin codes English uses would carry no meaning; `.compact` is the narrow
-  // Sankey's one-word form.
+  // The agency's own procedure names. `.short` is a two-to-three character form
+  // for the stat tile, where Latin codes would mean nothing to a Korean reader;
+  // `.compact` is the narrow Sankey's one-word form.
   'appType.all': '전체 유형',
   'appType.all.short': '전체',
   'appType.all.compact': '전체',
@@ -494,11 +475,9 @@ export const ko: Dictionary = {
   'appType.60.compact': '영주',
 
   // ── Domain: prefectures ──────────────────────────────────────────────────
-  // Keyed by JIS prefecture code, transliterated by sound with the
-  // administrative suffix (도/부/현) matching the prefecture's own type —
-  // 都 as 도, 府 as 부, 県 as 현 — the same pattern Korean reference works use
-  // for Japanese prefectures. Hokkaido already ends in 道/도 and takes no
-  // further suffix.
+  // Keyed by JIS prefecture code, transliterated by sound with the suffix for
+  // the prefecture's type: 都 as 도, 府 as 부, 県 as 현. Hokkaido already ends
+  // in 道/도 and takes no further suffix.
   'prefecture.1': '홋카이도',
   'prefecture.2': '아오모리현',
   'prefecture.3': '이와테현',

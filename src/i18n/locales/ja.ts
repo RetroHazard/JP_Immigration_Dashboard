@@ -1,23 +1,13 @@
-// src/i18n/locales/ja.ts
-// Japanese catalogue — complete coverage of the English source.
-//
-// Conventions, kept deliberately consistent so the file reads as one voice:
-//
-// - 体言止め for anything that labels a control: buttons, tabs, filter labels,
-//   column headers, stat-tile titles. です・ます for anything that speaks to the
-//   reader: explanatory prose, warnings, empty and error states.
-// - Official 出入国在留管理庁 terminology for the domain nouns. Application types
-//   use the agency's own procedure names (在留資格取得許可申請 and so on), and
-//   bureaus their full office names including 支局 status.
+// Japanese conventions:
+// - 体言止め for labels (buttons, tabs, filters, column headers, stat-tile
+//   titles); です・ます for text addressed to the reader (prose, warnings,
+//   empty and error states).
+// - Official 出入国在留管理庁 terminology: the agency's procedure names for
+//   application types (在留資格取得許可申請 and so on), and full office names
+//   including 支局 for bureaus.
 // - Full-width punctuation (：（）、。), ranges joined with 〜, and no space
-//   between a number and its unit — 12,345件, 6か月, 1,234km².
-// - Japanese has a single CLDR plural category, so plural families define only
-//   their `_other` member. `Intl.PluralRules('ja-JP')` never selects anything
-//   else, and translate.ts falls back to `_other` regardless.
-//
-// A few values are intentionally identical to English: `nav.version` is a
-// version number, and `bureau.*.short` are IATA-style codes that stay Latin in
-// every language (see the note in en.ts).
+//   between a number and its unit: 12,345件, 6か月, 1,234km².
+// - One CLDR plural category, so plural families define only `_other`.
 import type { Dictionary } from '../types';
 
 export const ja: Dictionary = {
@@ -30,8 +20,7 @@ export const ja: Dictionary = {
   'app.retry': '再試行',
 
   // ── Document metadata ────────────────────────────────────────────────────
-  // Not yet reachable: the static export prerenders one English document (see
-  // src/i18n/README.md). Translated so it is ready when per-locale routes are.
+  // Not rendered yet: the static export prerenders one English document.
   'meta.title': '日本 在留審査統計ダッシュボード',
   'meta.description':
     '在留審査の処理期間、地方出入国在留管理局ごとの処理状況、在留外国人数の推移、そして自分の申請に合わせた待ち行列モデルによる完了時期の推定。出入国在留管理庁の公式統計にもとづき、e-Stat の新規データ公表に合わせて更新しています。',
@@ -355,8 +344,7 @@ export const ja: Dictionary = {
   'chart.efficiency.quadrantFallingBehind': '高負荷・処理が遅延',
 
   // ── Chart: Regional Map ──────────────────────────────────────────────────
-  // The bureau labels already end in 出入国在留管理局 / 支局, so these carry no
-  // suffix of their own — appending one would repeat the office type.
+  // Bureau names already end in 出入国在留管理局 / 支局, so these add no suffix.
   'map.bureauMarkerAria': '{bureau}',
   'map.airportMarkerAria': '{bureau}',
   'map.bureauSuffix': '{bureau}',
@@ -402,10 +390,9 @@ export const ja: Dictionary = {
   'footer.dataUpdated': 'データ更新日 {date}',
 
   // ── Domain: immigration bureaus ──────────────────────────────────────────
-  // Full official office names, including 支局 status: the eight regional
-  // 地方出入国在留管理局 plus seven branch offices. `.short` stays Latin (IATA
-  // codes). `.compact` is the place name alone, for the surfaces that measure
-  // in pixels — without it every 東京-family office truncates to 「東京出入国在留」.
+  // Full official office names. `.short` stays Latin (IATA codes). `.compact`
+  // is the place name alone for pixel-limited surfaces, where every 東京-family
+  // office would otherwise truncate to 「東京出入国在留」.
   'bureau.all': '全国',
   'bureau.all.short': 'ALL',
   'bureau.all.compact': '全国',
@@ -456,9 +443,9 @@ export const ja: Dictionary = {
   'bureau.101740.compact': '那覇',
 
   // ── Domain: application types ────────────────────────────────────────────
-  // The agency's own procedure names. `.short` uses the two-character forms a
-  // Japanese reader can scan on a stat tile, where the Latin codes English uses
-  // would carry no meaning; `.compact` is the narrow Sankey's one-word form.
+  // The agency's own procedure names. `.short` is a two-to-three character form
+  // for the stat tile, where Latin codes would mean nothing to a Japanese
+  // reader; `.compact` is the narrow Sankey's one-word form.
   'appType.all': 'すべての種別',
   'appType.all.short': '全種別',
   'appType.all.compact': 'すべて',
@@ -482,10 +469,9 @@ export const ja: Dictionary = {
   'appType.60.compact': '永住',
 
   // ── Domain: prefectures ──────────────────────────────────────────────────
-  // Keyed by JIS prefecture code, carrying the 都・道・府・県 suffix. These match
-  // the `name_ja` property in public/static/japan.topo.json exactly, which is
-  // what stops the choropleth tooltip printing every name twice — it shows the
-  // Japanese name as a secondary only when it differs from the catalogue's.
+  // Keyed by JIS prefecture code, with the 都・道・府・県 suffix. Must match
+  // `name_ja` in public/static/japan.topo.json exactly, or the choropleth
+  // tooltip prints the Japanese name a second time.
   'prefecture.1': '北海道',
   'prefecture.2': '青森県',
   'prefecture.3': '岩手県',
