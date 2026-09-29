@@ -265,26 +265,8 @@
         lg:p-6;
 }
 
-@utility section-block {
-  @apply h-full;
-}
-
-@utility build-info {
-  @apply text-xxs text-muted-foreground text-nowrap
-        sm:text-xs
-        lg:text-sm;
-}
-
 @utility hyperlink {
   @apply text-primary hover:opacity-80;
-}
-
-@utility theme-toggle {
-  @apply flex items-center justify-center w-6 h-12 transition-colors bg-muted border border-input rounded-full hover:bg-accent;
-}
-
-@utility theme-toggle-icon {
-  @apply w-4 h-4 text-secondary-foreground;
 }
 
 @utility header-block {
@@ -316,27 +298,6 @@
         lg:text-lg;
 }
 
-@utility flex-col-end {
-  @apply flex flex-col items-end p-2;
-}
-
-@utility flex-between {
-  @apply flex items-center justify-between;
-}
-
-@utility stat-container {
-  @apply grid grid-cols-5 gap-1 mt-4
-        xl:w-full;
-}
-
-@utility card-base {
-  @apply p-4 bg-card rounded-xl border border-border shadow-soft;
-}
-
-@utility card-base-gray {
-  @apply p-4 bg-background rounded-xl border border-border shadow-soft;
-}
-
 @utility card-content {
   @apply space-y-4 overflow-y-auto;
 }
@@ -360,64 +321,6 @@
   @apply space-y-4;
 }
 
-@utility stat-card {
-  @apply w-fit p-2 mx-auto bg-card rounded-lg border border-border shadow-soft
-        sm:flex sm:items-start sm:justify-start sm:w-full sm:h-full sm:p-3 sm:scale-95 sm:overflow-x-clip sm:text-pretty
-        md:items-center md:p-4 md:rounded-xl
-        lg:rounded-2xl;
-}
-
-@utility stat-badge {
-  @apply flex items-center justify-center w-10 h-10 rounded-lg
-        md:min-h-12 md:h-16 md:w-8 md:rounded-lg
-        lg:min-h-16 lg:h-20 lg:w-9
-        xl:min-w-12 xl:rounded-xl;
-}
-
-@utility stat-icon-text {
-  @apply flex items-center justify-center text-2xl text-white
-        md:text-2xl
-        lg:text-3xl
-        xl:text-4xl;
-}
-
-@utility stat-details {
-  @apply hidden
-        sm:flex sm:flex-col sm:ml-3 sm:h-full
-        xl:ml-4;
-}
-
-@utility stat-title {
-  @apply hidden
-        lg:block lg:text-base lg:font-semibold lg:text-muted-foreground;
-}
-
-@utility stat-short-title {
-  @apply hidden
-        sm:block sm:text-xs sm:font-semibold sm:text-muted-foreground sm:text-nowrap
-        md:text-sm
-        lg:hidden;
-}
-
-@utility stat-subtitle {
-  @apply hidden
-        md:block md:text-xs md:text-muted-foreground
-        lg:text-sm;
-}
-
-@utility stat-value {
-  @apply hidden tabular-nums
-        sm:block sm:text-xs sm:font-semibold sm:text-secondary-foreground sm:mt-auto
-        md:text-base
-        lg:text-2xl;
-}
-
-@utility filter-block {
-  @apply grid grid-cols-2 gap-4
-        sm:gap-3
-        md:gap-6;
-}
-
 @utility filter-select {
   /* A native <select>'s closed box has no overflow cue in every browser, so a
      long translation (fr "Tous les types") would lose characters silently. */
@@ -430,12 +333,6 @@
   @apply text-xs font-medium text-secondary-foreground
         sm:text-sm
         md:text-base md:font-semibold;
-}
-
-@utility filter-note {
-  @apply text-xxs italic text-muted-foreground
-        sm:text-xs
-        md:text-sm md:text-pretty;
 }
 
 @utility input-box-colors {
@@ -452,111 +349,9 @@
         md:min-h-[450px] md:max-h-[550px] md:overflow-hidden;
 }
 
-@utility chart-filter-select {
-  @apply overflow-hidden text-ellipsis whitespace-nowrap text-xs rounded-lg shadow-xs input-box-colors
-        sm:text-sm sm:rounded-md
-        md:text-base md:font-semibold
-        lg:text-lg;
-}
-
-@utility main-collapsed {
-  @apply hidden
-        sm:block sm:col-span-6
-        md:col-span-7
-        lg:col-span-8;
-}
-
-@utility main-expanded {
-  @apply hidden
-        sm:block sm:col-span-11
-        md:col-span-11;
-}
-
 @utility estimator-container {
   @apply flex flex-col h-full p-3 bg-card border border-border shadow-soft
         sm:rounded-xl;
-}
-
-@utility flashing-chevron {
-  @apply text-lg text-muted-foreground animate-pulse motion-reduce:animate-none
-        sm:text-3xl;
-}
-
-@utility estimator-collapsed {
-  @apply hidden
-        sm:block sm:col-span-1;
-}
-
-@utility estimator-expanded {
-  @apply hidden
-        sm:block sm:col-span-6
-        md:col-span-5
-        lg:col-span-4;
-}
-
-@utility mobile-drawer-label {
-  @apply p-2 my-3 text-sm rotate-90 whitespace-nowrap;
-}
-
-@utility mobile-drawer-overlay {
-  @apply fixed inset-0 z-40 bg-black/50 transition-slow
-        sm:hidden;
-}
-
-@utility mobile-drawer-content {
-  @apply fixed top-0 right-0 z-50 h-full w-full max-w-[300px] bg-card shadow-xl transform transition-slow
-        sm:hidden;
-}
-
-@utility mobile-drawer-trigger {
-  @apply fixed right-0 top-[25%] z-30 transition-slow
-        sm:hidden;
-}
-
-@utility clip-tapered-btn {
-  @apply relative flex items-center justify-center h-[130px] w-[25px] overflow-visible bg-primary text-primary-foreground shadow-lg animate-pulse motion-reduce:animate-none clip-path-tapered-btn hover:opacity-90;
-
-  @media (width >= theme(--breakpoint-sm)) {
-    @apply clip-path-tapered-btn-sm;
-  }
-}
-
-@utility vertical-align-sub {
-  vertical-align: -0.125em;
-}
-
-@utility vertical-align-sub-more {
-  vertical-align: -0.225em;
-}
-
-@utility clip-path-tapered-btn {
-  clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 80%);
-}
-
-@utility clip-path-tapered-btn-sm {
-  clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 85%);
-}
-
-@utility transition-slow {
-  @apply transition-all duration-500 ease-in-out;
-}
-
-@layer utilities {
-  /* Legacy FloatingUI tooltip skin */
-  .floating-tooltip {
-    @apply bg-foreground text-background text-xs px-2 py-1 shadow-md rounded-md;
-    z-index: 999;
-    max-width: 300px;
-    transition: opacity 200ms ease-in-out;
-  }
-
-  .floating-tooltip[data-status='open'] {
-    opacity: 1;
-  }
-
-  .floating-tooltip[data-status='closed'] {
-    opacity: 0;
-  }
 }
 
 /* Custom scrollbar */
