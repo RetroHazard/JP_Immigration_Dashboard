@@ -546,17 +546,11 @@ export const tl: Dictionary = {
 
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.label': 'Set ng datos',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.aria': 'Piliin kung aling set ng datos ang tatanawin',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing': 'Pagproseso ng aplikasyon',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing.compact': 'Pagproseso',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents': 'Populasyon ng dayuhang naninirahan',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents.compact': 'Naninirahan',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': 'Hindi makuha sa ngayon ang datos tungkol sa dayuhang naninirahan.',
   'charts.growth.label': 'Paglago ng Populasyon',
   'charts.growth.description':

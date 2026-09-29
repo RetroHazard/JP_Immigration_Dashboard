@@ -7,7 +7,7 @@
 // chooses, and the header says which one.
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type React from 'react';
 import useMeasure from 'react-use-measure';
@@ -132,6 +132,9 @@ export const ResidentFlowsSankeyChart: React.FC<ResidentChartData> = ({ data, fi
     };
   }, [sankeyData, isNarrow]);
 
+  // Shared by nodes and links so each ribbon takes its endpoints' colours.
+  const nodeColor = useCallback((_node: unknown, index: number) => nodeColors[index] ?? 'var(--chart-1)', [nodeColors]);
+
   if (sankeyData.links.length === 0) {
     return (
       <div className="flex min-h-[300px] items-center justify-center text-sm text-muted-foreground">
@@ -155,12 +158,12 @@ export const ResidentFlowsSankeyChart: React.FC<ResidentChartData> = ({ data, fi
             margin={sankeyMargin}
             nodePadding={isNarrow ? 8 : 12}
           >
-            <SankeyLink />
+            <SankeyLink getNodeColor={nodeColor} />
             <SankeyNode
               valueUnit={t('residents.flowsValueUnit')}
               showValueLabels={!isNarrow}
               showMiddleLabels={!isNarrow}
-              getNodeColor={(_node, index) => nodeColors[index] ?? 'var(--chart-1)'}
+              getNodeColor={nodeColor}
             />
             <SankeyTooltip
               valueLabel={t('residents.flowsTooltipValueLabel')}

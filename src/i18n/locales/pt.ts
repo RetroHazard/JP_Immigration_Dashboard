@@ -536,17 +536,11 @@ export const pt: Dictionary = {
 
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.label': 'Conjunto de dados',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.aria': 'Escolha o conjunto de dados a explorar',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing': 'Tratamento de pedidos',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing.compact': 'Tratamento',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents': 'População estrangeira residente',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents.compact': 'Residentes',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': 'Os dados da população estrangeira residente não estão disponíveis de momento.',
   'charts.growth.label': 'Crescimento da População',
   'charts.growth.description':

@@ -533,17 +533,11 @@ export const vi: Dictionary = {
 
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.label': 'Bộ dữ liệu',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.aria': 'Chọn bộ dữ liệu bạn muốn xem',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing': 'Xử lý hồ sơ lưu trú',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing.compact': 'Xử lý hồ sơ',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents': 'Dân số người nước ngoài cư trú',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents.compact': 'Người cư trú',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': 'Hiện chưa tải được dữ liệu về người nước ngoài cư trú.',
   'charts.growth.label': 'Tăng trưởng dân số',
   'charts.growth.description':

@@ -8,8 +8,8 @@
 // - Prefecture and bureau place names in their Traditional Chinese form, not
 //   romanized and not copied from Japanese shinjitai: 廣島, not "Hiroshima";
 //   広→廣, 県→縣, 沖縄→沖繩.
-// - Full-width punctuation for CJK prose (：（）、。), no space between a
-//   number and a Chinese unit.
+// - Full-width punctuation for CJK prose (：（）、。), and a space between a
+//   number and a Chinese unit: {count} 個月, 受理 {count} 件.
 // - One CLDR plural category, so plural families define only `_other`.
 import type { Dictionary } from '../types';
 
@@ -523,17 +523,11 @@ export const zhTw: Dictionary = {
 
   // ── Resident population dataset ─────────────────────────────────────────
   'dataset.label': '資料集',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.aria': '選擇要查看的資料集',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing': '在留審查辦理',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.processing.compact': '審查辦理',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents': '在留外國人人口',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residents.compact': '在留外國人',
-  // ── Resident population dataset ─────────────────────────────────────────
   'dataset.residentsUnavailable': '目前無法載入在留外國人資料。',
   'charts.growth.label': '在留人口成長',
   'charts.growth.description': '按半年顯示外國居民總數,可依居留目的或世界區域堆疊。',
