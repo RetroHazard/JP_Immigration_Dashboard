@@ -1,11 +1,7 @@
-// src/components/charts/PopulationGrowthChart.tsx
 // The headline view: the whole foreign-resident population per half-year as
-// stacked bars on Bklit's ComposedChart — 2M to 4M with the COVID dip in the
-// middle — split by status group (why people are here) or, via the toggle,
-// by world region (where they are from). Event markers annotate the moments
-// the shape of the data changes — the Specified Skilled Worker launch, the
-// pandemic border closure and reopening, the 2015 Korea reporting split — from
-// the shared list in src/constants/policyEvents.ts.
+// stacked bars on Bklit's ComposedChart (2M to 4M with the COVID dip), split by
+// status group or, via the toggle, by world region. Event markers from
+// src/constants/policyEvents.ts annotate where the shape of the data changes.
 'use client';
 
 import { useMemo, useState } from 'react';

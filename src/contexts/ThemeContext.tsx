@@ -1,8 +1,6 @@
-// src/contexts/ThemeContext.tsx
 // Thin adapter over next-themes, keeping the {isDarkMode, toggleTheme} API the
-// rest of the app consumes. next-themes injects a blocking inline script into
-// the prerendered HTML, which sets the .dark class before first paint and
-// eliminates the light-mode flash the previous useEffect approach caused.
+// rest of the app consumes. next-themes' blocking inline script sets the .dark
+// class before first paint, so there is no light-mode flash.
 'use client';
 
 import { ThemeProvider as NextThemesProvider, useTheme as useNextTheme } from 'next-themes';

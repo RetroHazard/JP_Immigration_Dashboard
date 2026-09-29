@@ -1,8 +1,6 @@
-// src/components/__tests__/ChangelogModal.test.tsx
-// The changelog is the one asset fetched at runtime from a stable URL, so it
-// is also the one asset a deploy does not invalidate on its own. These pin the
-// cache-busting that makes a new release actually show its own release notes,
-// and the month disclosure that keeps a long history readable.
+// The changelog is the one asset fetched at runtime from a stable URL, so a
+// deploy does not invalidate it on its own. These pin its cache-busting and
+// the month disclosure that keeps a long history readable.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import buildInfo from '../../buildInfo';
@@ -63,9 +61,7 @@ describe('ChangelogModal', () => {
   });
 });
 
-// Nine months of releases outrun the dialog's 80vh; the newest one alone is
-// half the file. These pin the disclosure that keeps a reader on the release
-// they opened the dialog for.
+// The releases outrun the dialog's 80vh, so only the newest month starts open.
 const TWO_MONTHS = `# Changelog
 
 ## 2026-08

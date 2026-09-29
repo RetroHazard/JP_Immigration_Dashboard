@@ -1,25 +1,11 @@
-// src/components/common/LanguageSwitcher.tsx
-// Rebuilt from the control that was pulled in v1.1.0, and still gated: it
-// renders nothing while LOCALE_SWITCHER_ENABLED is false (see
-// src/i18n/config.ts). The extraction work is done, but offering the switch
-// before a locale is actually translated is what got the original pulled.
-// `?lang=` remains the way to exercise a locale meanwhile.
+// Renders nothing while LOCALE_SWITCHER_ENABLED (src/i18n/config.ts) is false;
+// `?lang=` selects a locale regardless.
 //
-// Two shapes, one state: a stacked row list (the actual selection UI, reused
-// by both popover triggers below) and a popover that opens it from a compact
-// trigger — either an icon button (desktop header) or a full-width row
-// showing the current language (mobile settings drawer).
-//
-// The desktop header used to render every locale's native name side by side
-// in one non-shrinking pill. That was fine at two or three locales; at seven
-// it was a ~475px-wide row competing with the app title for header space,
-// visibly crowding it from the 640px breakpoint up in every locale, English
-// included. The mobile drawer had the same growth problem in miniature: an
-// always-expanded list of rows that gets taller with every language added,
-// pushing Theme and About further down the drawer each time. Both triggers
-// below cost the same fixed amount of space regardless of how many locales
-// are registered — the list itself, not its always-visible footprint, is
-// what scales.
+// Two shapes, one state: a stacked row list (the selection UI, reused by both
+// popover triggers) and a popover that opens it from a compact trigger, either
+// an icon button (desktop header) or a full-width row showing the current
+// language (mobile settings drawer). Both triggers take the same space however
+// many locales are registered; only the list grows.
 'use client';
 
 import { useState } from 'react';

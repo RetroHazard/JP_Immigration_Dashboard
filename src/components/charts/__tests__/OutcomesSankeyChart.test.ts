@@ -1,6 +1,6 @@
 // The node colors are the one visual decision this chart makes for itself.
-// Left to the vendored sankey they followed each node's position in the list,
-// which drew Denied in the Granted tile's green, so the map is pinned here.
+// The vendored sankey would color nodes by list position, so the map is pinned
+// here.
 // Whether SankeyNode and SankeyLink both receive it is a browser check: the
 // SVG never renders under jsdom (see IntakeProcessingBarChart.test.tsx).
 import { describe, expect, it } from 'vitest';

@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import type { Metadata, Viewport } from 'next';
 
 import type React from 'react';
@@ -13,10 +12,9 @@ import '../index.css';
 import '@fontsource-variable/inter';
 import '@fontsource-variable/noto-sans-jp';
 
-// Metadata is emitted at build time into a single prerendered document, so it
-// can't follow the visitor's locale — `output: 'export'` leaves no server to
-// negotiate one. Reading the English catalogue directly still keeps one source
-// of truth, and is what per-locale routes would build on.
+// Metadata is emitted at build time into a single prerendered document
+// (`output: 'export'`, no server), so it can't follow the visitor's locale. It
+// reads the English catalogue to keep one source of truth.
 const title = en['meta.title'];
 const description = en['meta.description'];
 

@@ -1,5 +1,3 @@
-// src/constants/applicationOptions.ts
-
 export interface ApplicationOption {
   /** e-Stat application type code — the stable identifier, and the catalogue
    *  key suffix for its label (`appType.<value>`), abbreviation

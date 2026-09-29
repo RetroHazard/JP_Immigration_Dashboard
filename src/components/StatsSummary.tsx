@@ -1,4 +1,3 @@
-// src/components/StatsSummary.tsx
 import { useMemo } from 'react';
 
 import { CircleSlash, FileStack, Hourglass, Percent, Stamp } from 'lucide-react';
@@ -93,11 +92,9 @@ export const StatsSummary: React.FC<StatsSummaryProps> = ({ data, filters }) => 
   const subtitle = typeShort ? t('stats.scopeWithType', { bureau: scopeLabel, type: typeShort }) : scopeLabel;
   const spark = (pick: (m: MonthStats) => number) => monthly.map(pick);
 
-  // No wrapping and no horizontal scroll at any viewport: phones get a
-  // filled 2 + 3 mosaic of compact cards - the volume metrics (Total,
-  // Pending) up top, the outcome metrics (Granted, Denied, Approval)
-  // below; from md up the five cards share one row, shrinking evenly
-  // (truncating) instead of overflowing.
+  // No wrapping and no horizontal scroll at any viewport: phones get a 2 + 3
+  // mosaic (volume metrics up top, outcome metrics below); from md up the five
+  // cards share one row, truncating instead of overflowing.
   const row = 'md:min-w-0 md:flex-1';
 
   return (

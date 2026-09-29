@@ -1,7 +1,4 @@
-/**
- * Status code constants for immigration data
- * These codes are used in the e-Stat data to categorize different application statuses
- */
+/** e-Stat codes that categorize application statuses in the processing data. */
 export const STATUS_CODES = {
   /** Previously Received Applications (受理_旧受) */
   OLD_APPLICATIONS: '102000',
@@ -28,5 +25,4 @@ export const STATUS_CODES = {
   NATIONWIDE_BUREAU: '100000',
 } as const;
 
-/** Type for status code values */
 export type StatusCode = typeof STATUS_CODES[keyof typeof STATUS_CODES];

@@ -1,6 +1,4 @@
-// src/components/common/PeriodSelector.tsx
-// The one period selector. Replaces five copy-pasted <select> blocks that
-// each offered slightly different options.
+// The one period selector, shared by every range chart.
 'use client';
 
 import type React from 'react';
@@ -23,10 +21,10 @@ export const PeriodSelector: React.FC<PeriodSelectorProps> = ({ ranges, value, o
   const { t, tPlural } = useLocale();
   if (ranges.length === 0) return null;
 
-  // The numeric ranges are a plural family rather than fixed strings, so a
-  // locale with more than two plural forms gets them right for free. The
-  // residents table publishes twice a year, so its ranges are named in years
-  // ('3y') — "12" there would read as twelve months and mean six years.
+  // Numeric ranges are a plural family, not fixed strings, so locales with
+  // more than two plural forms get them right. The residents table publishes
+  // twice a year, so its ranges are named in years ('3y'): "12" there would
+  // read as twelve months and mean six years.
   const isHalfYearly = ranges.some((range) => range.endsWith('y'));
   const rangeLabel = (range: AnyRange) => {
     if (range === 'latest') return t(isHalfYearly ? 'period.latestPeriod' : 'period.latest');

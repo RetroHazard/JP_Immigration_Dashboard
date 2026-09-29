@@ -1,21 +1,11 @@
-// src/components/common/ChartComponents.tsx
-// Chart registry: one stable key, icon, filter capability, allowed time
-// ranges, and — on the processing half — the data table that stands in as the
-// chart's text alternative. The shell renders tabs, the card header, the
-// period selector, and that table from this metadata joined to the catalogue
-// via useChartRegistry(); charts only plot.
+// Chart registry: key, icon, filter capability, allowed time ranges and, for
+// processing charts, the data table that serves as the text alternative. The
+// shell renders tabs, header, period selector and table from this metadata via
+// useChartRegistry(); charts only plot.
 //
-// Two registries, one per dataset. The two cubes share no dimension — the
-// processing cube is bureau x application type x status by month, the
-// residents one is nationality x residence status by half-year — so they
-// carry different filters, different ranges, and different props. A
-// discriminated union on `dataset` is what lets the shell narrow to the right
-// pairing instead of every chart accepting both shapes.
-//
-// Chart keys are unique ACROSS both registries: the active dataset is derived
-// from `?chart=` rather than a URL param of its own, so a permalink can never
-// name a dataset and a chart that disagree, and every link written before the
-// residents dataset existed still resolves.
+// One registry per dataset, since the cubes share no dimension. Chart keys are
+// unique across both: the dataset is derived from `?chart=`, so a permalink
+// can't name a dataset and chart that disagree.
 import type { LucideIcon } from 'lucide-react';
 import {
   BarChart3,
@@ -72,9 +62,8 @@ export interface ResidentFilters {
   /** e-Stat cat02 code, or 'all' */
   nationality: string;
   /**
-   * Coarse status family, or 'all'. The URL param is still named ?status —
-   * it used to carry individual e-Stat status codes, and legacy values are
-   * mapped to their category by parseStatusParam.
+   * Coarse status family, or 'all'. The URL param is ?status; parseStatusParam
+   * maps legacy individual e-Stat status codes to their family.
    */
   group: 'all' | StatusGroup;
 }
@@ -93,10 +82,9 @@ export interface ResidentChartData {
 
 interface BaseChartDefinition {
   /**
-   * Stable slug used as the ?chart= URL value, and the catalogue key suffix
-   * for this chart's `charts.<key>.label` / `.description` / `.aria` entries.
-   * Display text is resolved by useChartRegistry() rather than living here —
-   * a module-level array can't call the locale-bound `t`.
+   * Stable slug: the ?chart= URL value and the key of this chart's
+   * `charts.<key>.label` / `.description` / `.aria` entries. useChartRegistry()
+   * resolves the text; a module-level array can't call the locale-bound `t`.
    */
   key: string;
   icon: LucideIcon;
@@ -109,13 +97,10 @@ export interface ProcessingChartDefinition extends BaseChartDefinition {
   component: React.ComponentType<ImmigrationChartData>;
   filters: { bureau: boolean; appType: boolean };
   /**
-   * Which text alternative this chart's data table renders — a capability
-   * declaration in the same spirit as `filters` and `ranges`. Required, not
-   * optional: the table used to be a single hardcoded month x status pivot
-   * mounted under every chart, and making each chart name its own is what
-   * stops the next one being added without anyone deciding. The shapes and
-   * their selector math live in src/utils/chartTables.ts, keyed on this id, so
-   * a swap-ready alternate component inherits its table for free.
+   * Which data table (text alternative) this chart renders. Required so each
+   * new chart has to choose one. Shapes and selector math live in
+   * src/utils/chartTables.ts, keyed on this id, so an alternate component
+   * swapped into the same entry keeps its table.
    */
   table: ProcessingTableId;
   ranges: ChartRange[];
@@ -127,10 +112,9 @@ export interface ResidentChartDefinition extends BaseChartDefinition {
   component: React.ComponentType<ResidentChartData>;
   filters: { region: boolean; nationality: boolean; group: boolean };
   /**
-   * How the header's time control behaves: 'range' renders the window picker
-   * over `ranges`; 'snapshot' renders the as-of period dropdown instead
-   * (stock views draw one period, so a window would be a lie — see the
-   * builders' snapshot comments). Snapshot charts keep `ranges: []`.
+   * 'range' renders the window picker over `ranges`; 'snapshot' renders the
+   * as-of period dropdown, since stock views draw a single period. Snapshot
+   * charts keep `ranges: []`.
    */
   timeControl: 'range' | 'snapshot';
   ranges: ResidentRange[];
@@ -221,9 +205,8 @@ export const PROCESSING_CHARTS: ProcessingChartDefinition[] = [
 ];
 
 export const RESIDENT_CHARTS: ResidentChartDefinition[] = [
-  // Tab order is the narrative: how the total grew → who grew → how origin
-  // and status cross-tabulate → the status detail → where on the map → what
-  // changed most recently.
+  // Tab order is the narrative: total growth → who grew → origin x status →
+  // status detail → map → most recent change.
   {
     key: 'growth',
     dataset: 'residents',
@@ -232,9 +215,8 @@ export const RESIDENT_CHARTS: ResidentChartDefinition[] = [
     filters: { region: true, nationality: true, group: false },
     timeControl: 'range',
     compare: false,
-    // The whole timeline IS the story (2M→4M with the COVID dip); a window
-    // picker only ever cropped it. Empty ranges = no picker, range resolves
-    // to defaultRange.
+    // Always the full timeline (2M→4M with the COVID dip). Empty ranges = no
+    // picker; range resolves to defaultRange.
     ranges: [],
     defaultRange: 'all',
   },

@@ -1,20 +1,18 @@
-// src/constants/residenceStatuses.ts
 // Identity-only table for the e-Stat `cat01` (在留資格) dimension of the
 // Foreign Residents table (0004019020). Display names live in the catalogue
-// under `status.<value>` and are joined in by `useResidenceStatusOptions`
-// (src/i18n/useDomainLabels.ts), same as every other domain constant here.
+// under `status.<value>`, joined in by `useResidenceStatusOptions`
+// (src/i18n/useDomainLabels.ts).
 //
-// The hierarchy below is CORRECTED, not copied from the payload's
+// The hierarchy below is corrected, not copied from the payload's
 // `@parentCode` metadata, which is wrong in two ways:
 //
 //   1. 技能実習 1号イ…3号ロ (1300-1350) are published with
 //      `@parentCode: '1260'` (特定技能合計). Their real parent is 1290
-//      (技能実習合計). Taking e-Stat at its word puts the Technical Intern
-//      Training sub-statuses inside Specified Skilled Worker, which roughly
-//      triples that category and empties the other.
+//      (技能実習合計); taken as published, they would land inside Specified
+//      Skilled Worker.
 //   2. 永住者 / 日本人の配偶者等 / 永住者の配偶者等 / 定住者 / 特別永住者
-//      (1430-1470) carry no `@parentCode` at all, though they are level-2
-//      members of 総数 like every other top-level status.
+//      (1430-1470) carry no `@parentCode`, though they are level-2 members of
+//      総数 like every other top-level status.
 
 export type StatusGroup = 'work' | 'training' | 'study' | 'family' | 'residency' | 'other';
 
@@ -32,10 +30,9 @@ export interface ResidenceStatus {
   /** Coarse family used as the middle ring of the status-mix hierarchy. */
   group: StatusGroup;
   /**
-   * Statuses that were abolished or merged partway through the 2012-2025
-   * span, so their series legitimately stops rather than going to zero:
-   * 投資・経営 became 経営・管理, and 技術 + 人文知識・国際業務 merged into
-   * 技術・人文知識・国際業務, both in 2015.
+   * Statuses abolished or merged in 2015, whose series stops rather than going
+   * to zero: 投資・経営 became 経営・管理, and 技術 + 人文知識・国際業務 merged
+   * into 技術・人文知識・国際業務.
    */
   legacy?: boolean;
 }

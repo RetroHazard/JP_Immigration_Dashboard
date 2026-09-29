@@ -1,4 +1,3 @@
-// src/components/common/ErrorBoundary.tsx
 import React from 'react';
 
 import { useLocale } from '../../i18n/LocaleContext';
@@ -40,10 +39,6 @@ const ErrorFallback: React.FC<{ error?: Error }> = ({ error }) => {
   );
 };
 
-/**
- * Error boundary component that catches rendering errors and displays a fallback UI.
- * Prevents the entire app from crashing when a component throws an error.
- */
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -51,21 +46,15 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    // Update state so next render shows fallback UI
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log error details using environment-aware logger
     logger.error('ErrorBoundary caught an error:', error, errorInfo);
-
-    // You can also log to an error reporting service here
-    // Example: logErrorToService(error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
-      // Render custom fallback UI if provided
       if (this.props.fallback) {
         return this.props.fallback;
       }

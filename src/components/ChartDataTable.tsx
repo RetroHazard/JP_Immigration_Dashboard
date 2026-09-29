@@ -1,11 +1,7 @@
-// src/components/ChartDataTable.tsx
-// Collapsible data table for the active chart, with CSV export.
-//
-// The text alternative to the SVG above it — which means its shape follows
-// that chart rather than being fixed. This component holds no domain knowledge
-// at all now: it renders whichever TableModel the chart's registry entry names
-// (src/utils/chartTables.ts), so the row axis is a month here and a bureau or
-// a prefecture there without this file knowing the difference.
+// Collapsible data table for the active chart, with CSV export: the text
+// alternative to the SVG above it, so its shape follows that chart. It holds no
+// domain knowledge; it renders whichever TableModel the chart's registry entry
+// names (src/utils/chartTables.ts), whether its rows are months or bureaus.
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
@@ -30,7 +26,7 @@ interface ChartDataTableProps {
   range: ChartRange;
 }
 
-/** Room for the row-label column plus each data column, floored at the old width. */
+/** Room for the row-label column plus each data column. */
 const minWidthFor = (columns: number): number => Math.max(560, 140 + columns * 84);
 
 export const ChartDataTable: React.FC<ChartDataTableProps> = ({ table, chartKey, data, filters, range }) => {
@@ -41,10 +37,8 @@ export const ChartDataTable: React.FC<ChartDataTableProps> = ({ table, chartKey,
     () => buildProcessingTable(table, { data, filters, range, chartKey }),
     [table, chartKey, data, filters, range]
   );
-  // Collapsed, the table costs nothing. The export falls back to building on
-  // demand rather than reading a memo that is empty by design — the download
-  // control only renders while open today, and this keeps that a layout
-  // choice rather than a correctness one.
+  // Built only while open. The export builds on demand if the memo is empty,
+  // so the download control doesn't depend on the table being open.
   const model = useMemo(() => (open ? build() : null), [open, build]);
 
   const cell = (value: TableValue, column: TableColumn): string => {

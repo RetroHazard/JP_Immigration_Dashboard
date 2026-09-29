@@ -1,4 +1,3 @@
-// App.tsx
 import type React from 'react';
 
 import { LoadingSpinner } from './components/common/LoadingSpinner';
@@ -9,10 +8,9 @@ import { useLocale } from './i18n/LocaleContext';
 
 const App: React.FC = () => {
   const { data, meta, loading, error } = useImmigrationData();
-  // Fetched eagerly alongside the processing data: it is a static asset like
-  // the other one, and loading it up front means switching datasets is
-  // instant rather than showing a spinner. A failure here is not fatal — the
-  // shell disables the Residents half of the switcher and carries on.
+  // Fetched eagerly alongside the processing data so switching datasets is
+  // instant. A failure here is not fatal: the shell disables the Residents half
+  // of the switcher.
   const { data: residents } = useResidentsData();
   const { t } = useLocale();
 
@@ -25,8 +23,6 @@ const App: React.FC = () => {
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="rounded-xl border border-border bg-card p-8 shadow-soft">
           <h1 className="mb-4 text-2xl font-bold text-destructive">{t('errors.dataTitle')}</h1>
-          {/* useImmigrationData reports failures as catalogue keys, so the
-              message resolves through the same dictionary as everything else. */}
           <p className="mb-4 text-secondary-foreground">{t(error ?? 'errors.noData')}</p>
           <button
             onClick={() => window.location.reload()}

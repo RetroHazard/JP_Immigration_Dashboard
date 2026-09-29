@@ -1,5 +1,4 @@
-// src/components/charts/OutcomesSankeyChart.tsx
-// NEW view: where applications end up. Application types flow into outcomes
+// Where applications end up: application types flow into outcomes
 // (granted / denied / other) on Bklit's Sankey, with an approval-rate gauge
 // for the same selection alongside.
 'use client';
@@ -22,9 +21,8 @@ import { SankeyNode } from '../bklit/charts/sankey/sankey-node';
 import { SankeyTooltip } from '../bklit/charts/sankey/sankey-tooltip';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 
-// Each outcome wears its metric's color, from the design system's canonical
-// map that the stat tiles share. Left to the vendored sankey, a node's color
-// came from its position in the node list, which drew Denied in Granted's green.
+// Each outcome wears its metric's color from the canonical map the stat tiles
+// share. The vendored sankey would otherwise color nodes by list position.
 const OUTCOMES = [
   { labelKey: 'metric.granted', compactKey: 'metric.granted', status: STATUS_CODES.GRANTED, color: 'var(--chart-3)' },
   { labelKey: 'metric.denied', compactKey: 'metric.denied', status: STATUS_CODES.DENIED, color: 'var(--chart-8)' },
@@ -46,12 +44,10 @@ export const outcomesNodeColors = (typeCodes: readonly string[]): string[] => [
 ];
 
 // Bklit's Sankey reserves fixed 180px label margins per side, so a narrow
-// container collapses the drawing area (and below ~360px it inverts). On
-// narrow containers the chart switches to compact one-word labels, slim
-// margins sized to those labels, a square aspect, and no value sublabels
-// (the counts stay in the tooltip and the data table). 500 keeps the xl+
-// desktop row (a ~520px slot beside the gauge) on the full treatment while
-// catching phones and the tighter lg row.
+// container collapses the drawing area (below ~360px it inverts). Narrow
+// containers get one-word labels, slim margins, a square aspect and no value
+// sublabels (counts stay in the tooltip and data table). 500 keeps the xl+
+// row (a ~520px slot beside the gauge) on the full treatment.
 const NARROW_WIDTH = 500;
 
 export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
@@ -74,8 +70,6 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
       (entry) => months.includes(entry.month)
     );
 
-    // Narrow containers get the one-word forms, which each option now carries
-    // itself rather than being looked up by its English label.
     const displayName = (entry: { label: string; compact: string }) => (isNarrow ? entry.compact : entry.label);
     const activeTypes = filters.type === 'all' ? types : types.filter((type) => type.value === filters.type);
     const nodes = [
@@ -112,11 +106,9 @@ export const OutcomesSankeyChart: React.FC<ImmigrationChartData> = ({ data, filt
   // ends; either one left without this falls back to the positional cycle.
   const nodeColor = useCallback((_node: unknown, index: number) => nodeColors[index] ?? 'var(--chart-1)', [nodeColors]);
 
-  // Node labels are real translated strings (bureau/application-type/outcome
-  // names), not fixed English words — a German compound noun or a longer
-  // Portuguese/Spanish outcome name can run past the vendored Sankey's fixed
-  // 180px label margin and clip against the SVG edge. Size the margin from
-  // what's actually rendering this pass instead of trusting a constant.
+  // Translated labels can run past the vendored Sankey's fixed 180px label
+  // margin and clip at the SVG edge, so size the margin from the labels
+  // rendering this pass.
   const sankeyMargin = useMemo(() => {
     // Matches sankey-node.tsx's name-label styling ("font-medium text-[13px]").
     const nodeLabelFont =

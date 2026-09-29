@@ -1,10 +1,7 @@
-// Opening "Show the math" folds the estimator's three inputs away behind a row
-// naming what you picked. That row is the only thing on screen saying which
-// date is in the field, so it is the one place that must not disagree with it.
-//
-// The zone is set per test rather than left to the runner: `new Date('…')` on a
-// date-only string and a component-built Date are indistinguishable under UTC,
-// so a UTC runner cannot tell a fix from the bug.
+// Under "Show the math" the estimator's inputs fold behind a summary row, the
+// only thing on screen naming the date in the field, so it must match it.
+// The zone is set per test: under UTC, `new Date('…')` on a date-only string
+// and a component-built Date are indistinguishable.
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { localDateFromInput } from '../EstimationCard';
@@ -31,9 +28,8 @@ describe('localDateFromInput', () => {
     }
   );
 
-  // The regression itself. A date-only ISO string is parsed as UTC midnight,
-  // which is the previous calendar day anywhere west of UTC — so the summary
-  // read "Jun 14" for an input of 2025-06-15 in the Americas.
+  // A date-only ISO string parses as UTC midnight, the previous calendar day
+  // west of UTC: the summary would read "Jun 14" for 2025-06-15 in the Americas.
   it('does not slip a day west of UTC, where a bare parse does', () => {
     inZone('America/Los_Angeles', () => {
       expect(new Date('2025-06-15').getDate()).toBe(14);

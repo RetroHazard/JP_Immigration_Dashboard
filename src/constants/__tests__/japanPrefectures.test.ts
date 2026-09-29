@@ -1,8 +1,6 @@
-// src/constants/__tests__/japanPrefectures.test.ts
 // The prefecture list derives its JIS code from array position, and the map
-// joins on that code. This asserts the derivation against the actual TopoJSON
-// rather than trusting the ordering — a reordered or inserted entry would
-// otherwise silently repaint the map with the wrong bureau colors.
+// joins on that code: a reordered or inserted entry would silently repaint the
+// map with the wrong bureau colors. These check the order against the TopoJSON.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
