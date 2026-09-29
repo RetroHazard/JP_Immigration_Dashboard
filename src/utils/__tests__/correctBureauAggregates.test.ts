@@ -38,12 +38,10 @@ describe('transformData / aggregate bureau deaggregation', () => {
   });
 
   it('does not surface an inflated, branch-inclusive figure when a branch has not published yet', () => {
-    // Kobe has not published its July figures yet, even though the Osaka
-    // regional total (which still includes Kobe's applications) is already
-    // available. Naively subtracting only the branches that ARE present
-    // would return 5200 - 210 = 4990, silently including Kobe's ~800
-    // applications until Kobe's row appears - which is exactly the kind of
-    // one-day jump reported against the live dashboard.
+    // Kobe has not published July, though the Osaka total (which still
+    // includes Kobe) is out. Subtracting only the branches present would give
+    // 5200 - 210 = 4990, silently including Kobe's ~800 applications until its
+    // row appears: the one-day jump reported against the live dashboard.
     const raw = buildRawData([
       entry('2025000707', OSAKA, 5200),
       entry('2025000707', OTHER_BRANCH, 210),

@@ -1,4 +1,3 @@
-// src/utils/loadLocalData.ts
 // Loads the pre-transformed dashboard data emitted at build time by
 // scripts/transform-data.mts and unpacks it into ImmigrationData[].
 import type { DashboardDataFile } from './dashboardData';

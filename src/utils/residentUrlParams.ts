@@ -1,4 +1,3 @@
-// src/utils/residentUrlParams.ts
 // Pure parse functions for the residents URL params. Kept out of
 // DashboardShell so they are unit-testable without nuqs; the shell wraps
 // them with nuqs `createParser`.
@@ -7,11 +6,9 @@ import { residenceStatusByCode, STATUS_GROUPS, type StatusGroup } from '../const
 const GROUPS = new Set<string>(STATUS_GROUPS);
 
 /**
- * `?status` now carries a status *category* (work, training, …). Links
- * written before the filter was simplified carry an e-Stat status code
- * instead — those resolve to the code's category rather than breaking, so
- * `?status=1430` still lands on Residency. Anything else is treated as
- * absent (null → nuqs default 'all').
+ * `?status` carries a status *category* (work, training, …). An e-Stat status
+ * code, as older links carry, resolves to its category, so `?status=1430` lands
+ * on Residency. Anything else is treated as absent (null → nuqs default 'all').
  */
 export const parseStatusParam = (value: string): 'all' | StatusGroup | null => {
   if (value === 'all') return 'all';

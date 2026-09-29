@@ -1,4 +1,3 @@
-// src/utils/dashboardData.ts
 // Shared shape of the pre-transformed data file the client loads directly.
 // The build step (scripts/transform-data.mts) packs the verbose e-Stat payload
 // into index tables + flat value tuples (~10x smaller); the client unpacks it

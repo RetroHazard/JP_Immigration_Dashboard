@@ -1,8 +1,6 @@
-// src/utils/selectors.ts
-// Single, explicit data-selection API. Replaces the old convention where
-// `bureau: 'all'` meant "include every bureau row" in App.tsx but "only the
-// nationwide aggregate row" in useFilteredData — two silently conflicting
-// semantics that charts papered over by re-filtering.
+// Single, explicit data-selection API. Callers state a bureau scope rather than
+// pass `bureau: 'all'`, which could mean "every bureau row" or "only the
+// nationwide aggregate row".
 import { useMemo } from 'react';
 
 import { STATUS_CODES } from '../constants/statusCodes';
@@ -56,8 +54,8 @@ export const selectData = (data: ImmigrationData[], selection: DataSelection = {
   });
 };
 
-/** Memoized selectData keyed on the selection's VALUES (an inline options
- *  object no longer defeats the memo, unlike the old useFilteredData). */
+/** Memoized selectData keyed on the selection's VALUES, so an inline options
+ *  object doesn't defeat the memo. */
 export const useSelectedData = (data: ImmigrationData[], selection: DataSelection = {}): ImmigrationData[] => {
   const { scope, type, month, status } = selection;
   const scopeKey = scope === undefined ? '' : scope.kind === 'bureau' ? `bureau:${scope.code}` : scope.kind;

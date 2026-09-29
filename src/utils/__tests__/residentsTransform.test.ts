@@ -139,13 +139,10 @@ describe('verifyResidentTotals', () => {
 
   it('names the NATIONALITY a status-sum mismatch belongs to', () => {
     // Simulates a status wrongly classified as a rollup: its leaves never
-    // ship, so every nationality column comes up short.
-    //
-    // keyDimension is the point of this case. The codes overlap numerically
-    // between the two tables — 1010 is 総数 as a status and アフガニスタン as a
-    // nationality — so a mismatch reported without it sends the reader to the
-    // wrong constants file, which is exactly what happened when a truncated
-    // payload first tripped this check.
+    // ship, so every nationality column comes up short. The case pins
+    // keyDimension: codes overlap between the tables (1010 is 総数 as a status
+    // and アフガニスタン as a nationality), and without it a mismatch points the
+    // reader at the wrong constants file.
     const raw = payload([...leaves.filter((r) => r['@cat01'] !== '1380'), ...rollups]);
     const mismatches = verifyResidentTotals(raw, transformResidentsData(raw));
     const byNationality = mismatches.filter((m) => m.keyDimension === 'nationality');

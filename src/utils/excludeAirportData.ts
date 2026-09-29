@@ -1,10 +1,7 @@
-// src/utils/excludeAirportData.ts
-// The global airport toggle's data transform. Dropping the airport rows is
-// only half the job: the parent bureaus already exclude their branch offices
-// (build-time deaggregation), but the official nationwide aggregate row still
-// contains the airport volumes. So excluded airports are also subtracted from
-// the nationwide row, per month/type/status, keeping stats and nationwide
-// chart scopes consistent with the visible bureaus.
+// The global airport toggle's data transform. Parent bureaus already exclude
+// their branch offices (build-time deaggregation), but the official nationwide
+// aggregate row still contains the airport volumes, so excluded airports are
+// also subtracted from it, per month/type/status, to match the visible bureaus.
 
 import { STATUS_CODES } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
