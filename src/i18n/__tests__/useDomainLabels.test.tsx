@@ -1,7 +1,6 @@
-// src/i18n/__tests__/useDomainLabels.test.tsx
-// The domain constants carry codes only, so a missing catalogue key would show
-// up as the raw code ('101460' instead of 'Osaka') rather than as a crash.
-// These assert the join actually resolves, in both locales.
+// The domain constants carry codes only, so a missing catalogue key shows up as
+// the raw code ('101460' instead of 'Osaka') rather than as a crash. These
+// assert the join resolves, in both locales.
 import { describe, expect, it } from 'vitest';
 
 import { bureauOptions } from '../../constants/bureauOptions';
@@ -61,8 +60,8 @@ describe('domain label hooks', () => {
 
   it('falls back to English rather than a raw code for untranslated keys', () => {
     renderProbe('ja');
-    // ja.ts covers only a handful of keys so far; the rest must fall through to
-    // English, never to the bare identifier.
+    // Any key ja.ts lacks must fall through to English, never to the bare
+    // identifier.
     expect(screen.getByTestId('unresolved').textContent).toBe('');
   });
 });

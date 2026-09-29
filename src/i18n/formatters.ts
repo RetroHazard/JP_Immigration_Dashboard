@@ -1,11 +1,7 @@
-// src/i18n/formatters.ts
 // Locale-bound number and date formatting. Everything the UI formats goes
 // through here so a locale switch reaches the axis ticks and tooltips as well
-// as the prose — previously every call site hardcoded 'en-US' or relied on the
-// browser locale, which disagreed with the rest of the page. The one
-// deliberate exception is the CSV export, which writes bare unformatted
-// numbers on purpose so a spreadsheet still parses the column
-// (utils/chartTableCsv.ts).
+// as the prose. The exception is the CSV export, which writes bare numbers so
+// a spreadsheet still parses the column (utils/chartTableCsv.ts).
 export interface Formatters {
   /** Grouped integer, e.g. "12,345". */
   number: (value: number) => string;
@@ -30,10 +26,9 @@ export interface Formatters {
 const cache = new Map<string, Formatters>();
 
 /**
- * Scale + suffix used only when the ICU compact formatter fails to abbreviate
- * at all (see `compactNumber` below) — deliberately plain ASCII, since this
- * path only runs when the locale's own abbreviation is unavailable. Mirrors
- * the identical guard in bklit/charts/chart-formatters.ts.
+ * Scale and plain-ASCII suffix for when ICU's compact formatter fails to
+ * abbreviate (see `compactNumber`). Mirrors the guard in
+ * bklit/charts/chart-formatters.ts.
  */
 const FALLBACK_ABBREVIATIONS: readonly [threshold: number, suffix: string][] = [
   [1_000_000_000, 'B'],
@@ -84,12 +79,9 @@ const build = (intlTag: string): Formatters => {
     return `${mantissa}${suffix}`;
   };
 
-  // Some ICU builds (observed: it-IT on an older bundled Chromium) silently
-  // fail to abbreviate values in the low hundred-thousands even with
-  // notation:'compact', returning the exact same string as fully-grouped
-  // standard notation. When that happens, fall back to a hand-scaled form
-  // rather than trust the broken ICU output for that value — locales whose
-  // compact notation works correctly (the common case) are unaffected.
+  // Some ICU builds (it-IT on an older bundled Chromium) leave values in the
+  // low hundred-thousands unabbreviated under notation:'compact', identical to
+  // standard notation. Hand-scale those; working locales are unaffected.
   const compactNumber = (value: number): string => {
     const primary = compact.format(value);
     if (Math.abs(value) >= 100_000 && primary === standard.format(value)) {

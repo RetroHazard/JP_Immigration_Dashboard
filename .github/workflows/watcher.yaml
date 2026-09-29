@@ -8,33 +8,27 @@ on:
     - cron: '5 1 * * *'
 
 # Not cancel-in-progress: this workflow's deploy job publishes to Pages, and
-# cancelling the run mid-publish would interrupt it. A daily cron never needs
-# pre-emption anyway.
+# cancelling the run mid-publish would interrupt it.
 concurrency:
   group: watcher
   cancel-in-progress: false
 
-# Least privilege by job rather than workflow-wide. A called workflow can never
-# hold more permissions than its caller, but the ceiling is the *calling job's*
-# permissions, so pages/id-token belong on the deploy job below rather than here.
+# Least privilege by job. A called workflow's ceiling is the calling job's
+# permissions, so pages/id-token go on the deploy job below, not here.
 permissions:
   contents: read
 
 jobs:
-  # What e-Stat publishes is read by scripts/estat-watch.mjs, which probes each
-  # dataset in scripts/datasets.mjs, compares against the baseline restored from
-  # the cache, and downloads the payloads only when something actually moved.
-  # Nothing here names a dataset: adding one is a manifest edit, not a YAML edit.
+  # scripts/estat-watch.mjs probes each dataset, compares against the cached
+  # baseline, and downloads only when something moved. Nothing here names a
+  # dataset: adding one is a scripts/datasets.mjs edit.
   check-updates:
     runs-on: ubuntu-latest
     # Above the fetch's worst-case retry budget (4 attempts x 300s, per page),
-    # so the job timeout stays an outer backstop rather than cutting a legitimate
-    # retry short. Only reachable on a day when data actually moved; a probe-only
-    # run finishes in seconds.
+    # so the job timeout is only an outer backstop. A probe-only run finishes in
+    # seconds.
     timeout-minutes: 20
 
-    # No `actions: write` here. Pruning needs it; probing a third-party API does
-    # not, so the two live in different jobs.
     permissions:
       contents: read
 
@@ -49,22 +43,16 @@ jobs:
         with:
           persist-credentials: false
 
-      # Node only — no `npm ci`. scripts/estat-watch.mjs and its imports are
-      # dependency-free, and this job never builds. The version still comes from
-      # .nvmrc rather than the runner image, so it cannot drift from the deploy's.
+      # Node only, no `npm ci`: scripts/estat-watch.mjs and its imports are
+      # dependency-free. The version still comes from .nvmrc to match the deploy.
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 
-      # The whole datastore directory is the unit of caching, rather than a list
-      # of files that has to be kept in sync with the manifest by hand. It holds
-      # every raw payload plus .estat-baseline.json, so the record of what was
-      # last published can never be restored without the data it describes.
-      #
-      # The primary key is deliberately unique so it always misses and falls
-      # through to the restore-key prefix, which resolves to the most recently
-      # saved entry.
+      # The whole datastore directory is one cache entry, so .estat-baseline.json
+      # is never restored without the payloads it describes. The primary key
+      # never matches, so the restore-key prefix resolves to the most recent entry.
       - name: Restore previous data
         uses: actions/cache/restore@v6
         with:
@@ -102,10 +90,8 @@ jobs:
 
     steps:
       # `actions/cache/save` warns rather than fails when the key already exists,
-      # so a green save step is not proof the entry was written. Deleting
-      # everything else on that assumption is how the last good entry gets
-      # removed, leaving nothing for the next deploy to restore. So the keep-key
-      # is confirmed to exist before anything is deleted.
+      # so a green save is no proof the entry was written. Confirm the keep-key
+      # exists before deleting anything, or the last good entry could go.
       - name: Prune superseded caches
         env:
           GH_TOKEN: ${{ github.token }}
@@ -141,10 +127,8 @@ jobs:
       id-token: write
     uses: ./.github/workflows/deploy.yaml
     with:
-      # Only the data moved. The commit being deployed is the one that already
-      # passed lint, typecheck and test on its way into main, and none of those
-      # three read data — re-running them here would verify nothing. The build
-      # still runs, which is what catches a payload that fails its completeness
-      # or reconciliation checks.
+      # Only the data moved: the commit already passed lint, typecheck and test,
+      # none of which read data. The build still runs and catches a payload that
+      # fails its completeness or reconciliation checks.
       skip-verify: true
     secrets: inherit

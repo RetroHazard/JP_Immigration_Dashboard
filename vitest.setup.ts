@@ -1,24 +1,21 @@
-// vitest.setup.ts — jsdom gaps the components rely on.
+// jsdom gaps the components rely on.
 import { afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
 // Testing Library only auto-registers its cleanup when Vitest globals are on,
-// and they aren't here — so without this, a file that renders in more than one
-// test accumulates DOM and every query fails with "multiple elements found".
+// and they aren't here. Without this, DOM accumulates across a file's tests and
+// queries fail with "multiple elements found".
 afterEach(cleanup);
 
 // --- matchMedia ---------------------------------------------------------
-// jsdom has no matchMedia at all. The previous stub returned a fresh object
-// with no-op listeners on every call, which is enough for a one-shot
-// `.matches` read but not for anything that subscribes: `useCoarsePointer`
-// uses `useSyncExternalStore`, so a stub that never calls its listener can
-// never report a change. This one keeps a real listener registry and lets a
+// jsdom has no matchMedia. This stub keeps a real listener registry, so a
+// subscriber such as `useCoarsePointer` (via `useSyncExternalStore`) sees a
 // test flip a query.
 const mediaOverrides = new Map<string, boolean>();
 const mediaListeners = new Map<string, Set<() => void>>();
 
-// Unchanged default, so no existing test shifts behaviour: reduced motion is
-// on, and every other query — including the coarse-pointer one — is off.
+// Reduced motion is on; every other query, including the coarse-pointer one,
+// is off.
 const defaultMatches = (query: string): boolean => query.includes('prefers-reduced-motion');
 
 /** Sets a query's result and notifies anything subscribed to it. */
@@ -51,10 +48,9 @@ afterEach(() => {
 });
 
 // --- ResizeObserver -----------------------------------------------------
-// jsdom doesn't implement it, and the charts size themselves from it. Without
-// a stub they measure 0 wide, which for the treemap means every tile renders
-// with `pointerEvents: 'none'` and no interaction test can click anything.
-// The reported box is arbitrary but has to be big enough to lay out.
+// jsdom doesn't implement it, and the charts size themselves from it. At 0 wide
+// the treemap renders every tile with `pointerEvents: 'none'`. The reported box
+// is arbitrary but big enough to lay out.
 const OBSERVED_WIDTH = 800;
 const OBSERVED_HEIGHT = 430;
 

@@ -1,7 +1,5 @@
-// src/i18n/__tests__/catalogue.test.ts
-// Integrity checks every locale file must pass. These are what make a
-// community-contributed language file safe to accept: a reviewer does not have
-// to diff the whole catalogue by eye to know it lines up with English.
+// Integrity checks every locale file must pass, so a reviewer can accept a
+// contributed language file without diffing it against English by eye.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -45,13 +43,9 @@ describe('English catalogue', () => {
 });
 
 /**
- * The keys a locale must define to call itself complete.
- *
- * Not simply "every English key": plural families are the exception. English
- * needs `_one` and `_other`, but Japanese has a single CLDR category, so
- * demanding a `period.months_one` from it would force a meaningless duplicate.
- * Each language owes only the members its own `Intl.PluralRules` can select,
- * plus `_other` as the universal fallback.
+ * The keys a locale must define to call itself complete: every English key,
+ * except that a plural family needs only the members the locale's own
+ * `Intl.PluralRules` can select, plus `_other` (so Japanese owes no `_one`).
  */
 const requiredKeysFor = (intlTag: string): string[] => {
   const categories = new Set<string>([...new Intl.PluralRules(intlTag).resolvedOptions().pluralCategories, 'other']);
@@ -63,9 +57,8 @@ const requiredKeysFor = (intlTag: string): string[] => {
 };
 
 describe.each(translatedLocales)('%s catalogue', (code) => {
-  // Read through LocaleMeta rather than off the `as const` registry: with one
-  // translated locale today, the literal types collapse to it and the
-  // completeness branch below would read as dead code.
+  // Typed as LocaleMeta rather than the `as const` registry entry, whose literal
+  // `status` type would make one branch below read as dead code.
   const meta: LocaleMeta = LOCALES[code];
   const dictionary = meta.dictionary as Record<string, string>;
   const entries = Object.entries(dictionary);
@@ -74,8 +67,7 @@ describe.each(translatedLocales)('%s catalogue', (code) => {
 
   if (meta.status === 'complete') {
     it('covers every English key', () => {
-      // English is the ground truth. A locale that claims completeness fails
-      // here the moment English gains a key it does not carry.
+      // Fails as soon as English gains a key this locale lacks.
       expect(missing).toEqual([]);
     });
   } else {
@@ -119,15 +111,12 @@ describe.each(translatedLocales)('%s catalogue', (code) => {
   });
 });
 
-// Coverage is only half of "translated". A key can be present and still be the
-// English string — copied across and never revisited — which the checks above
-// count as done. These two catch that, and they run per locale rather than for
-// `ja` specifically, so the next language inherits them.
+// Coverage counts a key copied from English as done. The checks below catch
+// values left at, or still written as, English.
 //
-// Values a complete locale is expected to leave in Latin script for every
-// locale, `ja` included: airport-style bureau/application codes, a version
-// number, and a value carrying nothing but an SI unit symbol. Anything else
-// still reading as English is an oversight, not a choice.
+// Values any locale may leave in Latin script, exempt from both checks:
+// airport-style bureau and application codes, a version number, and values
+// that are only an SI unit.
 const LATIN_BY_DESIGN = new Set<string>([
   'nav.version',
   'map.areaValue',
@@ -137,30 +126,19 @@ const LATIN_BY_DESIGN = new Set<string>([
 ]);
 
 /**
- * Bureau and prefecture names are Japanese proper nouns. Every Latin-script
- * locale romanizes them the same way — French, German, Spanish, Italian, and
- * Portuguese all render 北海道 as "Hokkaido" — so a value identical to English
- * here is the correct translation, not a leftover.
- *
- * Kept separate from `LATIN_BY_DESIGN`: a locale with its own script (`ja`)
- * has no such excuse, and is still held to translating these — which is what
- * actually happens (北海道, not "Hokkaido"). Applied only below, and only to
- * locales without a `SCRIPT_OF` entry.
+ * Bureau and prefecture names are Japanese proper nouns that every Latin-script
+ * locale romanizes as English does ("Hokkaido"), so matching English is correct.
+ * Separate from `LATIN_BY_DESIGN` because it applies only to locales without a
+ * `SCRIPT_OF` entry; a locale with its own script still owes them (北海道).
  */
 const isRomanizedProperNoun = (key: string): boolean =>
   key.startsWith('prefecture.') || /^bureau\.\d+(\.compact)?$/.test(key);
 
 /**
- * `<locale>:<key>` pairs whose correct translation genuinely is the English
- * string. Kept as an explicit list rather than a rule, because the whole point
- * of the check below is that "identical to English" is almost always an
- * oversight — each entry here has to be argued for individually.
- *
- * Only place names so far: Spanish spells the former Yugoslavia exactly as
- * English does, and several continents are spelled the English way across the
- * Romance languages and Tagalog — "Asia" is Spanish and Italian for Asia,
- * "Europe" is French for Europe, "Africa" is Italian and Tagalog for Africa,
- * and "Oceania" is Italian, Portuguese and Tagalog for Oceania.
+ * `<locale>:<key>` pairs whose correct translation is the English string. An
+ * explicit list rather than a rule, because "identical to English" is almost
+ * always an oversight. So far only place names spelled the English way:
+ * Yugoslavia in Spanish, and some continents in Romance languages and Tagalog.
  */
 const IDENTICAL_BY_DESIGN = new Set<string>([
   'es:nationality.2500',
@@ -177,7 +155,7 @@ const IDENTICAL_BY_DESIGN = new Set<string>([
 /** Strips placeholders, digits, and punctuation — what's left is prose, if any. */
 const proseOf = (value: string): string => value.replace(PLACEHOLDER, '').replace(/[\s\d\p{P}\p{S}]/gu, '');
 
-/** Kana and kanji — the scripts a Japanese value has to be written in. */
+/** The script a locale's prose must be written in. Latin-script locales opt out. */
 const SCRIPT_OF = {
   ja: /[぀-ヿ㐀-䶿一-鿿]/,
   ko: /[가-힣ᄀ-ᇿ㄰-㆏]/,
@@ -189,10 +167,8 @@ describe.each(translatedLocales)('%s catalogue, beyond coverage', (code) => {
   const meta: LocaleMeta = LOCALES[code];
   const dictionary = meta.dictionary as Record<string, string>;
   const script = SCRIPT_OF[code as keyof typeof SCRIPT_OF];
-  // Only a key the locale actually claims: an in-progress file is expected to
-  // be missing keys, but the ones it does define should be real translations.
-  // Deliberately not filtered by `isRomanizedProperNoun` — the script check
-  // below still needs these keys for `ja`.
+  // Only keys the locale defines. Not filtered by `isRomanizedProperNoun`: the
+  // script check below still applies to them.
   const translatable = Object.keys(dictionary).filter(
     (key) => !LATIN_BY_DESIGN.has(key) && proseOf(dictionary[key]) !== ''
   );
@@ -209,10 +185,8 @@ describe.each(translatedLocales)('%s catalogue, beyond coverage', (code) => {
 
   if (script) {
     it("writes every prose value in the language's own script", () => {
-      // Catches what the equality check above misses: a value edited just
-      // enough to differ from English while still being English. Not
-      // exempted for romanized proper nouns — a script-bearing locale still
-      // owes these a translation into its own script.
+      // Catches a value edited just enough to differ from English while still
+      // being English.
       expect(translatable.filter((key) => !script.test(dictionary[key]))).toEqual([]);
     });
   }
@@ -241,8 +215,8 @@ describe('contributor template', () => {
   const template = readFileSync(resolve(process.cwd(), TEMPLATE_RELATIVE), 'utf8');
 
   it('matches the English catalogue it is generated from', () => {
-    // Regenerating is one command; a stale template silently hands the next
-    // translator a key list that no longer matches the app.
+    // A stale template hands the next translator a key list that no longer
+    // matches the app.
     expect(template).toBe(buildTemplate(readFileSync(resolve(process.cwd(), EN_RELATIVE), 'utf8')));
   });
 

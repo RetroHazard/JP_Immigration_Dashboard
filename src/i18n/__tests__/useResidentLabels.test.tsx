@@ -1,11 +1,7 @@
-// src/i18n/__tests__/useResidentLabels.test.tsx
-// Nationality and continent names are resolved from ICU before the catalogue,
-// so what needs asserting here is different from the other domain hooks: that
-// the ISO/M49 codes actually resolve, that the rows with no such identity fall
-// through to their catalogue entry, and that neither path ever leaks a bare
-// code into the UI. The continents need covering on both paths — ICU names
-// them under vitest but not in every browser, so only the fallback is load-
-// bearing in Chrome.
+// Nationality and continent names try ICU before the catalogue, so these check
+// that the ISO/M49 codes resolve, that rows with no such identity fall through
+// to the catalogue, and that neither path leaks a bare code. Continents are
+// covered on both paths: ICU names them under vitest but not in Chrome.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { nationalities } from '../../constants/nationalities';
@@ -79,8 +75,8 @@ describe('resident label hooks', () => {
 
   it('falls back to the catalogue for rows with no ISO identity', () => {
     renderProbe('en');
-    // 朝鮮 is a registration category, not the DPRK, so it deliberately has no
-    // ISO code and must not be resolved to one.
+    // 朝鮮 is a registration category, not the DPRK, so it has no ISO code and
+    // must not be resolved to one.
     expect(screen.getByTestId('chosen').textContent).toBe('Korea (Chosen)');
     expect(screen.getByTestId('stateless').textContent).toBe('Stateless');
   });
@@ -109,10 +105,9 @@ describe('resident label hooks', () => {
   });
 
   it('names the continents on an engine with no M49 display names', () => {
-    // The regression behind the `region.1000` labels: Chrome and Edge ship
-    // Intl.DisplayNames but no macro-region data, so `.of('142')` returns
-    // '142' rather than throwing. Node and Firefox resolve it, which is why
-    // the assertions above pass under vitest while the browser showed keys.
+    // Chrome and Edge ship Intl.DisplayNames without macro-region data, so
+    // `.of('142')` returns '142' rather than throwing. Node resolves it, so the
+    // tests above never reach the catalogue fallback.
     vi.spyOn(Intl, 'DisplayNames').mockImplementation(
       () => ({ of: (code: string) => code }) as unknown as Intl.DisplayNames
     );

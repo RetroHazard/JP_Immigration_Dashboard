@@ -3,21 +3,15 @@
  * Downloads and validates e-Stat statistics payloads.
  *
  * `getStatsData` caps a response at 100,000 rows and reports the continuation
- * offset as RESULT_INF.NEXT_KEY. A short read comes back as HTTP 200 with valid
- * JSON and complete metadata — nothing about it looks wrong until a chart is
- * quietly missing half its data. So this pages until NEXT_KEY is gone, merges,
- * and asserts the merged row count against TOTAL_NUMBER before writing.
+ * offset as RESULT_INF.NEXT_KEY. A short read is a valid-looking HTTP 200, so
+ * this pages until NEXT_KEY is gone, merges, and asserts the merged row count
+ * against TOTAL_NUMBER before writing.
  *
- * It also exposes the cheap half of the same API: `probeDataset` asks for a
- * single row with no class metadata, which returns the table's SURVEY_DATE in a
- * couple of kilobytes. That is the entire signal the watcher needs, so the
- * watcher no longer downloads two full tables a day to read one date field.
+ * `probeDataset` reads just a table's SURVEY_DATE, the watcher's change signal,
+ * in a few kilobytes.
  *
- * This lives here rather than in a workflow's shell so that CI and a developer
- * run the same code. Hand-rolling the paging locally is how a truncated payload
- * got into a working tree in the first place.
- *
- * Dependency-free on purpose: the watcher's check-updates job has no `npm ci`.
+ * CI and local runs share this code so both page the same way. No npm
+ * dependencies: the watcher's check-updates job has no `npm ci`.
  *
  * Usage (locally):
  *   ESTAT_APP_ID=<app id> node scripts/fetch-estat-data.mjs --all
@@ -37,7 +31,6 @@ const ENDPOINT = 'https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData';
 
 /** Above any real table: 20 pages is 2,000,000 rows. A loop that reaches it has a bug. */
 const MAX_PAGES = 20;
-/** Mirrors the curl budget this replaced: --max-time 300, --retry 3 --retry-delay 15. */
 const REQUEST_TIMEOUT_MS = 300_000;
 const MAX_ATTEMPTS = 4;
 const RETRY_DELAY_MS = 15_000;
@@ -76,7 +69,7 @@ export const requireAppId = (env = process.env) => {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * One request, with the retry behaviour the curl flags used to provide.
+ * One request, with retries.
  *
  * Rejects rather than exiting: `probeDataset` needs to name which table failed,
  * and the watcher needs to write a run summary before the process dies.
@@ -113,10 +106,7 @@ const describeEnvelope = (body) => JSON.stringify(body?.GET_STATS_DATA?.RESULT ?
 /**
  * Page 1 carries the metadata (TABLE_INF, CLASS_INF); later pages contribute
  * only rows. NEXT_KEY is dropped and TO_NUMBER corrected so the merged file
- * cannot be mistaken for, or misreport itself as, a partial one.
- *
- * Exported for tests — this is the part with logic worth pinning down, and it
- * needs no network.
+ * cannot be mistaken for, or misreport itself as, a partial one. Exported for tests.
  */
 export const mergePages = (pages) => {
   const merged = structuredClone(pages[0]);
@@ -144,18 +134,13 @@ const assertComplete = (payload, label) => {
 };
 
 /**
- * Reads a table's SURVEY_DATE without downloading the table.
+ * Reads a table's SURVEY_DATE without downloading the table: `limit=1` bounds
+ * the response to one row and `metaGetFlg=N` drops CLASS_INF, but TABLE_INF
+ * still comes back.
  *
- * `limit=1` bounds the response to a single row and `metaGetFlg=N` drops
- * CLASS_INF, but TABLE_INF still comes back — so this is the same envelope and
- * the same field the full payload carries, at a few kilobytes instead of tens of
- * megabytes.
- *
- * SURVEY_DATE is the entire change signal, so a missing or null one throws
- * rather than being reported as a value. If e-Stat ever moved or renamed the
- * field, a null-tolerant read would compare equal to the previous null and the
- * watcher would report "no change" every day, forever, with a green check and no
- * deploy. Failing loudly is the only acceptable outcome.
+ * A missing or null SURVEY_DATE throws. If e-Stat renamed the field, a
+ * null-tolerant read would compare equal to the previous null and the watcher
+ * would report "no change" forever.
  */
 export const probeDataset = async ({ appId, statsDataId, label = statsDataId }) => {
   const body = await request(
@@ -258,9 +243,8 @@ const main = async () => {
   await ensureDatasets({ appId, datasets, force: flags.force === true });
 };
 
-// Skip the download when imported by a test; only a direct run should fetch.
-// Errors are funnelled through `fail` so a bad dataset id or an exhausted retry
-// budget reads as one annotated line rather than a stack trace.
+// Run only when executed directly, not when imported by a test. Errors go
+// through `fail` so they read as one annotated line rather than a stack trace.
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
   await main().catch((error) => fail(error instanceof Error ? error.message : String(error)));
 }

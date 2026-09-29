@@ -1,18 +1,13 @@
 name: Verify
 
-# The quality gate, both as a pull request's own check and as the step
-# deploy.yaml runs before it publishes — so the same checks guard both paths.
+# The quality gate for pull requests, and the check deploy.yaml runs before it
+# publishes. Pull requests only, never `push`: a push trigger would duplicate the
+# run for every push to a branch with an open PR, and deploy.yaml verifies main.
 #
-# Pull requests only, never `push`: a push trigger would fire a second, identical
-# run for every push to a branch that has a PR open. Pushes to main are verified
-# by deploy.yaml, which calls this workflow.
-# Both inputs are phrased as skip- with a default of false, and read with `!`.
-# The `inputs` context is null on a `pull_request` — a workflow_call default does
-# not apply to an event that is not a workflow_call — and GitHub's loose equality
-# casts both null and false to 0, so `inputs.run-build` and
-# `inputs.run-build != false` are each false on a pull request. Either phrasing
-# would quietly drop these two steps from the one run that most needs them.
-# `!null` is simply true, with no cross-type cast in play.
+# Inputs are phrased skip- with default false and read with `!`: `inputs` is null
+# on a `pull_request` (workflow_call defaults don't apply), and GitHub's loose
+# equality casts null and false to 0, so a run- input would drop these steps
+# from PR runs. `!null` is simply true.
 on:
   pull_request:
   workflow_call:
@@ -37,10 +32,9 @@ on:
 permissions:
   contents: read
 
-# On a pull request, supersede the previous run for that PR. On a workflow_call
-# the PR number is empty and the group falls back to the run id, which is unique
-# — so a deploy's verify gets its own group and can never be cancelled by
-# unrelated pull request activity.
+# On a pull request, supersede the PR's previous run. On a workflow_call the
+# group falls back to the unique run id, so PR activity never cancels a deploy's
+# verify.
 concurrency:
   group: verify-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -59,12 +53,10 @@ jobs:
         uses: ./.github/actions/setup
 
       # npm recomputes the lockfile's dev flags on every `npm install`, undoing
-      # the 64 that lockfile-shaker sets. The postinstall hook re-applies them,
-      # but anything that bypasses lifecycle scripts — `npm install
-      # --ignore-scripts`, or Dependabot regenerating the lockfile — silently
-      # reverts it. The shaker is idempotent and runs in ~0.3s against the
-      # already-installed node_modules, so re-running it and diffing catches
-      # that without paying for a second install.
+      # lockfile-shaker's. The postinstall hook re-applies them, but anything
+      # that skips lifecycle scripts (`--ignore-scripts`, Dependabot) reverts
+      # them silently. The shaker is idempotent and fast against the installed
+      # node_modules, so re-running it and diffing catches that.
       - name: Check lockfile is shaken
         if: ${{ !inputs.skip-lockfile-check }}
         run: |

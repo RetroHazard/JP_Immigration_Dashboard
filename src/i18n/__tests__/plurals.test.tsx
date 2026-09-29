@@ -1,7 +1,5 @@
-// src/i18n/__tests__/plurals.test.tsx
-// The plural families that replaced hand-rolled `day${n === 1 ? '' : 's'}`
-// suffixes, exercised through the provider so the Intl.PluralRules wiring is
-// covered rather than just the pure function.
+// Plural families exercised through the provider, so the Intl.PluralRules
+// wiring is covered rather than just the pure function.
 import { describe, expect, it } from 'vitest';
 
 import { renderWithProviders, screen } from '../../test-utils';

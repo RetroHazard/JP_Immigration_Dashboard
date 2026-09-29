@@ -1,7 +1,5 @@
-// src/i18n/LocaleContext.tsx
-// Lightweight locale runtime — no routing framework, which is what the static
-// export (`output: 'export'`) allows: there is no server to negotiate a locale
-// and no middleware to redirect, so detection and switching are client-side.
+// Client-side locale runtime: the static export (`output: 'export'`) has no
+// server to negotiate a locale and no middleware to redirect.
 //
 // Detection order is `?lang=` → localStorage → browser language → English,
 // with the browser step gated behind LOCALE_SWITCHER_ENABLED (see config.ts).
@@ -45,11 +43,8 @@ const readStoredLocale = (): Locale | null => {
 /** Registry codes by lowercased tag, so `zh-cn` and `zh-CN` both resolve. */
 const CANONICAL_BY_TAG = new Map<string, Locale>(LOCALE_CODES.map((code) => [code.toLowerCase(), code]));
 
-// Each browser tag tries its exact form before its base language, in the
-// user's preference order. Truncating every tag to the base first meant a
-// region-keyed catalogue could never be detected: `zh-CN` became `zh`, which
-// is no registry code, so a Chinese browser got English despite a complete
-// zh-CN catalogue — and the CN/TW distinction went with it.
+// Each browser tag, in preference order, tries its exact form before its base
+// language; truncating first would never match a region-keyed code like `zh-CN`.
 const readBrowserLocale = (): Locale | null => {
   for (const tag of navigator.languages ?? []) {
     const lower = tag.toLowerCase();
@@ -91,10 +86,9 @@ export const LocaleProvider = ({ children }: { children: ReactNode }) => {
   const value = useMemo<LocaleContextValue>(() => {
     const { dictionary, intlTag } = LOCALES[locale];
     const pluralRules = new Intl.PluralRules(intlTag);
-    // The vendored chart library reads its Intl formatters from module state
-    // rather than through props, so point them at this locale before any
-    // chart renders — otherwise the first paint after a switch keeps the old
-    // axis ticks and tooltip dates.
+    // The vendored charts read their Intl formatters from module state, so
+    // retarget them before any chart renders or the first paint after a switch
+    // keeps the old locale's axis ticks and tooltip dates.
     setChartFormatterLocale(intlTag);
     return {
       locale,
