@@ -35,6 +35,7 @@ import { SeriesBar } from '../bklit/charts/series-bar';
 import { ChartTooltip } from '../bklit/charts/tooltip';
 import { XAxis } from '../bklit/charts/x-axis';
 import { YAxis } from '../bklit/charts/y-axis';
+import { niceYDomain } from '../bklit/charts/y-domain-utils';
 import type { ImmigrationChartData } from '../common/ChartComponents';
 import { PolicyEventList, usePolicyMarkers } from '../common/PolicyEventList';
 import { SeriesLegend } from '../common/SeriesLegend';
@@ -100,13 +101,28 @@ export const buildIntakeRows = (
   });
 };
 
+/**
+ * The tallest thing on the count axis: a stacked bar (carried over + received)
+ * or the processed line, whichever is higher in any month. Compare mode shares
+ * the greater of the two bureaus' values so both panes draw to one scale.
+ */
+export const intakeAxisMax = (
+  data: ImmigrationChartData['data'],
+  filters: ImmigrationChartData['filters'],
+  range: ImmigrationChartData['range']
+): number =>
+  buildIntakeRows(data, filters, range).reduce(
+    (max, row) => Math.max(max, Number(row.pending) + Number(row.received), Number(row.processed)),
+    0
+  );
+
 /** Marker details shown inside the shared crosshair tooltip. */
 const TooltipMarkers: React.FC<{ markers: ChartMarker[] }> = ({ markers }) => {
   const active = useActiveMarkers(markers);
   return active.length > 0 ? <MarkerTooltipContent markers={active} /> : null;
 };
 
-export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, range }) => {
+export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data, filters, range, yMax, hidePolicyList }) => {
   const { t, formatters } = useLocale();
   const { bureau, type } = filters;
   const series = useMemo(() => SERIES.map((entry) => ({ ...entry, label: t(entry.labelKey) })), [t]);
@@ -123,6 +139,14 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
   const rateAxisMargin = useMemo(
     () => Math.max(40, Math.ceil(measureLabelWidth(formatters.percent(100, 0))) + 16),
     [formatters]
+  );
+
+  // The rate axis is always pinned; a shared max additionally pins the count
+  // axis. Rounded up with the same `nice` step the chart would apply itself, so
+  // the ticks read the same as an unshared axis.
+  const yAxisDomains = useMemo<Record<string, [number, number]>>(
+    () => (yMax && yMax > 0 ? { ...RATE_AXIS_DOMAIN, left: niceYDomain([0, yMax]) } : RATE_AXIS_DOMAIN),
+    [yMax]
   );
 
   const { visible: events, markers } = usePolicyMarkers(POLICY_EVENTS, months);
@@ -142,7 +166,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           maxBarSize={30}
           aspectRatio="16 / 8"
           margin={{ right: rateAxisMargin }}
-          yAxisDomains={RATE_AXIS_DOMAIN}
+          yAxisDomains={yAxisDomains}
           // Monthly points are all on the 1st — the default month+day labels
           // drop the year, which is ambiguous across multi-year ranges.
           formatDateLabel={(date) => formatters.monthYear(date)}
@@ -195,7 +219,7 @@ export const IntakeProcessingBarChart: React.FC<ImmigrationChartData> = ({ data,
           </ChartTooltip>
         </ComposedChart>
       </div>
-      <PolicyEventList events={events} />
+      {!hidePolicyList && <PolicyEventList events={events} />}
     </div>
   );
 };

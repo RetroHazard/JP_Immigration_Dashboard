@@ -64,6 +64,12 @@ export interface LineChartProps {
   onPhaseChange?: (phase: ChartPhase) => void;
   /** LOCAL MODIFICATION: x tick/ticker label format override — see time-series-chart-shell.tsx. */
   formatDateLabel?: (date: Date) => string;
+  /**
+   * LOCAL MODIFICATION: axes held at a fixed domain, keyed by `yAxisId` — see
+   * composed-chart.tsx. Lets two charts share one scale. (Re-apply after a
+   * re-vendor.)
+   */
+  yAxisDomains?: Record<string, [number, number]>;
   /** Child components (Line, Grid, ChartTooltip, etc.) */
   children: ReactNode;
 }
@@ -158,6 +164,7 @@ interface ChartInnerProps {
   xDomainSlotCount?: number;
   tweenYDomainOnXDomainChange?: boolean;
   formatDateLabel?: (date: Date) => string;
+  yAxisDomains?: Record<string, [number, number]>;
   children: ReactNode;
   containerRef: React.RefObject<HTMLDivElement | null>;
   onPhaseChange: (phase: ChartPhase) => void;
@@ -181,6 +188,7 @@ function ChartInner({
   xDomainSlotCount,
   tweenYDomainOnXDomainChange,
   formatDateLabel,
+  yAxisDomains,
   children,
   containerRef,
   onPhaseChange,
@@ -208,6 +216,7 @@ function ChartInner({
       xDataKey={xDataKey}
       xDomain={xDomain}
       xDomainSlotCount={xDomainSlotCount}
+      yAxisDomains={yAxisDomains}
       yDomainTween={yDomainTween}
       yDomainTweenDuration={yDomainTweenDuration}
     >
@@ -236,6 +245,7 @@ export function LineChart({
   style,
   onPhaseChange,
   formatDateLabel,
+  yAxisDomains,
   children,
 }: LineChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -294,6 +304,7 @@ export function LineChart({
             xDataKey={xDataKey}
             xDomain={xDomain}
             xDomainSlotCount={xDomainSlotCount}
+            yAxisDomains={yAxisDomains}
             yDomainTween={yDomainTween}
             yDomainTweenDuration={yDomainTweenDuration}
           >
