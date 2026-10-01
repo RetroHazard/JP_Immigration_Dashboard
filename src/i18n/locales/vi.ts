@@ -304,6 +304,8 @@ export const vi: Dictionary = {
   'policy.residenceCard2026.description': 'Thẻ cư trú tích hợp My Number đã được đưa vào sử dụng.',
   'policy.act2026.title': 'Nâng trần lệ phí theo luật',
   'policy.act2026.description': 'Lần sửa đổi năm 2026 đã nâng trần pháp định của lệ phí cư trú.',
+  'policy.feeRevision2026.title': 'Tăng lệ phí hồ sơ lần nữa',
+  'policy.feeRevision2026.description': 'Gia hạn tính theo thời hạn, tối đa 75.000 yên; vĩnh trú tăng lên 200.000 yên.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

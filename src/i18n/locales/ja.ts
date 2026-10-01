@@ -291,6 +291,8 @@ export const ja: Dictionary = {
   'policy.residenceCard2026.description': '在留カードとマイナンバーカードの一体化が始まりました。',
   'policy.act2026.title': '手数料の上限額を引上げ',
   'policy.act2026.description': '令和8年改正入管法が在留許可手数料の上限額を引き上げました。',
+  'policy.feeRevision2026.title': '在留手続の手数料を再改定',
+  'policy.feeRevision2026.description': '在留期間更新は期間別に最大75,000円、永住許可は200,000円に引き上げられました。',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

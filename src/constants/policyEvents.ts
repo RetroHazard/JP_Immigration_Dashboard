@@ -170,6 +170,16 @@ export const POLICY_EVENTS = [
     descriptionKey: 'policy.act2026.description',
     href: 'https://www.moj.go.jp/isa/01_00643.html',
   },
+  {
+    // Effective 2026-10-01: extension and change of status 6,000 yen → tiered by granted
+    // period, up to 75,000; permanent residence 10,000 → 200,000 yen. Sets the amounts
+    // under the ceiling the entry above raised.
+    period: '2026-10',
+    category: 'fees',
+    titleKey: 'policy.feeRevision2026.title',
+    descriptionKey: 'policy.feeRevision2026.description',
+    href: 'https://www.moj.go.jp/isa/content/001469200.pdf',
+  },
 ] as const satisfies readonly PolicyEvent[];
 
 /**

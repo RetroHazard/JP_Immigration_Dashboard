@@ -313,6 +313,9 @@ export const pt: Dictionary = {
   'policy.residenceCard2026.description': 'Entraram em serviço os cartões combinados de residência e My Number.',
   'policy.act2026.title': 'Limite legal das taxas aumentado',
   'policy.act2026.description': 'A revisão de 2026 aumentou o limite legal das taxas de residência.',
+  'policy.feeRevision2026.title': 'Nova subida das taxas de pedido',
+  'policy.feeRevision2026.description':
+    'As prorrogações passam a escalões até 75.000 ienes e a residência permanente a 200.000.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the
