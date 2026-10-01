@@ -1,0 +1,41 @@
+# Version updates run monthly, grouped so each ecosystem opens at most two pull
+# requests a run: one for every minor and patch bump, one for every major. Majors
+# are kept apart because they are the ones that need reading before merging.
+#
+# Security updates are switched on in the repository settings, not here, and open
+# as soon as an advisory lands whatever the schedule. The security-updates groups
+# only batch them along the same minor/patch vs major line.
+#
+# Dependabot installs without lifecycle scripts, so npm PRs arrive with the
+# lockfile unshaken and verify.yaml fails them. Run `npm install` on the branch
+# and commit package-lock.json (DEVELOPMENT.md, "Lockfile dev flags").
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      npm-minor-patch:
+        update-types: [minor, patch]
+      npm-major:
+        update-types: [major]
+      npm-security-minor-patch:
+        applies-to: security-updates
+        update-types: [minor, patch]
+      npm-security-major:
+        applies-to: security-updates
+        update-types: [major]
+
+  # `/` covers .github/workflows; composite actions are found by their own directory.
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /.github/actions/*
+    schedule:
+      interval: monthly
+    groups:
+      actions-minor-patch:
+        update-types: [minor, patch]
+      actions-major:
+        update-types: [major]
