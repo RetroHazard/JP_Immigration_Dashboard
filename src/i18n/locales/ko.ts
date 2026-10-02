@@ -300,6 +300,8 @@ export const ko: Dictionary = {
   'policy.residenceCard2026.description': '체류카드와 마이넘버카드의 일체화가 시작되었습니다.',
   'policy.act2026.title': '수수료 상한액 인상',
   'policy.act2026.description': '2026년 개정법이 체류허가 수수료의 법정 상한을 올렸습니다.',
+  'policy.feeRevision2026.title': '체류 절차 수수료 재인상',
+  'policy.feeRevision2026.description': '체류기간 갱신은 기간별로 최대 75,000엔, 영주허가는 200,000엔으로 올랐습니다.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

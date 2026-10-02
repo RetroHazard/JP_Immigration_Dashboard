@@ -294,6 +294,8 @@ export const zhTw: Dictionary = {
   'policy.residenceCard2026.description': '在留卡與個人編號卡完成一體化。',
   'policy.act2026.title': '法定手續費上限提高',
   'policy.act2026.description': '2026年修訂法提高了在留許可手續費的法定上限。',
+  'policy.feeRevision2026.title': '在留手續費再次調漲',
+  'policy.feeRevision2026.description': '在留期間更新依期間分級，最高75,000日圓；永住許可調至200,000日圓。',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

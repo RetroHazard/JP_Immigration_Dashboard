@@ -336,6 +336,9 @@ export const template: Dictionary = {
   // 'policy.residenceCard2026.description': 'Combined residence and My Number cards entered service.',
   // 'policy.act2026.title': 'Fee ceiling raised by law',
   // 'policy.act2026.description': 'The 2026 revision lifted the statutory cap on residence permit fees.',
+  // 'policy.feeRevision2026.title': 'Residence fees raised again',
+  // 'policy.feeRevision2026.description':
+  //   'Extensions now tiered by period up to 75,000 yen; permanent residence rose to 200,000 yen.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names, separate from the shorter

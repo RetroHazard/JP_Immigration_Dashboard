@@ -310,6 +310,9 @@ export const es: Dictionary = {
   'policy.residenceCard2026.description': 'Entraron en servicio las tarjetas combinadas de residencia y My Number.',
   'policy.act2026.title': 'Tope legal de tasas elevado',
   'policy.act2026.description': 'La reforma de 2026 elevó el tope legal de las tasas de residencia.',
+  'policy.feeRevision2026.title': 'Nueva subida de las tasas',
+  'policy.feeRevision2026.description':
+    'Las prórrogas se escalonan hasta 75.000 yenes y la residencia permanente sube a 200.000.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

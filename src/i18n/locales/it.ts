@@ -310,6 +310,9 @@ export const it: Dictionary = {
   'policy.residenceCard2026.description': 'Sono entrate in servizio le carte combinate di soggiorno e My Number.',
   'policy.act2026.title': 'Alzato il tetto legale delle tasse',
   'policy.act2026.description': 'La riforma del 2026 ha alzato il tetto legale delle tasse di soggiorno.',
+  'policy.feeRevision2026.title': 'Nuovo aumento delle tasse di domanda',
+  'policy.feeRevision2026.description':
+    'I rinnovi sono scaglionati fino a 75.000 yen e il soggiorno permanente sale a 200.000.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

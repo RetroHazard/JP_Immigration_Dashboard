@@ -317,6 +317,9 @@ export const tl: Dictionary = {
   'policy.residenceCard2026.description': 'Nagsimula na ang pinagsamang residence at My Number card.',
   'policy.act2026.title': 'Itinaas ang legal na limitasyon ng bayad',
   'policy.act2026.description': 'Itinaas ng rebisyon noong 2026 ang legal na limitasyon ng mga bayarin.',
+  'policy.feeRevision2026.title': 'Muling itinaas ang bayad sa aplikasyon',
+  'policy.feeRevision2026.description':
+    'Hanggang 75,000 yen na ang extension ayon sa tagal, at 200,000 yen ang permanenteng paninirahan.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the
