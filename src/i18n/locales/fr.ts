@@ -316,6 +316,9 @@ export const fr: Dictionary = {
   'policy.residenceCard2026.description': 'Les cartes combinant séjour et My Number sont entrées en service.',
   'policy.act2026.title': 'Plafond légal des frais relevé',
   'policy.act2026.description': 'La révision de 2026 a relevé le plafond légal des frais de séjour.',
+  'policy.feeRevision2026.title': 'Nouvelle hausse des frais de dossier',
+  'policy.feeRevision2026.description':
+    'Renouvellements échelonnés selon la durée, jusqu’à 75 000 yens ; résidence permanente à 200 000.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

@@ -283,6 +283,8 @@ export const zhCn: Dictionary = {
   'policy.residenceCard2026.description': '在留卡与个人编号卡实现一体化。',
   'policy.act2026.title': '法定手续费上限提高',
   'policy.act2026.description': '2026年修订法提高了在留许可手续费的法定上限。',
+  'policy.feeRevision2026.title': '在留手续费再次上调',
+  'policy.feeRevision2026.description': '在留期间更新按期间分档，最高75,000日元；永住许可升至200,000日元。',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

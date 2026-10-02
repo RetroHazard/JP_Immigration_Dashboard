@@ -308,6 +308,9 @@ export const de: Dictionary = {
   'policy.residenceCard2026.description': 'Kombinierte Aufenthalts- und My-Number-Karten sind im Einsatz.',
   'policy.act2026.title': 'Gebührenobergrenze gesetzlich angehoben',
   'policy.act2026.description': 'Die Novelle von 2026 hob die gesetzliche Obergrenze für Gebühren an.',
+  'policy.feeRevision2026.title': 'Antragsgebühren erneut erhöht',
+  'policy.feeRevision2026.description':
+    'Verlängerungen nach Dauer gestaffelt bis 75.000 Yen, die Niederlassung 200.000 Yen.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the
