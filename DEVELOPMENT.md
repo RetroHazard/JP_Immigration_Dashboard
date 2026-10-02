@@ -662,6 +662,12 @@ Pinned packages:
 
 `react`, `react-dom`, and `typescript` currently use `^` ranges rather than exact pins. Unpinned packages allow patch and minor updates for utilities and non-critical dependencies.
 
+#### Automated Updates
+
+Dependabot (`.github/dependabot.yml`) checks npm packages and GitHub Actions on the first of each month. Each run opens at most two pull requests per ecosystem: one for all minor and patch bumps, one for all majors. Pinned packages are bumped like any other, so a `next` patch rides in the minor/patch PR.
+
+Security updates are enabled in the repository settings and open as soon as an advisory is published, whatever the schedule; they are grouped along the same minor/patch vs major line. An npm PR from either needs its lockfile re-shaken before `verify.yaml` will pass (see [Lockfile dev flags](#lockfile-dev-flags)).
+
 #### Security Audits
 
 There is no automated `npm audit` gate in CI today — `verify.yaml` runs lint, typecheck, test, and (on PRs) a fixture build; `deploy.yaml` verifies, builds and deploys. Run audits locally (and before merging dependency changes):

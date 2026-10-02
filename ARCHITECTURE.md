@@ -1234,7 +1234,6 @@ npm install parent-package@latest          # Update parent if needed
 3. **Accessibility** — More ARIA labels and keyboard navigation
 4. **Documentation** — Inline code comments for complex logic
 5. **Caching** — Service Worker for offline support
-6. **Dependencies** — Automated dependency update checks (Dependabot)
 
 ## Glossary
 
