@@ -3,13 +3,16 @@ name: Verify
 # The quality gate for pull requests, and the check deploy.yaml runs before it
 # publishes. Pull requests only, never `push`: a push trigger would duplicate the
 # run for every push to a branch with an open PR, and deploy.yaml verifies main.
+# workflow_dispatch is for dependabot-lockfile.yaml: its push is made with
+# GITHUB_TOKEN and starts no run, so it dispatches this one on the new head.
 #
 # Inputs are phrased skip- with default false and read with `!`: `inputs` is null
-# on a `pull_request` (workflow_call defaults don't apply), and GitHub's loose
-# equality casts null and false to 0, so a run- input would drop these steps
-# from PR runs. `!null` is simply true.
+# on a `pull_request` or a dispatch (workflow_call defaults don't apply), and
+# GitHub's loose equality casts null and false to 0, so a run- input would drop
+# these steps from PR runs. `!null` is simply true.
 on:
   pull_request:
+  workflow_dispatch:
   workflow_call:
     inputs:
       skip-build:
@@ -56,7 +59,8 @@ jobs:
       # lockfile-shaker's. The postinstall hook re-applies them, but anything
       # that skips lifecycle scripts (`--ignore-scripts`, Dependabot) reverts
       # them silently. The shaker is idempotent and fast against the installed
-      # node_modules, so re-running it and diffing catches that.
+      # node_modules, so re-running it and diffing catches that. On Dependabot's
+      # npm PRs, dependabot-lockfile.yaml pushes the fix.
       - name: Check lockfile is shaken
         if: ${{ !inputs.skip-lockfile-check }}
         run: |

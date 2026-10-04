@@ -1,0 +1,130 @@
+name: Dependabot Lockfile
+
+# Dependabot regenerates package-lock.json without running lifecycle scripts, so
+# the postinstall hook never re-applies lockfile-shaker's dev flags and
+# verify.yaml fails every npm PR Dependabot opens (DEVELOPMENT.md, "Lockfile
+# dev flags"). This re-shakes the lockfile on those PRs and pushes the result.
+#
+# A push made with GITHUB_TOKEN starts no workflow runs, so the new head would
+# never get a verify check. workflow_dispatch is the exception, so once the push
+# lands, this dispatches verify.yaml against the branch.
+on:
+  pull_request:
+
+# A Dependabot rebase supersedes the run for the commit it replaced.
+concurrency:
+  group: dependabot-lockfile-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  # Read-only. Running the shaker is the only third-party code in this workflow,
+  # so it runs here, where the token can't push.
+  shake:
+    # Dependabot's own npm pushes only. A person pushing to the branch ran
+    # `npm install` themselves, and this workflow's own push starts no run.
+    if: >-
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      startsWith(github.head_ref, 'dependabot/npm_and_yarn/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    permissions:
+      contents: read
+
+    outputs:
+      changed: ${{ steps.shake.outputs.changed }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      # The shaker rewrites package-lock.json from the lockfile alone and never
+      # reads node_modules, so there is no `npm ci`: it installs on its own,
+      # outside the checkout, with scripts off. The version is the one the
+      # lockfile pins, which is the one verify.yaml checks against.
+      - name: Install lockfile-shaker
+        run: |
+          version=$(jq -r '.packages["node_modules/lockfile-shaker"].version' package-lock.json)
+          npm install --prefix "$RUNNER_TEMP/shaker" --no-save --no-package-lock \
+            --ignore-scripts --no-audit --no-fund "lockfile-shaker@$version"
+
+      - name: Shake
+        id: shake
+        run: |
+          node "$RUNNER_TEMP/shaker/node_modules/lockfile-shaker/lib/bin.js"
+          if git diff --quiet package-lock.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload shaken lockfile
+        if: steps.shake.outputs.changed == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: shaken-lockfile
+          path: package-lock.json
+          retention-days: 1
+
+  # Can push, and runs only git, jq and gh from the runner image.
+  push:
+    needs: shake
+    if: needs.shake.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    permissions:
+      contents: write
+      actions: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Download shaken lockfile
+        uses: actions/download-artifact@v8
+        with:
+          name: shaken-lockfile
+          path: ${{ runner.temp }}/shaken
+
+      # The artifact came from a job that ran npm code, so it is held to what
+      # the shaker is allowed to change: the dev and devOptional flags on
+      # .packages entries. Anything else, including a branch that moved since
+      # the shake, fails here rather than being pushed.
+      - name: Check only dev flags changed
+        run: |
+          strip='.packages |= map_values(del(.dev, .devOptional))'
+          jq -S "$strip" package-lock.json > "$RUNNER_TEMP/branch.json"
+          jq -S "$strip" "$RUNNER_TEMP/shaken/package-lock.json" > "$RUNNER_TEMP/candidate.json"
+          if ! cmp -s "$RUNNER_TEMP/branch.json" "$RUNNER_TEMP/candidate.json"; then
+            echo "::error file=package-lock.json::The shaken lockfile differs from the branch's in more than dev flags; not pushing."
+            exit 1
+          fi
+          cp "$RUNNER_TEMP/shaken/package-lock.json" package-lock.json
+
+      - name: Commit and push
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package-lock.json
+          git commit -m 'chore: re-shake package-lock.json' \
+            -m "Dependabot regenerated the lockfile without lifecycle scripts, which reverts lockfile-shaker's dev flags. Re-applied by dependabot-lockfile.yaml."
+          git push origin "HEAD:$GITHUB_HEAD_REF"
+
+      - name: Run verify on the new head
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run verify.yaml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_HEAD_REF"

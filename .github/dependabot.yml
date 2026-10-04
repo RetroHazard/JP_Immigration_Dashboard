@@ -7,14 +7,23 @@
 # only batch them along the same minor/patch vs major line.
 #
 # Dependabot installs without lifecycle scripts, so npm PRs arrive with the
-# lockfile unshaken and verify.yaml fails them. Run `npm install` on the branch
-# and commit package-lock.json (DEVELOPMENT.md, "Lockfile dev flags").
+# lockfile unshaken; dependabot-lockfile.yaml re-shakes it and re-runs verify.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # typescript-eslint, which eslint-config-next also depends on, accepts
+      # TypeScript below 6.1 only, so 7.x fails `npm ci` on a peer conflict.
+      # 6.0.x is still offered. Lift this once typescript-eslint supports 7.
+      - dependency-name: typescript
+        versions: ['>=7.0.0']
+      # Pinned to the Node major in .nvmrc (DEVELOPMENT.md, "Dependency Pinning
+      # Strategy"); it moves when the runtime does, not on its own.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       npm-minor-patch:
         update-types: [minor, patch]

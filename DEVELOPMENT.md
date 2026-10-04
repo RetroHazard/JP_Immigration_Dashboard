@@ -182,9 +182,10 @@ which is what catches a payload that fails its completeness or reconciliation ch
 
 | File | Trigger | Purpose |
 | --- | --- | --- |
-| `verify.yaml` | `pull_request`, `workflow_call` | The quality gate: lockfile check, lint, typecheck, test, optional build. Reports as `verify` on a pull request |
+| `verify.yaml` | `pull_request`, dispatch, `workflow_call` | The quality gate: lockfile check, lint, typecheck, test, optional build. Reports as `verify` on a pull request |
 | `deploy.yaml` | push to `main` (path-filtered), dispatch, `workflow_call` | Verifies (unless `skip-verify: true`), then builds against real data and publishes to Pages |
 | `watcher.yaml` | daily cron, dispatch | Probes e-Stat for new data; calls `deploy.yaml` when it changes |
+| `dependabot-lockfile.yaml` | `pull_request` (Dependabot npm PRs only) | Re-shakes the lockfile Dependabot generated, pushes it, and dispatches `verify.yaml` on the new head |
 
 `.github/actions/setup` (Node + install + build info) is the one composite action.
 Fetching is a plain `node scripts/fetch-estat-data.mjs` step — the script writes its own
@@ -192,6 +193,8 @@ step outputs, so wrapping it in an action added a file without adding behaviour.
 
 `verify.yaml` runs on pull requests only. A `push` trigger would duplicate every run for
 branches with an open PR; pushes to `main` are covered by `deploy.yaml`'s verify job.
+Its `workflow_dispatch` trigger exists for `dependabot-lockfile.yaml`, whose push is made
+with `GITHUB_TOKEN` and so starts no run of its own.
 
 ### Data Updates
 
@@ -384,7 +387,8 @@ JP_Immigration_Dashboard/
 │   ├── workflows/
 │   │   ├── verify.yaml            # The gate: lint, typecheck, test, optional build (PRs + called)
 │   │   ├── deploy.yaml            # Verify + build + deploy to Pages (push to main, dispatch, called)
-│   │   └── watcher.yaml           # Scheduled e-Stat probe; calls deploy.yaml on change
+│   │   ├── watcher.yaml           # Scheduled e-Stat probe; calls deploy.yaml on change
+│   │   └── dependabot-lockfile.yaml  # Re-shakes the lockfile on Dependabot npm PRs
 │   ├── actions/
 │   │   └── setup/                 # Composite: Node from .nvmrc, npm ci, build info
 │   └── ISSUE_TEMPLATE/            # Issue templates
@@ -461,7 +465,7 @@ they cover, in `src/` and in `scripts/` alike, so the tree names the folder rath
 
 ### Build & Deployment
 
-- **GitHub Actions** — CI/CD automation (`verify.yaml`, `deploy.yaml`, `watcher.yaml`)
+- **GitHub Actions** — CI/CD automation (`verify.yaml`, `deploy.yaml`, `watcher.yaml`, `dependabot-lockfile.yaml`)
 - **GitHub Pages** — Static site hosting
 - **react-build-info** — Build metadata injection (version + build date)
 - **tsx** — Runs the TypeScript build-time data transform script
@@ -666,7 +670,9 @@ Pinned packages:
 
 Dependabot (`.github/dependabot.yml`) checks npm packages and GitHub Actions on the first of each month. Each run opens at most two pull requests per ecosystem: one for all minor and patch bumps, one for all majors. Pinned packages are bumped like any other, so a `next` patch rides in the minor/patch PR.
 
-Security updates are enabled in the repository settings and open as soon as an advisory is published, whatever the schedule; they are grouped along the same minor/patch vs major line. An npm PR from either needs its lockfile re-shaken before `verify.yaml` will pass (see [Lockfile dev flags](#lockfile-dev-flags)).
+Two majors are held back with `ignore` rules, because one incompatible bump fails the whole majors PR. TypeScript 7 is skipped until typescript-eslint supports it (6.0.x is still offered), and `@types/node` majors are skipped because the package tracks the Node version in `.nvmrc`.
+
+Security updates are enabled in the repository settings and open as soon as an advisory is published, whatever the schedule; they are grouped along the same minor/patch vs major line. Dependabot's npm PRs arrive with the lockfile unshaken, and `dependabot-lockfile.yaml` re-shakes them (see [Lockfile dev flags](#lockfile-dev-flags)).
 
 #### Security Audits
 
@@ -701,7 +707,7 @@ Because the hook only fires on `npm install`, anything that bypasses lifecycle s
 Run 'npm install' locally and commit the resulting package-lock.json.
 ```
 
-If you see that on a Dependabot PR, run `npm install` on the branch and commit the lockfile. The shaker is idempotent and runs in ~0.3s against the already-installed `node_modules`, so the check costs nothing and needs no second install. The deploy path passes `skip-lockfile-check: true` — the dev flags do not affect the built output, so drift should block a pull request, not a publish.
+On Dependabot's npm PRs, `dependabot-lockfile.yaml` fixes this for you: it re-shakes the lockfile, pushes it as `github-actions[bot]`, and dispatches `verify.yaml` on the new commit, since a push made with `GITHUB_TOKEN` starts no run on its own. The shaker runs in a read-only job, and the job that pushes refuses any change beyond the `dev`/`devOptional` flags. Elsewhere, run `npm install` on the branch and commit the lockfile. The shaker is idempotent and runs in ~0.3s against the already-installed `node_modules`, so the check costs nothing and needs no second install. The deploy path passes `skip-lockfile-check: true` — the dev flags do not affect the built output, so drift should block a pull request, not a publish.
 
 #### Updating Dependencies
 
