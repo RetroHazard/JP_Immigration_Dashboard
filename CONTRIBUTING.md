@@ -31,7 +31,7 @@ Be respectful, constructive, and collaborative. We're all here to improve immigr
 
 ### Prerequisites
 
-- **Node.js** — pinned in `.nvmrc` (Node 22); CI and the deploy both read it from there. Run `nvm use` to adopt it locally
+- **Node.js** — pinned in `.nvmrc` (Node 26); CI and the deploy both read it from there. Run `nvm use` to adopt it locally
 - **npm** — Comes with Node.js
 - **Git** — For version control
 

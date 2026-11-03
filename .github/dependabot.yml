@@ -15,6 +15,14 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    # @types/node tracks the Node major in .nvmrc. Dependabot only proposes a
+    # package's newest version, so without this every run offers the next Node
+    # major's types (held back) and never the current line's updates. Ignoring
+    # majors lets it keep the types current; a Node major moves .nvmrc and
+    # @types/node together, by hand.
+    ignore:
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       npm-minor-patch:
         update-types: [minor, patch]
