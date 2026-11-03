@@ -11,14 +11,19 @@ export const prefersReducedMotion = (): boolean =>
 
 /**
  * Runs `builder` inside an Anime.js scope rooted at the returned ref.
- * Selectors used in the builder only match inside that root. The whole scope
- * is skipped under prefers-reduced-motion and reverted on cleanup.
+ * Selectors used in the builder only match inside that root, which is also
+ * passed in for direct queries. The whole scope is skipped under
+ * prefers-reduced-motion and reverted on cleanup.
  */
-export function useAnimeScope<T extends HTMLElement = HTMLDivElement>(builder: () => void, deps: unknown[] = []) {
+export function useAnimeScope<T extends HTMLElement = HTMLDivElement>(
+  builder: (root: T) => void,
+  deps: unknown[] = []
+) {
   const root = useRef<T>(null);
   useEffect(() => {
-    if (!root.current || prefersReducedMotion()) return;
-    const scope = createScope({ root: root.current }).add(() => builder());
+    const element = root.current;
+    if (!element || prefersReducedMotion()) return;
+    const scope = createScope({ root: element }).add(() => builder(element));
     return () => {
       scope.revert();
     };

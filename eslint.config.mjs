@@ -20,19 +20,6 @@ export default [
   },
   ...nextCoreWebVitals,
   {
-    // eslint-config-next 16 brings eslint-plugin-react-hooks 7, whose React
-    // Compiler rules arrive as errors. These four flag existing code (effects
-    // that sync state, refs read during render) that predates them; they warn
-    // until those call sites are refactored. The other compiler rules pass and
-    // stay at error.
-    rules: {
-      'react-hooks/set-state-in-effect': 'warn',
-      'react-hooks/refs': 'warn',
-      'react-hooks/immutability': 'warn',
-      'react-hooks/purity': 'warn',
-    },
-  },
-  {
     files: ['**/*.{ts,tsx,js,mjs,mts}'],
     languageOptions: {
       parser: tsParser,

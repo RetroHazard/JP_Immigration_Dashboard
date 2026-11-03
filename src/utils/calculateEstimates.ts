@@ -2,6 +2,12 @@ import { STATUS_CODES } from '../constants/statusCodes';
 import type { ImmigrationData } from '../hooks/useImmigrationData';
 import { logger } from './logger';
 
+// JST is a fixed UTC+9 with no DST, so the offset is a constant.
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+/** Today's calendar date in Japan as `YYYY-MM-DD`, whatever the viewer's timezone. */
+export const todayInJapanIso = (): string => new Date(Date.now() + JST_OFFSET_MS).toISOString().slice(0, 10);
+
 interface ApplicationDetails {
   bureau: string;
   type: string;
@@ -152,7 +158,6 @@ export const calculateEstimatedDate = (
     return year * 12 + (month - 1);
   };
   const monthFromIndex = (index: number) => `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, '0')}`;
-  const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
   const nowShifted = new Date(Date.now() + JST_OFFSET_MS);
   // Local midnight carrying JST's calendar date, so the local-time day
   // arithmetic below reads the same date in every timezone.

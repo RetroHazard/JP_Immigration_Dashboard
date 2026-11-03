@@ -194,12 +194,11 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
   const coarsePointer = useCoarsePointer();
 
   // Tiles animate only between focus states. Renders caused by mount or a
-  // container resize snap instantly, so tiles never "fly in" from stale rects.
-  const widthRef = useRef(0);
-  const widthStable = widthRef.current === width;
-  useEffect(() => {
-    widthRef.current = width;
-  });
+  // container resize snap instantly, so tiles never "fly in" from stale rects:
+  // the observer records each new width as settled a frame after the snapped
+  // layout has painted, and transitions stay off until then.
+  const [settledWidth, setSettledWidth] = useState(0);
+  const widthStable = settledWidth === width;
 
   // Cursor-following tooltip, driven imperatively so pointer moves never
   // re-render the ~90 tiles.
@@ -244,17 +243,25 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
   useEffect(() => {
     const element = containerRef.current;
     if (!element) return;
-    const observer = new ResizeObserver((entries) => setWidth(entries[0].contentRect.width));
+    let frame = 0;
+    const observer = new ResizeObserver((entries) => {
+      const next = entries[0].contentRect.width;
+      setWidth(next);
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setSettledWidth(next));
+    });
     observer.observe(element);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
   }, []);
 
-  // A focused category can disappear when filters change; fall back to the root.
-  useEffect(() => {
-    if (focusKey !== null && !tree.categories.some((category) => category.key === focusKey)) {
-      setFocusKey(null);
-    }
-  }, [tree, focusKey]);
+  // A focused category can disappear when filters change; fall back to the
+  // root during render, so the missing focus never reaches the layout.
+  if (focusKey !== null && !tree.categories.some((category) => category.key === focusKey)) {
+    setFocusKey(null);
+  }
 
   const zoomOut = useCallback(() => setFocusKey(null), []);
   useEffect(() => {
@@ -294,6 +301,16 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
       </div>
     );
   }
+
+  // Every category's leaves plus its `__rest` tile, flattened so the tiles
+  // render from one list.
+  const leafTiles = tree.categories.flatMap((category) => {
+    const base = focusKey === category.key ? category.value : tree.total;
+    return [
+      ...category.children.map((leaf, rank) => ({ category, leaf, rank, rest: false, base })),
+      { category, leaf: { code: '__rest', value: 0 }, rank: TOP_N + 1, rest: true, base },
+    ];
+  });
 
   const tileStyle = (rect: Rect | undefined): React.CSSProperties =>
     rect
@@ -422,91 +439,84 @@ export const MixTreemap: React.FC<{ tree: MixTree; labels: MixTreemapLabels }> =
             </button>
           );
         })}
-        {tree.categories.flatMap((category) => {
-          const base = focusKey === category.key ? category.value : tree.total;
-          const leaves = [
-            ...category.children.map((leaf, rank) => ({ leaf, rank, rest: false })),
-            { leaf: { code: '__rest', value: 0 }, rank: TOP_N + 1, rest: true },
-          ];
-          return leaves.map(({ leaf, rank, rest }) => {
-            const key = `b:${category.key}:${leaf.code}`;
-            const rect = layout[key];
-            const showLabel = rect !== undefined && rect.w > 60 && rect.h > 24;
-            const showLeafValue = rect !== undefined && rect.w > 74 && rect.h > 30;
-            return (
-              <div
-                key={key}
-                className="absolute cursor-pointer overflow-hidden rounded-md text-foreground hover:brightness-105 motion-reduce:transition-none"
-                style={{ ...tileStyle(rect), background: mixLeafColor(category.color, rank) }}
-                onClick={(event) => {
-                  if (tapMode) {
-                    // The `__rest` tile carries no figures, so it has nothing
-                    // to inspect — it keeps the plain zoom behaviour.
-                    if (rest) {
-                      event.stopPropagation();
-                      tapMode.clear();
-                      hideTip();
-                      if (focusKey === null) setFocusKey(category.key);
-                      return;
-                    }
-                    const ofLabel = focusKey === category.key ? categoryLabel(category.key) : labels.scopeAll;
-                    tapTile(
-                      event,
-                      key,
-                      focusKey === null ? category.key : null,
-                      `${leafLabel(leaf.code)} · ${categoryShort(category.key)}`,
-                      mixLeafColor(category.color, rank),
-                      labels.tooltipValue({
-                        count: fmt(leaf.value),
-                        percent: formatters.percent((leaf.value / base) * 100),
-                        scope: ofLabel,
-                      })
-                    );
+        {leafTiles.map(({ category, leaf, rank, rest, base }) => {
+          const key = `b:${category.key}:${leaf.code}`;
+          const rect = layout[key];
+          const showLabel = rect !== undefined && rect.w > 60 && rect.h > 24;
+          const showLeafValue = rect !== undefined && rect.w > 74 && rect.h > 30;
+          return (
+            <div
+              key={key}
+              className="absolute cursor-pointer overflow-hidden rounded-md text-foreground hover:brightness-105 motion-reduce:transition-none"
+              style={{ ...tileStyle(rect), background: mixLeafColor(category.color, rank) }}
+              onClick={(event) => {
+                if (tapMode) {
+                  // The `__rest` tile carries no figures, so it has nothing
+                  // to inspect — it keeps the plain zoom behaviour.
+                  if (rest) {
+                    event.stopPropagation();
+                    tapMode.clear();
+                    hideTip();
+                    if (focusKey === null) setFocusKey(category.key);
                     return;
                   }
-                  // At the root a leaf click zooms into its category; when
-                  // focused it bubbles to the background and zooms out.
-                  hideTip();
-                  if (focusKey === null) {
-                    event.stopPropagation();
-                    setFocusKey(category.key);
-                  }
-                }}
-                onMouseLeave={tapMode ? undefined : hideTip}
-                onMouseMove={
-                  tapMode
-                    ? undefined
-                    : (event) => {
-                        event.stopPropagation();
-                        if (rest) return;
-                        const ofLabel = focusKey === category.key ? categoryLabel(category.key) : labels.scopeAll;
-                        showTip(
-                          event,
-                          `${leafLabel(leaf.code)} · ${categoryShort(category.key)}`,
-                          mixLeafColor(category.color, rank),
-                          labels.tooltipValue({
-                            count: fmt(leaf.value),
-                            percent: formatters.percent((leaf.value / base) * 100),
-                            scope: ofLabel,
-                          })
-                        );
-                      }
+                  const ofLabel = focusKey === category.key ? categoryLabel(category.key) : labels.scopeAll;
+                  tapTile(
+                    event,
+                    key,
+                    focusKey === null ? category.key : null,
+                    `${leafLabel(leaf.code)} · ${categoryShort(category.key)}`,
+                    mixLeafColor(category.color, rank),
+                    labels.tooltipValue({
+                      count: fmt(leaf.value),
+                      percent: formatters.percent((leaf.value / base) * 100),
+                      scope: ofLabel,
+                    })
+                  );
+                  return;
                 }
-              >
-                {showLabel && (
-                  <span className="flex flex-col px-2 py-1 text-xs font-semibold leading-tight">
-                    {/* Compact name on the tile; the tooltip keeps the full one. */}
-                    <span>{rest ? t('chart.mix.others') : leafCompact(leaf.code)}</span>
-                    {!rest && showLeafValue && (
-                      <span className="font-mono text-xxs font-medium opacity-75">
-                        {fmt(leaf.value)} · {formatters.percent((leaf.value / base) * 100)}
-                      </span>
-                    )}
-                  </span>
-                )}
-              </div>
-            );
-          });
+                // At the root a leaf click zooms into its category; when
+                // focused it bubbles to the background and zooms out.
+                hideTip();
+                if (focusKey === null) {
+                  event.stopPropagation();
+                  setFocusKey(category.key);
+                }
+              }}
+              onMouseLeave={tapMode ? undefined : hideTip}
+              onMouseMove={
+                tapMode
+                  ? undefined
+                  : (event) => {
+                      event.stopPropagation();
+                      if (rest) return;
+                      const ofLabel = focusKey === category.key ? categoryLabel(category.key) : labels.scopeAll;
+                      showTip(
+                        event,
+                        `${leafLabel(leaf.code)} · ${categoryShort(category.key)}`,
+                        mixLeafColor(category.color, rank),
+                        labels.tooltipValue({
+                          count: fmt(leaf.value),
+                          percent: formatters.percent((leaf.value / base) * 100),
+                          scope: ofLabel,
+                        })
+                      );
+                    }
+              }
+            >
+              {showLabel && (
+                <span className="flex flex-col px-2 py-1 text-xs font-semibold leading-tight">
+                  {/* Compact name on the tile; the tooltip keeps the full one. */}
+                  <span>{rest ? t('chart.mix.others') : leafCompact(leaf.code)}</span>
+                  {!rest && showLeafValue && (
+                    <span className="font-mono text-xxs font-medium opacity-75">
+                      {fmt(leaf.value)} · {formatters.percent((leaf.value / base) * 100)}
+                    </span>
+                  )}
+                </span>
+              )}
+            </div>
+          );
         })}
       </div>
       {/* Portaled to <body>: the card's entrance animation leaves a transform

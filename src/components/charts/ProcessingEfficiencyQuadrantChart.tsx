@@ -10,9 +10,9 @@
 // ChartComponents.tsx to switch over.
 'use client';
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useId, useMemo, useRef, useState } from 'react';
 
-import { animate } from 'animejs';
+import { animate, cubicBezier } from 'animejs';
 import { scaleLinear, scaleSqrt } from 'd3-scale';
 import type React from 'react';
 import useMeasure from 'react-use-measure';
@@ -63,9 +63,15 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
   // Replay the reveal when the selection changes (Bklit's revealSignature
   // idea), but not on plain resizes.
   const selectionKey = `${filters.bureau}|${filters.type}|${range}`;
-  useEffect(() => setHovered(null), [selectionKey]);
-  const revealRoot = useAnimeScope<HTMLDivElement>(() => {
-    animate('[data-reveal-rect]', { width: [0, W], duration: 1100, ease: 'cubicBezier(0.85, 0, 0.15, 1)' });
+  // The card would otherwise describe a bubble that has moved or gone. Reset
+  // during render rather than in an effect, so the stale card never paints.
+  const [hoverSelection, setHoverSelection] = useState(selectionKey);
+  if (hoverSelection !== selectionKey) {
+    setHoverSelection(selectionKey);
+    setHovered(null);
+  }
+  const revealRootRef = useAnimeScope<HTMLDivElement>(() => {
+    animate('[data-reveal-rect]', { width: [0, W], duration: 1100, ease: cubicBezier(0.85, 0, 0.15, 1) });
   }, [selectionKey, ready]);
 
   const { xScale, yScale, rScale, rateFloor, rateTop, xTickStep } = useMemo(() => {
@@ -148,7 +154,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
         }
         ref={(node) => {
           measureRef(node);
-          revealRoot.current = node;
+          revealRootRef.current = node;
           plotRef.current = node;
         }}
       >
