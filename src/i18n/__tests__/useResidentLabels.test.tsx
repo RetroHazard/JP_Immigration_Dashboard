@@ -108,9 +108,10 @@ describe('resident label hooks', () => {
     // Chrome and Edge ship Intl.DisplayNames without macro-region data, so
     // `.of('142')` returns '142' rather than throwing. Node resolves it, so the
     // tests above never reach the catalogue fallback.
-    vi.spyOn(Intl, 'DisplayNames').mockImplementation(
-      () => ({ of: (code: string) => code }) as unknown as Intl.DisplayNames
-    );
+    // `function`, not an arrow: the hook calls `new Intl.DisplayNames(...)`.
+    vi.spyOn(Intl, 'DisplayNames').mockImplementation(function () {
+      return { of: (code: string) => code } as unknown as Intl.DisplayNames;
+    });
     renderProbe('en');
     expect(screen.getByTestId('asia').textContent).toBe('Asia');
     expect(screen.getByTestId('northAmerica').textContent).toBe('North America');
@@ -120,7 +121,7 @@ describe('resident label hooks', () => {
   it('degrades to the catalogue when Intl.DisplayNames is unavailable', () => {
     // An engine without region display names must not take the page down —
     // the five hand-written names still resolve and the rest show their code.
-    vi.spyOn(Intl, 'DisplayNames').mockImplementation(() => {
+    vi.spyOn(Intl, 'DisplayNames').mockImplementation(function () {
       throw new Error('unsupported');
     });
     renderProbe('en');

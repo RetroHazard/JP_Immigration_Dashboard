@@ -72,3 +72,11 @@ if (typeof window !== 'undefined' && !window.ResizeObserver) {
     disconnect() {}
   };
 }
+
+// --- Canvas -------------------------------------------------------------
+// jsdom can't draw without the native `canvas` package: getContext() returns
+// null and logs "Not implemented" on every call. The chart formatters already
+// fall back to a glyph-count width estimate on null, so return null quietly.
+if (typeof window !== 'undefined') {
+  HTMLCanvasElement.prototype.getContext = (() => null) as typeof HTMLCanvasElement.prototype.getContext;
+}
