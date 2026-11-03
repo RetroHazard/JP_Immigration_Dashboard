@@ -180,6 +180,16 @@ export const POLICY_EVENTS = [
     descriptionKey: 'policy.feeRevision2026.description',
     href: 'https://www.moj.go.jp/isa/content/001469200.pdf',
   },
+  {
+    // Permanent residence guideline revised 2026-10-01; applies mainly to filings from
+    // 2027-04-01, with the income and public-burden tests reaching applications pending
+    // from 2026-04-01. No Resident Population marker: no snapshot shows it yet.
+    period: '2026-10',
+    category: 'operations',
+    titleKey: 'policy.pr2026.title',
+    descriptionKey: 'policy.pr2026.description',
+    href: 'https://www.moj.go.jp/isa/10_00279.html',
+  },
 ] as const satisfies readonly PolicyEvent[];
 
 /**
