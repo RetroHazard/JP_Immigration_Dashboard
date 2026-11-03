@@ -293,6 +293,8 @@ export const ja: Dictionary = {
   'policy.act2026.description': '令和8年改正入管法が在留許可手数料の上限額を引き上げました。',
   'policy.feeRevision2026.title': '在留手続の手数料を再改定',
   'policy.feeRevision2026.description': '在留期間更新は期間別に最大75,000円、永住許可は200,000円に引き上げられました。',
+  'policy.pr2026.title': '永住許可ガイドラインを改定',
+  'policy.pr2026.description': '収入・日本語能力・出国期間の基準を改定。原則2027年4月以降の申請から適用されます。',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

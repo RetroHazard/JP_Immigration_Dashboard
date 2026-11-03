@@ -296,6 +296,8 @@ export const zhTw: Dictionary = {
   'policy.act2026.description': '2026年修訂法提高了在留許可手續費的法定上限。',
   'policy.feeRevision2026.title': '在留手續費再次調漲',
   'policy.feeRevision2026.description': '在留期間更新依期間分級，最高75,000日圓；永住許可調至200,000日圓。',
+  'policy.pr2026.title': '修訂永住許可指引',
+  'policy.pr2026.description': '修訂收入、日語能力與出境期間標準，原則上適用於2027年4月起的申請。',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the
