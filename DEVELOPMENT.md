@@ -17,7 +17,7 @@ Comprehensive guide for setting up, running, and developing the Japan Immigratio
 
 ### Required
 
-- **Node.js** — the version is pinned in `.nvmrc` (Node 22); every workflow reads it from there via `node-version-file`, so CI and the deploy always match. Run `nvm use` to adopt it locally
+- **Node.js** — the version is pinned in `.nvmrc` (Node 26); every workflow reads it from there via `node-version-file`, so CI and the deploy always match. Run `nvm use` to adopt it locally
   - Download from [nodejs.org](https://nodejs.org/)
   - Verify: `node --version`
 
@@ -660,7 +660,7 @@ Pinned packages:
 - `@next/third-parties`, `@next/eslint-plugin-next`, `eslint-config-next` — Next.js ecosystem
 - `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser` — Type-aware linting
 - `eslint` — Code quality enforcement
-- `@types/node` — Matches the pinned toolchain's Node types
+- `@types/node` — Matches the Node major in `.nvmrc`. Dependabot is told to ignore its major versions, so it keeps the types current within that line; moving to a new Node major means changing `.nvmrc` and `@types/node` together, by hand
 
 `react`, `react-dom`, and `typescript` currently use `^` ranges rather than exact pins. Unpinned packages allow patch and minor updates for utilities and non-critical dependencies.
 
@@ -704,6 +704,15 @@ Run 'npm install' locally and commit the resulting package-lock.json.
 ```
 
 If you see that on a Dependabot PR, run `npm install` on the branch and commit the lockfile. The shaker is idempotent and runs in ~0.3s against the already-installed `node_modules`, so the check costs nothing and needs no second install. The deploy path passes `skip-lockfile-check: true` — the dev flags do not affect the built output, so drift should block a pull request, not a publish.
+
+#### Dependency install scripts
+
+The npm that ships with Node 26 skips dependencies' install scripts unless `allowScripts` in `package.json` approves them, and warns about any it has no entry for. The project's own `postinstall` (the lockfile shaker above) is not affected. Two dependencies have install scripts on Linux, and both are denied deliberately, because neither does anything the build needs:
+
+- `esbuild` — `install.js` validates the platform binary, which already arrives as an optional dependency
+- `unrs-resolver` — `napi-postinstall … check` only verifies that its native binding is present
+
+When an install warns about a new package, read its script before deciding, then record the decision with `npm install-scripts approve <pkg>` or `npm install-scripts deny <pkg>`. Older npm versions ignore the field.
 
 #### Updating Dependencies
 
