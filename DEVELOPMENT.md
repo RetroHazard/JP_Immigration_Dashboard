@@ -387,7 +387,9 @@ JP_Immigration_Dashboard/
 │   │   └── watcher.yaml           # Scheduled e-Stat probe; calls deploy.yaml on change
 │   ├── actions/
 │   │   └── setup/                 # Composite: Node from .nvmrc, npm ci, build info
-│   └── ISSUE_TEMPLATE/            # Issue templates
+│   ├── ISSUE_TEMPLATE/            # Issue templates
+│   ├── PULL_REQUEST_TEMPLATE/     # Opt-in PR templates (translation, dependencies), via ?template=
+│   └── pull_request_template.md   # Default PR description
 │
 ├── scripts/
 │   ├── datasets.mjs               # The dataset manifest — single source of truth for the pipeline

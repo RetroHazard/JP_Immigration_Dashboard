@@ -355,9 +355,22 @@ Example:
 
 2. **Open a PR on GitHub:**
    - Provide a clear, descriptive title
+   - Fill in the template that pre-fills the description (see below)
    - Reference related issues (e.g., "Fixes #123")
    - Describe what changed and why
    - Include screenshots for UI changes
+
+   The default template, `.github/pull_request_template.md`, fits most changes.
+   Its checklist repeats this guide's requirements (checks, Civic Glass contrast,
+   all twelve locales, changelog and version) so nothing gets missed. Two kinds
+   of PR get their own shorter template. To use one, add `?template=` to the
+   compare URL, for example
+   `https://github.com/RetroHazard/JP_Immigration_Dashboard/compare/main...your-branch?template=translation.md`:
+
+   | Template | Use it for |
+   | --- | --- |
+   | `translation.md` | Fixing the wording of an existing locale string, with no keys added or removed |
+   | `dependencies.md` | Dependency updates made by hand. Dependabot writes its own description |
 
 3. **Enable maintainer edits:**
    - If your PR is from a fork, check "Allow edits by maintainers"
