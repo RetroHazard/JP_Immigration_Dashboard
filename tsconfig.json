@@ -33,6 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     "build/types/**/*.ts",
+    "build/dev/types/**/*.ts",
     "next-env.d.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
