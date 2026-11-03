@@ -12,7 +12,7 @@
 
 import { useCallback, useId, useMemo, useRef, useState } from 'react';
 
-import { animate } from 'animejs';
+import { animate, cubicBezier } from 'animejs';
 import { scaleLinear, scaleSqrt } from 'd3-scale';
 import type React from 'react';
 import useMeasure from 'react-use-measure';
@@ -71,7 +71,7 @@ export const ProcessingEfficiencyQuadrantChart: React.FC<ImmigrationChartData> =
     setHovered(null);
   }
   const revealRootRef = useAnimeScope<HTMLDivElement>(() => {
-    animate('[data-reveal-rect]', { width: [0, W], duration: 1100, ease: 'cubicBezier(0.85, 0, 0.15, 1)' });
+    animate('[data-reveal-rect]', { width: [0, W], duration: 1100, ease: cubicBezier(0.85, 0, 0.15, 1) });
   }, [selectionKey, ready]);
 
   const { xScale, yScale, rScale, rateFloor, rateTop, xTickStep } = useMemo(() => {

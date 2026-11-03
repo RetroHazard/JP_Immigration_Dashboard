@@ -5,7 +5,7 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { animate } from 'animejs';
+import { animate, cubicBezier } from 'animejs';
 import type React from 'react';
 
 import { useTheme } from '../../contexts/ThemeContext';
@@ -89,7 +89,7 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
         width: ['0%', `${stem.dataset.pct}%`],
         duration: 620,
         delay: 45 * index,
-        ease: 'cubicBezier(0.22, 1, 0.36, 1)',
+        ease: cubicBezier(0.22, 1, 0.36, 1),
       });
     });
     root.querySelectorAll<HTMLElement>('[data-dot]').forEach((dot, index) => {
@@ -97,7 +97,7 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
         scale: [0, 1.25, 1],
         duration: 380,
         delay: 45 * index + 420,
-        ease: 'cubicBezier(0.22, 1, 0.36, 1)',
+        ease: cubicBezier(0.22, 1, 0.36, 1),
       });
     });
   }, [selectionKey]);
