@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Japan Immigration Statistics Dashboard (dashboard.retrohazard.jp): a statically exported Next.js 15 app (React 19, Tailwind CSS v4, vendored shadcn/ui primitives and Bklit charts) that presents e-Stat immigration data in twelve languages. ARCHITECTURE.md, DEVELOPMENT.md and CONTRIBUTING.md cover the architecture and workflow.
+Japan Immigration Statistics Dashboard (dashboard.retrohazard.jp): a statically exported Next.js 16 app (React 19, Tailwind CSS v4, vendored shadcn/ui primitives and Bklit charts) that presents e-Stat immigration data in twelve languages. ARCHITECTURE.md, DEVELOPMENT.md and CONTRIBUTING.md cover the architecture and workflow.
 
 ## Commands
 

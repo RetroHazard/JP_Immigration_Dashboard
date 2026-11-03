@@ -217,7 +217,7 @@ or show a single half-yearly snapshot, picked with the same range control.
 ## :hammer_and_wrench: Tech Stack
 
 ### Frontend:
-- `Next.js 15` – React framework with static export
+- `Next.js 16` – React framework with static export
 - `React 19` – UI library
 - `TypeScript` (strict) – Type-safe JavaScript
 - `Tailwind CSS v4` – Utility-first styling with a CSS-variable design-token system ("Civic Glass")
