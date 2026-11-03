@@ -29,7 +29,7 @@ import { T } from '../i18n/T';
 import { useApplicationOptions, useNonAirportBureaus } from '../i18n/useDomainLabels';
 import { prefersReducedMotion } from '../lib/motion';
 import type { EstimatedDateResult } from '../utils/calculateEstimates';
-import { calculateEstimatedDate } from '../utils/calculateEstimates';
+import { calculateEstimatedDate, todayInJapanIso } from '../utils/calculateEstimates';
 import type { ApplicationDetails } from '../utils/urlApplicationDetails';
 import { ESTIMATOR_PARAM_NAMES } from '../utils/urlApplicationDetails';
 import { FilterInput } from './common/FilterInput';
@@ -143,11 +143,9 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
 
   // `showMath` can outlive the estimate (Reset or a permalink can empty the
   // details). Left stale, it would hold the entry area closed with nothing on
-  // screen to reopen it.
+  // screen to reopen it, so it resets during render once the estimate goes.
+  if (showMath && estimatedDate === null) setShowMath(false);
   const mathOpen = showMath && estimatedDate !== null;
-  useEffect(() => {
-    if (!estimatedDate) setShowMath(false);
-  }, [estimatedDate]);
 
   const resultKey = estimatedDate ? estimatedDate.estimatedDate.getTime() : null;
   useEffect(() => {
@@ -178,15 +176,16 @@ export const EstimationCard: React.FC<EstimationCardProps> = ({
     };
   }, [queue]);
 
+  // Today on Japan's calendar, matching the estimator's own JST-pinned clock
+  // (plain toISOString() would be UTC's today, a day behind Japan every
+  // evening). Read once on mount: a clock read during render would make the
+  // render impure.
+  const [todayJst] = useState(todayInJapanIso);
   const dateRange = useMemo(() => {
     if (!data || data.length === 0) return { min: '', max: '' };
     const dates = [...new Set(data.map((entry) => entry.month))].sort();
-    // Today on Japan's calendar (UTC+9, no DST), matching the estimator's own
-    // JST-pinned clock — plain toISOString() would be UTC's today, a day
-    // behind Japan every evening.
-    const currentDate = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    return { min: `${dates[0]}-01`, max: currentDate };
-  }, [data]);
+    return { min: `${dates[0]}-01`, max: todayJst };
+  }, [data, todayJst]);
 
   const vars = estimatedDate?.details.modelVariables;
 

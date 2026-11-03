@@ -47,10 +47,9 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
   }, [isOpen, markdown]);
 
   // The markdown stays cached for the session, but every open starts on the
-  // newest release.
-  useEffect(() => {
-    if (!isOpen) setOpenOverride(null);
-  }, [isOpen]);
+  // newest release. Reset during render when the dialog closes, rather than in
+  // an effect a render later.
+  if (!isOpen && openOverride !== null) setOpenOverride(null);
 
   // CHANGELOG.md is written newest-first and the parser preserves document
   // order, so months[0] is the current month.

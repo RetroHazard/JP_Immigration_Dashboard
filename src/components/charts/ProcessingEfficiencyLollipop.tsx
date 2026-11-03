@@ -3,7 +3,7 @@
 // dashed guide at the official nationwide completion rate.
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { animate } from 'animejs';
 import type React from 'react';
@@ -74,11 +74,16 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
   const ticks = Array.from({ length: axisMax / tickStep + 1 }, (_, i) => i * tickStep);
   const toTrackPct = (rate: number) => (rate / axisMax) * 100;
 
+  // A new selection re-ranks the rows, so a card left open would describe a
+  // row that has moved. Reset during render rather than in an effect, so the
+  // stale card never paints.
   const selectionKey = `${filters.bureau}|${filters.type}|${range}`;
-  useEffect(() => setHovered(null), [selectionKey]);
-  const motionRoot = useAnimeScope<HTMLDivElement>(() => {
-    const root = motionRoot.current;
-    if (!root) return;
+  const [hoverSelection, setHoverSelection] = useState(selectionKey);
+  if (hoverSelection !== selectionKey) {
+    setHoverSelection(selectionKey);
+    setHovered(null);
+  }
+  const motionRootRef = useAnimeScope<HTMLDivElement>((root) => {
     root.querySelectorAll<HTMLElement>('[data-stem]').forEach((stem, index) => {
       animate(stem, {
         width: ['0%', `${stem.dataset.pct}%`],
@@ -168,7 +173,7 @@ export const ProcessingEfficiencyLollipop: React.FC<ImmigrationChartData> = ({ d
       }
       ref={rowsRef}
     >
-      <div ref={motionRoot}>
+      <div ref={motionRootRef}>
         <div className="relative">
           {ranked.map((point) => {
             const pct = toTrackPct(point.rate);

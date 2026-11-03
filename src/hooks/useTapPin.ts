@@ -8,11 +8,11 @@
 // `touchend` can't reopen or clear a pinned tooltip.
 'use client';
 
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 
 import type React from 'react';
 
-import { acquirePin, releasePin } from '@/lib/tooltip-pin';
+import { acquirePin, getPinnedId, releasePin } from '@/lib/tooltip-pin';
 
 export type TapResult = 'pinned' | 'moved' | 'unpinned' | 'ignored';
 
@@ -42,17 +42,17 @@ export function useTapPin({ enabled, containerRef, onDismiss }: UseTapPinOptions
   const [pinnedKey, setPinnedKey] = useState<string | null>(null);
 
   // Kept in a ref so the PinRegistration passed to the registry has a stable
-  // `close` identity even as the chart re-renders with new closures.
+  // `close` identity even as the chart re-renders with new closures. Synced in
+  // a layout effect, ahead of any passive effect or event that could read it.
   const onDismissRef = useRef(onDismiss);
-  onDismissRef.current = onDismiss;
+  useLayoutEffect(() => {
+    onDismissRef.current = onDismiss;
+  });
 
   const dismiss = useCallback(() => {
     setPinnedKey(null);
     onDismissRef.current();
   }, []);
-
-  const dismissRef = useRef(dismiss);
-  dismissRef.current = dismiss;
 
   const clear = useCallback(() => {
     setPinnedKey(null);
@@ -72,11 +72,11 @@ export function useTapPin({ enabled, containerRef, onDismiss }: UseTapPinOptions
       acquirePin({
         id,
         getElement: () => containerRef.current,
-        close: () => dismissRef.current(),
+        close: dismiss,
       });
       return moved ? 'moved' : 'pinned';
     },
-    [containerRef, enabled, id, pinnedKey]
+    [containerRef, dismiss, enabled, id, pinnedKey]
   );
 
   // Unmounting mid-pin (a chart swap, a filter change) must not leave the
@@ -84,14 +84,16 @@ export function useTapPin({ enabled, containerRef, onDismiss }: UseTapPinOptions
   useEffect(() => () => releasePin(id), [id]);
 
   // Switching to a mouse mid-session (a tablet gaining a trackpad) leaves a pin
-  // with no way to dismiss it, since the tap handlers are about to detach.
+  // with no way to dismiss it, since the tap handlers are about to detach. The
+  // pinned key resets during render; the registry and the chart's tooltip are
+  // external, so they are released in an effect. The registry holds this
+  // chart's id exactly while a key is pinned, so it says whether one was live.
+  if (!enabled && pinnedKey !== null) setPinnedKey(null);
   useEffect(() => {
-    if (!enabled && pinnedKey !== null) {
-      setPinnedKey(null);
-      releasePin(id);
-      onDismissRef.current();
-    }
-  }, [enabled, id, pinnedKey]);
+    if (enabled || getPinnedId() !== id) return;
+    releasePin(id);
+    onDismissRef.current();
+  }, [enabled, id]);
 
   if (!enabled) return null;
   return { tap, clear, pinned: pinnedKey !== null };

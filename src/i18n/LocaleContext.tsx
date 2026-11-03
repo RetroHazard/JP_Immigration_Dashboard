@@ -6,7 +6,16 @@
 // `<html lang>` is kept in sync so assistive technology follows the switch.
 'use client';
 
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 
 import { setChartFormatterLocale } from '../components/bklit/charts/chart-formatters';
 import { DEFAULT_LOCALE, LOCALE_QUERY_PARAM, LOCALE_STORAGE_KEY, LOCALE_SWITCHER_ENABLED } from './config';
@@ -61,14 +70,18 @@ const detectLocale = (): Locale => {
   return readStoredLocale() ?? (LOCALE_SWITCHER_ENABLED ? readBrowserLocale() : null) ?? DEFAULT_LOCALE;
 };
 
-export const LocaleProvider = ({ children }: { children: ReactNode }) => {
-  // Detection runs post-mount: the export is prerendered as English and the
-  // app itself is `ssr: false`, so there is no hydration mismatch to manage.
-  const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
+// The detection inputs (URL, storage, browser languages) are read once per
+// render and never announced, so there is nothing to subscribe to.
+const subscribeToNothing = () => () => {};
+const serverLocale = (): Locale => DEFAULT_LOCALE;
 
-  useEffect(() => {
-    setLocaleState(detectLocale());
-  }, []);
+export const LocaleProvider = ({ children }: { children: ReactNode }) => {
+  // The export is prerendered as English, so hydration renders the server
+  // snapshot first and then re-renders with the detected locale; a client-only
+  // mount reads the detected locale straight away. An explicit choice wins.
+  const detectedLocale = useSyncExternalStore(subscribeToNothing, detectLocale, serverLocale);
+  const [chosenLocale, setLocaleState] = useState<Locale | null>(null);
+  const locale = chosenLocale ?? detectedLocale;
 
   useEffect(() => {
     document.documentElement.lang = locale;
