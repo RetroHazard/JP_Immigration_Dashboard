@@ -307,7 +307,8 @@ export const vi: Dictionary = {
   'policy.feeRevision2026.title': 'Tăng lệ phí hồ sơ lần nữa',
   'policy.feeRevision2026.description': 'Gia hạn tính theo thời hạn, tối đa 75.000 yên; vĩnh trú tăng lên 200.000 yên.',
   'policy.pr2026.title': 'Sửa đổi hướng dẫn cấp vĩnh trú',
-  'policy.pr2026.description': 'Siết tiêu chí thu nhập, tiếng Nhật và thời gian vắng mặt; chủ yếu áp dụng cho hồ sơ từ tháng 4/2027.',
+  'policy.pr2026.description':
+    'Sửa đổi tiêu chí thu nhập, tiếng Nhật và thời gian vắng mặt; chủ yếu áp dụng cho hồ sơ từ tháng 4/2027.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

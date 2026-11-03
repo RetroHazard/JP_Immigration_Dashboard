@@ -314,7 +314,8 @@ export const es: Dictionary = {
   'policy.feeRevision2026.description':
     'Las prórrogas se escalonan hasta 75.000 yenes y la residencia permanente sube a 200.000.',
   'policy.pr2026.title': 'Revisada la guía de residencia permanente',
-  'policy.pr2026.description': 'Criterios más estrictos de ingresos, japonés y ausencias; rige sobre todo para solicitudes desde abril de 2027.',
+  'policy.pr2026.description':
+    'Criterios revisados de ingresos, japonés y ausencias; rige sobre todo para solicitudes desde abril de 2027.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

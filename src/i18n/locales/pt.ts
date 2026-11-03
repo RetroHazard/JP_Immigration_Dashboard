@@ -317,7 +317,8 @@ export const pt: Dictionary = {
   'policy.feeRevision2026.description':
     'As prorrogações passam a escalões até 75.000 ienes e a residência permanente a 200.000.',
   'policy.pr2026.title': 'Diretrizes de residência permanente revistas',
-  'policy.pr2026.description': 'Critérios mais rígidos de renda, japonês e ausências; vale sobretudo para pedidos desde abril de 2027.',
+  'policy.pr2026.description':
+    'Critérios revistos de renda, japonês e ausências; vale sobretudo para pedidos desde abril de 2027.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

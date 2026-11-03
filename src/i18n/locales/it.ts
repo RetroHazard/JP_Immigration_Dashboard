@@ -314,7 +314,8 @@ export const it: Dictionary = {
   'policy.feeRevision2026.description':
     'I rinnovi sono scaglionati fino a 75.000 yen e il soggiorno permanente sale a 200.000.',
   'policy.pr2026.title': 'Riviste le linee guida sul soggiorno permanente',
-  'policy.pr2026.description': 'Criteri più severi su reddito, giapponese e assenze; vale soprattutto per le domande da aprile 2027.',
+  'policy.pr2026.description':
+    'Criteri rivisti su reddito, giapponese e assenze; vale soprattutto per le domande da aprile 2027.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

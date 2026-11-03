@@ -321,7 +321,8 @@ export const tl: Dictionary = {
   'policy.feeRevision2026.description':
     'Hanggang 75,000 yen na ang extension ayon sa tagal, at 200,000 yen ang permanenteng paninirahan.',
   'policy.pr2026.title': 'Binago ang gabay sa permanenteng paninirahan',
-  'policy.pr2026.description': 'Mas mahigpit na pamantayan sa kita, Hapon at pagliban; karamihan ay para sa aplikasyon mula Abril 2027.',
+  'policy.pr2026.description':
+    'Binagong pamantayan sa kita, Hapon at pagliban; karamihan ay para sa aplikasyon mula Abril 2027.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

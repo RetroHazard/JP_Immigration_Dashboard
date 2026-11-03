@@ -303,7 +303,8 @@ export const ko: Dictionary = {
   'policy.feeRevision2026.title': '체류 절차 수수료 재인상',
   'policy.feeRevision2026.description': '체류기간 갱신은 기간별로 최대 75,000엔, 영주허가는 200,000엔으로 올랐습니다.',
   'policy.pr2026.title': '영주허가 가이드라인 개정',
-  'policy.pr2026.description': '소득·일본어 능력·출국 기간 기준을 구체화했으며, 대체로 2027년 4월 이후 신청부터 적용됩니다.',
+  'policy.pr2026.description':
+    '소득·일본어 능력·출국 기간 기준을 개정했으며, 대체로 2027년 4월 이후 신청부터 적용됩니다.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the
