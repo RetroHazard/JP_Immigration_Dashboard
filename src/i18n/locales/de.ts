@@ -311,6 +311,8 @@ export const de: Dictionary = {
   'policy.feeRevision2026.title': 'Antragsgebühren erneut erhöht',
   'policy.feeRevision2026.description':
     'Verlängerungen nach Dauer gestaffelt bis 75.000 Yen, die Niederlassung 200.000 Yen.',
+  'policy.pr2026.title': 'Leitlinie zur Niederlassung überarbeitet',
+  'policy.pr2026.description': 'Strengere Kriterien zu Einkommen, Japanischkenntnissen und Abwesenheit; gilt meist für Anträge ab April 2027.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the

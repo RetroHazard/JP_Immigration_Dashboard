@@ -339,6 +339,8 @@ export const template: Dictionary = {
   // 'policy.feeRevision2026.title': 'Residence fees raised again',
   // 'policy.feeRevision2026.description':
   //   'Extensions now tiered by period up to 75,000 yen; permanent residence rose to 200,000 yen.',
+  // 'policy.pr2026.title': 'Permanent residence guideline revised',
+  // 'policy.pr2026.description': 'Stricter income, Japanese-ability and absence criteria; mostly applies to filings from April 2027.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Compact per-type series names, separate from the shorter

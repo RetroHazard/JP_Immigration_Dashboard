@@ -319,6 +319,8 @@ export const fr: Dictionary = {
   'policy.feeRevision2026.title': 'Nouvelle hausse des frais de dossier',
   'policy.feeRevision2026.description':
     'Renouvellements échelonnés selon la durée, jusqu’à 75 000 yens ; résidence permanente à 200 000.',
+  'policy.pr2026.title': 'Lignes directrices de résidence permanente révisées',
+  'policy.pr2026.description': 'Critères plus stricts sur revenus, japonais et absences ; surtout pour les demandes dès avril 2027.',
 
   // ── Chart: Application Types ─────────────────────────────────────────────
   // Series names for the wrapping legend, so these can be fuller than the
