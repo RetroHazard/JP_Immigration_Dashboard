@@ -2,11 +2,9 @@ import prettier from 'eslint-config-prettier';
 import react from 'eslint-plugin-react';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import unusedImports from 'eslint-plugin-unused-imports';
-import { FlatCompat } from '@eslint/eslintrc';
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
-
-const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
 
 export default [
   {
@@ -20,7 +18,20 @@ export default [
       'src/buildInfo.js',
     ],
   },
-  ...compat.extends('next/core-web-vitals'),
+  ...nextCoreWebVitals,
+  {
+    // eslint-config-next 16 brings eslint-plugin-react-hooks 7, whose React
+    // Compiler rules arrive as errors. These four flag existing code (effects
+    // that sync state, refs read during render) that predates them; they warn
+    // until those call sites are refactored. The other compiler rules pass and
+    // stay at error.
+    rules: {
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/immutability': 'warn',
+      'react-hooks/purity': 'warn',
+    },
+  },
   {
     files: ['**/*.{ts,tsx,js,mjs,mts}'],
     languageOptions: {

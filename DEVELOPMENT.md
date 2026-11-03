@@ -425,8 +425,8 @@ they cover, in `src/` and in `scripts/` alike, so the tree names the folder rath
 
 ### Frontend Framework
 
-- **Next.js 15** (`15.5.19`) — React framework, built as a static export (`output: 'export'`)
-- **React 19** (`^19.2.8`) — Component library
+- **Next.js 16** (`16.4.3`) — React framework, built as a static export (`output: 'export'`)
+- **React 19** (`^19.3.1`) — Component library
 - **TypeScript 5.9** (`^5.9.2`) — Strict-mode, type-safe JavaScript
 
 ### Styling
@@ -441,12 +441,12 @@ they cover, in `src/` and in `scripts/` alike, so the tree names the folder rath
 - **Bklit UI** (vendored, MIT) — `src/components/bklit/` — the chart primitive library (Line/Bar/Pie/Sankey/Sunburst/Choropleth/Radar/Gauge), built on visx
 - **@visx/*** (curve, event, geo, gradient, grid, group, pattern, responsive, sankey, scale, shape, zoom) — visx primitives Bklit UI is built on
 - **d3-array**, **d3-geo**, **d3-sankey**, **d3-scale**, **d3-shape**, **topojson-client** — scales, geography, and Sankey layout helpers
-- **KaTeX** (`^0.16.28`) + **react-katex** — Mathematical notation rendering for the estimator's formulas
+- **KaTeX** (`^0.19.1`) + **react-katex** — Mathematical notation rendering for the estimator's formulas
 
 ### UI Utilities
 
-- **radix-ui** (`^1.6.7`) — Unstyled accessible primitives underlying the shadcn/ui components (Collapsible, Dialog, Popover, Select, Sheet, Tabs, Toggle, Tooltip, ...)
-- **@base-ui/react** (`^1.6.0`) — A second primitive library, carried by the vendored Bklit kit rather than chosen here. Its only importer is `bklit/charts/legend/legend-progress.tsx`, which no chart composes, so nothing from it reaches the bundle. Radix is the choice for app UI
+- **radix-ui** (`^1.8.1`) — Unstyled accessible primitives underlying the shadcn/ui components (Collapsible, Dialog, Popover, Select, Sheet, Tabs, Toggle, Tooltip, ...)
+- **@base-ui/react** (`^1.9.0`) — A second primitive library, carried by the vendored Bklit kit rather than chosen here. Its only importer is `bklit/charts/legend/legend-progress.tsx`, which no chart composes, so nothing from it reaches the bundle. Radix is the choice for app UI
 - **lucide-react** — Icon library
 - **next-themes** — Dark/light mode, adapted by `src/contexts/ThemeContext.tsx`
 - **nuqs** — Type-safe URL query state (active chart, filters, time range, compare)
@@ -455,10 +455,10 @@ they cover, in `src/` and in `scripts/` alike, so the tree names the folder rath
 
 ### Development
 
-- **Vitest 4** (`^4.1.10`) — Unit testing framework (jsdom environment)
+- **Vitest 5** (`^5.0.5`) — Unit testing framework (jsdom environment)
 - **@testing-library/react** — Component testing utilities
-- **ESLint 9** (`9.39.2`) — Flat config (`eslint.config.mjs`)
-- **Prettier 3** (`^3.8.1`) — Code formatting, with `prettier-plugin-tailwindcss`
+- **ESLint 9** (`9.39.2`) — Flat config (`eslint.config.mjs`), extending `eslint-config-next/core-web-vitals` natively
+- **Prettier 3** (`^3.9.10`) — Code formatting, with `prettier-plugin-tailwindcss`
 - **TypeScript ESLint** — Type-aware linting
 
 ### Build & Deployment
